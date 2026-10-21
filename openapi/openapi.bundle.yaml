@@ -6988,7 +6988,7 @@ components:
           description: 답 자리 줄에서는 빈칸 앞에 붙는 말이다. 답 자리가 아닌 줄에는 항상 있다.
         slot:
           type: boolean
-          description: 답이 들어갈 자리. 단계마다 정확히 한 줄이다.
+          description: 답이 들어갈 자리. 주관식·문장 지우기는 한 줄이며 일반 객관식은 없을 수도 있다.
     TrainingOptionView:
       type: object
       additionalProperties: false

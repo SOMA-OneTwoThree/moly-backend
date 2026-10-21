@@ -175,3 +175,37 @@ def test_shipped_catalog_keeps_the_no_self_blame_skeleton():
             "".join(o.id for o in stage.options), correct, stage.explanation is not None, stage.reward_hay,
         )
         assert actual == NO_SELF_BLAME[stage.number], stage.number
+
+
+@pytest.mark.parametrize(('tid', 'pattern', 'diary', 'erase'), [
+    ('positive-circuit-v1', 'PPWPWPPPWWPPWWWPPPWWWPPWWWWWWW', {2, 4, 26, 27, 28, 29, 30}, set()),
+    ('self-acceptance-v1', 'PPWPPPPPWPPPPPWPPPPWPPPPWPWWWW', {5, 11, 17, 19, 20, 21, 22, 26, 27, 28, 29, 30}, {5, 11, 17, 22}),
+])
+def test_new_courses_keep_verified_stage_flow(tid, pattern, diary, erase):
+    course = TrainingCatalog.load().get(tid)
+    assert len(course.stages) == 30
+    assert ''.join('W' if s.answer_type == 'write' else 'P' for s in course.stages) == pattern
+    assert {s.number for s in course.stages if s.layout == 'diary'} == diary
+    assert {s.number for s in course.stages if s.pick_style == 'erase'} == erase
+    assert {s.number: s.reward_hay for s in course.stages if s.reward_hay} == {5: 15, 15: 40, 30: 100}
+    for language in ('ko', 'en', 'ja'):
+        for stage in course.stages:
+            view = training_catalog.public_stage(stage, language)
+            assert not _walk_keys(view) & {'grading', 'criteria', 'example', 'correct', 'hint'}
+            assert '✅' not in str(view) and '편집자용' not in str(view)
+            assert stage.mission.pick(language)
+            if stage.answer_type == 'pick':
+                assert len({o.text.pick(language) for o in stage.options}) == len(stage.options)
+
+
+def test_new_content_is_separate_from_legacy_answers_and_choice_only_stage_has_no_slot():
+    catalog = TrainingCatalog.load()
+    assert [t.id for t in catalog.trainings if not t.archived] == ['positive-circuit-v1', 'self-acceptance-v1']
+    assert catalog.get('no-self-blame').archived
+    assert not any(line.slot for line in catalog.get('self-acceptance-v1').stage(18).lines)
+
+
+def test_birthday_explanation_matches_edited_choices():
+    stage = TrainingCatalog.load().get('self-acceptance-v1').stage(14)
+    assert stage.options[2].correct
+    assert '1번' not in stage.explanation.ko

@@ -20,6 +20,7 @@ from app.models.training import (
     TrainingProgress,
     TrainingReward,
     TrainingTries,
+    TrainingSubmission,
 )
 from app.schemas.trainings import TrainingAnswerRequest, TrainingClaimRequest
 from app.services import hay_ledger, llm, privacy, training_catalog, trainings
@@ -35,6 +36,7 @@ NOW = datetime(2026, 10, 21, 9, 0, tzinfo=timezone.utc)
 
 class Store:
     def __init__(self) -> None:
+        self.submissions = {}
         self.progress: dict[tuple, TrainingProgress] = {}
         self.answers: dict[tuple, TrainingAnswer] = {}
         self.tries: dict[uuid.UUID, TrainingTries] = {}
@@ -54,7 +56,9 @@ class FakeSession:
 
     def add(self, row) -> None:
         s = self.store
-        if isinstance(row, TrainingProgress):
+        if isinstance(row, TrainingSubmission):
+            s.submissions[(row.user_id, row.training_id, row.request_id)] = row
+        elif isinstance(row, TrainingProgress):
             s.progress[(row.user_id, row.training_id)] = row
         elif isinstance(row, TrainingAnswer):
             s.answers[(row.user_id, row.training_id, row.stage)] = row
@@ -77,6 +81,9 @@ class FakeSession:
 @pytest.fixture
 def store(monkeypatch) -> Store:
     s = Store()
+
+    async def load_submission(session, uid, training_id, request_id):
+        return s.submissions.get((uid, training_id, request_id))
 
     async def load_progress(session, uid, training_id):
         return s.progress.get((uid, training_id))
@@ -119,6 +126,7 @@ def store(monkeypatch) -> Store:
         return llm.LLMResult(text=reply, input_tokens=1, output_tokens=1)
 
     monkeypatch.setattr(training_catalog, "current", lambda: CATALOG)
+    monkeypatch.setattr(trainings, "_load_submission", load_submission)
     monkeypatch.setattr(trainings, "_load_progress", load_progress)
     monkeypatch.setattr(trainings, "_load_all_progress", load_all_progress)
     monkeypatch.setattr(trainings, "_load_answers", load_answers)
@@ -300,7 +308,7 @@ async def test_write_is_graded_outside_the_transaction(store, session):
     result = await _submit(session, 2, _write("포장 실수"))
     assert result["result"] == "passed" and result["judge"] == "ai"
     assert result["answer"]["text"] == "포장 실수"
-    assert store.events == ["ensure", "commit", "ai", "lock", "ensure", "commit"]
+    assert store.events == ["lock", "ensure", "commit", "ai", "lock", "ensure", "commit"]
 
 
 async def test_rule_failure_spends_a_try_without_ai(store, session):
@@ -382,6 +390,7 @@ async def test_request_recorded_during_ai_is_returned_from_transaction_two(store
         progress = store.progress[(UID, TID)]
         progress.last_request_id = request.client_request_id
         progress.last_result = saved
+        store.submissions[(UID, TID, request.client_request_id)].result = saved
 
     store.during_ai = twin_finished
     store.ai_replies.append('{"pass": false, "hint": "이번 판정"}')
@@ -450,3 +459,94 @@ async def test_claims_are_saved_for_write_stages_only(store, session):
     with pytest.raises(AppError) as missing:
         await trainings.claim(session, USER, TID, 9, body)
     assert missing.value.code == "TRAINING_NOT_FOUND"
+
+
+async def test_replay_survives_intervening_failed_requests(store, session):
+    first_request = _pick('a')
+    first = await _submit(session, 1, first_request)
+    await _submit(session, 1, _pick('c'))
+    again = await _submit(session, 1, first_request)
+    assert again['result'] == first['result'] == 'retry'
+    assert again['hint'] == first['hint']
+    assert again['tries']['left'] == 3
+    assert store.tries[UID].tries_left == 3
+
+
+async def test_same_request_id_cannot_change_payload_or_stage(store, session):
+    request = _pick('a')
+    await _submit(session, 1, request)
+    with pytest.raises(AppError) as changed:
+        await _submit(session, 1, _pick('b', request.client_request_id))
+    assert changed.value.http_status == 422
+    await _submit(session, 1, _pick('b'))
+    with pytest.raises(AppError) as moved:
+        await _submit(session, 2, _write('포장 실수', request.client_request_id))
+    assert moved.value.http_status == 422
+    assert store.tries[UID].tries_left == 4
+
+
+async def test_concurrent_retries_reserve_one_ai_call(store, session, monkeypatch):
+    import asyncio
+    await _submit(session, 1, _pick('b'))
+    entered, finish = asyncio.Event(), asyncio.Event()
+    calls = 0
+
+    async def grade(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        entered.set()
+        await finish.wait()
+        return llm.LLMResult(text='{"pass": false, "hint": "다른 이유는요?"}', input_tokens=1, output_tokens=1)
+
+    monkeypatch.setattr(llm, 'generate', grade)
+    request = _write('내가 못해서')
+    first = asyncio.create_task(_submit(FakeSession(store), 2, request))
+    await entered.wait()
+    rest = await asyncio.gather(*[_submit(FakeSession(store), 2, request) for _ in range(7)], return_exceptions=True)
+    assert calls == 1
+    assert all(isinstance(r, AppError) and r.code == 'TRAINING_SUBMISSION_PENDING' for r in rest)
+    finish.set()
+    result = await first
+    replay = await _submit(session, 2, request)
+    assert result == replay and replay['tries']['left'] == 4
+    assert calls == 1
+
+
+async def test_expired_reservation_can_retry_and_fences_the_old_worker(store, session, monkeypatch):
+    import asyncio
+    await _submit(session, 1, _pick('b'))
+    entered, finish = asyncio.Event(), asyncio.Event()
+    calls = 0
+
+    async def grade(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            entered.set()
+            await finish.wait()
+            return llm.LLMResult(text='{"pass": true}', input_tokens=1, output_tokens=1)
+        return llm.LLMResult(text='{"pass": false, "hint": "다른 이유는요?"}', input_tokens=1, output_tokens=1)
+
+    monkeypatch.setattr(llm, 'generate', grade)
+    request = _write('내가 못해서')
+    first = asyncio.create_task(_submit(FakeSession(store), 2, request))
+    await entered.wait()
+    receipt = store.submissions[UID, TID, request.client_request_id]
+    receipt.lease_until = trainings._now() - timedelta(seconds=1)
+    replacement = await _submit(FakeSession(store), 2, request)
+    finish.set()
+    old = await first
+    assert old == replacement
+    assert old['result'] == 'retry' and old['tries']['left'] == 4
+    assert (UID, TID, 2) not in store.answers
+    assert calls == 2
+
+
+async def test_completed_receipt_replays_after_progress_moves_on(store, session):
+    request = _pick('b')
+    await _submit(session, 1, request)
+    await _submit(session, 2, _write('포장 실수'))
+    replay = await _submit(session, 1, request)
+    assert replay['answer']['stage'] == 1
+    assert replay['progress']['next_stage'] == 3
+    assert replay['tries']['left'] == 5

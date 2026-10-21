@@ -88,3 +88,19 @@ class TrainingClaim(Base):
     verdict: Mapped[str] = mapped_column(String, nullable=False)
     hint: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(_TZ, nullable=False, server_default=text("now()"))
+
+
+class TrainingSubmission(Base):
+    """요청별 판정과 채점 선점. 실패한 답 원문은 보관하지 않는다."""
+
+    __tablename__ = "training_submissions"
+
+    user_id: Mapped[uuid.UUID] = _owner()
+    training_id: Mapped[str] = mapped_column(String, primary_key=True)
+    request_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    stage: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    payload_hash: Mapped[str] = mapped_column(String, nullable=False)
+    lease_token: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    lease_until: Mapped[datetime] = mapped_column(_TZ, nullable=False)
+    result: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(_TZ, nullable=False, server_default=text("now()"))

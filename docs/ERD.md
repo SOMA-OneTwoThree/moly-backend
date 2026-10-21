@@ -161,3 +161,7 @@ erDiagram
 - 삭제·롤백을 위해 정상 사용자 원문·당일 운세·광고 해금·지급 이력을 임의 초기화하지 않는다.
 
 세부 절차는 [DB 안내](../db/README.md)와 [운영](OPERATIONS.md)을 따른다.
+
+### 트레이닝 요청 기록
+
+`training_submissions`: PK(user_id, training_id, request_id), stage, payload_hash, lease_token, lease_until, result(jsonb), created_at. 사용자별 advisory lock으로 선점하고 AI 호출 전 commit한다. 결과와 기회 차감은 동일 트랜잭션에서 기록한다. 실패 답 원문은 보관하지 않으며 profiles FK CASCADE, RLS 및 service_role 권한을 적용한다.

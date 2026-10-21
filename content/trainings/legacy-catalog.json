@@ -1,0 +1,1676 @@
+{
+ "schema_version": 1,
+ "trainings": [
+  {
+   "id": "no-self-blame",
+   "order": 1,
+   "icon_key": "mending_heart",
+   "title": {
+    "ko": "자책 금지",
+    "en": "Stop Blaming Yourself",
+    "ja": "自分を責めない"
+   },
+   "summary": {
+    "ko": "일이 틀어지면 먼저 나를 탓하게 되나요? 짧은 이야기 30개로 그 습관을 알아차리고, 나에게 다르게 말하는 연습을 해요.",
+    "en": "When things go wrong, do you blame yourself first? Through 30 short stories, notice that habit and practice talking to yourself differently.",
+    "ja": "うまくいかないとき、まず自分を責めてしまいますか？30の短いお話で、そのくせに気づき、自分に別の言葉をかける練習をします。"
+   },
+   "stages": [
+    {
+     "number": 1,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "이 일을 사실에 가깝게 본 생각을 골라 보세요.",
+      "en": "Pick the thought that stays closest to the facts.",
+      "ja": "この出来事を事実に近く見ている考えを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "온라인으로 주문한 조립 책장이 도착했어요. 그런데 상자에 나사 한 봉지가 들어 있지 않았어요.",
+        "en": "The flat-pack bookshelf you ordered online has arrived. But one bag of screws is missing from the box.",
+        "ja": "ネットで注文した組み立て式の本棚が届きました。ところが、箱にネジがひと袋入っていませんでした。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true,
+       "text": {
+        "ko": "상자를 보며 든 생각 가운데 사실에 가까운 것은?",
+        "en": "Looking at the box, which thought is closest to the facts?",
+        "ja": "箱を見て浮かんだ考えのうち、事実に近いのは？"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "주문할 때 내가 옵션을 잘못 눌렀나 봐",
+        "en": "I must have picked the wrong option when I ordered",
+        "ja": "注文のときにオプションを押し間違えたのかも"
+       },
+       "hint": {
+        "ko": "주문 내역을 보면 나사는 기본 구성품이에요.",
+        "en": "Your order shows the screws come with it as standard.",
+        "ja": "注文内容を見ると、ネジは標準の付属品です。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "포장하거나 옮기는 사이에 빠졌을 수 있어",
+        "en": "It may have fallen out during packing or shipping",
+        "ja": "梱包や配送のあいだに抜けたのかもしれない"
+       },
+       "correct": true
+      },
+      {
+       "id": "c",
+       "text": {
+        "ko": "나한테는 왜 맨날 이런 일만 생길까",
+        "en": "Why does this kind of thing always happen to me?",
+        "ja": "どうして自分にはいつもこんなことばかり起きるんだろう"
+       },
+       "hint": {
+        "ko": "한 번 생긴 일을 '맨날'로 넓히지 않아도 돼요.",
+        "en": "One mix-up doesn't have to become 'always.'",
+        "ja": "一度起きたことを「いつも」に広げなくて大丈夫です。"
+       }
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "다음에 할 일로 이어지는 생각을 골라 보세요.",
+      "en": "Pick the thought that leads to a next step.",
+      "ja": "次にすることにつながる考えを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "판매자가 보내 준 나사로 책장을 다 만들었는데, 문 한 짝이 끝까지 닫히지 않고 살짝 떠요.",
+        "en": "You finished the bookshelf with the screws the seller sent, but one door won't close all the way and sits slightly open.",
+        "ja": "販売者が送ってくれたネジで本棚を組み立てたのに、扉が一枚、最後まで閉まらずに少し浮いています。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true,
+       "text": {
+        "ko": "지금 해 볼 만한 생각은?",
+        "en": "What's a helpful thought right now?",
+        "ja": "今、持つとよさそうな考えは？"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "경첩이랑 바닥 수평부터 하나씩 살펴보자",
+        "en": "Let me check the hinges and whether the floor is level, one at a time",
+        "ja": "蝶番と床の水平から、一つずつ確かめてみよう"
+       },
+       "correct": true
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "손재주 없는 내가 처음부터 망친 거야",
+        "en": "I'm bad with my hands, so I ruined it from the start",
+        "ja": "不器用な自分が最初から台無しにしたんだ"
+       },
+       "hint": {
+        "ko": "아직 까닭을 모르는데 결론부터 내렸어요. 먼저 살펴볼 곳이 있어요.",
+        "en": "You jumped to a conclusion before knowing the cause. There are things to check first.",
+        "ja": "まだ原因がわからないのに、先に結論を出しています。まず確かめられるところがありますよ。"
+       }
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "answer_type": "write",
+     "layout": "chat",
+     "mission": {
+      "ko": "내 솜씨 말고, 문이 뜨는 까닭이 될 만한 것을 하나 적어 보세요.",
+      "en": "Write one possible reason the door won't close, other than your own skill.",
+      "ja": "自分の腕前ではなく、扉が浮く原因になりそうなことを短い文で一つ書いてみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "me",
+       "text": {
+        "ko": "문이 왜 안 닫히는지 하나씩 짚어 보자.",
+        "en": "Let's go through why the door won't close.",
+        "ja": "扉がなぜ閉まらないのか、一つずつ考えてみよう。"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true,
+       "text": {
+        "ko": "첫 번째 후보는",
+        "en": "First possibility:",
+        "ja": "一つ目の候補は"
+       }
+      }
+     ],
+     "grading": {
+      "criteria": "Pass any plausible cause that is not the user's own skill, such as a loose hinge screw, an uneven floor, a warped panel, a defective part, or a mistake in the manual. A single word passes, even if it does not fit the sentence grammatically, as long as a cause is clear. Fail if the answer blames the user or has nothing to do with a cause.",
+      "example": {
+       "ko": "경첩 나사가 덜 조여졌을 수 있어",
+       "en": "a hinge screw might be loose",
+       "ja": "蝶番のネジがゆるんでいるのかも"
+      }
+     }
+    },
+    {
+     "number": 4,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "늦은 일을 인정하면서도 나를 깎아내리지 않는 말을 골라 보세요.",
+      "en": "Pick a reply that owns up to being late without putting yourself down.",
+      "ja": "遅れたことは認めつつ、自分をおとしめない言葉を選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "책장을 고치다 시간 가는 줄 몰라서, 동생과 전시를 보기로 한 시간에 30분 늦었어요.",
+        "en": "You lost track of time fixing the bookshelf and were 30 minutes late to meet your sister at an exhibition.",
+        "ja": "本棚を直していて時間を忘れ、妹と展示を見に行く約束に30分遅れてしまいました。"
+       }
+      },
+      {
+       "speaker": "other",
+       "name": {
+        "ko": "동생",
+        "en": "Sister",
+        "ja": "妹"
+       },
+       "text": {
+        "ko": "어디야? 입장 마감 얼마 안 남았어!",
+        "en": "Where are you? Last entry is soon!",
+        "ja": "どこにいるの？入場締め切りまでもうすぐだよ！"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "미안… 나는 약속 하나 제대로 지키는 게 없네",
+        "en": "Sorry… I can't even keep one promise right",
+        "ja": "ごめん…私って約束一つまともに守れないね"
+       },
+       "hint": {
+        "ko": "늦은 건 오늘 한 번이에요. 나라는 사람 전체를 깎아내리지 않아도 돼요.",
+        "en": "You were late once, today. There's no need to put your whole self down.",
+        "ja": "遅れたのは今日の一回だけです。自分という人間まるごとをおとしめなくて大丈夫です。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "미안해! 책장 고치다 시간을 놓쳤어. 지금 바로 갈게",
+        "en": "Sorry! I lost track of time fixing the bookshelf. On my way now",
+        "ja": "ごめん！本棚を直してて時間を忘れてた。今すぐ行くね"
+       },
+       "correct": true
+      },
+      {
+       "id": "c",
+       "text": {
+        "ko": "마감까진 아직 남았잖아, 늦은 것도 아니야",
+        "en": "There's still time before last entry, so I'm not really late",
+        "ja": "締め切りまでまだあるじゃん、遅れてないよ"
+       },
+       "hint": {
+        "ko": "기다린 사람에게는 늦은 게 맞아요. 짧게 사과해도 괜찮아요.",
+        "en": "To the person waiting, you are late. A short apology is fine.",
+        "ja": "待っていた人にとっては、遅れたのは本当です。短く謝っても大丈夫です。"
+       }
+      }
+     ],
+     "explanation": {
+      "ko": "늦었을 때는 사과하면 돼요. 사과는 일을 바로잡는 말이고, 자책은 나를 깎아내리는 말이에요.",
+      "en": "When you're late, an apology is enough. An apology sets things right; self-blame just puts you down.",
+      "ja": "遅れたときは謝れば大丈夫。謝ることは出来事を正す言葉で、自分を責めることは自分をおとしめる言葉です。"
+     }
+    },
+    {
+     "number": 5,
+     "answer_type": "pick",
+     "layout": "diary",
+     "pick_style": "erase",
+     "review_point": true,
+     "reward_hay": 15,
+     "mission": {
+      "ko": "나를 몰아세우는 문장 하나를 일기에서 지워 보세요.",
+      "en": "Erase the one sentence in the diary that's hard on you.",
+      "ja": "日記の中から、自分を追い詰める文を一つ消してみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "주말 내내 책장과 씨름했다.",
+        "en": "I wrestled with the bookshelf all weekend.",
+        "ja": "週末はずっと本棚と格闘した。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      },
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "이제 좋아하는 책을 꽂을 자리가 생겼다.",
+        "en": "Now I have a place for my favorite books.",
+        "ja": "これで好きな本を並べる場所ができた。"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "문 한 짝이 계속 떠서 애를 먹었다.",
+        "en": "One door kept sticking out, which was a pain.",
+        "ja": "扉が一枚ずっと浮いていて手こずった。"
+       },
+       "hint": {
+        "ko": "이 문장은 있었던 일을 적은 거예요. 나를 몰아세우는 문장은 따로 있어요.",
+        "en": "This sentence just records what happened. The one that's hard on you is elsewhere.",
+        "ja": "この文はあったことを書いたものです。自分を追い詰める文は別にあります。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "경첩 나사를 조금 풀었다 다시 조이니 문이 꼭 맞았다.",
+        "en": "When I loosened the hinge screws a little and tightened them again, the door fit perfectly.",
+        "ja": "蝶番のネジを少しゆるめて締め直したら、扉がぴったり閉まった。"
+       },
+       "hint": {
+        "ko": "이 문장은 있었던 일을 적은 거예요. 나를 몰아세우는 문장은 따로 있어요.",
+        "en": "This sentence just records what happened. The one that's hard on you is elsewhere.",
+        "ja": "この文はあったことを書いたものです。自分を追い詰める文は別にあります。"
+       }
+      },
+      {
+       "id": "c",
+       "text": {
+        "ko": "그래도 이런 것 하나 쉽게 못 하는 나는 어른 자격이 없는 것 같았다.",
+        "en": "Still, I felt like someone who can't even do this easily doesn't deserve to be called an adult.",
+        "ja": "それでも、こんなこと一つ簡単にできない自分は大人失格だと思った。"
+       },
+       "correct": true
+      }
+     ]
+    },
+    {
+     "number": 6,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "깨진 초를 두고, 내가 막을 수 있었던 일인지 따져 본 생각을 골라 보세요.",
+      "en": "About the broken candles, pick the thought that asks whether you could have prevented it.",
+      "ja": "割れたキャンドルについて、自分に防げたことだったかを見きわめた考えを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "친구와 동네 플리마켓에서 직접 만든 초를 팔고 있어요. 주최 측이 정해 준 대로 간판을 세워 두었는데, 예보에 없던 돌풍에 간판이 넘어지면서 유리병 초 두 개가 깨졌어요.",
+        "en": "You're selling handmade candles with a friend at a neighborhood flea market. You set up the sign just as the organizers told you, but a sudden gust the forecast never mentioned knocked it over and broke two candles in glass jars.",
+        "ja": "友だちと近所のフリーマーケットで、手作りのキャンドルを売っています。主催者に言われたとおりに看板を立てておいたのに、予報になかった突風で看板が倒れ、瓶入りのキャンドルが二つ割れてしまいました。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true,
+       "text": {
+        "ko": "깨진 초를 보며 든 생각은?",
+        "en": "Looking at the broken candles, what do you think?",
+        "ja": "割れたキャンドルを見て浮かんだ考えは？"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "간판을 더 단단히 세우지 못한 내 잘못이야",
+        "en": "It's my fault for not setting the sign up more firmly",
+        "ja": "看板をもっとしっかり立てなかった私のせいだ"
+       },
+       "hint": {
+        "ko": "정해진 대로 세워 두었어요. 갑자기 분 바람까지 내가 막을 수는 없어요.",
+        "en": "You set it up the way you were told. You couldn't have stopped a sudden gust.",
+        "ja": "決められたとおりに立てていました。急に吹いた風まで防ぐことはできません。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "예보에도 없던 바람이 갑자기 분 거야",
+        "en": "A gust the forecast never mentioned just came out of nowhere",
+        "ja": "予報にもなかった風が、急に吹いたんだ"
+       },
+       "correct": true
+      }
+     ]
+    },
+    {
+     "number": 7,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "친구에게 건넬 말로 알맞은 것을 골라 보세요.",
+      "en": "Pick the best thing to say to your friend.",
+      "ja": "友だちにかける言葉として、ふさわしいものを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "점심이 지나도록 손님이 뜸해요.",
+        "en": "Even past lunchtime, there are hardly any customers.",
+        "ja": "お昼を過ぎても、お客さんがまばらです。"
+       }
+      },
+      {
+       "speaker": "other",
+       "name": {
+        "ko": "친구",
+        "en": "Friend",
+        "ja": "友だち"
+       },
+       "text": {
+        "ko": "오늘 생각보다 사람이 적네…",
+        "en": "Fewer people than I expected today…",
+        "ja": "今日は思ったより人が少ないね…"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "그냥 일찍 접자. 어차피 안 팔릴 거야",
+        "en": "Let's just pack up early. Nothing's going to sell anyway",
+        "ja": "もう早めに片付けよう。どうせ売れないよ"
+       },
+       "hint": {
+        "ko": "아직 오후가 남았어요. 벌써 결론을 내리지 않아도 돼요.",
+        "en": "There's still the afternoon. No need to decide how it ends yet.",
+        "ja": "まだ午後が残っています。もう結論を出さなくて大丈夫です。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "그러게. 오후엔 사람이 늘 테니 그사이 진열을 바꿔 볼까?",
+        "en": "Yeah. More people should come in the afternoon, so want to rearrange the display meanwhile?",
+        "ja": "そうだね。午後は人が増えるだろうから、そのあいだに並べ方を変えてみようか？"
+       },
+       "correct": true
+      },
+      {
+       "id": "c",
+       "text": {
+        "ko": "내가 만든 초가 별로라서 그런가 봐",
+        "en": "It must be because my candles aren't any good",
+        "ja": "私が作ったキャンドルがいまいちだからかな"
+       },
+       "hint": {
+        "ko": "손님이 적은 데는 내 초 말고도 여러 까닭이 있어요.",
+        "en": "There are plenty of reasons for few customers besides your candles.",
+        "ja": "お客さんが少ないのには、キャンドル以外にもいろいろな理由があります。"
+       }
+      }
+     ],
+     "explanation": {
+      "ko": "손님 수는 날씨, 시간, 홍보처럼 내가 정하지 않은 것들이 함께 정해요. 내 몫이 아닌 것까지 떠안지 않아도 돼요.",
+      "en": "How many customers come depends on things you don't control, like the weather, the time, and promotion. You don't have to carry what isn't yours to carry.",
+      "ja": "お客さんの数は、天気や時間帯、宣伝のように、自分が決めていないことにも左右されます。自分の担当ではないことまで背負わなくて大丈夫です。"
+     }
+    },
+    {
+     "number": 8,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "꺼진 단말기를 두고, 나에게 나쁜 이름표를 붙이지 않는 생각을 골라 보세요.",
+      "en": "About the card reader shutting off, pick the thought that doesn't stick a bad label on you.",
+      "ja": "電源が切れた端末について、自分に悪いレッテルを貼らない考えを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "손님이 카드로 계산하려는데, 아침에 가득 충전해 온 카드 단말기가 갑자기 꺼졌어요.",
+        "en": "A customer wants to pay by card, but the card reader you fully charged this morning suddenly shuts off.",
+        "ja": "お客さんがカードで払おうとしたら、朝フル充電してきたカード端末が急に切れてしまいました。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true,
+       "text": {
+        "ko": "단말기가 꺼진 일을 두고 든 생각은?",
+        "en": "What do you think about the reader shutting off?",
+        "ja": "端末が切れたことについて浮かんだ考えは？"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "가득 충전해 왔으니 기계 쪽 문제일 가능성이 커",
+        "en": "I charged it fully, so it's probably a problem with the device",
+        "ja": "フル充電してきたんだから、機械の問題の可能性が高い"
+       },
+       "correct": true
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "여분 배터리도 안 챙긴 나는 준비성이 없어",
+        "en": "I didn't even bring a spare battery. I'm just unprepared",
+        "ja": "予備のバッテリーも持ってこなかった私は、準備が足りない人間だ"
+       },
+       "hint": {
+        "ko": "할 만큼 준비해 왔어요. 그런 나에게 '준비성 없음'이라는 이름을 붙이지 않아도 돼요.",
+        "en": "You prepared as much as you reasonably could. No need to label yourself 'unprepared.'",
+        "ja": "できるだけの準備はしてきました。そんな自分に「準備不足」というレッテルを貼らなくて大丈夫です。"
+       }
+      }
+     ]
+    },
+    {
+     "number": 9,
+     "answer_type": "write",
+     "layout": "chat",
+     "mission": {
+      "ko": "손님에게 나를 깎아내리지 않는 말로 답해 보세요.",
+      "en": "Reply to the customer without putting yourself down.",
+      "ja": "自分をおとしめない言葉で、お客さんに答えてみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "초를 사 간 손님이 다시 와서 말해요.",
+        "en": "A customer who bought a candle comes back and says:",
+        "ja": "キャンドルを買っていったお客さんが戻ってきて言いました。"
+       }
+      },
+      {
+       "speaker": "other",
+       "name": {
+        "ko": "손님",
+        "en": "Customer",
+        "ja": "お客さん"
+       },
+       "text": {
+        "ko": "집에 가서 보니 심지가 한쪽으로 기울어 있더라고요.",
+        "en": "When I got home, I noticed the wick was leaning to one side.",
+        "ja": "家に帰って見たら、芯が片側に傾いていたんです。"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true
+      }
+     ],
+     "grading": {
+      "criteria": "Pass if the reply accepts what the customer said and deals with it (offering an exchange or a refund, or explaining how to fix it) or briefly apologizes. Fail if the user puts themselves down (for example, saying everything they make is a mess), only blames the customer, or says something unrelated to the situation.",
+      "example": {
+       "ko": "알려 주셔서 감사해요. 새것으로 바꿔 드릴게요!",
+       "en": "Thanks for letting me know. I'll swap it for a new one!",
+       "ja": "教えてくださってありがとうございます。新しいものと交換しますね！"
+      }
+     }
+    },
+    {
+     "number": 10,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "남은 초를 보고, 나를 덜 몰아세우는 생각을 골라 보세요.",
+      "en": "Looking at the leftover candles, pick the thought that's easier on you.",
+      "ja": "残ったキャンドルを見て、自分を追い詰めすぎない考えを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "장사를 마치고 세어 보니, 준비한 초가 절반쯤 남았어요.",
+        "en": "After closing up, you count and find about half of the candles left.",
+        "ja": "お店を閉めて数えてみると、用意したキャンドルが半分ほど残っていました。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true,
+       "text": {
+        "ko": "남은 초를 보며 든 생각은?",
+        "en": "What do you think, looking at the leftovers?",
+        "ja": "残ったキャンドルを見て浮かんだ考えは？"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "절반은 팔렸네. 어떤 향이 잘 나갔는지 적어 두자",
+        "en": "Half of them sold. Let me note which scents went well",
+        "ja": "半分は売れたね。どの香りがよく売れたかメモしておこう"
+       },
+       "correct": true
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "이렇게 남을 걸 왜 이렇게 많이 만들었을까. 나는 셈도 못 하나 봐",
+        "en": "Why did I make so many? I guess I can't even count",
+        "ja": "こんなに残るのに、なんでこんなに作ったんだろう。計算もできないのかな"
+       },
+       "hint": {
+        "ko": "처음 나간 장터에서 몇 개가 팔릴지 미리 알 수는 없어요.",
+        "en": "At your first market, there was no way to know how many would sell.",
+        "ja": "初めて出たマーケットで、いくつ売れるかを前もって知ることはできません。"
+       }
+      }
+     ]
+    },
+    {
+     "number": 11,
+     "answer_type": "pick",
+     "layout": "diary",
+     "pick_style": "erase",
+     "mission": {
+      "ko": "일기에서 나를 깎아내리는 문장을 찾아 지워 보세요.",
+      "en": "Find and erase the sentence in the diary that puts you down.",
+      "ja": "日記の中から、自分をおとしめる文を見つけて消してみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "처음으로 플리마켓에 나가 본 날이다.",
+        "en": "Today was my first time at a flea market.",
+        "ja": "初めてフリーマーケットに出た日だ。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "바람에 유리병 초 두 개가 깨지고 단말기도 말썽이었다.",
+        "en": "The wind broke two jar candles, and the card reader acted up too.",
+        "ja": "風で瓶のキャンドルが二つ割れ、端末も調子が悪かった。"
+       },
+       "hint": {
+        "ko": "이 문장은 그대로 두어도 괜찮아요. 나를 깎아내리는 문장을 찾아보세요.",
+        "en": "This sentence can stay. Look for the one that puts you down.",
+        "ja": "この文はそのままで大丈夫です。自分をおとしめる文を探してみましょう。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "남은 초를 보니 내 솜씨로는 어림없다는 생각이 들었다.",
+        "en": "Seeing the leftover candles, I thought someone with my skills doesn't stand a chance.",
+        "ja": "残ったキャンドルを見て、私の腕じゃとても無理だと思った。"
+       },
+       "correct": true
+      },
+      {
+       "id": "c",
+       "text": {
+        "ko": "그래도 손님 한 분은 향이 좋다며 두 개를 더 사 갔다.",
+        "en": "Still, one customer loved the scent and bought two more.",
+        "ja": "それでも、あるお客さんは香りがいいと言って、二つも買い足してくれた。"
+       },
+       "hint": {
+        "ko": "이 문장은 그대로 두어도 괜찮아요. 나를 깎아내리는 문장을 찾아보세요.",
+        "en": "This sentence can stay. Look for the one that puts you down.",
+        "ja": "この文はそのままで大丈夫です。自分をおとしめる文を探してみましょう。"
+       }
+      },
+      {
+       "id": "d",
+       "text": {
+        "ko": "다음 장터에는 작은 초를 더 만들어 가야겠다.",
+        "en": "For the next market, I'll make more small candles.",
+        "ja": "次のマーケットには、小さいキャンドルをもっと作っていこう。"
+       },
+       "hint": {
+        "ko": "이 문장은 그대로 두어도 괜찮아요. 나를 깎아내리는 문장을 찾아보세요.",
+        "en": "This sentence can stay. Look for the one that puts you down.",
+        "ja": "この文はそのままで大丈夫です。自分をおとしめる文を探してみましょう。"
+       }
+      }
+     ]
+    },
+    {
+     "number": 12,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "막힌 주차장을 두고, 미리 알 수 있었던 일인지 생각해 본 것을 골라 보세요.",
+      "en": "About the closed parking lot, pick the thought that considers whether you could have known in advance.",
+      "ja": "使えなかった駐車場について、前もって知ることができたかを考えたものを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "친구들과 산에 가기로 했어요. 그런데 산 아래 주차장이 오늘 아침 갑자기 잡힌 행사로 막혀서, 멀리 차를 대고 20분을 걸어와야 했어요.",
+        "en": "You planned a hike with friends. But the parking lot at the foot of the mountain was closed for an event scheduled only this morning, so you had to park far away and walk 20 minutes.",
+        "ja": "友だちと山登りに行くことにしました。ところが、山のふもとの駐車場が今朝急に決まったイベントで使えず、遠くに車をとめて20分歩くことになりました。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true,
+       "text": {
+        "ko": "주차장이 막힌 일을 두고 든 생각은?",
+        "en": "What do you think about the closed lot?",
+        "ja": "駐車場が使えなかったことについて浮かんだ考えは？"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "오늘 아침에 갑자기 잡힌 행사라 미리 알 방법이 없었어",
+        "en": "The event was only set this morning, so there was no way to know beforehand",
+        "ja": "今朝急に決まったイベントだから、前もって知る方法はなかった"
+       },
+       "correct": true
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "전날 밤에 한 번 더 찾아보지 않은 내가 무책임했어",
+        "en": "It was irresponsible of me not to check again the night before",
+        "ja": "前の晩にもう一度調べなかった私が無責任だった"
+       },
+       "hint": {
+        "ko": "행사는 오늘 아침에 정해졌어요. 어젯밤에는 찾아볼 수 없는 소식이었어요.",
+        "en": "The event was decided this morning. There was nothing to find last night.",
+        "ja": "イベントは今朝決まりました。昨夜の時点では調べようのない知らせでした。"
+       }
+      }
+     ]
+    },
+    {
+     "number": 13,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "친구들에게 할 말로 알맞은 것을 골라 보세요.",
+      "en": "Pick the best thing to say to your friends.",
+      "ja": "友だちにかける言葉として、ふさわしいものを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "차를 대고 친구들과 걷기 시작했어요.",
+        "en": "You park and start walking with your friends.",
+        "ja": "車をとめて、友だちと歩き始めました。"
+       }
+      },
+      {
+       "speaker": "me",
+       "text": {
+        "ko": "생각보다 좀 걸어야겠다.",
+        "en": "Looks like it's a bit more of a walk than I thought.",
+        "ja": "思ったより少し歩くことになりそう。"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "다들 미안해. 주차장까지 내가 다 알아봤어야 했는데",
+        "en": "Sorry, everyone. I should have checked everything, even the parking",
+        "ja": "みんなごめん。駐車場まで全部調べておくべきだった"
+       },
+       "hint": {
+        "ko": "주차장이 막힌 건 행사 때문이에요. 사과보다 지금 함께 즐길 말을 찾아봐요.",
+        "en": "The lot was closed because of the event. Instead of apologizing, find something to enjoy together now.",
+        "ja": "駐車場が使えなかったのはイベントのせいです。謝るより、今いっしょに楽しめる言葉を探してみましょう。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "가는 길에 단풍이 예쁘대. 천천히 구경하면서 가자!",
+        "en": "I heard the autumn leaves are pretty along the way. Let's take our time and enjoy them!",
+        "ja": "道の途中の紅葉がきれいなんだって。ゆっくり眺めながら行こう！"
+       },
+       "correct": true
+      }
+     ]
+    },
+    {
+     "number": 14,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "친구가 같은 말을 한다면 뭐라고 해 줄지 골라 보세요.",
+      "en": "If a friend said the same thing, pick what you'd tell them.",
+      "ja": "友だちが同じことを言ったら何と声をかけるか、選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "걷는 시간이 길어진 탓에, 정상에 닿았을 때는 해가 이미 진 뒤였어요.",
+        "en": "Because of the longer walk, the sun had already set by the time you reached the top.",
+        "ja": "歩く時間が長くなったせいで、頂上に着いたときには日がもう沈んでいました。"
+       }
+      },
+      {
+       "speaker": "me",
+       "text": {
+        "ko": "노을 보자고 온 건데… 내가 시간을 잘못 잡아서 다 망쳤어.",
+        "en": "We came to see the sunset… I messed up the timing and ruined everything.",
+        "ja": "夕焼けを見に来たのに…私が時間を読み違えて、全部台無しにしちゃった。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true,
+       "text": {
+        "ko": "친구가 똑같은 일로 이렇게 말한다면, 나는 뭐라고 해 줄까?",
+        "en": "If a friend said this about the same thing, what would you tell them?",
+        "ja": "友だちが同じことでこう言ったら、私は何と声をかける？"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "맞아, 네가 시간을 잘못 잡아서 그래",
+        "en": "Right, it's because you got the timing wrong",
+        "ja": "そうだね、あなたが時間を読み違えたからだよ"
+       },
+       "hint": {
+        "ko": "친구가 이렇게 말한다면, 정말 이렇게 답할까요?",
+        "en": "If a friend said this, would you really answer like that?",
+        "ja": "友だちがこう言ったら、本当にこう答えますか？"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "산에서는 계획대로 안 될 때가 많아. 다 같이 올라온 것만으로도 좋았어",
+        "en": "Things often don't go to plan on a mountain. Just climbing up together was great",
+        "ja": "山では計画どおりにいかないことも多いよ。みんなで登れただけでもよかった"
+       },
+       "correct": true
+      },
+      {
+       "id": "c",
+       "text": {
+        "ko": "괜찮아, 다음엔 다른 사람한테 계획을 맡겨",
+        "en": "It's fine, just let someone else plan next time",
+        "ja": "大丈夫、次はほかの人に計画を任せなよ"
+       },
+       "hint": {
+        "ko": "위로처럼 들리지만, 친구가 계획을 못 한다고 말하는 셈이에요.",
+        "en": "It sounds comforting, but it's really saying your friend can't plan.",
+        "ja": "なぐさめのように聞こえますが、友だちは計画が下手だと言っているのと同じです。"
+       }
+      }
+     ],
+     "explanation": {
+      "ko": "친구에게라면 하지 않을 가혹한 말을 나에게만 할 때가 많아요. 친구에게 해 줄 말을 나에게도 해 보세요.",
+      "en": "We often say harsh things to ourselves that we'd never say to a friend. Try telling yourself what you'd tell a friend.",
+      "ja": "友だちには言わないようなきつい言葉を、自分にだけ言ってしまうことがよくあります。友だちにかける言葉を、自分にもかけてみましょう。"
+     }
+    },
+    {
+     "number": 15,
+     "answer_type": "write",
+     "layout": "chat",
+     "review_point": true,
+     "reward_hay": 40,
+     "mission": {
+      "ko": "오늘 산행을 두고, 나를 탓하지 않는 말로 답장해 보세요.",
+      "en": "Reply about today's hike in a way that doesn't blame yourself.",
+      "ja": "今日の山登りについて、自分を責めない言葉で返信してみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "집에 오는 길에 친구가 단체 대화방에 메시지를 남겼어요.",
+        "en": "On the way home, a friend posts in the group chat.",
+        "ja": "帰り道、友だちがグループチャットにメッセージを送ってきました。"
+       }
+      },
+      {
+       "speaker": "other",
+       "name": {
+        "ko": "친구",
+        "en": "Friend",
+        "ja": "友だち"
+       },
+       "text": {
+        "ko": "오늘 많이 걸었다! 다들 잘 들어갔지?",
+        "en": "We walked a lot today! Everyone get home okay?",
+        "ja": "今日はたくさん歩いたね！みんな無事に帰れた？"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true
+      }
+     ],
+     "grading": {
+      "criteria": "Pass if the reply talks about today without blaming the user: fun moments, thanks, a next plan, or a calm note that it was tiring. Fail if it blames or puts down the user, such as saying everyone had a hard time because of them.",
+      "example": {
+       "ko": "응, 거의 다 왔어! 정상에서 먹은 귤 진짜 맛있었다. 다음에 또 가자",
+       "en": "Almost home! Those tangerines at the top were so good. Let's go again sometime",
+       "ja": "うん、もうすぐ着くよ！頂上で食べたみかん、ほんとにおいしかった。また行こうね"
+      }
+     }
+    },
+    {
+     "number": 16,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "친구의 고맙다는 말에 알맞게 답해 보세요.",
+      "en": "Reply well to your friend's thank-you.",
+      "ja": "友だちの「ありがとう」に、ふさわしく答えてみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "집에 도착하니 친구가 따로 메시지를 보냈어요.",
+        "en": "When you get home, a friend sends you a separate message.",
+        "ja": "家に着くと、友だちが個別にメッセージを送ってきました。"
+       }
+      },
+      {
+       "speaker": "other",
+       "name": {
+        "ko": "친구",
+        "en": "Friend",
+        "ja": "友だち"
+       },
+       "text": {
+        "ko": "오늘 길 찾느라 고생 많았지? 덕분에 재밌었어!",
+        "en": "You worked so hard finding the way today! It was fun thanks to you!",
+        "ja": "今日は道を探してくれてお疲れさま！おかげで楽しかったよ！"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "에이, 나 때문에 고생만 했지 뭐",
+        "en": "Nah, you all just had a hard time because of me",
+        "ja": "いやいや、私のせいで大変だっただけだよ"
+       },
+       "hint": {
+        "ko": "친구는 고맙다고 말했어요. 그 마음을 그대로 받아도 돼요.",
+        "en": "Your friend said thank you. It's okay to just accept it.",
+        "ja": "友だちは「ありがとう」と言ってくれました。その気持ちをそのまま受け取って大丈夫です。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "고마워! 나도 다 같이 걸어서 즐거웠어",
+        "en": "Thanks! I had fun walking together too",
+        "ja": "ありがとう！私もみんなで歩けて楽しかった"
+       },
+       "correct": true
+      }
+     ]
+    },
+    {
+     "number": 17,
+     "answer_type": "pick",
+     "layout": "diary",
+     "pick_style": "erase",
+     "mission": {
+      "ko": "일기에서 나를 탓하는 문장을 하나 지워 보세요.",
+      "en": "Erase the one sentence in the diary that blames you.",
+      "ja": "日記の中から、自分を責める文を一つ消してみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "오늘은 친구들과 산에 갔다.",
+        "en": "Today I went hiking with friends.",
+        "ja": "今日は友だちと山に行った。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "주차장이 막혀서 한참을 걸어 올라갔다.",
+        "en": "The parking lot was closed, so we walked a long way up.",
+        "ja": "駐車場が使えなくて、長い道のりを歩いて登った。"
+       },
+       "hint": {
+        "ko": "이 문장은 그대로 두어도 괜찮아요. 나를 탓하는 문장을 찾아보세요.",
+        "en": "This sentence can stay. Look for the one that blames you.",
+        "ja": "この文はそのままで大丈夫です。自分を責める文を探してみましょう。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "정상에서 나눠 먹은 귤이 유난히 달았다.",
+        "en": "The tangerines we shared at the top were especially sweet.",
+        "ja": "頂上で分けて食べたみかんが、やけに甘かった。"
+       },
+       "hint": {
+        "ko": "이 문장은 그대로 두어도 괜찮아요. 나를 탓하는 문장을 찾아보세요.",
+        "en": "This sentence can stay. Look for the one that blames you.",
+        "ja": "この文はそのままで大丈夫です。自分を責める文を探してみましょう。"
+       }
+      },
+      {
+       "id": "c",
+       "text": {
+        "ko": "집에 오니 친구가 덕분에 재밌었다고 메시지를 보냈다.",
+        "en": "When I got home, a friend messaged me that it was fun thanks to me.",
+        "ja": "家に帰ると、友だちがおかげで楽しかったとメッセージをくれた。"
+       },
+       "hint": {
+        "ko": "이 문장은 그대로 두어도 괜찮아요. 나를 탓하는 문장을 찾아보세요.",
+        "en": "This sentence can stay. Look for the one that blames you.",
+        "ja": "この文はそのままで大丈夫です。自分を責める文を探してみましょう。"
+       }
+      },
+      {
+       "id": "d",
+       "text": {
+        "ko": "그런데도 노을을 놓친 걸 생각하면 나는 계획 하나 제대로 못 세우는 사람 같았다.",
+        "en": "Even so, thinking about missing the sunset, I felt like someone who can't even make one plan right.",
+        "ja": "それでも夕焼けを見逃したことを思うと、私は計画一つまともに立てられない人間のような気がした。"
+       },
+       "correct": true
+      }
+     ]
+    },
+    {
+     "number": 18,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "늦게 시작한 모의고사를 두고, 누구 사정이었는지 바르게 본 생각을 골라 보세요.",
+      "en": "About starting the practice test late, pick the thought that sees clearly whose problem it was.",
+      "ja": "模試を遅れて始めたことについて、だれの事情だったかを正しく見た考えを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "자격증 시험을 앞두고 온라인 모의고사를 보려는데, 접속하는 사람이 몰려서 30분 동안 사이트가 열리지 않았어요.",
+        "en": "Ahead of a certification exam, you try to take an online practice test, but so many people log on that the site won't load for 30 minutes.",
+        "ja": "資格試験を前にオンライン模試を受けようとしたら、アクセスが集中して30分間サイトが開きませんでした。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true,
+       "text": {
+        "ko": "모의고사를 늦게 시작한 일을 두고 든 생각은?",
+        "en": "What do you think about starting the test late?",
+        "ja": "模試を遅れて始めたことについて浮かんだ考えは？"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "접속이 몰린 건 사이트 쪽 사정이야",
+        "en": "The overload was on the site's end",
+        "ja": "アクセスが集中したのはサイト側の事情だ"
+       },
+       "correct": true
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "더 일찍 들어가 있지 않은 내가 게을렀어",
+        "en": "I was lazy for not logging on earlier",
+        "ja": "もっと早くログインしておかなかった私が怠けていた"
+       },
+       "hint": {
+        "ko": "정해진 시간에 맞춰 들어갔어요. 사이트가 버티지 못한 건 내 탓이 아니에요.",
+        "en": "You logged on at the set time. The site not holding up isn't your fault.",
+        "ja": "決められた時間どおりにアクセスしました。サイトが持ちこたえられなかったのは、あなたのせいではありません。"
+       }
+      }
+     ]
+    },
+    {
+     "number": 19,
+     "answer_type": "pick",
+     "layout": "diary",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "점수가 떨어진 날, 일기를 어떻게 이어 쓸지 골라 보세요.",
+      "en": "On a day your score dropped, pick how to continue the diary.",
+      "ja": "点数が下がった日、日記をどう続けるか選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "모의고사 점수가 지난번보다 10점 낮았다.",
+        "en": "My practice test score was 10 points lower than last time.",
+        "ja": "模試の点数が、前回より10点低かった。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "공부해도 점수가 떨어지는 걸 보면 나는 머리가 나쁜가 보다.",
+        "en": "If my score drops even when I study, I must just not be smart.",
+        "ja": "勉強しても点数が下がるなんて、私は頭が悪いのかもしれない。"
+       },
+       "hint": {
+        "ko": "점수 한 번으로 나를 단정하지 않아도 돼요. 오늘은 늦게 시작하기도 했어요.",
+        "en": "One score doesn't define you. You also started late today.",
+        "ja": "一回の点数で自分を決めつけなくて大丈夫です。今日は始めるのも遅れました。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "틀린 문제를 모아 보니 한 단원에 몰려 있어서, 내일은 그 단원부터 보기로 했다.",
+        "en": "When I gathered the questions I missed, most were from one unit, so I'll start with that unit tomorrow.",
+        "ja": "間違えた問題を集めてみたら一つの単元に固まっていたので、明日はその単元から見直すことにした。"
+       },
+       "correct": true
+      }
+     ]
+    },
+    {
+     "number": 20,
+     "answer_type": "write",
+     "layout": "diary",
+     "mission": {
+      "ko": "범위를 잘못 알려 준 일을, 나를 몰아세우지 않는 문장으로 이어 써 보세요.",
+      "en": "Continue the diary about passing on the wrong exam material, with a sentence that isn't hard on you.",
+      "ja": "範囲を間違えて伝えたことを、自分を追い詰めない文で続けて書いてみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "같이 공부하는 친구에게 시험 범위를 알려 줬는데, 알고 보니 공지가 바뀐 줄 모르고 예전 범위를 알려 준 거였다.",
+        "en": "I told my study buddy what the exam would cover, but it turned out the notice had changed and I'd passed on the old material without knowing.",
+        "ja": "一緒に勉強している友だちに試験範囲を教えたけれど、実はお知らせが変わったのを知らずに、前の範囲を伝えていた。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "grading": {
+      "criteria": "Pass if the user acknowledges passing on the wrong exam material and sets it right (sharing the new material, apologizing), or calmly accepts that the notice had changed. Fail if the user puts themselves down, such as calling themselves careless or scatterbrained.",
+      "example": {
+       "ko": "바로 바뀐 범위를 다시 알려 주고, 같이 확인하자고 했다.",
+       "en": "I sent the updated material right away and suggested we double-check it together.",
+       "ja": "すぐに新しい範囲を伝え直して、一緒に確認しようと言った。"
+      }
+     }
+    },
+    {
+     "number": 21,
+     "answer_type": "pick",
+     "layout": "diary",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "깜빡한 일을 두고, 나를 몰아세우지 않는 생각을 골라 보세요.",
+      "en": "About forgetting something, pick the thought that isn't hard on you.",
+      "ja": "うっかり忘れたことについて、自分を追い詰めない考えを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "시험 날 아침, 버스에서야 수험표를 집에 두고 온 걸 알았다.",
+        "en": "On the morning of the exam, I realized on the bus that I'd left my admission ticket at home.",
+        "ja": "試験の日の朝、バスの中でやっと受験票を家に忘れてきたことに気づいた。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "수험표 대신 신분증으로 들어갈 수 있는지 시험장에 바로 물어보았다.",
+        "en": "I called the test center right away to ask if I could get in with my ID instead.",
+        "ja": "受験票の代わりに身分証で入れるか、すぐに試験会場に問い合わせた。"
+       },
+       "correct": true
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "중요한 날마다 뭔가 빠뜨리는 내가 너무 싫었다.",
+        "en": "I hated myself for always forgetting something on important days.",
+        "ja": "大事な日に限って何かを忘れる自分が、本当にいやになった。"
+       },
+       "hint": {
+        "ko": "깜빡한 건 오늘 아침 한 번이에요. 방법부터 찾아봐요.",
+        "en": "You forgot it once, this morning. Let's look for a way first.",
+        "ja": "忘れたのは今朝の一回だけです。まずは方法を探してみましょう。"
+       }
+      }
+     ],
+     "explanation": {
+      "ko": "깜빡한 일은 방법을 찾으면 되는 일이에요. 그 일 하나로 나라는 사람을 평가하지 않아도 돼요.",
+      "en": "Forgetting something is a problem to solve. You don't have to judge your whole self by it.",
+      "ja": "うっかり忘れたことは、方法を探せばいいことです。その一つで自分という人間を評価しなくて大丈夫です。"
+     }
+    },
+    {
+     "number": 22,
+     "answer_type": "pick",
+     "layout": "diary",
+     "pick_style": "erase",
+     "mission": {
+      "ko": "일기에서 나를 몰아세우는 문장을 지워 보세요.",
+      "en": "Erase the sentence in the diary that's hard on you.",
+      "ja": "日記の中から、自分を追い詰める文を消してみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "시험을 마치고 공유 자전거를 타고 오는데 체인이 빠졌다.",
+        "en": "After the exam, I was riding a shared bike home when the chain came off.",
+        "ja": "試験を終えてシェアサイクルで帰る途中、チェーンが外れた。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "체인을 끼워 보려다 손만 까매졌다.",
+        "en": "I tried to put the chain back on, but all I got was black, greasy hands.",
+        "ja": "チェーンをはめ直そうとして、手が真っ黒になっただけだった。"
+       },
+       "hint": {
+        "ko": "이 문장은 있었던 일을 적은 거예요. 나를 몰아세우는 문장은 따로 있어요.",
+        "en": "This sentence just records what happened. The one that's hard on you is elsewhere.",
+        "ja": "この文はあったことを書いたものです。自分を追い詰める文は別にあります。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "자전거 하나 제대로 못 고르는 내가 한심했다.",
+        "en": "I felt pathetic for not even being able to pick a decent bike.",
+        "ja": "自転車一つまともに選べない自分が情けなかった。"
+       },
+       "correct": true
+      },
+      {
+       "id": "c",
+       "text": {
+        "ko": "고장 신고를 하고 남은 길은 걸어서 왔다.",
+        "en": "I reported it broken and walked the rest of the way.",
+        "ja": "故障を報告して、残りの道は歩いて帰った。"
+       },
+       "hint": {
+        "ko": "이 문장은 있었던 일을 적은 거예요. 나를 몰아세우는 문장은 따로 있어요.",
+        "en": "This sentence just records what happened. The one that's hard on you is elsewhere.",
+        "ja": "この文はあったことを書いたものです。自分を追い詰める文は別にあります。"
+       }
+      }
+     ]
+    },
+    {
+     "number": 23,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "친구에게 보낼 답장으로 알맞은 것을 골라 보세요.",
+      "en": "Pick the best reply to send your friend.",
+      "ja": "友だちへの返信として、ふさわしいものを選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "모임 날짜가 늦게 정해져서, 내가 영화를 예매할 때는 맨 앞줄밖에 남지 않았어요.",
+        "en": "The date for the get-together was set late, so by the time you booked the movie, only the front row was left.",
+        "ja": "集まる日が決まるのが遅くて、私が映画を予約したときには最前列しか残っていませんでした。"
+       }
+      },
+      {
+       "speaker": "other",
+       "name": {
+        "ko": "친구",
+        "en": "Friend",
+        "ja": "友だち"
+       },
+       "text": {
+        "ko": "우리 자리 맨 앞줄이더라! 목 좀 아프겠다 ㅋㅋ",
+        "en": "Our seats are in the front row! Our necks are gonna hurt lol",
+        "ja": "席、最前列だったね！首が痛くなりそう笑"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "미안… 내가 더 빨리 예매했어야 했는데",
+        "en": "Sorry… I should have booked sooner",
+        "ja": "ごめん…もっと早く予約すればよかった"
+       },
+       "hint": {
+        "ko": "날짜가 정해지자마자 예매했어요. 남은 자리 가운데서 고른 거예요.",
+        "en": "You booked as soon as the date was set. You picked from what was left.",
+        "ja": "日にちが決まってすぐに予約しました。残っていた席の中から選んだのです。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "그러게 ㅋㅋ 목베개라도 챙겨 갈까?",
+        "en": "Right lol should I bring neck pillows?",
+        "ja": "ほんとだね笑 ネックピローでも持っていこうか？"
+       },
+       "correct": true
+      }
+     ]
+    },
+    {
+     "number": 24,
+     "answer_type": "pick",
+     "layout": "chat",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "친구가 조용한 까닭을 내 탓으로 짐작하지 않는 말을 골라 보세요.",
+      "en": "Pick the words that don't assume your friend is quiet because of you.",
+      "ja": "友だちが静かな理由を、自分のせいだと決めつけない言葉を選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "영화를 보고 식당에 자리를 잡았어요. 요즘 이사 준비로 바쁘다던 친구가 오늘따라 말이 없어요.",
+        "en": "After the movie, you sit down at a restaurant. A friend who said they've been busy getting ready to move is unusually quiet today.",
+        "ja": "映画を見たあと、レストランに席をとりました。最近引っ越しの準備で忙しいと言っていた友だちが、今日はやけに口数が少ないです。"
+       }
+      },
+      {
+       "speaker": "me",
+       "text": {
+        "ko": "오늘 좀 조용하네?",
+        "en": "You're kind of quiet today?",
+        "ja": "今日はちょっと静かだね？"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "이사 준비하느라 많이 지쳤지? 오늘은 맛있는 거 먹고 푹 쉬자",
+        "en": "You must be worn out from getting ready to move. Let's eat something good and just relax today",
+        "ja": "引っ越しの準備で疲れてるよね？今日はおいしいものを食べて、ゆっくりしよう"
+       },
+       "correct": true
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "혹시 나 때문에 기분 상했어? 내가 뭘 잘못했나 봐",
+        "en": "Did I upset you? I must have done something wrong",
+        "ja": "もしかして私のせいで気を悪くした？何かしちゃったのかな"
+       },
+       "hint": {
+        "ko": "친구는 요즘 이사 준비로 바쁘다고 했어요. 아직 모르는 까닭을 먼저 내 탓으로 짐작하지 않아도 돼요.",
+        "en": "Your friend said they've been busy getting ready to move. You don't have to guess it's your fault before you know why.",
+        "ja": "友だちは最近引っ越しの準備で忙しいと言っていました。まだわからない理由を、先に自分のせいだと決めつけなくて大丈夫です。"
+       }
+      }
+     ]
+    },
+    {
+     "number": 25,
+     "answer_type": "write",
+     "layout": "chat",
+     "mission": {
+      "ko": "사진을 찍어 준 나를 탓하지 않고, 친구에게 답해 보세요.",
+      "en": "Reply to your friend without blaming yourself for the photo you took.",
+      "ja": "写真を撮った自分を責めずに、友だちに答えてみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "식당에서 내가 단체 사진을 찍어 줬어요. 사진을 본 친구가 말해요.",
+        "en": "At the restaurant, you took a group photo. A friend looks at it and says:",
+        "ja": "レストランで、私がみんなの写真を撮りました。写真を見た友だちが言います。"
+       }
+      },
+      {
+       "speaker": "other",
+       "name": {
+        "ko": "친구",
+        "en": "Friend",
+        "ja": "友だち"
+       },
+       "text": {
+        "ko": "앗, 나 눈 감았네 ㅠㅠ",
+        "en": "Oh no, I blinked in this one!",
+        "ja": "あっ、目つぶっちゃってる〜"
+       }
+      },
+      {
+       "speaker": "me",
+       "slot": true
+      }
+     ],
+     "grading": {
+      "criteria": "Pass if the reply doesn't blame or put down the user. A light 'oops, sorry!', suggesting another shot, or laughing it off are all fine. Fail if the user puts themselves down, such as saying they can't even take a photo properly.",
+      "example": {
+       "ko": "앗 ㅋㅋ 한 장 더 찍자!",
+       "en": "Haha, let's take another one!",
+       "ja": "あはは、もう一枚撮ろう！"
+      }
+     }
+    },
+    {
+     "number": 26,
+     "answer_type": "pick",
+     "layout": "diary",
+     "pick_style": "choose",
+     "mission": {
+      "ko": "일이 틀어진 순간을, 나를 탓하지 않고 적은 문장을 골라 보세요.",
+      "en": "Pick the sentence that records the moment things went wrong without blaming yourself.",
+      "ja": "うまくいかなかった瞬間を、自分を責めずに書いた文を選んでみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "부모님 결혼기념일이라 동생과 저녁을 준비했다. 미리 주문한 케이크를 찾으러 갔더니, 주문서에는 바르게 적었는데 가게에서 이름을 잘못 써 두었다.",
+        "en": "It was my parents' wedding anniversary, so my sister and I got dinner ready. When I went to pick up the cake I'd ordered, the shop had written the name wrong, even though I'd filled in the order correctly.",
+        "ja": "両親の結婚記念日なので、妹と夕食を準備した。前もって注文したケーキを受け取りに行ったら、注文書には正しく書いたのに、お店で名前を書き間違えていた。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      },
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "가게에서 금방 새로 써 주었다.",
+        "en": "The shop rewrote it in no time.",
+        "ja": "お店ですぐに書き直してくれた。"
+       }
+      }
+     ],
+     "options": [
+      {
+       "id": "a",
+       "text": {
+        "ko": "주문서를 한 번 더 확인하지 않은 내가 덤벙댄 탓이라는 생각이 들었다.",
+        "en": "I thought it was my fault for being careless and not checking the order once more.",
+        "ja": "注文書をもう一度確かめなかった、そそっかしい私のせいだと思った。"
+       },
+       "hint": {
+        "ko": "주문서에는 이름이 바르게 적혀 있었어요. 가게에서 옮겨 쓰다 생긴 일이에요.",
+        "en": "The name was written correctly on the order. The mistake happened when the shop copied it.",
+        "ja": "注文書には名前が正しく書かれていました。お店で書き写すときに起きたことです。"
+       }
+      },
+      {
+       "id": "b",
+       "text": {
+        "ko": "바쁜 날이었겠지 싶어서 웃으며 기다렸다.",
+        "en": "I figured they must have had a busy day, so I waited with a smile.",
+        "ja": "忙しい日だったんだろうなと思って、笑って待った。"
+       },
+       "correct": true
+      }
+     ],
+     "explanation": {
+      "ko": "케이크 글씨는 가게가 맡은 일이었어요. 내가 맡은 일과 남이 맡은 일을 나눠 보면 마음이 한결 가벼워져요.",
+      "en": "The writing on the cake was the shop's job. Sorting out what's yours and what's someone else's makes things feel much lighter.",
+      "ja": "ケーキの文字は、お店が担当することでした。自分の担当と人の担当を分けてみると、気持ちがぐっと軽くなります。"
+     }
+    },
+    {
+     "number": 27,
+     "answer_type": "write",
+     "layout": "diary",
+     "mission": {
+      "ko": "풍선 일을 나를 탓하지 않고 이어 써 보세요.",
+      "en": "Continue the diary about the balloons without blaming yourself.",
+      "ja": "風船のことを、自分を責めずに続けて書いてみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "차에 실어 둔 풍선 몇 개가 햇볕에 뜨거워져 터져 버렸다.",
+        "en": "A few of the balloons I'd left in the car got hot in the sun and popped.",
+        "ja": "車に積んでおいた風船がいくつか、日差しで熱くなって割れてしまった。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "grading": {
+      "criteria": "Pass if the user continues the entry about the popped balloons without blaming themselves (decorating with the remaining balloons, laughing it off, a calm note to keep them in the shade next time). Fail if the user puts themselves down, such as calling themselves thoughtless.",
+      "example": {
+       "ko": "남은 풍선으로도 충분히 예쁘게 꾸몄다.",
+       "en": "The balloons that were left were still plenty to make it look pretty.",
+       "ja": "残った風船だけでも、十分かわいく飾れた。"
+      }
+     }
+    },
+    {
+     "number": 28,
+     "answer_type": "write",
+     "layout": "diary",
+     "mission": {
+      "ko": "꽃집 일을 나를 탓하지 않고 이어 써 보세요.",
+      "en": "Continue the diary about the flower shop without blaming yourself.",
+      "ja": "花屋でのことを、自分を責めずに続けて書いてみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "엄마가 좋아하는 작약을 사러 갔는데, 오늘 들어온 작약이 벌써 다 팔리고 없었다.",
+        "en": "I went to buy the peonies Mom loves, but today's peonies had already sold out.",
+        "ja": "母が好きな芍薬を買いに行ったら、今日入荷した芍薬はもう売り切れていた。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "grading": {
+      "criteria": "Pass if the user continues the entry without turning the sold-out flowers into their own fault (choosing other flowers, planning to buy peonies another time, deciding it's okay). Fail if the user blames themselves.",
+      "example": {
+       "ko": "대신 엄마가 좋아하는 색의 다른 꽃으로 골랐다.",
+       "en": "Instead, I picked other flowers in Mom's favorite color.",
+       "ja": "代わりに、母の好きな色の別の花を選んだ。"
+      }
+     }
+    },
+    {
+     "number": 29,
+     "answer_type": "write",
+     "layout": "diary",
+     "mission": {
+      "ko": "사진 일을 나를 탓하지 않고 이어 써 보세요.",
+      "en": "Continue the diary about the photos without blaming yourself.",
+      "ja": "写真のことを、自分を責めずに続けて書いてみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "케이크에 초를 꽂고 사진을 찍으려는데, 휴대폰 저장 공간이 꽉 차서 몇 장밖에 찍지 못했다.",
+        "en": "I put the candles on the cake and went to take pictures, but my phone's storage was full, so I could only take a few.",
+        "ja": "ケーキにろうそくを立てて写真を撮ろうとしたら、スマホの容量がいっぱいで、数枚しか撮れなかった。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "grading": {
+      "criteria": "Pass if the user continues the entry without blaming themselves (taking photos on their sister's phone, clearing out old photos, being glad a few were saved). Fail if the user puts themselves down, such as saying they always mess up important moments.",
+      "example": {
+       "ko": "동생 휴대폰으로 나머지를 찍었다.",
+       "en": "My sister took the rest on her phone.",
+       "ja": "残りは妹のスマホで撮った。"
+      }
+     }
+    },
+    {
+     "number": 30,
+     "answer_type": "write",
+     "layout": "diary",
+     "review_point": true,
+     "reward_hay": 100,
+     "mission": {
+      "ko": "일기의 마지막 줄에, 오늘 애쓴 나에게 고마운 점을 적어 보세요.",
+      "en": "In the last line of the diary, write something you're grateful to yourself for today.",
+      "ja": "日記の最後の行に、今日がんばった自分への感謝を書いてみましょう。"
+     },
+     "lines": [
+      {
+       "speaker": "narration",
+       "text": {
+        "ko": "집에 돌아와 동생이 찍어 준 사진을 넘겨 보았다. 엄마 아빠는 사진마다 웃고 계셨다.",
+        "en": "Back home, I scrolled through the photos my sister took. Mom and Dad were smiling in every one.",
+        "ja": "家に帰って、妹が撮ってくれた写真を見返した。父と母はどの写真でも笑っていた。"
+       }
+      },
+      {
+       "speaker": "narration",
+       "slot": true
+      }
+     ],
+     "grading": {
+      "criteria": "Pass if the user praises or thanks themselves for preparing and trying hard today (short answers are fine). Fail if the user blames themselves or only lists what went wrong.",
+      "example": {
+       "ko": "하루 종일 뛰어다닌 나, 정말 수고했어.",
+       "en": "I ran around all day to make this happen. Well done, me.",
+       "ja": "一日じゅう走り回った私、本当にお疲れさま。"
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

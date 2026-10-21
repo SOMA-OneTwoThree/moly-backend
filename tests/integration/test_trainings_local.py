@@ -148,3 +148,83 @@ async def test_reward_adds_to_the_balance_as_it_is_after_grading(db, monkeypatch
     monkeypatch.setattr(training_grading, 'grade_write', grade_while_an_ad_pays)
     done = await trainings.submit(db, user, TID, 6, written('오늘 끝까지 해낸 나에게 고마워'), locale=None, now=NOW)
     assert done['reward'] == {'granted': 40, 'balance_after': before + 50 + 40}
+
+
+async def test_intervening_request_does_not_erase_replay_receipt(db):
+    user = await signup(db)
+    request = chosen('a')
+    await submit(db, user, 1, request)
+    await submit(db, user, 1, chosen('c'))
+    assert (await submit(db, user, 1, request))['tries']['left'] == 3
+    count = await db.scalar(text('SELECT count(*) FROM training_submissions WHERE user_id=:u'), {'u': uuid.UUID(user)})
+    assert count == 2
+
+
+async def test_real_sessions_share_one_grading_reservation(monkeypatch):
+    import asyncio
+    from app.core.errors import AppError
+
+    dsn = os.environ.get('MOLY_SCHEMA_TEST_DSN')
+    if not dsn:
+        pytest.skip('MOLY_SCHEMA_TEST_DSN required')
+    require_scratch(dsn)
+    monkeypatch.setattr(training_catalog, 'current', lambda: CATALOG)
+    engine = create_async_engine(dsn.replace('postgresql://', 'postgresql+asyncpg://'), poolclass=NullPool)
+    uid = uuid.uuid4()
+    entered, finish = asyncio.Event(), asyncio.Event()
+    calls = 0
+    request = written('내가 못해서')
+    async def grade(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        entered.set()
+        await finish.wait()
+        return Verdict(False, 'ai', '다른 이유를 찾아볼까요?')
+    monkeypatch.setattr(training_grading, 'grade_write', grade)
+    async def send():
+        async with AsyncSession(engine, expire_on_commit=False) as session:
+            return await submit(session, str(uid), 2, request)
+    first = None
+    try:
+        async with AsyncSession(engine, expire_on_commit=False) as session:
+            await session.execute(text('INSERT INTO auth.users(id) VALUES (:u)'), {'u': uid})
+            await submit(session, str(uid), 1, chosen('b'))
+        first = asyncio.create_task(send())
+        await asyncio.wait_for(entered.wait(), 5)
+        rest = await asyncio.wait_for(asyncio.gather(*(send() for _ in range(7)), return_exceptions=True), 5)
+        assert calls == 1
+        assert all(isinstance(r, AppError) and r.code == 'TRAINING_SUBMISSION_PENDING' for r in rest)
+        finish.set()
+        original = await first
+        assert original['tries']['left'] == 4
+        assert await send() == original
+        assert calls == 1
+    finally:
+        finish.set()
+        if first is not None:
+            await asyncio.gather(first, return_exceptions=True)
+        async with AsyncSession(engine) as session:
+            await session.execute(text('DELETE FROM auth.users WHERE id=:u'), {'u': uid})
+            await session.commit()
+        await engine.dispose()
+
+
+@pytest.mark.parametrize('language', ['ko', 'en', 'ja'])
+async def test_new_courses_complete_all_60_stages_with_their_keys_and_rubrics(db, monkeypatch, language):
+    catalog = TrainingCatalog.load()
+    monkeypatch.setattr(training_catalog, 'current', lambda: catalog)
+    user = await signup(db)
+    for course in catalog.trainings:
+        if course.archived:
+            continue
+        for stage in course.stages:
+            body = chosen(next(o.id for o in stage.options if o.correct)) if stage.answer_type == 'pick' else written(stage.grading.example.pick(language))
+            result = await trainings.submit(db, user, course.id, stage.number, body, locale=language, now=NOW)
+            assert result['result'] == 'passed', (course.id, stage.number)
+            assert result['tries']['left'] == 5
+        assert result['progress']['completed'] and result['progress']['passed_count'] == 30
+        detail = await trainings.get_training(db, user, course.id, locale=language, now=NOW)
+        assert len(detail['answers']) == 30
+    cards = (await trainings.list_trainings(db, user, locale=language))['trainings']
+    assert len(cards) == 2 and all(c['completed'] for c in cards)
+    assert sum(amount for amount, _ in await rewards(db, user)) == 310

@@ -158,3 +158,29 @@ async def test_cancellation_is_not_swallowed(ai):
     ai["error"] = asyncio.CancelledError()
     with pytest.raises(asyncio.CancelledError):
         await training_grading.grade_write(DIARY, "다시 조여 보기로 했다", "ko", user_id=UID)
+
+
+@pytest.mark.parametrize('language', ['ko', 'en', 'ja'])
+async def test_new_courses_use_their_own_rubric_and_examples(ai, language):
+    catalog = TrainingCatalog.load()
+    for tid, topic in [('positive-circuit-v1', 'Positive reframing.'), ('self-acceptance-v1', 'Self-acceptance.')]:
+        for stage in catalog.get(tid).stages:
+            if stage.answer_type != 'write':
+                continue
+            answer = stage.grading.example.pick(language)
+            assert training_grading.check_rules(stage, answer, language) is None, (tid, stage.number)
+            await training_grading.grade_write(stage, answer, language, user_id=UID)
+            prompt = ai['calls'][-1]['system']
+            assert topic in prompt
+            assert stage.grading.criteria in prompt
+            assert stage.grading.example.pick(language) in prompt
+            assert 'all pass' not in prompt
+            assert 'only when the answer fulfils this stage mission' in prompt
+
+
+async def test_deadline_is_enforced_even_if_provider_ignores_it(ai, monkeypatch):
+    async def hung(*args, **kwargs):
+        await asyncio.sleep(60)
+    monkeypatch.setattr(llm, 'generate', hung)
+    monkeypatch.setattr(training_grading, 'AI_DEADLINE_S', 0.01)
+    assert await training_grading.grade_write(WRITE, '포장 실수', 'ko', user_id=UID) == Verdict(True, 'fallback')

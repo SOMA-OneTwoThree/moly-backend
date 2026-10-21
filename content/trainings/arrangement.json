@@ -1,0 +1,2933 @@
+{
+  "status": "2026-10-21 사용자 승인 구성. build_catalog.py가 세 언어 제품 원고로 변환한다.",
+  "policy": {
+    "sequence": "고정 30단계, 완료 후 다음 단계, 완료 문제 재열람",
+    "extra_review_screen": "추가하지 않음. review_type의 실제 트리거는 미확정",
+    "rubric_and_model_answer": "원본 보존 파일에만 있음. 화면/채점 입력으로 자동 채택하지 않음",
+    "reward": "무디 참고값만 기록. 우리 서비스 보상 변경을 의미하지 않음",
+    "images": "무디 이미지 복사 없음",
+    "titles": "working_title은 편집 검토용. 문제 화면에 새 제목 필드로 추가하지 않음"
+  },
+  "courses": {
+    "positive": [
+      {
+        "stage": {
+          "stage": 1,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "오늘 빵집 방문을 기분 좋게 기억하려면 어떤 점에 초점을 맞추면 좋을까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "기대하던 유명한 빵집에 갔는데, 제일 먹고 싶었던 소금빵이 바로 앞사람에서 품절됐어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "내가 조금만 더 일찍 부지런히 출발하지 못한 것",
+            "대신 골라온 밤식빵이 생각보다 훨씬 따뜻하고 맛있었던 것",
+            "나는 왜 맨날 이렇게 운이 없고 타이밍이 나쁜지 모르겠다는 생각"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "놓친 것 대신 오늘 새롭게 발견한 즐거움에 시선을 두면 기분 좋은 하루로 남을 수 있어요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 1,
+          "source_kind": "pick",
+          "source_number": 1,
+          "working_title": "소금빵 품절",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 2,
+          "stage_type": "PICK",
+          "ui_type": "DIARY",
+          "mission": "좋았던 부분에 초점을 맞춰 일기 속 빈칸에 어울리는 말을 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "기대하던 빵집에서 소금빵은 품절이었다. 대신 고른 밤식빵이 따뜻하고 맛있었다. 오늘은",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "하루였다.",
+                "input_type": null
+              }
+            }
+          ],
+          "pick_texts": [
+            "새로운 맛을 발견한",
+            "아무 즐거움도 없었던",
+            "전부 실패한"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 2,
+          "source_kind": "pick",
+          "source_number": 1,
+          "working_title": "빵집 방문 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시",
+            "1단계와 같은 사례의 일기 요약; 선택지 새로 편집"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 0
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 3,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "기다린 시간의 피곤함 대신, 그 시간이나 식사에서 좋았던 부분에 초점을 맞춰 한두 문장으로 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "점심시간에 새로 생긴 식당에 갔는데 웨이팅이 길어서 이십 분이나 기다렸다가 밥을 먹었어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 3,
+          "source_kind": "write",
+          "source_number": 1,
+          "working_title": "식당 대기",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 4,
+          "stage_type": "PICK",
+          "ui_type": "DIARY",
+          "mission": "좋았던 부분에 초점을 맞춰 일기 속 빈칸에 어울리는 말을 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "새로 생긴 식당에서 이십 분을 기다린 뒤 밥을 먹었다. 기다리는 동안 동료와 이야기를 나누고 맛있는 음식도 먹었다. 돌아보니",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "식사였다.",
+                "input_type": null
+              }
+            }
+          ],
+          "pick_texts": [
+            "전부 시간 낭비였던",
+            "기다린 보람이 있는",
+            "아무 좋은 점도 없었던"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 4,
+          "source_kind": "write",
+          "source_number": 1,
+          "working_title": "식사 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시",
+            "3단계와 같은 사례; 원고 예시의 상황 요소로 일기·선택지 편집"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 5,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "게임에서 진 아쉬움 대신, 오늘 모임에서 '좋았던 부분'에 초점을 맞춰 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오랜만에 친구들과 보드게임 카페에 갔는데 내가 한 번도 못 이기고 꼴찌만 했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 5,
+          "source_kind": "write",
+          "source_number": 6,
+          "working_title": "보드게임 꼴찌",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": 0,
+          "reward": 30
+        }
+      },
+      {
+        "stage": {
+          "stage": 6,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "이어폰이 없는 출근길에서 찾을 수 있는 '오히려 좋은 점'은 무엇일까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "출근길에 아끼는 무선 이어폰을 집에 두고 온 걸 지하철역에서 깨달았어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "아침부터 덜렁대며 물건을 안 챙긴 내 정신머리",
+            "오늘 하루 종일 출퇴근길이 너무 지루하고 피곤할 거라는 생각",
+            "오랜만에 귀도 쉬게 해주고 창밖 풍경이나 생각에 집중할 수 있는 시간"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "익숙한 물건이 없을 때 평소와 다른 고요한 시간을 누릴 수 있다고 생각하면 마음이 한결 편안해져요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 6,
+          "source_kind": "pick",
+          "source_number": 2,
+          "working_title": "이어폰을 두고 온 출근길",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 7,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "계단을 오르면서 생각할 수 있는 '오히려 좋은 점'은 무엇일까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "매일 타던 엘리베이터가 점검 중이라 5층까지 계단으로 걸어 올라가야 했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "요즘 운동할 시간이 부족했는데 따로 시간 안 내고 자연스럽게 유산소 운동을 했네",
+            "안 그래도 다리 아픈 날에 왜 하필 엘리베이터 점검 시간에 맞춰 왔을까",
+            "아침부터 계단을 타서 힘을 다 뺐으니 오늘 하루 종일 체력이 방전될 거야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "작은 불편함을 일상 속 건강 챙기기로 연결하면 귀찮은 일도 꽤 괜찮은 순간이 돼요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 7,
+          "source_kind": "pick",
+          "source_number": 7,
+          "working_title": "엘리베이터 점검",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 0
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 8,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "원하던 자리에 앉지 못한 이 상황을 어떻게 받아들이면 좋을까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "학교 도서관에 공부하러 갔는데 평소 앉던 창가 명당자리가 이미 다 차서 안쪽 벽면 자리에 앉았어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "창밖 풍경에 한눈팔 일이 없으니 오늘 계획한 분량에 더 깊게 몰입할 수 있겠어",
+            "창가 자리는 어차피 햇빛 때문에 눈만 부시고 공부하기엔 원래 별로인 자리였어",
+            "시험 기간인 줄 알면서 아침 일찍 서두르지 않고 늦장을 부린 내 게으름 탓이야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "원하던 자리를 원래 별로였다고 깎아내리는 건 아쉬움을 감추려는 자기합리화예요(2번). 지금 앉은 자리에서 얻을 수 있는 실질적인 장점을 찾아내는 게 건강한 전환이에요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 8,
+          "source_kind": "pick",
+          "source_number": 21,
+          "working_title": "도서관 자리",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 0
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 9,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "계획이 밀렸다고 자책하는 대신, 늦잠을 자서 '오히려 좋았던 점'을 찾아 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "주말 아침에 알람을 못 듣고 늦잠을 자서 원래 오전에 하려던 방 청소를 못 했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 9,
+          "source_kind": "write",
+          "source_number": 2,
+          "working_title": "늦잠과 휴식",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 10,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "배달 음식을 못 먹은 아쉬움 속에서 '오히려 좋은 점'을 찾아 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "배달 앱으로 저녁을 시키려다 최소 주문 금액이 안 맞아서 그냥 집 앞 마트에서 재료를 사 와 간단히 해 먹었어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 10,
+          "source_kind": "write",
+          "source_number": 7,
+          "working_title": "직접 해 먹은 저녁",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 11,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "속상하지만 이 상황이 그나마 다행이라고 생각할 수 있는 이유는 무엇일까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "새로 산 흰 셔츠를 입고 나왔는데 점심을 먹다가 김치 국물이 한 방울 튀었어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "하필 흰 옷을 입은 날 조심성 없이 밥을 먹은 내 탓",
+            "중요한 미팅이 다 끝난 점심시간에, 그것도 작게 튀어서 바로 지울 수 있는 점",
+            "새 옷인데 한 번 입자마자 망가져서 다시는 못 입게 될 거라는 생각"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "이미 벌어진 일이라도 최악의 타이밍을 피했다는 사실에 주목하면 속상한 마음이 빨리 가라앉아요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 11,
+          "source_kind": "pick",
+          "source_number": 3,
+          "working_title": "흰 셔츠 얼룩",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 12,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "번거로운 상황이지만 오히려 다행이라고 볼 수 있는 이유는 무엇일까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "인터넷으로 산 바지가 도착했는데 입어보니 사이즈가 조금 작아서 교환 신청을 해야 해요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "상세 사이즈표를 제대로 안 재보고 대충 주문한 내 부주의함",
+            "교환 배송비도 아깝고 이번 주에 입고 나갈 계획이 다 틀어졌다는 사실",
+            "급하게 입어야 할 날 직전이 아니라 여유 있을 때 미리 입어봐서 제때 교환할 수 있는 점"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "수습할 수 있는 시간적 여유가 있다는 점에 집중하면 번거로운 마음도 한결 가벼워져요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 12,
+          "source_kind": "pick",
+          "source_number": 8,
+          "working_title": "바지 교환",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 13,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "번거롭지만 이 상황이 '오히려 다행인 이유'를 찾아 한두 문장으로 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "외출하려고 현관을 나서는데 갑자기 소나기가 쏟아져서 우산을 가지러 다시 집에 들어왔어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 13,
+          "source_kind": "write",
+          "source_number": 3,
+          "working_title": "현관 앞 소나기",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 14,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "열 줄을 다시 써야 하는 속상함 대신 '이 상황이 오히려 다행인 이유'를 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "노트북으로 리포트를 쓰다가 프로그램이 갑자기 꺼졌는데, 다행히 자동 저장 기능 덕분에 마지막 열 줄만 날아갔어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 14,
+          "source_kind": "write",
+          "source_number": 8,
+          "working_title": "리포트 자동 저장",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 15,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "운동을 끝까지 못 한 아쉬움 대신 '이 상황이 오히려 다행인 이유'를 찾아 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오랜만에 조깅을 하러 나갔는데 십 분 만에 발목이 살짝 시큰거려서 무리하지 않고 천천히 걸어서 돌아왔어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 15,
+          "source_kind": "write",
+          "source_number": 13,
+          "working_title": "조깅 중 몸의 신호",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": 1,
+          "reward": 80
+        }
+      },
+      {
+        "stage": {
+          "stage": 16,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "약속이 취소된 오늘을 '이렇게 된 김에' 잘 보내려면 어떻게 생각하면 좋을까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "주말에 친구와 야외 피크닉을 가기로 했는데 아침부터 비가 많이 내려서 취소됐어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "이왕 이렇게 된 김에 빗소리 들으면서 보고 싶었던 OTT 드라마를 몰아봐야겠다",
+            "미리 일기예보를 꼼꼼히 확인하지 않고 계획을 세운 내가 한심하다",
+            "모처럼 기다린 주말이 완전히 망가져서 아무것도 못 하게 됐다"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "계획이 틀어졌을 때 비로소 할 수 있는 다른 즐거운 일을 떠올리면 아쉬움이 설렘으로 바뀔 수 있어요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 16,
+          "source_kind": "pick",
+          "source_number": 4,
+          "working_title": "피크닉 취소",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 0
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 17,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "휴대폰 없이 기다려야 하는 두 시간을 '이렇게 된 김에' 어떻게 보내면 좋을까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "자주 쓰던 스마트폰 액정이 살짝 깨져서 수리점에 맡겼더니 수리 시간이 두 시간이나 걸린대요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "평소에 휴대폰 케이스도 안 끼우고 험하게 다룬 내 부주의함 때문이야",
+            "이왕 휴대폰이 없는 김에 근처 서점에 가서 눈여겨봤던 책을 조용히 읽어야겠어",
+            "중요한 연락이 오면 어쩌나 불안해서 두 시간 내내 아무것도 못 하고 초조할 거야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "불편한 대기 시간도 평소 휴대폰 때문에 미뤄뒀던 아날로그 취미를 즐기는 기회로 삼을 수 있어요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 17,
+          "source_kind": "pick",
+          "source_number": 13,
+          "working_title": "휴대폰 수리 대기",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 18,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "자리로 돌아와 피드백을 정리할 때 어떤 생각을 떠올리면 다음 단계에 힘이 될까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "회사에서 공들여 준비한 분기 프로젝트 발표를 마쳤는데, 팀장님께 데이터 근거가 조금 부족하다는 피드백을 들었어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "칭찬을 못 들었으니 이번 프로젝트는 실패한 거고 앞으로 내 기획안은 계속 신뢰받지 못할 거야",
+            "팀장님은 원래 트집 잡는 걸 좋아하시는 분이니까 귀담아듣지 말고 내 방식대로 밀고 나가자",
+            "짚어주신 데이터만 보강하면 기획안의 설득력이 훨씬 탄탄해질 테니 완성도를 높이는 계기로 삼아야지"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "상대방을 깎아내리며 필요한 조언까지 무시하는 건 성장을 가로막는 회피형 태도예요(2번). 아쉬운 피드백을 내 결과물의 완성도를 한 단계 끌어올리는 이정표로 삼는 것이 건강한 긍정 회로예요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 18,
+          "source_kind": "pick",
+          "source_number": 27,
+          "working_title": "프로젝트 피드백",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 19,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "'이렇게 된 김에' 할 수 있는 새로운 시도를 떠올리며 긍정적으로 바꿔 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "자주 가던 단골 카페가 오늘 내부 수리로 임시 휴무라 발길을 돌려야 했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 19,
+          "source_kind": "write",
+          "source_number": 4,
+          "working_title": "단골 카페 휴무",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 20,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "실수를 자책하는 대신 '이렇게 된 김에' 남은 한 시간을 즐겁게 보낼 방법을 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "저녁에 보려던 영화의 상영 시간을 착각해서 영화관에 도착해보니 다음 회차까지 한 시간이 남았어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 20,
+          "source_kind": "write",
+          "source_number": 9,
+          "working_title": "영화 대기 시간",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 21,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "수강 신청 실패에 실망하는 대신 '이렇게 된 김에' 어떤 기회로 삼을 수 있을지 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "이번 학기에 듣고 싶었던 인기 교양 과목의 수강 신청에 실패해서 전혀 몰랐던 역사 교양 과목을 신청하게 됐어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 21,
+          "source_kind": "write",
+          "source_number": 14,
+          "working_title": "수강 신청 실패",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 22,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "힘들었던 두 시간을 반대로 긍정적으로 뒤집어 생각해보면 어떨까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "카페 알바 중에 손님이 갑자기 한꺼번에 몰려서 정신없이 바쁜 두 시간을 보냈어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "바쁘니까 자꾸 손이 꼬이고 속도가 느린 내 일머리가 문제야",
+            "앞으로도 계속 이렇게 손님이 몰리면 지쳐서 알바를 못 버틸 거야",
+            "정신없이 움직였더니 지루할 틈 없이 퇴근 시간이 순식간에 가까워졌어"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "몸은 바빴지만 그만큼 시간이 빨리 갔다는 점에 초점을 맞추면 피로감이 덜 느껴져요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 22,
+          "source_kind": "pick",
+          "source_number": 5,
+          "working_title": "바쁜 카페 근무",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 23,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "마음이 조금 무거운 지금, 이 상황을 어떻게 바라보면 관계에 도움이 될까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "친한 친구와 여행 계획을 짜다가 숙소 스타일 문제로 의견이 안 맞아 살짝 서운한 채로 대화를 마쳤어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "여행을 떠나기 전에 서로 중요하게 생각하는 기준을 미리 알게 돼서 맞춰갈 수 있는 과정이야",
+            "친구 사이란 게 원래 다 부질없는 거니까 이번 일로 거리를 두게 된 게 차라리 편하고 좋아",
+            "출발도 하기 전에 이렇게 부딪히는 걸 보니 이번 여행은 가봤자 내내 싸우다 끝날 게 뻔해"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "서운한 감정을 피하려고 관계 자체를 평가절하하며 거리를 두는 건 회피를 긍정으로 포장한 거예요(2번). 갈등을 서로를 더 잘 이해하고 조율하는 과정으로 바라보는 것이 건강해요."
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 23,
+          "source_kind": "pick",
+          "source_number": 24,
+          "working_title": "여행 계획 의견 차이",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 0
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 24,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "어색하고 아쉬운 마음을 '반대로 생각해보면' 좋은 점으로 뒤집어 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "미용실에서 머리를 자르고 왔는데 생각했던 것보다 기장이 조금 더 짧게 잘렸어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 24,
+          "source_kind": "write",
+          "source_number": 5,
+          "working_title": "짧아진 머리",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 25,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "남과 비교하며 속상해하는 마음을 '반대로 생각해보면' 어떻게 다독일 수 있을지 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "취미로 시작한 기타 학원에서 나보다 늦게 등록한 수강생이 나보다 진도를 훨씬 빨리 나가는 걸 보며 위축됐어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 25,
+          "source_kind": "write",
+          "source_number": 15,
+          "working_title": "기타 진도 비교",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 26,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "일기 속 아쉬운 상황에서 좋은 면이나 가능한 다음 행동을 찾아 마무리해보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n혼자 떠난 제주도 여행 마지막 날에 바람이 너무 많이 불어서 계획했던 우도 배편이 결항됐어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 26,
+          "source_kind": "write",
+          "source_number": 16,
+          "working_title": "제주 여행 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 27,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "일기 속 아쉬운 상황에서 좋은 면이나 가능한 다음 행동을 찾아 마무리해보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n회사 워크숍에서 전혀 친분이 없던 다른 부서 사람들과 같은 조가 되어 처음엔 조금 어색했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 27,
+          "source_kind": "write",
+          "source_number": 12,
+          "working_title": "워크숍 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 28,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "일기 속 아쉬운 상황에서 좋은 면이나 가능한 다음 행동을 찾아 마무리해보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n가계부를 정리하다가 지난달에 생각지도 못한 경조사비가 많이 나가서 목표했던 저축액을 다 못 채운 걸 알게 됐어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 28,
+          "source_kind": "write",
+          "source_number": 17,
+          "working_title": "가계부 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 29,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "일기 속 아쉬운 상황에서 좋은 면이나 가능한 다음 행동을 찾아 마무리해보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n공들여 쓴 공모전 출품작이 예선에서 탈락해서 허탈하고 기운이 빠지는 날이에요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 29,
+          "source_kind": "write",
+          "source_number": 19,
+          "working_title": "공모전 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 30,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "일기 속 아쉬운 상황에서 좋은 면이나 가능한 다음 행동을 찾아 마무리해보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n이직을 준비하며 넣은 서류 전형에서 연달아 세 곳이나 불합격 통보를 받아 마음이 조급해졌어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4255,
+          "reference_stage": 30,
+          "source_kind": "write",
+          "source_number": 20,
+          "working_title": "이직 준비 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": 2,
+          "reward": 200
+        }
+      }
+    ],
+    "acceptance": [
+      {
+        "stage": {
+          "stage": 1,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "여행을 망쳤다며 미안해지는 마음을 덜어내려면 어떻게 생각해야 할까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오랜만에 친구들과 바다 여행을 계획하고 내가 일정을 짰는데, 여행 내내 폭우가 쏟아져서 숙소에만 있어야 했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "날짜를 잘못 잡아서 친구들의 소중한 주말을 날리게 한 내 탓이야",
+            "숙소와 동선은 열심히 준비했고, 갑작스러운 날씨는 내가 조절할 수 없는 영역이야",
+            "내가 계획을 짜면 늘 이런 식이니 앞으로는 절대 총대를 메지 말아야지"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "내가 노력해서 준비한 영역과 내 힘으로 어쩔 수 없는 날씨 같은 영역을 구분하면 불필요한 죄책감을 덜 수 있어요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 1,
+          "source_kind": "pick",
+          "source_number": 1,
+          "working_title": "여행 중 폭우",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 2,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "하루 종일 마음이 쓰이는 이 상황에서 자책을 덜려면 어떻게 생각해야 할까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "직장 동료에게 업무 관련 질문을 했는데, 동료가 한숨을 쉬며 아주 퉁명스럽게 대답해서 기분이 상했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "내가 눈치 없이 바쁜 시간에 바보 같은 질문을 해서 기분을 상하게 했나 봐",
+            "나는 정중하게 필요한 질문을 했고, 저 사람이 퉁명스러운 건 본인의 기분이나 업무 스트레스 때문이야",
+            "사람들이 다 나를 만만하게 보고 무시하는 것 같아서 회사 다니기가 두려워"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "상대방의 미숙한 감정 표현이나 기분 태도까지 내 잘못으로 끌어안지 마세요. 내 몫과 상대방의 몫을 분리하면 마음이 가벼워져요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 2,
+          "source_kind": "pick",
+          "source_number": 6,
+          "working_title": "동료의 퉁명스러운 답",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 3,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "동료의 퉁명스러운 답변을 모두 내 탓으로 돌리지 않는 생각을 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "직장 동료에게 업무 관련 질문을 했는데, 동료가 한숨을 쉬며 아주 퉁명스럽게 대답해서 기분이 상했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 3,
+          "source_kind": "pick",
+          "source_number": 6,
+          "working_title": "같은 상황에 직접 답하기",
+          "edits": [
+            "같은 객관식 상황을 직접 쓰기로 변환; 보기·해설은 노출하지 않음"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 4,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "등줄기에 땀이 나고 부끄러운 지금, 나를 깎아내리지 않으려면 어떤 생각이 필요할까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "중요한 거래처에 보낼 이메일에 첨부파일을 누락해서 방금 다시 죄송하다는 메일을 보내고 왔어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "첨부파일 하나 제대로 못 챙기는 걸 보면 나는 프로 의식이 없는 무능한 직원이야",
+            "메일을 보내기 전에 한 번 더 확인하지 않은 실수는 아쉽지만, 곧바로 수습했고 내 전체 업무 능력이 부족한 건 아니야",
+            "거래처 담당자가 나를 완전히 신뢰할 수 없는 사람으로 찍었을 거야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "업무 중 일어난 일시적인 실수를 '무능한 사람'이라는 꼬리표로 연결하지 마세요. 실수를 인정하고 빠르게 수습한 것으로 충분해요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 4,
+          "source_kind": "pick",
+          "source_number": 7,
+          "working_title": "이메일 첨부 누락",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 5,
+          "stage_type": "PICK",
+          "ui_type": "DIARY",
+          "mission": "일기에서 나 자신을 과하게 비난하는 문장을 골라 지워보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘 거래처에 보낸 메일에서 첨부파일을 빠뜨렸다.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "첨부파일을 빠뜨린 건 아쉬웠다. 나는 기본도 못 지키는 무능한 사람이다. 곧바로 파일을 보내고 사과했다.",
+                "input_type": "ERASE"
+              }
+            }
+          ],
+          "pick_texts": [
+            "첨부파일을 빠뜨린 건 아쉬웠다.",
+            "나는 기본도 못 지키는 무능한 사람이다.",
+            "곧바로 파일을 보내고 사과했다."
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 5,
+          "source_kind": "pick",
+          "source_number": 7,
+          "working_title": "이메일 실수 일기에서 지우기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시",
+            "원문 오답의 자기비난과 수습 행동을 문장 조각으로 편집; 자기비난 한 조각만 지움"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": 0,
+          "reward": 30
+        }
+      },
+      {
+        "stage": {
+          "stage": 6,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "구매한 뒤에 알게 된 할인은 어떤 상황인지 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "고심 끝에 산 겨울 코트가 일주일 뒤에 백화점 깜짝 세일로 삼만 원이나 더 싸게 팔리는 걸 봤어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "앞으로의 할인까지 전부 예측하지 못한 내 잘못",
+            "구매 당시에는 알 수 없었던 나중의 할인"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "지금에 와서야 알게 된 정보로 과거의 선택을 꾸짖지 마세요. 그때 알고 있던 정보 안에서는 그것이 최선의 결정이었어요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 6,
+          "source_kind": "pick",
+          "source_number": 3,
+          "working_title": "코트 구매 뒤 할인",
+          "edits": [
+            "같은 사례를 원인 구분 → 나에게 해줄 말의 두 단계로 나눔"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 7,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "코트를 살 당시의 나에게 해줄 수 있는 말을 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "고심 끝에 산 겨울 코트가 일주일 뒤에 백화점 깜짝 세일로 삼만 원이나 더 싸게 팔리는 걸 봤어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "조금만 더 참았다가 살걸, 참을성 없이 충동구매한 내가 너무 한심해",
+            "그 당시에는 세일 정보를 알 수 없었고, 추워지는 날씨에 맞춰 합리적으로 한 선택이었어",
+            "나는 원래 쇼핑할 때마다 호구 잡히는 운 없는 사람이야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "지금에 와서야 알게 된 정보로 과거의 선택을 꾸짖지 마세요. 그때 알고 있던 정보 안에서는 그것이 최선의 결정이었어요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 7,
+          "source_kind": "pick",
+          "source_number": 3,
+          "working_title": "그때의 선택 인정하기",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 8,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "매일 퇴근길마다 드는 후회와 자책을 덜어내려면 어떤 마음을 가져야 할까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "첫 직장을 고를 때 연봉과 거리 등을 고민하다 입사했는데, 막상 다녀보니 야근이 너무 많아 후회가 돼요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "입사 전에 현직자 후기를 더 집요하게 찾아보지 않은 내 안일함 때문이야",
+            "밖에서는 알기 힘든 내부 사정이었을 뿐, 입사할 당시의 나는 내 기준에서 가장 신중하게 고른 거였어",
+            "첫 단추를 잘못 끼웠으니 내 커리어는 이제 완전히 꼬여버렸어"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "직접 겪어보기 전에는 알 수 없는 일들이 있어요. 과거의 나를 탓하기보다 그때의 최선이었음을 인정하고 다음 방향을 고민해보세요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 8,
+          "source_kind": "pick",
+          "source_number": 8,
+          "working_title": "입사 후 알게 된 야근",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 9,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "입사할 당시의 선택을 돌아보며 과거의 나를 과하게 탓하지 않는 말을 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "첫 직장을 고를 때 연봉과 거리 등을 고민하다 입사했는데, 막상 다녀보니 야근이 너무 많아 후회가 돼요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 9,
+          "source_kind": "pick",
+          "source_number": 8,
+          "working_title": "과거의 나에게 직접 쓰기",
+          "edits": [
+            "같은 객관식 상황을 직접 쓰기로 변환; 보기·해설은 노출하지 않음"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 10,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "대화를 마치고 집으로 돌아오는 길에 자책을 덜어내려면 어떻게 생각할까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "친구의 고민 상담을 해주다가 내 조언이 의도와 다르게 전달되어 친구가 살짝 서운해했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "나는 공감 능력도 떨어지고 말주변도 없어서 인간관계를 다 망치는 사람이야",
+            "표현 방식이 조금 서툴렀던 것뿐이지, 친구를 위하는 내 진심이나 내 인격 자체가 나쁜 건 아니야",
+            "괜히 나선 내 잘못이니 앞으로는 친구들이 무슨 말을 하든 입을 다물고 있어야겠어"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "대화 중 생긴 작은 엇갈림을 '인간관계를 망치는 사람'이라는 극단적인 자기비하로 연결하지 마세요. 서툰 표현은 다시 대화를 통해 풀어가면 돼요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 10,
+          "source_kind": "pick",
+          "source_number": 12,
+          "working_title": "친구와의 대화 엇갈림",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 11,
+          "stage_type": "PICK",
+          "ui_type": "DIARY",
+          "mission": "일기에서 나 자신을 과하게 비난하는 문장을 골라 지워보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "친구의 고민을 듣다가 내 조언이 다르게 전달되어 친구가 서운해했다.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "표현이 서툴렀던 부분을 돌아봤다. 나는 인간관계를 전부 망치는 사람이다. 내 뜻을 다시 차분히 전해봐야겠다.",
+                "input_type": "ERASE"
+              }
+            }
+          ],
+          "pick_texts": [
+            "표현이 서툴렀던 부분을 돌아봤다.",
+            "나는 인간관계를 전부 망치는 사람이다.",
+            "내 뜻을 다시 차분히 전해봐야겠다."
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 11,
+          "source_kind": "pick",
+          "source_number": 12,
+          "working_title": "대화 일기에서 지우기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시",
+            "원문 오답의 자기비난과 수습 행동을 문장 조각으로 편집; 자기비난 한 조각만 지움"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 12,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "팀 프로젝트의 최종 결과는 어떤 영역인지 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "팀 프로젝트를 정말 열심히 준비해서 발표했는데, 경쟁 팀이 심사위원의 개인적인 취향에 딱 맞는 주제를 가져와서 우리가 졌어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "노력뿐 아니라 통제할 수 없는 심사 기준과 다른 팀의 준비도 영향을 주는 영역",
+            "모든 요소를 미리 예측하지 못한 내가 전부 책임져야 하는 영역"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "과정에서의 노력은 내 몫이지만, 타인의 평가나 운이 작용하는 최종 결과까지 온전히 내 책임으로 돌릴 필요는 없어요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 12,
+          "source_kind": "pick",
+          "source_number": 16,
+          "working_title": "팀 프로젝트 결과",
+          "edits": [
+            "같은 사례를 통제 범위 구분 → 도움이 되는 생각의 두 단계로 나눔"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 0
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 13,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "내가 기울인 노력과 통제할 수 없는 결과를 구분한 생각을 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "팀 프로젝트를 정말 열심히 준비해서 발표했는데, 경쟁 팀이 심사위원의 개인적인 취향에 딱 맞는 주제를 가져와서 우리가 졌어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "심사위원의 성향을 미리 완벽하게 파악하지 못한 내 분석력 부족 탓이야",
+            "우리 팀이 할 수 있는 노력은 다 쏟아부었고, 심사위원의 주관적인 취향이나 타 팀의 주제는 우리가 통제할 수 없는 영역이야",
+            "아무리 밤새워 노력해봤자 결국 결과는 안 좋으니 노력하는 게 다 무의미해"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "과정에서의 노력은 내 몫이지만, 타인의 평가나 운이 작용하는 최종 결과까지 온전히 내 책임으로 돌릴 필요는 없어요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 13,
+          "source_kind": "pick",
+          "source_number": 16,
+          "working_title": "노력과 결과 구분하기",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 14,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "다음 자기비난이 지나친 이유를 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "친구의 생일을 깜빡하고 있다가 하루가 지나서야 뒤늦게 생각나 연락했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "소중한 친구 생일도 못 챙기는 걸 보니 나는 정이 없고 이기적인 인간이야.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "날짜를 놓친 실수 하나가 내 인격 전체를 결정하지는 않으니까",
+            "친구에게 사과하고 마음을 전하며 수습할 수 있으니까",
+            "두 가지 모두 맞으니까"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "내 미안함을 덜겠다고 오히려 친구를 속 좁은 사람으로 몰아가는 건 잘못된 자기합리화예요(1번). 실수는 솔직히 인정하고 사과하되, 내 인격 전체를 비난하지 않는 선을 지키는 게 중요해요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 14,
+          "source_kind": "pick",
+          "source_number": 21,
+          "working_title": "친구 생일을 놓친 실수",
+          "edits": [
+            "자기비난이 지나친 이유를 고르기 → 같은 상황에 직접 쓰기로 연결"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 15,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "생일을 놓친 실수는 인정하되, 나 자신을 나쁜 사람으로 단정하지 않는 말을 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "친구의 생일을 깜빡하고 있다가 하루가 지나서야 뒤늦게 생각나 연락했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 15,
+          "source_kind": "pick",
+          "source_number": 21,
+          "working_title": "실수와 내 가치 분리해 쓰기",
+          "edits": [
+            "같은 객관식 상황을 직접 쓰기로 변환; 보기·해설은 노출하지 않음"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": 1,
+          "reward": 80
+        }
+      },
+      {
+        "stage": {
+          "stage": 16,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "친구에게 사과한 뒤에도 계속 마음이 무거울 때, 속으로 나에게 어떻게 말해주면 좋을까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "약속 시간을 착각해서 친구를 카페에서 삼십 분이나 기다리게 만들고 허둥지둥 도착했어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "친구한테는 진심으로 사과하고 커피도 샀잖아, 일부러 늦은 것도 아닌데 너무 자책하지 말고 이제 대화에 집중하자",
+            "정신머리를 어디다 두고 다니길래 맨날 시간 약속 하나 제대로 못 지키니",
+            "친구가 겉으론 괜찮다고 했지만 속으로는 나를 손절하려고 마음먹었을 거야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "이미 사과와 보상을 마쳤다면 끝없는 자기비난은 멈춰도 괜찮아요. 자책에 빠져 있을수록 오히려 지금 친구와의 시간에 집중하기 어려워요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 16,
+          "source_kind": "pick",
+          "source_number": 9,
+          "working_title": "약속 시간 착각",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 0
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 17,
+          "stage_type": "PICK",
+          "ui_type": "DIARY",
+          "mission": "일기에서 나 자신을 과하게 비난하는 문장을 골라 지워보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "약속 시간을 착각해서 친구를 삼십 분 기다리게 했다.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "늦은 일은 미안해서 사과했다. 나는 시간 약속 하나 못 지키는 한심한 사람이다. 앞으로는 약속 시간을 한 번 더 확인해야겠다.",
+                "input_type": "ERASE"
+              }
+            }
+          ],
+          "pick_texts": [
+            "늦은 일은 미안해서 사과했다.",
+            "나는 시간 약속 하나 못 지키는 한심한 사람이다.",
+            "앞으로는 약속 시간을 한 번 더 확인해야겠다."
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 17,
+          "source_kind": "pick",
+          "source_number": 9,
+          "working_title": "약속 일기에서 지우기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시",
+            "원문 오답의 자기비난과 수습 행동을 문장 조각으로 편집; 자기비난 한 조각만 지움"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 18,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "불안하고 초조한 밤, 나 자신에게 어떤 말을 건네면 좋을까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "자격증 시험을 일주일 앞두고 몸살감기에 걸려 하루 종일 아무것도 못 하고 침대에만 누워 있었어요.",
+                "input_type": null
+              }
+            }
+          ],
+          "pick_texts": [
+            "평소에 건강 관리도 똑바로 못 해서 중요한 시험 코앞에 드러누운 내 탓이야",
+            "어차피 떨어질 시험이었는데 아프니까 그럴듯한 핑곗거리가 생겨서 차라리 잘됐어",
+            "그동안 열심히 달려오느라 몸이 신호를 보낸 거야, 오늘 하루 푹 쉬며 열부터 내리는 게 지금 할 수 있는 가장 중요한 일이야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "아픈 것을 실패의 핑곗거리로 삼아 안도하는 건 회피에 가까워요(2번). 지친 내 몸을 다정하게 살펴주고 휴식의 필요성을 인정해주는 것이 진짜 나를 돌보는 태도예요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 18,
+          "source_kind": "pick",
+          "source_number": 23,
+          "working_title": "시험 전 몸살",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 19,
+          "stage_type": "PICK",
+          "ui_type": "DIARY",
+          "mission": "일기 속 빈칸에 들어갈 나를 다정하게 돌보는 생각을 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n자격증 시험을 일주일 앞두고 몸살감기에 걸려 하루 종일 아무것도 못 하고 침대에만 누워 있었어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "평소에 건강 관리도 똑바로 못 해서 중요한 시험 코앞에 드러누운 내 탓이야",
+            "어차피 떨어질 시험이었는데 아프니까 그럴듯한 핑곗거리가 생겨서 차라리 잘됐어",
+            "그동안 열심히 달려오느라 몸이 신호를 보낸 거야, 오늘 하루 푹 쉬며 열부터 내리는 게 지금 할 수 있는 가장 중요한 일이야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "아픈 것을 실패의 핑곗거리로 삼아 안도하는 건 회피에 가까워요(2번). 지친 내 몸을 다정하게 살펴주고 휴식의 필요성을 인정해주는 것이 진짜 나를 돌보는 태도예요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 19,
+          "source_kind": "pick",
+          "source_number": 23,
+          "working_title": "몸살 일기 빈칸 고르기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 20,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "일기 속 빈칸에 들어갈 생각을 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n주말에 공부를 하려고 스터디카페에 갔는데, 피로가 안 풀려서 두 시간 동안 꾸벅꾸벅 졸다가 그냥 집으로 돌아왔어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 20,
+          "source_kind": "write",
+          "source_number": 4,
+          "working_title": "피곤했던 공부 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 21,
+          "stage_type": "PICK",
+          "ui_type": "DIARY",
+          "mission": "일기 속 빈칸에 들어갈, 실수와 내 가치를 분리하는 생각을 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n아침에 급하게 출근 준비를 하다가 그만 아끼던 머그컵을 바닥에 떨어뜨려 깨뜨렸어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "나는 왜 맨날 이렇게 손이 야무지지 못하고 덜렁거리는 인간일까",
+            "바쁜 아침에 실수로 컵을 놓쳤을 뿐, 내가 부족하거나 멍청한 사람은 아니야",
+            "아침부터 컵을 깬 걸 보니 오늘 하루 종일 하는 일마다 다 꼬일 게 분명해"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "'컵을 깨뜨린 실수'라는 행동 하나를 '덜렁거리는 못난 사람'이라는 내 전체의 가치로 확대 해석하지 않는 연습이 필요해요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 21,
+          "source_kind": "pick",
+          "source_number": 2,
+          "working_title": "깨진 머그컵 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 22,
+          "stage_type": "PICK",
+          "ui_type": "DIARY",
+          "mission": "일기에서 나 자신을 과하게 비난하는 문장을 골라 지워보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "부모님과 통화하다가 순간 욱해서 말투가 거칠어졌다.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "거친 말투는 내 실수였다. 나는 부모님을 사랑하지 않는 최악의 자식이다. 마음을 가라앉힌 뒤 사과드려야겠다.",
+                "input_type": "ERASE"
+              }
+            }
+          ],
+          "pick_texts": [
+            "거친 말투는 내 실수였다.",
+            "나는 부모님을 사랑하지 않는 최악의 자식이다.",
+            "마음을 가라앉힌 뒤 사과드려야겠다."
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 22,
+          "source_kind": "pick",
+          "source_number": 26,
+          "working_title": "부모님 통화 일기에서 지우기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시",
+            "원문 오답의 자기비난과 수습 행동을 문장 조각으로 편집; 자기비난 한 조각만 지움"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 1
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 23,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "집에 돌아와 씁쓸한 기분이 들 때, 자책을 덜어내려면 어떻게 생각해야 할까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "소개팅을 나갔는데 상대방이 대화 내내 휴대폰만 보고 단답형으로 대답해서 어색하게 끝났어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "내가 외모나 매력이 부족해서 상대방이 처음부터 흥미를 잃었나 봐",
+            "저 사람은 원래 인성이 글러 먹어서 평생 혼자 살 팔자니까 내가 상종 안 한 게 이득이야",
+            "나는 대화를 이어가려고 예의를 다했고, 자리에서 기본 매너를 지키지 않은 건 상대방의 문제야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "상처받지 않으려고 상대방을 원색적으로 비난하고 저주하는 건 마음에 날 선 감정만 남겨요(2번). 나의 예의 바른 태도와 상대방의 무례함을 차분히 구분하는 것만으로 내 자존감을 지킬 수 있어요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 23,
+          "source_kind": "pick",
+          "source_number": 25,
+          "working_title": "소개팅 상대의 태도",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 24,
+          "stage_type": "PICK",
+          "ui_type": null,
+          "mission": "점심시간에 단출한 도시락통을 열며 어떤 생각을 하면 마음이 편안할까요?",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "직접 만든 도시락을 싸 들고 다니기로 했는데, 오늘 아침엔 늦잠을 자서 밥과 김치, 계란후라이만 겨우 싸 왔어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "반찬이 이게 뭐야, 이렇게 성의 없이 싸 올 거면 도시락 다짐은 그냥 포기하는 게 낫겠어",
+            "밖에서 사 먹는 식당 음식들은 다 조미료 덩어리라 몸에 해로우니 대충 싼 내 도시락이 무조건 최고야",
+            "화려한 반찬은 없지만 바쁜 아침에 포기하지 않고 따뜻한 밥에 계란후라이라도 챙겨 온 것만으로도 충분히 잘했어"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "내 도시락을 긍정하기 위해 남들이 먹는 식당 음식을 깎아내릴 필요는 없어요(2번). 완벽한 식단은 아니어도 내 형편에 맞게 이어간 작은 노력을 있는 그대로 인정해주세요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 24,
+          "source_kind": "pick",
+          "source_number": 24,
+          "working_title": "단출한 도시락",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 25,
+          "stage_type": "WRITE",
+          "ui_type": null,
+          "mission": "내가 부족해서 저런 소리를 듣나 자책하는 대신, 상대방의 무례함과 내 삶을 분리하는 문장을 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "가족 모임에서 친척 어른이 내 취업이나 결혼 문제에 대해 무례한 오지랖 섞인 잔소리를 해서 기분이 엉망이 됐어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 25,
+          "source_kind": "write",
+          "source_number": 11,
+          "working_title": "친척의 무례한 말",
+          "edits": [
+            "상황·보기·해설은 원문 사용; 미션은 해당 단계의 연습에 맞춰 배치"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 26,
+          "stage_type": "PICK",
+          "ui_type": "DIARY",
+          "mission": "일기 속 빈칸에 들어갈, 해낸 만큼의 성취를 인정하는 생각을 골라보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n방학 동안 토익 점수를 팔백오십 점까지 올리기로 했는데, 시험 결과 팔백 점이 나왔어요(기존 점수는 칠백 점이었어요).",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": [
+            "토익 점수는 어차피 실무 영어랑 아무 상관 없는 숫자 놀음일 뿐이니 점수 따위 신경 쓰지 말자",
+            "목표 점수에 못 미쳤으니 이번 방학 동안 학원 다니며 시간 쓴 건 다 헛수고였어",
+            "목표치엔 조금 못 미쳤지만 한 달 만에 백 점이나 올린 건 정말 대단한 발전이고 충분히 의미 있는 성취야"
+          ],
+          "pick_answer_count": 1,
+          "pick_comment": "목표를 못 이뤘다고 시험의 가치 자체를 폄하해버리는 건 아쉬움을 외면하는 신 포도 심보예요(1번). 완벽한 목표 점수가 아니더라도 내가 이뤄낸 백 점 상승의 노력을 온전히 칭찬해주세요."
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 26,
+          "source_kind": "pick",
+          "source_number": 27,
+          "working_title": "토익 성적 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": 2
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 27,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "일기 속 빈칸에 들어갈 생각을 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n한 달 동안 매일 일기를 쓰기로 다짐했는데, 달력을 보니 스무 날 정도만 쓰고 열흘은 빈칸으로 남아 있어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 27,
+          "source_kind": "write",
+          "source_number": 10,
+          "working_title": "스무 날의 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 28,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "일기 속 빈칸에 들어갈 생각을 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n주말에 자기계발 책을 한 권 다 읽으려고 했는데, 절반 정도 읽다가 집중력이 떨어져서 책을 덮었어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 28,
+          "source_kind": "write",
+          "source_number": 15,
+          "working_title": "절반 읽은 책 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 29,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "일기 속 빈칸에 들어갈 생각을 적어보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n아끼던 무선 이어폰 한쪽을 길에서 잃어버려서 하루 종일 우울하고 내 자신이 원망스러워요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 29,
+          "source_kind": "write",
+          "source_number": 19,
+          "working_title": "이어폰 분실 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": null,
+          "reward": 0
+        }
+      },
+      {
+        "stage": {
+          "stage": 30,
+          "stage_type": "WRITE",
+          "ui_type": "DIARY",
+          "mission": "올 한 해 애쓴 나를 인정하는 말로 일기를 마무리해보세요.",
+          "scenario": [
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": "오늘의 기록\n올 한 해를 돌아보니 연초에 세웠던 거창한 계획 중 절반 이상을 이루지 못해서 한 해를 허투루 보낸 것 같은 기분이 들어요.",
+                "input_type": null
+              }
+            },
+            {
+              "subject": "SYS",
+              "data": {
+                "name": null,
+                "text": null,
+                "input_type": "FILL"
+              }
+            }
+          ],
+          "pick_texts": null,
+          "pick_answer_count": null,
+          "pick_comment": null
+        },
+        "provenance": {
+          "reference_content_id": 4254,
+          "reference_stage": 30,
+          "source_kind": "write",
+          "source_number": 20,
+          "working_title": "한 해를 마무리하는 일기",
+          "edits": [
+            "원문의 상황을 일기 빈칸 형식으로 제시"
+          ]
+        },
+        "authoring_only": {
+          "correct_option_index": null
+        },
+        "reference_only": {
+          "review_type": 2,
+          "reward": 200
+        }
+      }
+    ]
+  }
+}

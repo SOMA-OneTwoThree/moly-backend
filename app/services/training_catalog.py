@@ -107,8 +107,9 @@ class TrainingStage(TrainingModel):
 
     @model_validator(mode="after")
     def consistent(self) -> TrainingStage:
-        if sum(line.slot for line in self.lines) != 1:
-            raise ValueError("each stage has exactly one answer slot")
+        slots = sum(line.slot for line in self.lines)
+        if slots > 1 or (slots == 0 and (self.answer_type == "write" or self.pick_style == "erase")):
+            raise ValueError("write/erase needs one slot; choose allows zero or one")
         if (self.reward_hay > 0) != self.review_point:
             raise ValueError("only review points grant hay")
         if self.answer_type == "write":
@@ -133,6 +134,7 @@ class TrainingStage(TrainingModel):
 
 class TrainingDefinition(TrainingModel):
     id: TrainingId
+    archived: bool = False
     order: Annotated[int, Field(ge=0, le=1000)]
     icon_key: IconKey
     title: LocalizedText

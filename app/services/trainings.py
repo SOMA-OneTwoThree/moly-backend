@@ -1,7 +1,7 @@
 """탐색 트레이닝 — 목록, 상세, 답 제출, 다시 풀기, 채점 이의.
 
 답 제출은 외부 모델을 부르는 동안 DB 트랜잭션을 열어 두지 않는다(README). 주관식은 트랜잭션
-1에서 읽기만 하고 끝낸 뒤 채점하고, 트랜잭션 2에서 사용자 잠금 아래 삭제 장벽·요청 id·단계·
+1에서 요청을 선점하고 끝낸 뒤 채점하고, 트랜잭션 2에서 사용자 잠금 아래 삭제 장벽·요청 id·단계·
 기회를 다시 확인해 쓴다. 객관식은 바깥 호출이 없어 잠금 뒤 한 트랜잭션이다.
 
 같은 요청 id로 다시 오면 저장해 둔 판정을 돌려주고 기회를 다시 쓰지 않는다. 통과하지 못한 답의
@@ -10,8 +10,10 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import select
@@ -26,6 +28,7 @@ from app.models.training import (
     TrainingProgress,
     TrainingReward,
     TrainingTries,
+    TrainingSubmission,
 )
 from app.schemas.trainings import TrainingAnswerRequest, TrainingClaimRequest
 from app.services import hay_ledger, i18n, privacy, training_catalog, training_grading, training_tries
@@ -34,6 +37,8 @@ from app.services.training_grading import Verdict
 from app.services.training_tries import Tries
 
 REWARD_TYPE = "training_reward"
+# AI deadline is 10s; expired workers are fenced by lease_token.
+SUBMISSION_LEASE = timedelta(seconds=30)
 
 
 def _now() -> datetime:
@@ -116,6 +121,47 @@ async def _reward_granted(
     return await session.get(TrainingReward, (uid, training_id, stage)) is not None
 
 
+async def _load_submission(session, uid, training_id, request_id) -> TrainingSubmission | None:
+    return await session.get(
+        TrainingSubmission, (uid, training_id, request_id), populate_existing=True,
+    )
+
+
+def _payload_hash(body: TrainingAnswerRequest) -> str:
+    # Include the random request id as a salt; never persist rejected answer text.
+    value = json.dumps([str(body.client_request_id), body.option_id, body.text], ensure_ascii=False)
+    return hashlib.sha256(value.encode()).hexdigest()
+
+
+def _check_payload(receipt: TrainingSubmission, stage: TrainingStage, body: TrainingAnswerRequest):
+    if receipt.stage != stage.number or receipt.payload_hash != _payload_hash(body):
+        raise errors.validation("같은 요청 번호로 다른 답을 보낼 수 없어요.")
+
+
+def _pending() -> errors.AppError:
+    return errors.AppError("TRAINING_SUBMISSION_PENDING", 503, "답을 확인하고 있어요. 잠시 후 다시 시도해 주세요.")
+
+
+async def _reserve(session, uid, training, stage, body) -> TrainingSubmission:
+    # The caller holds the user advisory lock. Commit before calling the model.
+    receipt = await _load_submission(session, uid, training.id, body.client_request_id)
+    clock = _now()
+    if receipt is None:
+        receipt = TrainingSubmission(
+            user_id=uid, training_id=training.id, request_id=body.client_request_id,
+            stage=stage.number, payload_hash=_payload_hash(body),
+            lease_token=uuid.uuid4(), lease_until=clock + SUBMISSION_LEASE, created_at=clock,
+        )
+        session.add(receipt)
+    else:
+        _check_payload(receipt, stage, body)
+        if receipt.lease_until > clock:
+            raise _pending()
+        receipt.lease_token = uuid.uuid4()
+        receipt.lease_until = clock + SUBMISSION_LEASE
+    return receipt
+
+
 # --- 응답 모양 ---
 
 
@@ -192,6 +238,8 @@ async def list_trainings(session: AsyncSession, user_id: str, *, locale: str | N
     progress = await _load_all_progress(session, uid)
     cards = []
     for training in catalog.trainings:
+        if training.archived:
+            continue
         wire = _progress_wire(progress.get(training.id), training)
         cards.append({
             "id": training.id,
@@ -268,10 +316,18 @@ async def _replay(
     body: TrainingAnswerRequest, progress: TrainingProgress | None, now: datetime,
 ) -> dict[str, Any] | None:
     """같은 요청 id를 이미 처리했으면 그 판정에 지금 진행·기회를 붙여 돌려준다."""
-    if progress is None or progress.last_request_id != body.client_request_id:
-        return None
-    saved = progress.last_result or {}
-    if saved.get("stage") != stage.number:
+    receipt = await _load_submission(session, uid, training.id, body.client_request_id)
+    if receipt is not None:
+        _check_payload(receipt, stage, body)
+        if receipt.result is None:
+            return None
+        saved = receipt.result
+    elif progress is not None and progress.last_request_id == body.client_request_id:
+        # Compatibility with requests completed before the receipts release.
+        saved = progress.last_result or {}
+        if saved.get("stage") != stage.number:
+            raise errors.validation("요청 번호를 새로 만들어 다시 보내 주세요.")
+    else:
         return None
     answer = None
     if saved["result"] == "passed":
@@ -315,7 +371,8 @@ async def _submit_write(
     session: AsyncSession, uid: uuid.UUID, training: TrainingDefinition, stage: TrainingStage,
     body: TrainingAnswerRequest, language: str, now: datetime,
 ) -> dict[str, Any]:
-    # 트랜잭션 1: 읽기만 한다.
+    # 트랜잭션 1: 요청을 선점한 뒤 커밋한다. 동시 재시도는 AI를 다시 부르지 않는다.
+    await advisory_xact_lock(session, uid)
     await privacy.ensure_subject_active(session, uid)
     progress = await _load_progress(session, uid, training.id)
     replay = await _replay(session, uid, training, stage, body, progress, now)
@@ -326,6 +383,8 @@ async def _submit_write(
     tries = _settled(await _load_tries(session, uid), now)
     if tries.left == 0:
         raise _no_tries(tries)
+    receipt = await _reserve(session, uid, training, stage, body)
+    lease_token = receipt.lease_token
     # 커밋하면 커넥션이 풀로 돌아가 채점하는 동안 DB를 쥐지 않는다.
     await session.commit()
 
@@ -339,6 +398,9 @@ async def _submit_write(
     if replay is not None:
         await session.commit()
         return replay
+    receipt = await _load_submission(session, uid, training.id, body.client_request_id)
+    if receipt is None or receipt.lease_token != lease_token:
+        raise _pending()
     _require_current(progress, stage)
     tries_row = await _load_tries(session, uid)
     tries = _settled(tries_row, now)
@@ -394,6 +456,10 @@ async def _record(
         "explanation": stage.explanation.pick(language) if verdict.passed and stage.explanation else None,
         "reward": reward,
     }
+    receipt = await _load_submission(session, uid, training.id, body.client_request_id)
+    if receipt is None:
+        receipt = await _reserve(session, uid, training, stage, body)
+    receipt.result = saved
     progress.last_request_id = body.client_request_id
     progress.last_result = saved
     progress.updated_at = now

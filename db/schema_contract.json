@@ -5418,6 +5418,78 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.training_submissions.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.training_submissions.lease_token": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.training_submissions.lease_until": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.training_submissions.payload_hash": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.training_submissions.request_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.training_submissions.result": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
+      },
+      "public.training_submissions.stage": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "smallint"
+      },
+      "public.training_submissions.training_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.training_submissions.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
       "public.training_tries.refill_from": {
         "collation": null,
         "default": null,
@@ -8798,6 +8870,46 @@
         ],
         "validated": true
       },
+      "public.training_submissions.training_submissions_payload_hash_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((length(payload_hash) = 64))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_submissions.training_submissions_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id, training_id, request_id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_submissions.training_submissions_result_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((jsonb_typeof(result) = 'object'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_submissions.training_submissions_stage_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((stage >= 1) AND (stage <= 30)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.training_submissions.training_submissions_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.training_submissions:17:O",
+          "public.training_submissions:5:O"
+        ],
+        "validated": true
+      },
       "public.training_tries.training_tries_pkey": {
         "deferrable": false,
         "deferred": false,
@@ -10996,6 +11108,15 @@
         "options": [],
         "ready": true,
         "table_name": "public.training_rewards",
+        "unique": true,
+        "valid": true
+      },
+      "public.training_submissions_pkey": {
+        "definition": "CREATE UNIQUE INDEX training_submissions_pkey ON public.training_submissions USING btree (user_id, training_id, request_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.training_submissions",
         "unique": true,
         "valid": true
       },
@@ -14437,6 +14558,30 @@
       "public.training_rewards:service_role:UPDATE": {
         "grantable": false
       },
+      "public.training_submissions:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.training_submissions:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.training_submissions:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.training_submissions:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.training_submissions:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.training_submissions:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.training_submissions:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.training_submissions:service_role:UPDATE": {
+        "grantable": false
+      },
       "public.training_tries:service_role:DELETE": {
         "grantable": false
       },
@@ -15526,6 +15671,13 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.training_submissions": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.training_tries": {
         "options": [],
         "owner": "postgres",
@@ -15649,5 +15801,5 @@
       }
     }
   },
-  "schema_sha256": "0ed45ed8fb439ed33010ba936caa120921c9803fc83299e30d2061e732a05e1b"
+  "schema_sha256": "36ea85a8981800d7efb2bb645358fdf845912b7db1cc4c1e5468c75e7944272f"
 }

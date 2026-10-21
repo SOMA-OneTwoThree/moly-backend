@@ -228,3 +228,86 @@ async def test_new_courses_complete_all_60_stages_with_their_keys_and_rubrics(db
     cards = (await trainings.list_trainings(db, user, locale=language))['trainings']
     assert len(cards) == 2 and all(c['completed'] for c in cards)
     assert sum(amount for amount, _ in await rewards(db, user)) == 310
+
+
+@pytest.mark.parametrize('failure', ['timeout', 'provider', 'malformed'])
+async def test_fallback_concurrent_reward_commits_once(monkeypatch, failure):
+    """Real independent transactions: AI failure, duplicate HTTP-equivalent calls, replay."""
+    import asyncio
+    from app.core.errors import AppError
+    from app.services import llm
+
+    dsn = os.environ.get('MOLY_SCHEMA_TEST_DSN')
+    if not dsn:
+        pytest.skip('MOLY_SCHEMA_TEST_DSN required')
+    require_scratch(dsn)
+    monkeypatch.setattr(training_catalog, 'current', lambda: CATALOG)
+    engine = create_async_engine(dsn.replace('postgresql://', 'postgresql+asyncpg://'), poolclass=NullPool)
+    uid = uuid.uuid4()
+    entered, finish = asyncio.Event(), asyncio.Event()
+    calls = 0
+    request = written('오늘 끝까지 해낸 내가 고맙다')
+    first = None
+
+    async def normal(*args, **kwargs):
+        return llm.LLMResult(text='{"pass": true}', input_tokens=1, output_tokens=1)
+
+    async def broken(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        entered.set()
+        await finish.wait()
+        if failure == 'timeout':
+            await asyncio.sleep(60)  # The real grading deadline must cancel this.
+        if failure == 'provider':
+            raise RuntimeError('provider unavailable')
+        return llm.LLMResult(text='not json', input_tokens=1, output_tokens=1)
+
+    async def send(body=request):
+        async with AsyncSession(engine, expire_on_commit=False) as session:
+            return await submit(session, str(uid), 6, body)
+
+    try:
+        monkeypatch.setattr(llm, 'generate', normal)
+        async with AsyncSession(engine, expire_on_commit=False) as session:
+            await session.execute(text('INSERT INTO auth.users(id) VALUES (:u)'), {'u': uid})
+            await submit(session, str(uid), 1, chosen('a'))
+            for stage, body in [(1, chosen('b')), (2, written('포장 실수')), (3, chosen('c')),
+                                (4, chosen('a')), (5, written('다음 장에 다시 쓰면 된다'))]:
+                await submit(session, str(uid), stage, body)
+            before = await session.scalar(text('SELECT hay_balance FROM profiles WHERE id=:u'), {'u': uid})
+        monkeypatch.setattr(llm, 'generate', broken)
+        monkeypatch.setattr(training_grading, 'AI_DEADLINE_S', 2.0)
+        first = asyncio.create_task(send())
+        await asyncio.wait_for(entered.wait(), 5)
+        blocked = await asyncio.gather(*(send() for _ in range(7)), return_exceptions=True)
+        assert all(isinstance(r, AppError) and r.code == 'TRAINING_SUBMISSION_PENDING' for r in blocked)
+        finish.set()
+        result = await asyncio.wait_for(first, 5)
+        assert (result['result'], result['judge'], result['tries']['left']) == ('passed', 'fallback', 4)
+        assert result['progress']['completed']
+        assert result['reward'] == {'granted': 40, 'balance_after': before + 40}
+        replays = await asyncio.gather(*(send() for _ in range(8)))
+        assert all(r == result for r in replays)
+        with pytest.raises(AppError) as duplicate:
+            await send(written(request.text))
+        assert duplicate.value.code == 'TRAINING_STAGE_NOT_CURRENT'
+        assert calls == 1
+        async with AsyncSession(engine) as session:
+            args = {'u': uid}
+            assert await session.scalar(text('SELECT count(*) FROM training_answers WHERE user_id=:u'), args) == 6
+            assert await session.scalar(text('SELECT count(*) FROM training_rewards WHERE user_id=:u AND stage=6'), args) == 1
+            assert await session.scalar(text("SELECT count(*) FROM hay_transactions WHERE user_id=:u AND type='training_reward' AND amount=40"), args) == 1
+            assert await session.scalar(text('SELECT hay_balance FROM profiles WHERE id=:u'), args) == before + 40
+            assert await session.scalar(text('SELECT tries_left FROM training_tries WHERE user_id=:u'), args) == 4
+            assert await session.scalar(text('SELECT refill_from FROM training_tries WHERE user_id=:u'), args) == NOW
+            assert await session.scalar(text('SELECT count(*) FROM training_submissions WHERE user_id=:u AND stage=6'), args) == 1
+            assert await session.scalar(text('SELECT answer_text FROM training_answers WHERE user_id=:u AND stage=6'), args) == request.text
+    finally:
+        finish.set()
+        if first is not None:
+            await asyncio.gather(first, return_exceptions=True)
+        async with AsyncSession(engine) as session:
+            await session.execute(text('DELETE FROM auth.users WHERE id=:u'), {'u': uid})
+            await session.commit()
+        await engine.dispose()

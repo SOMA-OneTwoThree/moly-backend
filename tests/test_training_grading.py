@@ -184,3 +184,15 @@ async def test_deadline_is_enforced_even_if_provider_ignores_it(ai, monkeypatch)
     monkeypatch.setattr(llm, 'generate', hung)
     monkeypatch.setattr(training_grading, 'AI_DEADLINE_S', 0.01)
     assert await training_grading.grade_write(WRITE, '포장 실수', 'ko', user_id=UID) == Verdict(True, 'fallback')
+
+
+async def test_fallback_log_has_diagnostics_but_no_answer_or_provider_message(ai, caplog):
+    answer = "나사를 다시 조여 보기로 했다"
+    ai["error"] = TimeoutError("SECRET_PROVIDER_DETAIL")
+    assert (await training_grading.grade_write(DIARY, answer, "ko", user_id=UID)).judge == "fallback"
+    assert "training_grade_fallback" in caplog.text
+    assert '"reason": "TimeoutError"' in caplog.text
+    assert '"elapsed_ms":' in caplog.text
+    assert answer not in caplog.text
+    assert "SECRET_PROVIDER_DETAIL" not in caplog.text
+    assert str(UID) not in caplog.text

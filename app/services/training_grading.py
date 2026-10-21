@@ -156,6 +156,7 @@ async def grade_write(stage: TrainingStage, text: str, language: str, *, user_id
         return ruled
     # 꺾쇠를 바꿔 답이 <answer> 감싸기를 닫지 못하게 한다.
     fenced = text.replace("<", "＜").replace(">", "＞")
+    started = time.monotonic()
     try:
         result = await asyncio.wait_for(llm.generate(
             system_prompt(stage, language),
@@ -170,11 +171,23 @@ async def grade_write(stage: TrainingStage, text: str, language: str, *, user_id
             ),
         ), timeout=AI_DEADLINE_S)
     except Exception as exc:  # noqa: BLE001  채점 실패는 통과로 처리한다(요구사항 5.8).
-        _log.warning("training grade unavailable: %s", type(exc).__name__)
+        _log.warning(
+            "training_grade_fallback %s",
+            json.dumps({"stage": stage.number, "language": language,
+                        "model": settings.model_training_grade,
+                        "reason": type(exc).__name__,
+                        "elapsed_ms": round((time.monotonic() - started) * 1000)}),
+        )
         return Verdict(True, "fallback")
     parsed = _parse(result.text)
     if parsed is None:
-        _log.warning("training grade unreadable")
+        _log.warning(
+            "training_grade_fallback %s",
+            json.dumps({"stage": stage.number, "language": language,
+                        "model": settings.model_training_grade,
+                        "reason": "invalid_response",
+                        "elapsed_ms": round((time.monotonic() - started) * 1000)}),
+        )
         return Verdict(True, "fallback")
     passed, hint = parsed
     if passed:

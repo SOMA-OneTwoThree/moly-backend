@@ -550,3 +550,42 @@ async def test_completed_receipt_replays_after_progress_moves_on(store, session)
     assert replay['answer']['stage'] == 1
     assert replay['progress']['next_stage'] == 3
     assert replay['tries']['left'] == 5
+
+
+@pytest.mark.parametrize("failure", ["timeout", "provider", "malformed"])
+async def test_fallback_reward_and_history_are_exactly_once(store, session, monkeypatch, failure):
+    # Preserve a previously spent try as well as its refill schedule.
+    await _submit(session, 1, _pick("a"))
+    await _pass_up_to(session, 5)
+    before_balance = store.balance
+    before_rewards = len(store.rewards)
+    calls = 0
+
+    async def unavailable(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        if failure == "timeout":
+            raise TimeoutError("private provider details")
+        if failure == "provider":
+            raise RuntimeError("private provider details")
+        return llm.LLMResult(text="invalid json", input_tokens=1, output_tokens=1)
+
+    monkeypatch.setattr(llm, "generate", unavailable)
+    request = _write("오늘 끝까지 해낸 내가 고맙다")
+    first = await _submit(session, 6, request)
+    for _ in range(3):
+        assert await _submit(session, 6, request) == first
+    assert (first["result"], first["judge"], first["hint"]) == ("passed", "fallback", None)
+    assert first["tries"]["left"] == 4
+    assert store.tries[UID].refill_from == NOW
+    assert first["progress"]["completed"]
+    assert len(store.answers) == 6
+    assert store.answers[UID, TID, 6].answer_text == request.text
+    assert len(store.rewards) == before_rewards + 1
+    assert store.balance == before_balance + 40
+    assert calls == 1
+    # A different request id cannot claim the completed stage again.
+    with pytest.raises(AppError) as duplicate:
+        await _submit(session, 6, _write(request.text))
+    assert duplicate.value.code == "TRAINING_STAGE_NOT_CURRENT"
+    assert store.balance == before_balance + 40

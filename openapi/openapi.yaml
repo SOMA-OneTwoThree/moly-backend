@@ -114,8 +114,6 @@ paths:
     $ref: ./paths/fortune.yaml#/~1daily-fortune~1ad-sessions
   /daily-affirmation:
     $ref: ./paths/affirmation.yaml#/~1daily-affirmation
-  /daily-affirmation/acknowledge:
-    $ref: ./paths/affirmation.yaml#/~1daily-affirmation~1acknowledge
   /attribution/meta-referrer/decrypt:
     $ref: ./paths/attribution.yaml#/~1attribution~1meta-referrer~1decrypt
   /banners/resolve:
@@ -176,10 +174,6 @@ components:
       $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationItem
     DailyAffirmationResponse:
       $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationResponse
-    DailyAffirmationAcknowledgeRequest:
-      $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationAcknowledgeRequest
-    DailyAffirmationAcknowledgeResponse:
-      $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationAcknowledgeResponse
     DailyFortuneContextRef:
       $ref: ./components/fortune.yaml#/schemas/DailyFortuneContextRef
     DailyFortuneRevealResponse:
@@ -453,7 +447,7 @@ tags:
 - name: fortune
   description: 운세 프로필, 당일 결과, 공개용 광고 세션
 - name: affirmation
-  description: 오늘의 글귀 조회와 당일 확인 기록
+  description: 오늘의 글귀 조회
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution

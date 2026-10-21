@@ -3146,8 +3146,8 @@ paths:
       - affirmation
       summary: 오늘의 글귀 조회
       operationId: getDailyAffirmation
-      description: 현지 날짜로 고른 공용 문장을 요청 언어로 반환한다. 같은 현지 날짜에는 모든 사용자가 같은 문장을 받으며 DB·배치·LLM을 사용하지 않는다. 읽기
-        전용이라 확인 기록을 만들지 않는다.
+      description: 현지 날짜로 고른 공용 문장을 요청 언어로 반환한다. 같은 현지 날짜에는 모든 사용자가 같은 문장을 받으며 DB·배치·LLM을 사용하지 않는다. 확인
+        표시는 앱이 기기에 저장한다.
       parameters:
       - name: X-App-Locale
         in: header
@@ -3169,7 +3169,7 @@ paths:
           - type: 'null'
       responses:
         '200':
-          description: 오늘의 문장과 당일 확인 여부
+          description: 오늘의 문장
           headers:
             Cache-Control:
               schema:
@@ -3217,95 +3217,6 @@ paths:
                           - x-app-locale
                           type: string_too_long
                           msg: String should have at most 64 characters
-                appTimezoneInvalid:
-                  summary: 시간대 형식 오류
-                  value:
-                    error:
-                      code: APP_TIMEZONE_INVALID
-                      message: 시간대 형식이 올바르지 않습니다.
-                      details: {}
-      security:
-      - SupabaseBearer: []
-  /daily-affirmation/acknowledge:
-    post:
-      tags:
-      - affirmation
-      summary: 오늘의 글귀 확인 기록
-      operationId: acknowledgeDailyAffirmation
-      description: 오늘의 글귀를 확인했음을 유저 × 현지 날짜 1행에 기록한다. 멱등이며 같은 날짜로 다시 호출해도 200이다. 기록 이후 같은 현지 날짜의 조회는 acknowledged=true를
-        반환한다.
-      parameters:
-      - name: X-App-Timezone
-        in: header
-        required: false
-        description: 현재 기기의 IANA 시간대 1..64자. 생략 시 profiles.timezone, 잘못된 값은 422 APP_TIMEZONE_INVALID.
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DailyAffirmationAcknowledgeRequest'
-      responses:
-        '200':
-          description: 확인 기록 완료
-          headers:
-            Cache-Control:
-              schema:
-                type: string
-                const: private, no-store
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DailyAffirmationAcknowledgeResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/ProfileNotFound'
-        '409':
-          description: 현지 날짜가 바뀌었거나 계정 삭제 진행 중
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-              examples:
-                dailyAffirmationStale:
-                  summary: 현지 날짜 전환
-                  value:
-                    error:
-                      code: DAILY_AFFIRMATION_STALE
-                      message: 날짜가 바뀌었어요. 오늘의 글귀를 다시 확인해 주세요.
-                      details: {}
-                accountDeleting:
-                  summary: 계정 삭제 진행 중
-                  value:
-                    error:
-                      code: ACCOUNT_DELETING
-                      message: 계정 삭제를 처리하고 있어요.
-                      details: {}
-        '422':
-          description: 요청 형식 또는 시간대 검증 실패
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorEnvelope'
-              examples:
-                validation:
-                  summary: 요청 검증
-                  value:
-                    error:
-                      code: VALIDATION
-                      message: 요청 형식이 올바르지 않습니다.
-                      details:
-                        errors:
-                        - loc:
-                          - body
-                          - local_date
-                          type: missing
-                          msg: Field required
                 appTimezoneInvalid:
                   summary: 시간대 형식 오류
                   value:
@@ -4461,7 +4372,6 @@ components:
       - local_date
       - locale
       - affirmation
-      - acknowledged
       properties:
         local_date:
           type: string
@@ -4476,33 +4386,6 @@ components:
           description: 문장에 적용한 언어. 미설정·미지원 언어는 en이다.
         affirmation:
           $ref: '#/components/schemas/DailyAffirmationItem'
-        acknowledged:
-          type: boolean
-          description: 같은 현지 날짜에 이미 확인했으면 true.
-    DailyAffirmationAcknowledgeRequest:
-      type: object
-      additionalProperties: false
-      required:
-      - local_date
-      properties:
-        local_date:
-          type: string
-          format: date
-          description: 확인한 문장의 현지 날짜. 서버가 계산한 오늘과 다르면 409 DAILY_AFFIRMATION_STALE.
-    DailyAffirmationAcknowledgeResponse:
-      type: object
-      additionalProperties: false
-      required:
-      - local_date
-      - acknowledged
-      properties:
-        local_date:
-          type: string
-          format: date
-        acknowledged:
-          type: boolean
-          const: true
-          description: 기록 완료. 같은 날짜로 다시 호출해도 200이며 첫 확인 시각을 덮어쓰지 않는다.
     DailyFortuneContextRef:
       type: object
       additionalProperties: false
@@ -8052,7 +7935,7 @@ tags:
 - name: fortune
   description: 운세 프로필, 당일 결과, 공개용 광고 세션
 - name: affirmation
-  description: 오늘의 글귀 조회와 당일 확인 기록
+  description: 오늘의 글귀 조회
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution

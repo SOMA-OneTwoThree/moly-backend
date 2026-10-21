@@ -84,7 +84,7 @@ def create_app() -> FastAPI:
         request.state.started_monotonic = time.monotonic()
         response = await call_next(request)
         if request.url.path in {'/banners', '/banners/resolve', '/chat/topic-entries',
-                                '/daily-affirmation', '/daily-affirmation/acknowledge'}:
+                                '/daily-affirmation'}:
             response.headers['Cache-Control'] = 'private, no-store'
         return response
     # 공개(인증 불필요): 헬스체크와 설치 귀속 복호화.

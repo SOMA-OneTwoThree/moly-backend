@@ -107,8 +107,8 @@ def store(monkeypatch) -> Store:
     async def ensure(session, uid):
         s.events.append("ensure")
 
-    async def profile(session, user_id):
-        return SimpleNamespace(language=s.language)
+    async def account_language(session, uid):
+        return s.language
 
     async def apply(session, uid, tx_type, amount, **kwargs):
         s.balance += amount
@@ -132,7 +132,7 @@ def store(monkeypatch) -> Store:
     monkeypatch.setattr(trainings, "_delete_answers", delete_answers)
     monkeypatch.setattr(trainings, "advisory_xact_lock", lock)
     monkeypatch.setattr(privacy, "ensure_subject_active", ensure)
-    monkeypatch.setattr(trainings, "_load_profile", profile)
+    monkeypatch.setattr(trainings, "_account_language", account_language)
     monkeypatch.setattr(hay_ledger, "apply", apply)
     monkeypatch.setattr(llm, "generate", generate)
     return s

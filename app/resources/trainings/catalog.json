@@ -23,7 +23,7 @@
      "pick_style": "choose",
      "mission": {
       "ko": "이 일을 사실에 가깝게 본 생각을 골라 보세요.",
-      "en": "Pick the thought that sees this closest to the facts.",
+      "en": "Pick the thought that stays closest to the facts.",
       "ja": "この出来事を事実に近く見ている考えを選んでみましょう。"
      },
      "lines": [
@@ -108,7 +108,7 @@
        "text": {
         "ko": "지금 해 볼 만한 생각은?",
         "en": "What's a helpful thought right now?",
-        "ja": "今、持ってみるといい考えは？"
+        "ja": "今、持つとよさそうな考えは？"
        }
       }
      ],
@@ -197,7 +197,7 @@
        "speaker": "other",
        "name": {
         "ko": "동생",
-        "en": "Sis",
+        "en": "Sister",
         "ja": "妹"
        },
        "text": {
@@ -221,7 +221,7 @@
        },
        "hint": {
         "ko": "늦은 건 오늘 한 번이에요. 나라는 사람 전체를 깎아내리지 않아도 돼요.",
-        "en": "Being late happened once, today. You don't need to put down your whole self.",
+        "en": "You were late once, today. There's no need to put your whole self down.",
         "ja": "遅れたのは今日の一回だけです。自分という人間まるごとをおとしめなくて大丈夫です。"
        }
       },
@@ -334,7 +334,7 @@
      "mission": {
       "ko": "깨진 초를 두고, 내가 막을 수 있었던 일인지 따져 본 생각을 골라 보세요.",
       "en": "About the broken candles, pick the thought that asks whether you could have prevented it.",
-      "ja": "割れたキャンドルについて、自分に防げたことかどうかを考えた考えを選んでみましょう。"
+      "ja": "割れたキャンドルについて、自分に防げたことだったかを見きわめた考えを選んでみましょう。"
      },
      "lines": [
       {
@@ -602,7 +602,7 @@
        "id": "b",
        "text": {
         "ko": "이렇게 남을 걸 왜 이렇게 많이 만들었을까. 나는 셈도 못 하나 봐",
-        "en": "Why did I make so many if they'd be left over? I can't even count, can I",
+        "en": "Why did I make so many? I guess I can't even count",
         "ja": "こんなに残るのに、なんでこんなに作ったんだろう。計算もできないのかな"
        },
        "hint": {
@@ -920,9 +920,9 @@
      "grading": {
       "criteria": "Pass if the reply talks about today without blaming the user: fun moments, thanks, a next plan, or a calm note that it was tiring. Fail if it blames or puts down the user, such as saying everyone had a hard time because of them.",
       "example": {
-       "ko": "응, 잘 들어왔어! 정상에서 먹은 귤 진짜 맛있었다. 다음에 또 가자",
-       "en": "Yep, home safe! Those tangerines at the top were so good. Let's go again sometime",
-       "ja": "うん、無事に帰ったよ！頂上で食べたみかん、ほんとにおいしかった。また行こうね"
+       "ko": "응, 거의 다 왔어! 정상에서 먹은 귤 진짜 맛있었다. 다음에 또 가자",
+       "en": "Almost home! Those tangerines at the top were so good. Let's go again sometime",
+       "ja": "うん、もうすぐ着くよ！頂上で食べたみかん、ほんとにおいしかった。また行こうね"
       }
      }
     },
@@ -1097,7 +1097,7 @@
        "id": "a",
        "text": {
         "ko": "접속이 몰린 건 사이트 쪽 사정이야",
-        "en": "The traffic jam was the site's problem",
+        "en": "The overload was on the site's end",
         "ja": "アクセスが集中したのはサイト側の事情だ"
        },
        "correct": true
@@ -1281,7 +1281,7 @@
        "id": "a",
        "text": {
         "ko": "체인을 끼워 보려다 손만 까매졌다.",
-        "en": "I tried to put the chain back on and only got my hands black.",
+        "en": "I tried to put the chain back on, but all I got was black, greasy hands.",
         "ja": "チェーンをはめ直そうとして、手が真っ黒になっただけだった。"
        },
        "hint": {

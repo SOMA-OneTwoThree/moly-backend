@@ -137,3 +137,21 @@ async def test_last_try_blocks_wrong_answers_until_the_hour_refills(db):
     assert getattr(blocked.value, 'code', None) == 'TRAINING_NO_TRIES'
     refilled = await trainings.submit(db, user, TID, 1, chosen('b'), locale='ko', now=NOW + timedelta(hours=1))
     assert refilled['result'] == 'passed' and refilled['tries']['left'] == 1
+
+
+async def test_reward_adds_to_the_balance_as_it_is_after_grading(db, monkeypatch):
+    user = await signup(db)
+    uid = uuid.UUID(user)
+    for stage, body in [(1, chosen('b')), (2, written('포장 실수')), (3, chosen('c')), (4, chosen('a')),
+                        (5, written('다음 장에 다시 쓰면 된다'))]:
+        await submit(db, user, stage, body)
+    db.expunge_all()  # 요청마다 세션이 새로 열리는 것과 같게 한다.
+    before = await db.scalar(text('SELECT hay_balance FROM profiles WHERE id = :u'), {'u': uid})
+
+    async def grade_while_an_ad_pays(stage, answer, language, *, user_id):
+        await db.execute(text('UPDATE profiles SET hay_balance = hay_balance + 50 WHERE id = :u'), {'u': uid})
+        return Verdict(passed=True, judge='ai')
+
+    monkeypatch.setattr(training_grading, 'grade_write', grade_while_an_ad_pays)
+    done = await trainings.submit(db, user, TID, 6, written('오늘 끝까지 해낸 나에게 고마워'), locale=None, now=NOW)
+    assert done['reward'] == {'granted': 40, 'balance_after': before + 50 + 40}

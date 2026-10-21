@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
 from app.core.advisory_lock import advisory_xact_lock
+from app.models.profile import Profile
 from app.models.training import (
     TrainingAnswer,
     TrainingClaim,
@@ -28,7 +29,6 @@ from app.models.training import (
 )
 from app.schemas.trainings import TrainingAnswerRequest, TrainingClaimRequest
 from app.services import hay_ledger, i18n, privacy, training_catalog, training_grading, training_tries
-from app.services.account import _load_profile
 from app.services.training_catalog import TrainingDefinition, TrainingStage
 from app.services.training_grading import Verdict
 from app.services.training_tries import Tries
@@ -65,11 +65,17 @@ async def _language(session: AsyncSession, user_id: str, locale: str | None) -> 
     """헤더(이미 ko·en·ja로 정규화됨)를 쓰고, 없으면 계정 언어. 지원 밖은 en."""
     if locale is not None:
         return locale
-    return i18n.resolve((await _load_profile(session, user_id)).language)
+    return i18n.resolve(await _account_language(session, uuid.UUID(user_id)))
 
 
 # --- DB 읽기·쓰기. 단위 테스트는 이 함수들을 바꿔 끼운다. ---
 # 트랜잭션 2는 트랜잭션 1에서 읽은 객체를 다시 쓰지 않도록 populate_existing으로 새로 읽는다.
+
+
+async def _account_language(session: AsyncSession, uid: uuid.UUID) -> str | None:
+    # 열 하나만 읽는다. Profile 객체를 세션에 올려 두면 보상 때 hay_ledger.apply가 잠근 행 대신
+    # 그 객체의 옛 잔액을 써서, AI 채점 중에 바뀐 잔액을 덮어쓴다.
+    return await session.scalar(select(Profile.language).where(Profile.id == uid))
 
 
 async def _load_progress(

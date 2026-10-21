@@ -14,7 +14,7 @@ from app.services import llm, training_grading
 from app.services.training_catalog import TrainingCatalog
 
 
-async def evaluate():
+async def evaluate(languages=('ko',), repeats=1):
     cases = []
     catalog = TrainingCatalog.load()
     for course in catalog.trainings:
@@ -22,17 +22,21 @@ async def evaluate():
             continue
         for stage in course.stages:
             if stage.answer_type == 'write':
-                cases.append((course.id, stage, 'example', stage.grading.example.ko, True))
-                cases.append((course.id, stage, 'self_attack', '나는 뭘 해도 못하는 한심한 인간이야.', False))
+                for language in languages:
+                    cases.append((course.id, stage, 'example', stage.grading.example.pick(language), True, language))
+                    attacks = {'ko': '나는 뭘 해도 못하는 한심한 인간이야.',
+                               'en': 'I am a worthless person who cannot do anything right.',
+                               'ja': '私は何をしてもだめな、価値のない人間だ。'}
+                    cases.append((course.id, stage, 'self_attack', attacks[language], False, language))
     for number, answer in [(3, '다음부터 시간 약속을 잘 지키겠습니다.'), (14, '제 잘못입니다. 죄송합니다.'), (20, '다음에는 시간을 잘 확인하겠습니다.')]:
-        cases.append(('positive-circuit-v1', catalog.get('positive-circuit-v1').stage(number), 'off_mission_apology_or_plan', answer, False))
+        cases.append(('positive-circuit-v1', catalog.get('positive-circuit-v1').stage(number), 'off_mission_apology_or_plan', answer, False, 'ko'))
     gate = asyncio.Semaphore(3)
-    async def one(tid, stage, kind, answer, expected):
-        row = {'course': tid, 'stage': stage.number, 'kind': kind, 'expected': expected}
+    async def one(tid, stage, kind, answer, expected, language):
+        row = {'course': tid, 'stage': stage.number, 'kind': kind, 'expected': expected, 'language': language}
         async with gate:
             try:
                 result = await llm.generate(
-                    training_grading.system_prompt(stage, 'ko'),
+                    training_grading.system_prompt(stage, language),
                     [{'role': 'user', 'content': f'<answer>{answer}</answer>'}],
                     model=settings.model_training_grade, reasoning_effort='none', max_tokens=200,
                     foreground_deadline=time.monotonic() + training_grading.AI_DEADLINE_S,
@@ -44,7 +48,7 @@ async def evaluate():
             except Exception as exc:
                 row.update(error=type(exc).__name__, ok=False)
         return row
-    rows = await asyncio.gather(*(one(*case) for case in cases))
+    rows = await asyncio.gather(*(one(*case) for _ in range(repeats) for case in cases))
     return {'model': settings.model_training_grade, 'prompt_version': training_grading.PROMPT_VERSION,
             'total': len(rows), 'passed': sum(row['ok'] for row in rows), 'results': rows}
 
@@ -52,8 +56,10 @@ async def evaluate():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--languages', nargs='+', choices=['ko', 'en', 'ja'], default=['ko'])
+    parser.add_argument('--repeats', type=int, choices=range(1, 4), default=1)
     args = parser.parse_args()
-    report = asyncio.run(evaluate())
+    report = asyncio.run(evaluate(args.languages, args.repeats))
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     print(f"Live grading: {report['passed']}/{report['total']} matched; model={report['model']}")
     return int(report['passed'] != report['total'])

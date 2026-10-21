@@ -28,5 +28,9 @@ uv run pytest -q tests/test_training_catalog.py tests/test_training_grading.py
 3. 동시 제출의503 `TRAINING_SUBMISSION_PENDING`은 같은 요청 id로 재시도한다. 서버 중단 시30초 선점 만료 후 다시 채점한다. 결과가 있으면 최초 판정을 재사용한다.
 4. 롤백은 서버/앱 버전을 되돌리되 새 테이블·저장 답을 삭제하지 않는다. 구버전 서버에는 이번 멱등 오류 수정이 없으므로 롤백 시 해당 보장이 사라진다.
 
-운영/개발 DB에는 이 작업에서 적용하지 않았다. 로컬 PostgreSQL17 폐기용 DB에서만 생성·통합 검증했다.
+2026-10-21 dev DB에 `training_submissions.sql`을 guarded dry-run → SHA-256 확인 → commit 순서로 적용했다. `uv run python -m db.verify --env dev`의 전체 계약 검증 통과. 운영 DB와 배포 서버는 변경하지 않았다. 로컬 PostgreSQL17 통합 검사에 이어 dev DB·실제 AI·iOS 시뮬레이터로 검증한다.
 실제 AI 평가는 `uv run python -m scripts.evaluate_training_grading --output /tmp/training-grading.json`으로 명시 실행한다. 합성 답만 보내며 계정·DB 기록은 사용하지 않는다. 모델 실패를 평가 통과로 세지 않는다.
+
+## 문제 그림 (2026-10-21)
+
+`arrangement.json`의 단계별 `icon_key`는 앱에 이미 포함된 Fluent Emoji 3D 에셋 키다. 두 과정 60개 모두 상황에 맞춰 지정했다. 생성 원고와 공개 API로 전달하며 언어에 따라 바뀌지 않는다. 예전 과정의 누락 키는 그림 없음으로 처리한다. 무디 원본 그림을 복사하지 않는다.

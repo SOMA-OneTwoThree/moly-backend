@@ -1,33 +1,16 @@
 schemas:
-  DailyAffirmationItem:
-    type: object
-    additionalProperties: false
-    required:
-    - id
-    - text
-    properties:
-      id:
-        type: string
-        minLength: 1
-        maxLength: 64
-        description: 문장 식별자. app/resources/affirmations.json의 항목 id다.
-      text:
-        type: string
-        minLength: 1
-        maxLength: 200
-        description: 요청 언어로 완성된 문장. 서버가 고른 결과이며 클라가 다시 선택하지 않는다.
   DailyAffirmationResponse:
     type: object
     additionalProperties: false
     required:
     - local_date
     - locale
-    - affirmation
+    - text
     properties:
       local_date:
         type: string
         format: date
-        description: 검증한 X-App-Timezone(생략 시 profiles.timezone) 기준 현지 달력일.
+        description: 검증한 X-App-Timezone(생략 시 profiles.timezone) 기준 오늘 현지 달력일. 문장의 저장 날짜가 아니다.
       locale:
         type: string
         enum:
@@ -35,5 +18,6 @@ schemas:
         - en
         - ja
         description: 문장에 적용한 언어. 미설정·미지원 언어는 en이다.
-      affirmation:
-        $ref: '#/schemas/DailyAffirmationItem'
+      text:
+        type: string
+        description: 오늘 이하 가장 최근 날짜에 저장된 문장을 요청 언어로 반환한다.

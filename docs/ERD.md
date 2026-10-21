@@ -118,6 +118,7 @@ erDiagram
 | `routine_template_categories`, `routine_templates` | 선택 가능한 루틴 템플릿 |
 | `fortune_profiles`, `daily_fortunes` | 입력 revision과 사용자별 현재 날짜 snapshot·별도 해금 상태 |
 | `fortune_ad_sessions` | 당일 운세 SSV 세션·검증 거래 |
+| `daily_affirmations` | 날짜별 오늘의 글귀(ko/en/ja). 운영자가 직접 넣고, 오늘 이하 가장 최근 날짜의 문장을 낸다 |
 | `bgm_tracks` | 원격 음원 카탈로그·노출/권한 정보 |
 
 감정 메모를 캐피 일기나 장기기억으로 자동 간주하지 않는다. 운세 문구 버전 변경만으로 유효한 당일

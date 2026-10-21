@@ -1514,6 +1514,46 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.daily_affirmations.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.daily_affirmations.local_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.daily_affirmations.text_en": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_affirmations.text_ja": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_affirmations.text_ko": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
       "public.daily_fortunes.copy_by_locale": {
         "collation": null,
         "default": null,
@@ -6560,6 +6600,13 @@
         ],
         "validated": true
       },
+      "public.daily_affirmations.daily_affirmations_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (local_date)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.daily_fortunes.daily_fortunes_copy_by_locale_check": {
         "deferrable": false,
         "deferred": false,
@@ -9275,6 +9322,15 @@
         "unique": true,
         "valid": true
       },
+      "public.daily_affirmations_pkey": {
+        "definition": "CREATE UNIQUE INDEX daily_affirmations_pkey ON public.daily_affirmations USING btree (local_date)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.daily_affirmations",
+        "unique": true,
+        "valid": true
+      },
       "public.daily_fortunes_pkey": {
         "definition": "CREATE UNIQUE INDEX daily_fortunes_pkey ON public.daily_fortunes USING btree (user_id)",
         "exclusion": false,
@@ -11271,6 +11327,30 @@
         "grantable": false
       },
       "public.conversation_focus:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.daily_affirmations:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.daily_affirmations:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.daily_affirmations:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.daily_affirmations:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.daily_affirmations:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.daily_affirmations:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.daily_affirmations:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.daily_affirmations:service_role:UPDATE": {
         "grantable": false
       },
       "public.daily_fortunes:service_role:DELETE": {
@@ -14554,6 +14634,13 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.daily_affirmations": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.daily_fortunes": {
         "options": [],
         "owner": "postgres",
@@ -14985,5 +15072,5 @@
       }
     }
   },
-  "schema_sha256": "03467b430b859859a2119e8bae69cd393053f6310f99e72f4a941a753eb269c2"
+  "schema_sha256": "461a9f17449ac540e441cf5b088be61729ecd36a2f2268f1c2091c3f7046055f"
 }

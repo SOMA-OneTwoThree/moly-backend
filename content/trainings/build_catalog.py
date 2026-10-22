@@ -77,9 +77,9 @@ for order, (topic, rows) in enumerate(arrangement.items()):
         else:
             correct = row['authoring_only']['correct_option_index']
             for index, option in enumerate(s['pick_texts']):
-                stage['options'].append({'id': chr(97 + index), 'text': copy[option],
+                stage['options'].append({'id': row['authoring_only'].get('option_ids', ['a', 'b', 'c'])[index], 'text': copy[option],
                                          'correct': index == correct,
-                                         'hint': None if index == correct else (erase_hint if erase else choose_hint)})
+                                         'hint': None if index == correct else (copy[s['retry_hint']] if s.get('retry_hint') else (erase_hint if erase else choose_hint))})
             if s['pick_comment']:
                 stage['explanation'] = copy[s['pick_comment']]
         stages.append(stage)

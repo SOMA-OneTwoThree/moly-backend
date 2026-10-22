@@ -100,18 +100,18 @@
           "review_point": false,
           "reward_hay": 0,
           "mission": {
-            "ko": "해낸 노력에 초점을 맞춰 일기 속 빈칸을 채워보세요.",
-            "en": "Fill the diary gap by noticing the effort you made.",
-            "ja": "できた努力に目を向けて、日記の空欄を埋めましょう。"
+            "ko": "목표를 못 채운 아쉬움 대신, 해낸 노력에 초점을 맞춰 빈칸을 채워보세요.",
+            "en": "Fill the gap by focusing on the effort you made rather than the target you missed.",
+            "ja": "目標に届かなかった残念さより、できた努力に目を向けて空欄を埋めましょう。"
           },
           "lines": [
             {
               "speaker": "narration",
               "slot": false,
               "text": {
-                "ko": "이번 주에는 헬스장에 네 번 가려 했지만 바빠서 두 번만 갔다. 그래도",
-                "en": "I planned four gym visits this week but only managed two because I was busy. Still, I spent that time",
-                "ja": "今週はジムに四回行く予定だったけれど、忙しくて二回だけだった。それでも、"
+                "ko": "이번 달 헬스장 목표는 주 네 번이다. 이번 주에는 바빠서 두 번만 갔다. 돌아보면",
+                "en": "My gym goal this month is four visits a week. This week I was busy and only went twice. Looking back, it was a week when",
+                "ja": "今月のジムの目標は週四回だ。今週は忙しくて二回しか行けなかった。振り返ると、"
               }
             },
             {
@@ -123,9 +123,9 @@
               "speaker": "narration",
               "slot": false,
               "text": {
-                "ko": "시간이었다.",
-                "en": "despite a busy schedule.",
-                "ja": "時間だった。"
+                "ko": "한 주였다.",
+                "en": "despite everything else going on.",
+                "ja": "一週間だった。"
               }
             }
           ],
@@ -133,9 +133,9 @@
             {
               "id": "a",
               "text": {
-                "ko": "포기하지 않고 운동을 이어간",
-                "en": "keeping up exercise without giving up",
-                "ja": "諦めずに運動を続けた"
+                "ko": "바쁜 와중에도 포기하지 않고 운동을 이어간",
+                "en": "I kept exercising without giving up, even while busy",
+                "ja": "忙しい中でも諦めずに運動を続けた"
               },
               "correct": true,
               "hint": null
@@ -143,36 +143,36 @@
             {
               "id": "b",
               "text": {
-                "ko": "아무 효과도 없이 낭비한",
-                "en": "wasting time with no benefit",
-                "ja": "何の効果もなく無駄にした"
+                "ko": "목표를 못 채워 운동한 보람이 없었던",
+                "en": "missing my target made all my exercise feel pointless",
+                "ja": "目標に届かず、運動したかいがなかった"
               },
               "correct": false,
               "hint": {
-                "ko": "이 상황에서 미션에 맞는 생각을 다시 골라볼까요?",
-                "en": "Which thought fits the mission in this situation?",
-                "ja": "この状況でミッションに合う考えを、もう一度選んでみましょう。"
+                "ko": "목표를 못 채운 아쉬움 대신, 해낸 노력에 초점을 맞춰 빈칸을 채워보세요.",
+                "en": "Fill the gap by focusing on the effort you made rather than the target you missed.",
+                "ja": "目標に届かなかった残念さより、できた努力に目を向けて空欄を埋めましょう。"
               }
             },
             {
               "id": "c",
               "text": {
-                "ko": "의지가 부족하다는 것만 확인한",
-                "en": "only proving I lack willpower",
-                "ja": "意志が弱いと確かめただけの"
+                "ko": "계획을 못 지키는 내 모습만 확인한",
+                "en": "all I saw was my inability to stick to a plan",
+                "ja": "計画を守れない自分を確かめただけの"
               },
               "correct": false,
               "hint": {
-                "ko": "이 상황에서 미션에 맞는 생각을 다시 골라볼까요?",
-                "en": "Which thought fits the mission in this situation?",
-                "ja": "この状況でミッションに合う考えを、もう一度選んでみましょう。"
+                "ko": "목표를 못 채운 아쉬움 대신, 해낸 노력에 초점을 맞춰 빈칸을 채워보세요.",
+                "en": "Fill the gap by focusing on the effort you made rather than the target you missed.",
+                "ja": "目標に届かなかった残念さより、できた努力に目を向けて空欄を埋めましょう。"
               }
             }
           ],
           "explanation": {
-            "ko": "못 간 날보다 운동을 이어간 날에 눈을 돌려보세요.",
-            "en": "Notice the days you kept exercising, rather than the days you missed.",
-            "ja": "行けなかった日より、運動を続けられた日に目を向けてみましょう。"
+            "ko": "못 간 날보다 바쁜 와중에도 운동하러 간 날을 인정해주세요.",
+            "en": "Recognize the days you exercised despite being busy, rather than the days you missed.",
+            "ja": "行けなかった日より、忙しい中でも運動に行けた日を認めてあげましょう。"
           }
         },
         {
@@ -223,18 +223,18 @@
           "review_point": false,
           "reward_hay": 0,
           "mission": {
-            "ko": "아쉬운 거래에서 얻은 여유에 초점을 맞춰 빈칸을 채워보세요.",
-            "en": "Fill the gap by noticing the breathing room this missed purchase gives you.",
-            "ja": "買えなかったことで生まれた余裕に目を向けて、空欄を埋めましょう。"
+            "ko": "거래가 불발된 아쉬움 속에서도 다행인 점을 찾아 빈칸을 채워보세요.",
+            "en": "Fill the gap by finding a silver lining in the missed purchase.",
+            "ja": "買えなかった残念さの中にも、よかった面を見つけて空欄を埋めましょう。"
           },
           "lines": [
             {
               "speaker": "narration",
               "slot": false,
               "text": {
-                "ko": "망설이는 사이 중고 카메라가 다른 사람에게 팔렸다. 아쉽지만 덕분에",
-                "en": "The used camera sold to someone else while I hesitated. I am disappointed, but this gives me time",
-                "ja": "迷っている間に中古カメラが売れてしまった。残念だけれど、そのおかげで、"
+                "ko": "중고 거래로 사려던 카메라가 망설이는 사이 다른 사람에게 팔렸다. 이 일을 돌아보니",
+                "en": "The secondhand camera I wanted sold to someone else while I hesitated. Looking back, I find myself thinking that",
+                "ja": "中古で買おうと思っていたカメラが、迷っている間に他の人に売れてしまった。振り返ると、"
               }
             },
             {
@@ -246,56 +246,56 @@
               "speaker": "narration",
               "slot": false,
               "text": {
-                "ko": "시간이 생겼다.",
-                "en": "before deciding what to do next.",
-                "ja": "時間ができた。"
+                "ko": "생각이 든다.",
+                "en": "after this experience.",
+                "ja": "気がする。"
               }
             }
           ],
           "options": [
             {
+              "id": "b",
+              "text": {
+                "ko": "망설이다 놓쳤으니 내 선택이 잘못됐다는",
+                "en": "my choice was wrong because hesitating cost me the camera",
+                "ja": "迷って買い逃したのだから、自分の選択が間違っていたという"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "거래가 불발된 아쉬움 속에서도 다행인 점을 찾아 빈칸을 채워보세요.",
+                "en": "Fill the gap by finding a silver lining in the missed purchase.",
+                "ja": "買えなかった残念さの中にも、よかった面を見つけて空欄を埋めましょう。"
+              }
+            },
+            {
               "id": "a",
               "text": {
-                "ko": "내게 필요한 기능을 다시 살펴볼",
-                "en": "to reconsider the features I need",
-                "ja": "自分に必要な機能を見直す"
+                "ko": "큰돈을 아꼈으니 정말 필요한 카메라인지 다시 따져볼 수 있겠다는",
+                "en": "saving that money gives me time to reconsider whether I really need this camera",
+                "ja": "大きな出費を抑えられたので、本当に必要なカメラか考え直せるという"
               },
               "correct": true,
               "hint": null
             },
             {
-              "id": "b",
-              "text": {
-                "ko": "결단력 없는 나를 탓할",
-                "en": "to blame myself for being indecisive",
-                "ja": "決断力のない自分を責める"
-              },
-              "correct": false,
-              "hint": {
-                "ko": "이 상황에서 미션에 맞는 생각을 다시 골라볼까요?",
-                "en": "Which thought fits the mission in this situation?",
-                "ja": "この状況でミッションに合う考えを、もう一度選んでみましょう。"
-              }
-            },
-            {
               "id": "c",
               "text": {
-                "ko": "다시는 좋은 물건을 못 구할까 걱정할",
-                "en": "to worry that I will never find a good deal again",
-                "ja": "もうよい品に出会えないと心配する"
+                "ko": "이제 이만한 매물은 다시 못 구할 것 같다는",
+                "en": "I probably will not find another deal this good",
+                "ja": "もうこれほどよい品には出会えないのではという"
               },
               "correct": false,
               "hint": {
-                "ko": "이 상황에서 미션에 맞는 생각을 다시 골라볼까요?",
-                "en": "Which thought fits the mission in this situation?",
-                "ja": "この状況でミッションに合う考えを、もう一度選んでみましょう。"
+                "ko": "거래가 불발된 아쉬움 속에서도 다행인 점을 찾아 빈칸을 채워보세요.",
+                "en": "Fill the gap by finding a silver lining in the missed purchase.",
+                "ja": "買えなかった残念さの中にも、よかった面を見つけて空欄を埋めましょう。"
               }
             }
           ],
           "explanation": {
-            "ko": "지출을 잠시 멈추고 필요한 조건을 살펴볼 기회가 생겼어요.",
-            "en": "You have a chance to pause spending and reconsider what you need.",
-            "ja": "出費をいったん止めて、必要な条件を見直す機会ができました。"
+            "ko": "지출을 잠시 멈추고, 나에게 필요한 물건인지 다시 살펴볼 기회가 생겼어요.",
+            "en": "You have a chance to pause spending and reconsider whether you need it.",
+            "ja": "出費をいったん止めて、自分に必要な物か見直す機会ができました。"
           }
         },
         {
@@ -1962,18 +1962,18 @@
           "review_point": true,
           "reward_hay": 30,
           "mission": {
-            "ko": "일기에서 나를 지나치게 깎아내리는 문장을 지워보세요.",
-            "en": "Remove the sentence in the diary that unfairly attacks your worth.",
-            "ja": "日記の中で、自分の価値を不当にけなしている文を消しましょう。"
+            "ko": "일기에서 해낸 노력까지 없던 일로 만드는 문장을 지워보세요.",
+            "en": "Remove the sentence that dismisses the effort you did make.",
+            "ja": "日記の中で、できた努力までなかったことにする文を消しましょう。"
           },
           "lines": [
             {
               "speaker": "narration",
               "slot": false,
               "text": {
-                "ko": "대청소를 하려 했지만 피곤해서 빨래와 설거지만 끝냈다.",
-                "en": "I planned a deep clean, but was tired and only finished the laundry and dishes.",
-                "ja": "大掃除をする予定だったけれど、疲れて洗濯と皿洗いだけを終えた。"
+                "ko": "주말에 대청소를 하려 했는데 피곤해서 빨래와 설거지만 끝내고, 바닥 물걸레질은 못 했다.",
+                "en": "I planned a deep clean over the weekend, but was tired and only finished the laundry and dishes. I did not mop the floor.",
+                "ja": "週末に大掃除をするつもりだったけれど、疲れて洗濯と皿洗いだけを終え、床の水拭きはできなかった。"
               }
             },
             {
@@ -1986,23 +1986,23 @@
             {
               "id": "a",
               "text": {
-                "ko": "물걸레질은 못 했지만 빨래와 설거지는 해냈다.",
-                "en": "I missed mopping, but finished the laundry and dishes.",
-                "ja": "床拭きはできなかったけれど、洗濯と皿洗いはできた。"
+                "ko": "피곤한 몸으로도 빨래와 설거지는 해냈다.",
+                "en": "Even while tired, I finished the laundry and dishes.",
+                "ja": "疲れていても、洗濯と皿洗いはできた。"
               },
               "correct": false,
               "hint": {
-                "ko": "실수나 수습 행동보다, 나 자체를 깎아내리는 문장을 찾아보세요.",
-                "en": "Look for a sentence attacking your worth, rather than acknowledging or fixing a mistake.",
-                "ja": "ミスや対応の文ではなく、自分の価値そのものをけなす文を探しましょう。"
+                "ko": "일기에서 해낸 노력까지 없던 일로 만드는 문장을 지워보세요.",
+                "en": "Remove the sentence that dismisses the effort you did make.",
+                "ja": "日記の中で、できた努力までなかったことにする文を消しましょう。"
               }
             },
             {
               "id": "b",
               "text": {
-                "ko": "계획을 다 못 지킨 나는 게으르고 쓸모없는 사람이다.",
-                "en": "Not finishing the plan means I am lazy and useless.",
-                "ja": "計画を全部できなかった私は怠け者で役立たずだ。"
+                "ko": "물걸레질을 못 했으니 오늘 청소는 안 한 거나 마찬가지다.",
+                "en": "Since I did not mop, it is as if I did no cleaning today.",
+                "ja": "水拭きができなかったのだから、今日は掃除をしなかったのと同じだ。"
               },
               "correct": true,
               "hint": null
@@ -2010,22 +2010,22 @@
             {
               "id": "c",
               "text": {
-                "ko": "피곤한 날에도 해낸 만큼은 인정해주고 싶다.",
-                "en": "I want to recognize what I did, even on a tiring day.",
-                "ja": "疲れた日でも、できたことは認めてあげたい。"
+                "ko": "계획을 다 끝내지는 못했지만 집이 한결 깨끗해진 것만으로도 충분하다.",
+                "en": "I did not finish everything, but making the house cleaner is enough.",
+                "ja": "予定を全部終えられなくても、家が少しきれいになっただけで十分だ。"
               },
               "correct": false,
               "hint": {
-                "ko": "실수나 수습 행동보다, 나 자체를 깎아내리는 문장을 찾아보세요.",
-                "en": "Look for a sentence attacking your worth, rather than acknowledging or fixing a mistake.",
-                "ja": "ミスや対応の文ではなく、自分の価値そのものをけなす文を探しましょう。"
+                "ko": "일기에서 해낸 노력까지 없던 일로 만드는 문장을 지워보세요.",
+                "en": "Remove the sentence that dismisses the effort you did make.",
+                "ja": "日記の中で、できた努力までなかったことにする文を消しましょう。"
               }
             }
           ],
           "explanation": {
-            "ko": "못 끝낸 일 하나로 나 전체를 평가하지 않아도 돼요.",
-            "en": "One unfinished task does not define you.",
-            "ja": "終わらなかったこと一つで、自分全体を評価しなくて大丈夫です。"
+            "ko": "계획을 전부 끝내지 못해도, 해낸 일의 가치는 사라지지 않아요.",
+            "en": "Not finishing everything does not erase the value of what you did.",
+            "ja": "予定を全部終えられなくても、できたことの価値はなくなりません。"
           }
         },
         {
@@ -2362,18 +2362,18 @@
           "review_point": false,
           "reward_hay": 0,
           "mission": {
-            "ko": "일기에서 나를 지나치게 깎아내리는 문장을 지워보세요.",
-            "en": "Remove the sentence in the diary that unfairly attacks your worth.",
-            "ja": "日記の中で、自分の価値を不当にけなしている文を消しましょう。"
+            "ko": "일기에서 상대의 무례한 행동을 내 탓으로 돌리는 문장을 지워보세요.",
+            "en": "Remove the sentence that blames you for someone else being rude.",
+            "ja": "日記の中で、相手の失礼な行動を自分のせいにしている文を消しましょう。"
           },
           "lines": [
             {
               "speaker": "narration",
               "slot": false,
               "text": {
-                "ko": "중고 거래 글을 정중히 올렸는데 무리한 가격 요구와 시비가 돌아왔다.",
-                "en": "I posted a polite listing, but received unreasonable bargaining and rude messages.",
-                "ja": "丁寧に出品したのに、無理な値下げ要求や失礼なメッセージが来た。"
+                "ko": "중고 거래 앱에 안 쓰는 물건을 정중하게 올렸는데, 어떤 사람이 무리하게 가격을 깎아 달라며 시비를 걸었다.",
+                "en": "I politely listed an unused item on a secondhand app, but someone demanded an unreasonable discount and picked a fight.",
+                "ja": "フリマアプリに使わない物を丁寧に出品したら、無理な値下げを要求して言いがかりをつける人がいた。"
               }
             },
             {
@@ -2386,46 +2386,46 @@
             {
               "id": "a",
               "text": {
-                "ko": "나는 물건 상태와 가격을 정중하게 안내했다.",
-                "en": "I explained the condition and price politely.",
-                "ja": "私は商品の状態と価格を丁寧に伝えた。"
+                "ko": "불쾌한 말을 들으니 기분이 상했다.",
+                "en": "Hearing those unpleasant words hurt my feelings.",
+                "ja": "嫌なことを言われて、傷ついた。"
               },
               "correct": false,
               "hint": {
-                "ko": "실수나 수습 행동보다, 나 자체를 깎아내리는 문장을 찾아보세요.",
-                "en": "Look for a sentence attacking your worth, rather than acknowledging or fixing a mistake.",
-                "ja": "ミスや対応の文ではなく、自分の価値そのものをけなす文を探しましょう。"
-              }
-            },
-            {
-              "id": "b",
-              "text": {
-                "ko": "불편한 대화는 더 이어가지 않아도 된다.",
-                "en": "I do not have to continue an uncomfortable conversation.",
-                "ja": "不快なやり取りを続けなくてもいい。"
-              },
-              "correct": false,
-              "hint": {
-                "ko": "실수나 수습 행동보다, 나 자체를 깎아내리는 문장을 찾아보세요.",
-                "en": "Look for a sentence attacking your worth, rather than acknowledging or fixing a mistake.",
-                "ja": "ミスや対応の文ではなく、自分の価値そのものをけなす文を探しましょう。"
+                "ko": "일기에서 상대의 무례한 행동을 내 탓으로 돌리는 문장을 지워보세요.",
+                "en": "Remove the sentence that blames you for someone else being rude.",
+                "ja": "日記の中で、相手の失礼な行動を自分のせいにしている文を消しましょう。"
               }
             },
             {
               "id": "c",
               "text": {
-                "ko": "상대가 무례한 건 내가 만만하고 못난 사람이기 때문이다.",
-                "en": "They were rude because I am weak and worthless.",
-                "ja": "相手が失礼なのは、私が見くびられるような駄目な人だからだ。"
+                "ko": "내가 판매 글을 어설프게 써서 상대가 무례하게 대한 것 같다.",
+                "en": "They probably treated me rudely because I wrote the listing poorly.",
+                "ja": "出品文の書き方が下手だったから、失礼な態度を取られたのだと思う。"
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "b",
+              "text": {
+                "ko": "정중하게 올린 글에 시비를 건 건 상대의 문제이니, 대화를 그만하고 차단해도 괜찮다.",
+                "en": "Picking a fight with my polite listing is their issue. It is okay to stop replying and block them.",
+                "ja": "丁寧な出品文に言いがかりをつけたのは相手の問題だから、やり取りをやめてブロックしてもいい。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "일기에서 상대의 무례한 행동을 내 탓으로 돌리는 문장을 지워보세요.",
+                "en": "Remove the sentence that blames you for someone else being rude.",
+                "ja": "日記の中で、相手の失礼な行動を自分のせいにしている文を消しましょう。"
+              }
             }
           ],
           "explanation": {
-            "ko": "상대의 무례함으로 내 가치를 판단하지 않아도 돼요.",
-            "en": "Someone else being rude does not determine your worth.",
-            "ja": "相手の失礼な態度で、自分の価値を決めなくて大丈夫です。"
+            "ko": "상대가 무례하게 행동한 이유를 내 잘못에서 찾지 않아도 돼요.",
+            "en": "You do not have to look for a fault in yourself to explain their rudeness.",
+            "ja": "相手が失礼だった理由を、自分の落ち度に求めなくて大丈夫です。"
           }
         },
         {
@@ -2771,18 +2771,18 @@
           "review_point": false,
           "reward_hay": 0,
           "mission": {
-            "ko": "일기에서 나를 지나치게 깎아내리는 문장을 지워보세요.",
-            "en": "Remove the sentence in the diary that unfairly attacks your worth.",
-            "ja": "日記の中で、自分の価値を不当にけなしている文を消しましょう。"
+            "ko": "일기에서 한 번의 요리 실수로 나를 단정하는 문장을 지워보세요.",
+            "en": "Remove the sentence that defines you by one cooking mistake.",
+            "ja": "日記の中で、一度の料理の失敗で自分を決めつけている文を消しましょう。"
           },
           "lines": [
             {
               "speaker": "narration",
               "slot": false,
               "text": {
-                "ko": "가족에게 파스타를 해줬지만 면이 불고 간이 짜서 음식이 남았다.",
-                "en": "I cooked pasta for my family, but it was overcooked and salty, so some was left.",
-                "ja": "家族にパスタを作ったけれど、麺が伸びて味も濃く、残ってしまった。"
+                "ko": "요리 초보인 내가 주말에 가족들에게 파스타를 해줬다. 면이 불고 간이 너무 짜서 다들 조금만 먹고 남겼다.",
+                "en": "As a beginner cook, I made pasta for my family over the weekend. It was overcooked and too salty, so everyone ate a little and left the rest.",
+                "ja": "料理初心者の私が週末に家族へパスタを作った。麺が伸びて塩辛くなり、みんな少し食べて残した。"
               }
             },
             {
@@ -2795,23 +2795,23 @@
             {
               "id": "a",
               "text": {
-                "ko": "면과 간을 맞추는 일이 아직 서툴렀다.",
-                "en": "I am still learning how to cook and season pasta.",
-                "ja": "麺のゆで加減や味付けはまだ不慣れだった。"
+                "ko": "식탁을 치우며 부끄럽고 속상했다.",
+                "en": "I felt embarrassed and upset while clearing the table.",
+                "ja": "食卓を片付けながら、恥ずかしくて悲しかった。"
               },
               "correct": false,
               "hint": {
-                "ko": "실수나 수습 행동보다, 나 자체를 깎아내리는 문장을 찾아보세요.",
-                "en": "Look for a sentence attacking your worth, rather than acknowledging or fixing a mistake.",
-                "ja": "ミスや対応の文ではなく、自分の価値そのものをけなす文を探しましょう。"
+                "ko": "일기에서 한 번의 요리 실수로 나를 단정하는 문장을 지워보세요.",
+                "en": "Remove the sentence that defines you by one cooking mistake.",
+                "ja": "日記の中で、一度の料理の失敗で自分を決めつけている文を消しましょう。"
               }
             },
             {
               "id": "b",
               "text": {
-                "ko": "요리 하나 못 하는 나는 가족에게 쓸모없는 사람이다.",
-                "en": "I cannot cook a meal, so I am useless to my family.",
-                "ja": "料理一つできない私は、家族にとって役立たずだ。"
+                "ko": "오늘 요리를 망친 걸 보니 나는 역시 요리에 소질이 없다.",
+                "en": "Ruining this meal shows that I have no talent for cooking.",
+                "ja": "今日の料理に失敗したのだから、やっぱり私には料理の才能がない。"
               },
               "correct": true,
               "hint": null
@@ -2819,22 +2819,22 @@
             {
               "id": "c",
               "text": {
-                "ko": "처음부터 잘하지 못해도 다음에 조금씩 배워가면 된다.",
-                "en": "I can learn little by little, even if my first attempt was imperfect.",
-                "ja": "最初からうまくできなくても、少しずつ学べばいい。"
+                "ko": "조리 시간과 소금양 조절이 서툴렀을 뿐, 가족에게 맛있는 음식을 해주고 싶었던 마음까지 부족했던 건 아니다.",
+                "en": "I struggled with cooking time and salt, but that does not diminish my wish to make something tasty for my family.",
+                "ja": "調理時間と塩加減の調整が不慣れだっただけで、家族においしい物を作りたかった気持ちまで足りなかったわけではない。"
               },
               "correct": false,
               "hint": {
-                "ko": "실수나 수습 행동보다, 나 자체를 깎아내리는 문장을 찾아보세요.",
-                "en": "Look for a sentence attacking your worth, rather than acknowledging or fixing a mistake.",
-                "ja": "ミスや対応の文ではなく、自分の価値そのものをけなす文を探しましょう。"
+                "ko": "일기에서 한 번의 요리 실수로 나를 단정하는 문장을 지워보세요.",
+                "en": "Remove the sentence that defines you by one cooking mistake.",
+                "ja": "日記の中で、一度の料理の失敗で自分を決めつけている文を消しましょう。"
               }
             }
           ],
           "explanation": {
-            "ko": "서툰 요리 한 번이 나라는 사람의 가치를 정하지 않아요.",
-            "en": "One imperfect meal does not determine your worth.",
-            "ja": "一度の料理の失敗が、自分の価値を決めるわけではありません。"
+            "ko": "요리가 아쉬웠던 한 번의 경험으로 나를 단정하지 않아도 돼요.",
+            "en": "One disappointing meal does not have to define you.",
+            "ja": "一度料理がうまくいかなかったことで、自分を決めつけなくて大丈夫です。"
           }
         },
         {

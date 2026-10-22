@@ -35,7 +35,7 @@ metadata = {
                  loc('아쉬운 상황에서도 좋은 면과 새로운 가능성을 찾아보는 30단계 연습이에요.',
                      'Thirty steps to notice good aspects and new possibilities, even when things disappoint you.',
                      '残念な出来事の中でも、よい面や新しい可能性を見つける三十のステップです。')),
-    'acceptance': ('self-acceptance-v1', loc('자기수용', 'Self-Acceptance', '自己受容'),
+    'acceptance': ('self-acceptance-v1', loc('자기 수용', 'Self-Acceptance', '自己受容'),
                    loc('실수와 나의 가치를 구분하고, 나를 과하게 탓하지 않는 생각을 연습해요.',
                        'Practice separating mistakes from your worth and responding without excessive self-blame.',
                        'ミスと自分の価値を分け、自分を責めすぎない考え方を練習します。')),
@@ -67,7 +67,7 @@ for order, (topic, rows) in enumerate(arrangement.items()):
                           'text': copy[data['text']] if data['text'] and not erase else None})
             if not slot and data['text']:
                 lines[-1]['text'] = copy[data['text']]
-        reward = {5: 15, 15: 40, 30: 100}.get(number, 0)
+        reward = {5: 30, 15: 60, 30: 150}.get(number, 0)
         stage = {'icon_key': s['icon_key'], 'number': number, 'answer_type': 'write' if write else 'pick',
                  'layout': 'diary' if diary else 'chat', 'pick_style': None if write else ('erase' if erase else 'choose'),
                  'review_point': bool(reward), 'reward_hay': reward,

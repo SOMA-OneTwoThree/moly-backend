@@ -474,16 +474,15 @@ async def test_other_users_progress_is_not_mixed_in(store, session):
 # --- 채점 이의 ---
 
 
-async def test_claims_are_saved_for_write_stages_only(store, session):
+async def test_claims_are_saved_for_all_stage_types(store, session):
     body = TrainingClaimRequest(reason="should_pass", answer_text=" 포장 실수 ", verdict="retry", hint="다시 써 볼까요?")
     await trainings.claim(session, USER, TID, 2, body)
     claim = store.claims[0]
     assert (claim.user_id, claim.stage, claim.reason, claim.answer_text, claim.verdict) == (
         UID, 2, "should_pass", "포장 실수", "retry",
     )
-    with pytest.raises(AppError) as pick:
-        await trainings.claim(session, USER, TID, 1, body)
-    assert pick.value.http_status == 422
+    await trainings.claim(session, USER, TID, 1, body)
+    assert store.claims[-1].stage == 1
     with pytest.raises(AppError) as missing:
         await trainings.claim(session, USER, TID, 9, body)
     assert missing.value.code == "TRAINING_NOT_FOUND"
@@ -617,3 +616,37 @@ async def test_fallback_reward_and_history_are_exactly_once(store, session, monk
         await _submit(session, 6, _write(request.text))
     assert duplicate.value.code == "TRAINING_STAGE_NOT_CURRENT"
     assert store.balance == before_balance + 40
+
+
+@pytest.mark.parametrize('tid', ['positive-circuit-v1', 'self-acceptance-v1'])
+async def test_active_course_rewards_and_replayed_answers_are_not_duplicated(store, session, monkeypatch, tid):
+    catalog = TrainingCatalog.load()
+    monkeypatch.setattr(training_catalog, 'current', lambda: catalog)
+    course = catalog.get(tid)
+    for stage in course.stages:
+        request = (_pick(next(o.id for o in stage.options if o.correct))
+                   if stage.answer_type == 'pick' else _write(stage.grading.example.pick('ko')))
+        result = await _submit(session, stage.number, request, training_id=tid)
+        assert result['result'] == 'passed', stage.number
+        before = store.balance
+        replay = await _submit(session, stage.number, request, training_id=tid)
+        assert replay == result
+        assert store.balance == before
+    assert [amount for _, _, amount in store.ledger] == [30, 60, 150]
+    assert store.balance == 340
+    assert len(store.answers) == 30
+    assert len(store.rewards) == 3
+
+
+@pytest.mark.parametrize('locale', ['ko', 'en', 'ja'])
+async def test_acceptance_14_both_reasons_is_correct_after_retry(store, session, monkeypatch, locale):
+    catalog = TrainingCatalog.load()
+    monkeypatch.setattr(training_catalog, 'current', lambda: catalog)
+    tid = 'self-acceptance-v1'
+    store.progress[(UID, tid)] = TrainingProgress(user_id=UID, training_id=tid, next_stage=14)
+    wrong = await _submit(session, 14, _pick('a'), locale=locale, training_id=tid)
+    assert wrong['result'] == 'retry'
+    right = await _submit(session, 14, _pick('c'), locale=locale, training_id=tid)
+    assert right['result'] == 'passed'
+    assert store.answers[(UID, tid, 14)].option_id == 'c'
+    assert 'ai' not in store.events

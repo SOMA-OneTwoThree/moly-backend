@@ -295,7 +295,7 @@
           "layout": "chat",
           "pick_style": null,
           "review_point": true,
-          "reward_hay": 15,
+          "reward_hay": 30,
           "mission": {
             "ko": "게임에서 진 아쉬움 대신, 오늘 모임에서 '좋았던 부분'에 초점을 맞춰 적어보세요.",
             "en": "Instead of focusing on losing, write about something good about today's gathering.",
@@ -865,7 +865,7 @@
           "layout": "chat",
           "pick_style": null,
           "review_point": true,
-          "reward_hay": 40,
+          "reward_hay": 60,
           "mission": {
             "ko": "운동을 끝까지 못 한 아쉬움 대신 '이 상황이 오히려 다행인 이유'를 찾아 적어보세요.",
             "en": "Instead of focusing on not finishing the workout, find what is fortunate about stopping.",
@@ -1630,7 +1630,7 @@
           "layout": "diary",
           "pick_style": null,
           "review_point": true,
-          "reward_hay": 100,
+          "reward_hay": 150,
           "mission": {
             "ko": "일기 속 아쉬운 상황에서 좋은 면이나 가능한 다음 행동을 찾아 마무리해보세요.",
             "en": "Finish the diary by finding a good aspect or a possible next step in the disappointing situation.",
@@ -1669,7 +1669,7 @@
       "order": 1,
       "icon_key": "red_heart",
       "title": {
-        "ko": "자기수용",
+        "ko": "자기 수용",
         "en": "Self-Acceptance",
         "ja": "自己受容"
       },
@@ -1950,7 +1950,7 @@
           "layout": "diary",
           "pick_style": "erase",
           "review_point": true,
-          "reward_hay": 15,
+          "reward_hay": 30,
           "mission": {
             "ko": "일기에서 나 자신을 과하게 비난하는 문장을 골라 지워보세요.",
             "en": "Choose and erase the sentence that unfairly attacks you as a person.",
@@ -2635,7 +2635,7 @@
           "layout": "chat",
           "pick_style": null,
           "review_point": true,
-          "reward_hay": 40,
+          "reward_hay": 60,
           "mission": {
             "ko": "생일을 놓친 실수는 인정하되, 나 자신을 나쁜 사람으로 단정하지 않는 말을 적어보세요.",
             "en": "Acknowledge forgetting the birthday without deciding that it makes you a bad person.",
@@ -3529,7 +3529,7 @@
           "layout": "diary",
           "pick_style": null,
           "review_point": true,
-          "reward_hay": 100,
+          "reward_hay": 150,
           "mission": {
             "ko": "올 한 해 애쓴 나를 인정하는 말로 일기를 마무리해보세요.",
             "en": "Finish the diary with words that recognize the effort you made this year.",

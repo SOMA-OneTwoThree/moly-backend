@@ -1,13 +1,13 @@
 # 승인된 트레이닝 원고
 
-2026-10-21 사용자 제공 원고와 승인 구성: 긍정 회로 / 자기수용, 각각30단계.
+2026-10-21 사용자 제공 원고와 승인 구성: 긍정 회로 / 자기 수용, 각각30단계.
 
 - `arrangement.json`: 승인된 한국어 단계·출처 번호·편집 기록. 무디 3.15.2 실제 서버 응답에서 확인한 답 방식·일기·문장 지우기 위치를 따른다. 무디의 숨겨진 채점 규칙을 복원했다는 뜻은 아니다.
 - `ko-source.json`, `translations.tsv`: 순서가 고정된 원문과 영어·일본어 대응 번역. TSV 첫 열은 원문 배열 인덱스다.
 - `rubrics.tsv`: 서버 전용 단계 기준과 평가용 예시. 화면에는 전송하지 않는다. 2026-10-22 요청으로 26개 기준을 뉘앙스 중심으로 완화했다. 예시는 회귀 평가에만 사용하고 AI 채점 프롬프트에는 보내지 않는다. 상황에 맞는 긍정적/자기수용적 방향 하나면 충분하며 상세 해설이나 특정 문구를 요구하지 않는다.
 - `grading-eval.json`: 모범답안과 독립적으로 쓴 26단계의 짧은 자연어 답·명백한 반례·사용자 QA 재현. `grading-eval-holdout.json`: 기준 작성 후 추가한 별도 표현으로 검증한다. `scripts.evaluate_training_grading --suite all|natural|heldout`으로 실제 모델 평가를 명시 실행한다.
 - `legacy-catalog.json`: 옛 원고. 새 카탈로그에서 archived 처리하므로 목록에는 안 나오고, 옛 id의 진행/답 조회는 유지한다.
-- `build_catalog.py`: 실행용 `app/resources/trainings/catalog.json` 생성. 새 문제는 새 id로 분리했다. 보상은 기존15/40/100 유지.
+- `build_catalog.py`: 실행용 `app/resources/trainings/catalog.json` 생성. 새 문제는 새 id로 분리했다. 2026-10-22 승인으로 활성 두 과정 보상은 30/60/150. 기존 지급 이력은 재지급하지 않는다.
 
 ```sh
 uv run python content/trainings/build_catalog.py

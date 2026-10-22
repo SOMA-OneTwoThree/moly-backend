@@ -187,7 +187,7 @@ def test_new_courses_keep_verified_stage_flow(tid, pattern, diary, erase):
     assert ''.join('W' if s.answer_type == 'write' else 'P' for s in course.stages) == pattern
     assert {s.number for s in course.stages if s.layout == 'diary'} == diary
     assert {s.number for s in course.stages if s.pick_style == 'erase'} == erase
-    assert {s.number: s.reward_hay for s in course.stages if s.reward_hay} == {5: 15, 15: 40, 30: 100}
+    assert {s.number: s.reward_hay for s in course.stages if s.reward_hay} == {5: 30, 15: 60, 30: 150}
     for language in ('ko', 'en', 'ja'):
         for stage in course.stages:
             view = training_catalog.public_stage(stage, language)

@@ -294,8 +294,6 @@ async def claim(
     stage = _training(training_id).stage(stage_number)
     if stage is None:
         raise _not_found()
-    if stage.answer_type != "write":
-        raise errors.validation("주관식 단계에만 이의를 남길 수 있어요.")
     uid = uuid.UUID(user_id)
     await privacy.ensure_subject_active(session, uid)
     session.add(TrainingClaim(

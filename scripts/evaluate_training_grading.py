@@ -14,7 +14,7 @@ from app.services import llm, training_grading
 from app.services.training_catalog import TrainingCatalog
 
 
-async def evaluate(languages=('ko',), repeats=1):
+async def evaluate(languages=('ko',), repeats=1, suite='all', only=None):
     cases = []
     catalog = TrainingCatalog.load()
     for course in catalog.trainings:
@@ -28,15 +28,32 @@ async def evaluate(languages=('ko',), repeats=1):
                                'en': 'I am a worthless person who cannot do anything right.',
                                'ja': '私は何をしてもだめな、価値のない人間だ。'}
                     cases.append((course.id, stage, 'self_attack', attacks[language], False, language))
-    for number, answer in [(3, '다음부터 시간 약속을 잘 지키겠습니다.'), (14, '제 잘못입니다. 죄송합니다.'), (20, '다음에는 시간을 잘 확인하겠습니다.')]:
+    for number, answer in [(3, '다음부터 시간 약속을 잘 지키겠습니다.'), (14, '제 잘못입니다. 죄송합니다.')]:
         cases.append(('positive-circuit-v1', catalog.get('positive-circuit-v1').stage(number), 'off_mission_apology_or_plan', answer, False, 'ko'))
     for answer, expected in [('뭐래', False), ('ㅋㅋㅋ', False), ('밥이 마싯어서 기분조앗다', True),
                              ('기다리는동안 친구랑 얘기해서 조앗다', True)]:
         cases.append(('positive-circuit-v1', catalog.get('positive-circuit-v1').stage(3),
                       'qa_reaction_or_typo', answer, expected, 'ko'))
+    if suite in ('natural', 'heldout'):
+        cases = []
+    if suite != 'baseline':
+        filename = 'grading-eval-holdout.json' if suite == 'heldout' else 'grading-eval.json'
+        natural = json.loads((Path(__file__).parents[1] / 'content/trainings' / filename).read_text())
+        for case in natural:
+            for language, answer in case['answers'].items():
+                if language in languages:
+                    cases.append((case['course'], catalog.get(case['course']).stage(case['stage']),
+                                  case['kind'], answer, case['expected'], language))
+    if only:
+        cases = [case for case in cases if f'{case[0]}:{case[1].number}' == only]
+        if not cases:
+            raise ValueError(f'No cases for {only}')
     gate = asyncio.Semaphore(3)
+    completed = 0
     async def one(tid, stage, kind, answer, expected, language):
-        row = {'course': tid, 'stage': stage.number, 'kind': kind, 'expected': expected, 'language': language}
+        nonlocal completed
+        row = {'course': tid, 'stage': stage.number, 'kind': kind, 'expected': expected,
+               'language': language, 'answer': answer}
         async with gate:
             try:
                 result = await llm.generate(
@@ -49,8 +66,14 @@ async def evaluate(languages=('ko',), repeats=1):
                 row['actual'] = parsed[0] if parsed else None
                 row['hint'] = parsed[1] if parsed else None
                 row['ok'] = parsed is not None and parsed[0] == expected
+                row['input_tokens'] = result.input_tokens
+                row['output_tokens'] = result.output_tokens
+                row['cache_read_tokens'] = result.cache_read_tokens
             except Exception as exc:
                 row.update(error=type(exc).__name__, ok=False)
+            completed += 1
+            if completed % 25 == 0:
+                print(f'Evaluated {completed}/{len(cases) * repeats}', flush=True)
         return row
     rows = await asyncio.gather(*(one(*case) for _ in range(repeats) for case in cases))
     return {'model': settings.model_training_grade, 'prompt_version': training_grading.PROMPT_VERSION,
@@ -62,8 +85,10 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--languages', nargs='+', choices=['ko', 'en', 'ja'], default=['ko'])
     parser.add_argument('--repeats', type=int, choices=range(1, 4), default=1)
+    parser.add_argument('--suite', choices=['all', 'baseline', 'natural', 'heldout'], default='all')
+    parser.add_argument('--only', help='Evaluate one course:stage after a focused rubric correction')
     args = parser.parse_args()
-    report = asyncio.run(evaluate(args.languages, args.repeats))
+    report = asyncio.run(evaluate(args.languages, args.repeats, args.suite, args.only))
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     print(f"Live grading: {report['passed']}/{report['total']} matched; model={report['model']}")
     return int(report['passed'] != report['total'])

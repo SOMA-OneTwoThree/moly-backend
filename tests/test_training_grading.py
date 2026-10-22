@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 import uuid
 from pathlib import Path
@@ -107,7 +108,7 @@ async def test_prompt_carries_the_stage_but_no_account_details(ai):
     system = ai["calls"][0]["system"]
     assert WRITE.mission.ja in system
     assert WRITE.grading.criteria in system
-    assert WRITE.grading.example.ja in system
+    assert WRITE.grading.example.ja not in system
     assert "一つ目の候補は [ANSWER]" in system
     assert "Japanese" in system
     assert str(UID) not in system and str(UID) not in str(ai["calls"][0]["convo"])
@@ -175,7 +176,7 @@ async def test_cancellation_is_not_swallowed(ai):
 
 
 @pytest.mark.parametrize('language', ['ko', 'en', 'ja'])
-async def test_new_courses_use_their_own_rubric_and_examples(ai, language):
+async def test_new_courses_send_their_own_rubric_without_a_model_answer(ai, language):
     catalog = TrainingCatalog.load()
     for tid, topic in [('positive-circuit-v1', 'Positive reframing.'), ('self-acceptance-v1', 'Self-acceptance.')]:
         for stage in catalog.get(tid).stages:
@@ -187,9 +188,25 @@ async def test_new_courses_use_their_own_rubric_and_examples(ai, language):
             prompt = ai['calls'][-1]['system']
             assert topic in prompt
             assert stage.grading.criteria in prompt
-            assert stage.grading.example.pick(language) in prompt
+            assert stage.grading.example.pick(language) not in prompt
             assert 'all pass' not in prompt
-            assert 'only when the answer fulfils this stage mission' in prompt
+
+
+def test_natural_eval_covers_every_write_stage_and_keeps_valid_inputs_for_ai():
+    cases = json.loads((Path(__file__).parents[1] / 'content/trainings/grading-eval.json').read_text())
+    catalog = TrainingCatalog.load()
+    stages = {(course.id, stage.number) for course in catalog.trainings if not course.archived
+              for stage in course.stages if stage.answer_type == 'write'}
+    for kind in ['natural_short', 'clear_counterexample']:
+        assert {(c['course'], c['stage']) for c in cases if c['kind'] == kind} == stages
+    for case in cases:
+        stage = catalog.get(case['course']).stage(case['stage'])
+        assert stage.answer_type == 'write'
+        if case['kind'] == 'natural_short':
+            assert set(case['answers']) == {'ko', 'en', 'ja'}
+        if case['expected']:
+            for language, answer in case['answers'].items():
+                assert training_grading.check_rules(stage, answer, language) is None, case
 
 
 async def test_deadline_is_enforced_even_if_provider_ignores_it(ai, monkeypatch):

@@ -154,6 +154,20 @@ async def test_rules_run_before_ai(ai):
     assert ai["calls"] == []
 
 
+@pytest.mark.parametrize("answer", ["뭐래", "뭐래?!", "ㅋㅋㅋ", "ㅠㅠㅠ", "!!!", "😂😂", "12345", "a!!!", "가...", "\u110f\u110f\u110f"])
+async def test_reactions_cannot_auto_pass_during_provider_failure(ai, answer):
+    ai["error"] = TimeoutError()
+    verdict = await training_grading.grade_write(WRITE, answer, "ko", user_id=UID)
+    assert verdict == Verdict(False, "rule", training_grading._SHORT_HINT["ko"])
+    assert ai["calls"] == []
+
+
+@pytest.mark.parametrize("answer", ["경첩", "마음에드는옷 사서 기분조앗다", "옷이 맘에들어 ㅋㅋ", "맛있었어", "경첩"])
+async def test_understandable_short_or_misspelled_answers_reach_ai(ai, answer):
+    assert await training_grading.grade_write(WRITE, answer, "ko", user_id=UID) == Verdict(True, "ai")
+    assert len(ai["calls"]) == 1
+
+
 async def test_cancellation_is_not_swallowed(ai):
     ai["error"] = asyncio.CancelledError()
     with pytest.raises(asyncio.CancelledError):

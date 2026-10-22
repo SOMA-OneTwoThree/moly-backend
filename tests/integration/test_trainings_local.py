@@ -16,9 +16,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from app.schemas.trainings import TrainingAnswerRequest, TrainingClaimRequest
-from app.services import training_catalog, training_grading, trainings
+from app.services import llm, training_catalog, training_grading, trainings
 from app.services.training_catalog import TrainingCatalog
-from app.services.training_grading import Verdict
+from app.services.training_grading import Verdict, grade_write as real_grade_write
 from db.schema_contract import require_scratch
 
 CATALOG = TrainingCatalog.load(Path(__file__).parents[1] / 'fixtures/trainings/catalog.json')
@@ -130,6 +130,28 @@ async def test_last_try_blocks_wrong_answers_until_the_hour_refills(db):
     assert getattr(blocked.value, 'code', None) == 'TRAINING_NO_TRIES'
     refilled = await trainings.submit(db, user, TID, 1, chosen('b'), locale='ko', now=NOW + timedelta(hours=1))
     assert refilled['result'] == 'passed' and refilled['tries']['left'] == 1
+
+
+@pytest.mark.parametrize('answer', ['뭐래', 'ㅋㅋㅋ', '!!!'])
+async def test_reaction_deducts_once_without_ai_answer_or_reward(db, monkeypatch, answer):
+    user = await signup(db)
+    await submit(db, user, 1, chosen('b'))
+    monkeypatch.setattr(training_grading, 'grade_write', real_grade_write)
+
+    async def unexpected_ai(*args, **kwargs):
+        pytest.fail('A reaction must be rejected before AI or its fallback')
+
+    monkeypatch.setattr(llm, 'generate', unexpected_ai)
+    request = written(answer)
+    result = await submit(db, user, 2, request)
+    replay = await submit(db, user, 2, request)
+    assert replay == result
+    assert (result['result'], result['judge'], result['tries']['left']) == ('retry', 'rule', 4)
+    assert result['progress']['next_stage'] == 2
+    args = {'u': uuid.UUID(user)}
+    assert await db.scalar(text('SELECT count(*) FROM training_submissions WHERE user_id=:u AND stage=2'), args) == 1
+    assert await db.scalar(text('SELECT count(*) FROM training_answers WHERE user_id=:u AND stage=2'), args) == 0
+    assert await rewards(db, user) == []
 
 
 async def test_reward_adds_to_the_balance_as_it_is_after_grading(db, monkeypatch):

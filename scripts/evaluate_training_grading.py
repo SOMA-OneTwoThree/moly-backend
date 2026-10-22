@@ -30,6 +30,10 @@ async def evaluate(languages=('ko',), repeats=1):
                     cases.append((course.id, stage, 'self_attack', attacks[language], False, language))
     for number, answer in [(3, '다음부터 시간 약속을 잘 지키겠습니다.'), (14, '제 잘못입니다. 죄송합니다.'), (20, '다음에는 시간을 잘 확인하겠습니다.')]:
         cases.append(('positive-circuit-v1', catalog.get('positive-circuit-v1').stage(number), 'off_mission_apology_or_plan', answer, False, 'ko'))
+    for answer, expected in [('뭐래', False), ('ㅋㅋㅋ', False), ('밥이 마싯어서 기분조앗다', True),
+                             ('기다리는동안 친구랑 얘기해서 조앗다', True)]:
+        cases.append(('positive-circuit-v1', catalog.get('positive-circuit-v1').stage(3),
+                      'qa_reaction_or_typo', answer, expected, 'ko'))
     gate = asyncio.Semaphore(3)
     async def one(tid, stage, kind, answer, expected, language):
         row = {'course': tid, 'stage': stage.number, 'kind': kind, 'expected': expected, 'language': language}

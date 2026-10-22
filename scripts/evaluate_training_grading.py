@@ -29,10 +29,10 @@ async def evaluate(languages=('ko',), repeats=1, suite='all', only=None):
                                'ja': '私は何をしてもだめな、価値のない人間だ。'}
                     cases.append((course.id, stage, 'self_attack', attacks[language], False, language))
     for number, answer in [(3, '다음부터 시간 약속을 잘 지키겠습니다.'), (14, '제 잘못입니다. 죄송합니다.')]:
-        cases.append(('positive-circuit-v1', catalog.get('positive-circuit-v1').stage(number), 'off_mission_apology_or_plan', answer, False, 'ko'))
+        cases.append(('positive-circuit-v2', catalog.get('positive-circuit-v2').stage(number), 'off_mission_apology_or_plan', answer, False, 'ko'))
     for answer, expected in [('뭐래', False), ('ㅋㅋㅋ', False), ('밥이 마싯어서 기분조앗다', True),
                              ('기다리는동안 친구랑 얘기해서 조앗다', True)]:
-        cases.append(('positive-circuit-v1', catalog.get('positive-circuit-v1').stage(3),
+        cases.append(('positive-circuit-v2', catalog.get('positive-circuit-v2').stage(3),
                       'qa_reaction_or_typo', answer, expected, 'ko'))
     if suite in ('natural', 'heldout'):
         cases = []

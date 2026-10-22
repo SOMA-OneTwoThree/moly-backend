@@ -1,6 +1,6 @@
 [
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 3,
     "kind": "natural_short",
     "expected": true,
@@ -11,7 +11,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 3,
     "kind": "clear_counterexample",
     "expected": false,
@@ -20,7 +20,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 5,
     "kind": "natural_short",
     "expected": true,
@@ -31,7 +31,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 5,
     "kind": "clear_counterexample",
     "expected": false,
@@ -40,7 +40,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 9,
     "kind": "natural_short",
     "expected": true,
@@ -51,7 +51,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 9,
     "kind": "clear_counterexample",
     "expected": false,
@@ -60,7 +60,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 10,
     "kind": "natural_short",
     "expected": true,
@@ -71,7 +71,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 10,
     "kind": "clear_counterexample",
     "expected": false,
@@ -80,7 +80,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 13,
     "kind": "natural_short",
     "expected": true,
@@ -91,7 +91,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 13,
     "kind": "clear_counterexample",
     "expected": false,
@@ -100,7 +100,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 14,
     "kind": "natural_short",
     "expected": true,
@@ -111,7 +111,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 14,
     "kind": "clear_counterexample",
     "expected": false,
@@ -120,7 +120,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 15,
     "kind": "natural_short",
     "expected": true,
@@ -131,7 +131,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 15,
     "kind": "clear_counterexample",
     "expected": false,
@@ -140,7 +140,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 19,
     "kind": "natural_short",
     "expected": true,
@@ -151,7 +151,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 19,
     "kind": "clear_counterexample",
     "expected": false,
@@ -160,7 +160,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 20,
     "kind": "natural_short",
     "expected": true,
@@ -171,7 +171,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 20,
     "kind": "clear_counterexample",
     "expected": false,
@@ -180,7 +180,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 21,
     "kind": "natural_short",
     "expected": true,
@@ -191,7 +191,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 21,
     "kind": "clear_counterexample",
     "expected": false,
@@ -200,7 +200,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 24,
     "kind": "natural_short",
     "expected": true,
@@ -211,7 +211,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 24,
     "kind": "clear_counterexample",
     "expected": false,
@@ -220,7 +220,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 25,
     "kind": "natural_short",
     "expected": true,
@@ -231,7 +231,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 25,
     "kind": "clear_counterexample",
     "expected": false,
@@ -240,7 +240,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 26,
     "kind": "natural_short",
     "expected": true,
@@ -251,7 +251,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 26,
     "kind": "clear_counterexample",
     "expected": false,
@@ -260,7 +260,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 27,
     "kind": "natural_short",
     "expected": true,
@@ -271,7 +271,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 27,
     "kind": "clear_counterexample",
     "expected": false,
@@ -280,7 +280,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 28,
     "kind": "natural_short",
     "expected": true,
@@ -291,7 +291,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 28,
     "kind": "clear_counterexample",
     "expected": false,
@@ -300,7 +300,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 29,
     "kind": "natural_short",
     "expected": true,
@@ -311,7 +311,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 29,
     "kind": "clear_counterexample",
     "expected": false,
@@ -320,7 +320,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 30,
     "kind": "natural_short",
     "expected": true,
@@ -331,7 +331,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 30,
     "kind": "clear_counterexample",
     "expected": false,
@@ -340,67 +340,73 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 3,
     "kind": "natural_short",
     "expected": true,
     "answers": {
-      "ko": "많이 일이 바쁘셨나보다. 다음에 다시 질문드려야지",
-      "en": "They must have been really busy. I'll ask again later",
-      "ja": "仕事が忙しかったのかな。また後で聞こう"
+      "ko": "연락 반가워할 텐데 지금 여유가 없겠지",
+      "en": "They will be happy to hear from me when they have a moment.",
+      "ja": "余裕ができたら連絡を喜んでくれると思う。"
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 3,
     "kind": "clear_counterexample",
     "expected": false,
     "answers": {
-      "ko": "내가 멍청해서 질문한 게 다 잘못이야"
+      "ko": "내가 귀찮은 사람이라 답을 안 하는 거야",
+      "en": "They are ignoring me because I am annoying.",
+      "ja": "私が迷惑な人だから返事をしないんだ。"
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 9,
     "kind": "natural_short",
     "expected": true,
     "answers": {
-      "ko": "그땐 몰랐지 뭐",
-      "en": "I couldn't have known back then",
-      "ja": "そのときは分からなかったよね"
+      "ko": "공사 소식도 없었는데 내가 어떻게 알아",
+      "en": "There was no notice of the roadworks. How could I know?",
+      "ja": "工事のお知らせもなかったし、知りようがないよ。"
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 9,
     "kind": "clear_counterexample",
     "expected": false,
     "answers": {
-      "ko": "그 회사를 고른 나는 평생 한심한 사람이야"
+      "ko": "버스를 고른 나는 정말 멍청해",
+      "en": "I am stupid for choosing the bus.",
+      "ja": "バスを選んだ私は本当にばかだ。"
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 15,
     "kind": "natural_short",
     "expected": true,
     "answers": {
-      "ko": "까먹을수도 있지 다음엔 챙기자",
-      "en": "People forget. I'll remember next time",
-      "ja": "忘れることもあるよね。次は覚えておこう"
+      "ko": "아이고 또 털면 되지 뭐",
+      "en": "Oh well, I can brush the bits off.",
+      "ja": "まあ、紙くずを払えばいいか。"
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 15,
     "kind": "clear_counterexample",
     "expected": false,
     "answers": {
-      "ko": "생일을 잊은 나는 친구 자격도 없는 인간이야"
+      "ko": "나는 집안일 하나 못 하는 한심한 인간이야",
+      "en": "I am pathetic and cannot do any housework.",
+      "ja": "家事一つできない情けない人間だ。"
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 20,
     "kind": "natural_short",
     "expected": true,
@@ -411,7 +417,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 20,
     "kind": "clear_counterexample",
     "expected": false,
@@ -420,7 +426,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 25,
     "kind": "natural_short",
     "expected": true,
@@ -431,7 +437,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 25,
     "kind": "clear_counterexample",
     "expected": false,
@@ -440,7 +446,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 27,
     "kind": "natural_short",
     "expected": true,
@@ -451,7 +457,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 27,
     "kind": "clear_counterexample",
     "expected": false,
@@ -460,7 +466,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 28,
     "kind": "natural_short",
     "expected": true,
@@ -471,7 +477,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 28,
     "kind": "clear_counterexample",
     "expected": false,
@@ -480,7 +486,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 29,
     "kind": "natural_short",
     "expected": true,
@@ -491,7 +497,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 29,
     "kind": "clear_counterexample",
     "expected": false,
@@ -500,7 +506,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 30,
     "kind": "natural_short",
     "expected": true,
@@ -511,7 +517,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 30,
     "kind": "clear_counterexample",
     "expected": false,
@@ -583,7 +589,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 29,
     "kind": "boundary",
     "expected": true,
@@ -592,7 +598,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 30,
     "kind": "boundary",
     "expected": true,
@@ -601,7 +607,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 3,
     "kind": "boundary",
     "expected": true,
@@ -610,7 +616,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 20,
     "kind": "boundary",
     "expected": true,
@@ -628,7 +634,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 3,
     "kind": "boundary",
     "expected": false,
@@ -646,7 +652,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 3,
     "kind": "boundary",
     "expected": false,

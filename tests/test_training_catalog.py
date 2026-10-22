@@ -178,8 +178,8 @@ def test_shipped_catalog_keeps_the_no_self_blame_skeleton():
 
 
 @pytest.mark.parametrize(('tid', 'pattern', 'diary', 'erase'), [
-    ('positive-circuit-v1', 'PPWPWPPPWWPPWWWPPPWWWPPWWWWWWW', {2, 4, 26, 27, 28, 29, 30}, set()),
-    ('self-acceptance-v1', 'PPWPPPPPWPPPPPWPPPPWPPPPWPWWWW', {5, 11, 17, 19, 20, 21, 22, 26, 27, 28, 29, 30}, {5, 11, 17, 22}),
+    ('positive-circuit-v2', 'PPWPWPPPWWPPWWWPPPWWWPPWWWWWWW', {2, 4, 26, 27, 28, 29, 30}, set()),
+    ('self-acceptance-v2', 'PPWPPPPPWPPPPPWPPPPWPPPPWPWWWW', {5, 11, 17, 19, 20, 21, 22, 26, 27, 28, 29, 30}, {5, 11, 17, 22}),
 ])
 def test_new_courses_keep_verified_stage_flow(tid, pattern, diary, erase):
     course = TrainingCatalog.load().get(tid)
@@ -200,12 +200,30 @@ def test_new_courses_keep_verified_stage_flow(tid, pattern, diary, erase):
 
 def test_new_content_is_separate_from_legacy_answers_and_choice_only_stage_has_no_slot():
     catalog = TrainingCatalog.load()
-    assert [t.id for t in catalog.trainings if not t.archived] == ['positive-circuit-v1', 'self-acceptance-v1']
+    assert [t.id for t in catalog.trainings if not t.archived] == ['positive-circuit-v2', 'self-acceptance-v2']
     assert catalog.get('no-self-blame').archived
-    assert not any(line.slot for line in catalog.get('self-acceptance-v1').stage(18).lines)
+    assert not any(line.slot for line in catalog.get('self-acceptance-v2').stage(18).lines)
 
 
 def test_birthday_explanation_matches_edited_choices():
-    stage = TrainingCatalog.load().get('self-acceptance-v1').stage(14)
+    stage = TrainingCatalog.load().get('self-acceptance-v2').stage(14)
     assert stage.options[2].correct
     assert '1번' not in stage.explanation.ko
+
+
+def test_active_courses_use_thirty_distinct_source_situations():
+    root = Path(__file__).parents[1] / 'content/trainings'
+    arrangement = json.loads((root / 'arrangement.json').read_text())
+    for topic, rows in arrangement['courses'].items():
+        sources = [(row['provenance']['source_kind'], row['provenance']['source_number']) for row in rows]
+        assert len(sources) == len(set(sources)) == 30, topic
+
+
+def test_archived_v1_payloads_are_unchanged_for_saved_answers():
+    import hashlib
+    expected = {'positive-circuit-v1': '46df6f2a4bd662ab8545a64076511d8f417c2fa9d10d96fd735531b2ae6fcc4d', 'self-acceptance-v1': '49c00129759c1c97cfaadff4bae7cc4e8085843a90b44b81797c531928774f35'}
+    raw = json.loads(training_catalog.CATALOG_PATH.read_text())
+    for tid, digest in expected.items():
+        course = dict(next(t for t in raw['trainings'] if t['id'] == tid))
+        assert course.pop('archived') is True
+        assert hashlib.sha256(json.dumps(course, ensure_ascii=False, sort_keys=True).encode()).hexdigest() == digest

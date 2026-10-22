@@ -178,7 +178,7 @@ async def test_cancellation_is_not_swallowed(ai):
 @pytest.mark.parametrize('language', ['ko', 'en', 'ja'])
 async def test_new_courses_send_their_own_rubric_without_a_model_answer(ai, language):
     catalog = TrainingCatalog.load()
-    for tid, topic in [('positive-circuit-v1', 'Positive reframing.'), ('self-acceptance-v1', 'Self-acceptance.')]:
+    for tid, topic in [('positive-circuit-v2', 'Positive reframing.'), ('self-acceptance-v2', 'Self-acceptance.')]:
         for stage in catalog.get(tid).stages:
             if stage.answer_type != 'write':
                 continue

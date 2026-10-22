@@ -15,7 +15,7 @@ uv run python content/trainings/build_catalog.py --check
 uv run pytest -q tests/test_training_catalog.py tests/test_training_grading.py
 ```
 
-원고별 객관식/주관식: 긍정 회로13/17, 자기수용21/9. 같은 사례를 다른 형식으로 다시 연습한다.
+원고별 객관식/주관식: 긍정 회로13/17, 자기수용21/9. 2026-10-23 팀 QA에 따라 두 주제 모두 30개 서로 다른 원문 상황을 사용한다.
 2026-10-22 사용자 QA에 따라 16개 단계 해설에서 보기 번호·부가 평가·반복 설명을 제거했다. ko/en/ja 원고에 함께 반영했다.
 자기수용18은 원본처럼 빈칸 없는 일반 객관식이다. 앱은 통과/재열람에서 선택한 답을 별도 표시한다.
 
@@ -35,3 +35,11 @@ uv run pytest -q tests/test_training_catalog.py tests/test_training_grading.py
 ## 문제 그림 (2026-10-21)
 
 `arrangement.json`의 단계별 `icon_key`는 앱에 이미 포함된 Fluent Emoji 3D 에셋 키다. 두 과정 60개 모두 상황에 맞춰 지정했다. 생성 원고와 공개 API로 전달하며 언어에 따라 바뀌지 않는다. 예전 과정의 누락 키는 그림 없음으로 처리한다. 무디 원본 그림을 복사하지 않는다.
+
+## 2026-10-23 팀 QA: 반복 제거
+
+활성 과정은 `positive-circuit-v2`, `self-acceptance-v2`이다. 긍정 회로 2·4, 자기 수용 3·5·7·9·11·13·15·17·19단계를 미사용 노션 원문으로 교체했다. 유형 순서와 보상 위치는 유지했다. 각 단계의 출처는 arrangement의 provenance에 기록했다.
+
+이전 v1 원고는 그대로 보존하며 기존 답은 이전 id로만 조회한다. v2 진행과 보상은 별도 과정으로 시작한다. DB의 기존 답·보상 행을 수정하지 않는다. 과거 QA 재현 평가도 해당 v1 문제에 연결한다.
+
+노션 확인: 긍정 회로 `4007d39cd13a80bd8027e27ed7e01742`, 자기 수용 `4007d39cd13a80a98743e2d77112cd4e`. 일기/지우기형으로 편집한 경우 provenance에 표시했다.

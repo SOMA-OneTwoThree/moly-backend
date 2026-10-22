@@ -618,7 +618,7 @@ async def test_fallback_reward_and_history_are_exactly_once(store, session, monk
     assert store.balance == before_balance + 40
 
 
-@pytest.mark.parametrize('tid', ['positive-circuit-v1', 'self-acceptance-v1'])
+@pytest.mark.parametrize('tid', ['positive-circuit-v2', 'self-acceptance-v2'])
 async def test_active_course_rewards_and_replayed_answers_are_not_duplicated(store, session, monkeypatch, tid):
     catalog = TrainingCatalog.load()
     monkeypatch.setattr(training_catalog, 'current', lambda: catalog)
@@ -642,7 +642,7 @@ async def test_active_course_rewards_and_replayed_answers_are_not_duplicated(sto
 async def test_acceptance_14_both_reasons_is_correct_after_retry(store, session, monkeypatch, locale):
     catalog = TrainingCatalog.load()
     monkeypatch.setattr(training_catalog, 'current', lambda: catalog)
-    tid = 'self-acceptance-v1'
+    tid = 'self-acceptance-v2'
     store.progress[(UID, tid)] = TrainingProgress(user_id=UID, training_id=tid, next_stage=14)
     wrong = await _submit(session, 14, _pick('a'), locale=locale, training_id=tid)
     assert wrong['result'] == 'retry'

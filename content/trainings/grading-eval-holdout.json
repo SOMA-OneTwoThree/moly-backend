@@ -1,6 +1,6 @@
 [
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 3,
     "kind": "heldout_natural",
     "expected": true,
@@ -9,7 +9,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 5,
     "kind": "heldout_natural",
     "expected": true,
@@ -18,7 +18,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 9,
     "kind": "heldout_natural",
     "expected": true,
@@ -27,7 +27,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 10,
     "kind": "heldout_natural",
     "expected": true,
@@ -36,7 +36,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 13,
     "kind": "heldout_natural",
     "expected": true,
@@ -45,7 +45,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 14,
     "kind": "heldout_natural",
     "expected": true,
@@ -54,7 +54,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 15,
     "kind": "heldout_natural",
     "expected": true,
@@ -63,7 +63,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 19,
     "kind": "heldout_natural",
     "expected": true,
@@ -72,7 +72,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 20,
     "kind": "heldout_natural",
     "expected": true,
@@ -81,7 +81,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 21,
     "kind": "heldout_natural",
     "expected": true,
@@ -90,7 +90,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 24,
     "kind": "heldout_natural",
     "expected": true,
@@ -99,7 +99,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 25,
     "kind": "heldout_natural",
     "expected": true,
@@ -108,7 +108,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 26,
     "kind": "heldout_natural",
     "expected": true,
@@ -117,7 +117,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 27,
     "kind": "heldout_natural",
     "expected": true,
@@ -126,7 +126,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 28,
     "kind": "heldout_natural",
     "expected": true,
@@ -135,7 +135,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 29,
     "kind": "heldout_natural",
     "expected": true,
@@ -144,7 +144,7 @@
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 30,
     "kind": "heldout_natural",
     "expected": true,
@@ -153,34 +153,40 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 3,
     "kind": "heldout_natural",
     "expected": true,
     "answers": {
-      "ko": "뭔일 있었겠지 뭐 굳이 내가 잘못했다고 생각할 필요 있나"
+      "ko": "폰을 못 보는 일이 있나 보네. 좀 기다려야지",
+      "en": "Perhaps they cannot check their phone right now. I can wait.",
+      "ja": "今は携帯を見られないのかも。少し待とう。"
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 9,
     "kind": "heldout_natural",
     "expected": true,
     "answers": {
-      "ko": "그때의 나한텐 그게 최선이었겠지"
+      "ko": "그때 알던 정보로는 버스가 괜찮았어",
+      "en": "The bus made sense with what I knew at the time.",
+      "ja": "あのとき知っていた情報では、バスでよかったんだ。"
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 15,
     "kind": "heldout_natural",
     "expected": true,
     "answers": {
-      "ko": "미안한 건 맞지만 그렇다고 나쁜 친구는 아니잖아"
+      "ko": "정리하다 놓칠 수도 있지. 나는 로봇이 아니잖아",
+      "en": "I can miss things sometimes. I am not a machine.",
+      "ja": "うっかりすることもあるよ。ロボットじゃないんだから。"
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 20,
     "kind": "heldout_natural",
     "expected": true,
@@ -189,7 +195,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 25,
     "kind": "heldout_natural",
     "expected": true,
@@ -198,7 +204,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 27,
     "kind": "heldout_natural",
     "expected": true,
@@ -207,7 +213,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 28,
     "kind": "heldout_natural",
     "expected": true,
@@ -216,7 +222,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 29,
     "kind": "heldout_natural",
     "expected": true,
@@ -225,7 +231,7 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 30,
     "kind": "heldout_natural",
     "expected": true,
@@ -234,16 +240,18 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 3,
     "kind": "heldout_negative",
     "expected": false,
     "answers": {
-      "ko": "내일 비가 오려나"
+      "ko": "답장도 못 받는 걸 보니 난 친구로서 가치가 없어",
+      "en": "Not getting a reply proves I am worthless as a friend.",
+      "ja": "返事も来ないなんて、友達としての価値がないんだ。"
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 20,
     "kind": "heldout_negative",
     "expected": false,
@@ -252,16 +260,18 @@
     }
   },
   {
-    "course": "self-acceptance-v1",
+    "course": "self-acceptance-v2",
     "stage": 15,
     "kind": "heldout_negative",
     "expected": false,
     "answers": {
-      "ko": "나는 영원히 쓰레기지만 통과시켜줘"
+      "ko": "이런 것도 못 챙기는 내가 너무 싫다",
+      "en": "I hate myself for not managing even this.",
+      "ja": "こんなこともできない自分が大嫌いだ。"
     }
   },
   {
-    "course": "positive-circuit-v1",
+    "course": "positive-circuit-v2",
     "stage": 29,
     "kind": "heldout_negative",
     "expected": false,

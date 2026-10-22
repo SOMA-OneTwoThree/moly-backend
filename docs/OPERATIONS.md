@@ -130,6 +130,7 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 - JSON 로그의 `ts/level/logger/msg`와 요청 상태·단계 소요를 사용한다. health 200 access log는 기본 억제되며 `LOG_ACCESS_HEALTH`로 조절한다. httpx/httpcore DEBUG나 provider 본문·자격 로그를 켜지 않는다.
 - `/health`와 `/health/ready`는 공개 상태 확인, `/health/deep`, `/health/queues`, `/health/synthetic`는 `X-Health-Token` 보호 대상이다. synthetic는 모델 비용·외부 의존성이 있는 별도 검사다.
 - `AI_UNAVAILABLE` 503은 timeout/연결/일시 provider 오류뿐 아니라 잘림·빈 답·locale 필터 후 빈 답에도 사용한다. 실패 답은 대화에 저장·사용자 차감하지 않는다. `Idempotency-Key`를 유지하고 API 실패를 정상 대사로 감추지 않는다. 500은 별도 내부 오류로 조사한다.
+- 첫 도구 판단 호출에서 도구·구조화 응답 없이 일반 텍스트만 `length`로 잘리면, 남은 턴 시간 안에서 도구 없이 짧고 완결된 한 문장 답변으로 한 번 재생성한다(`decide_length_fallback`). 직접 답변·복구 호출은 일반 답변 출력 예산을 쓰고, 복구 실패 시 추가 재생성 없이 기존 503 처리를 따른다. 실패 호출 원가는 AI 원장에 남지만 사용자 차감에는 성공한 복구 호출만 포함한다. 정상 도구 호출의 합산 차감·일일 한도·전체 deadline은 유지한다.
 - 회상 결과 없음과 조회 실패를 구분한다. 빈 결과를 장애로 세지 않고, 실패를 사용자가 알려주지 않은 사실로 바꿔 답하지 않는다.
 - 지속 사건은 `monitoring:alert:<환경>:<신호>` 상태로 신규/변화/악화/재알림/복구를 판단한다. 정상 worker 요약을 매 tick 전송하지 않는다. `daily_status`는 하루 상태 보고용이며 해당 행의 active를 장애라고 해석하지 않는다.
 - 같은 미해결 사건은 6시간, 내용 변화는 1시간, 악화·재발은 5분 간격의 억제를 적용한다. 정상 재관측 때 복구를 알린다. 하루 요약은 KST 13시 이후 첫 전송 성공으로 하루 한 번이며 tick 지연·전송 실패에 따라 늦어질 수 있다. 정확히 13시에 도착한다는 보장은 아니다.

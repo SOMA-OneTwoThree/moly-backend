@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from time import monotonic
 from types import SimpleNamespace
 import uuid
@@ -542,5 +543,83 @@ async def test_read_tool_runs_once_and_final_keeps_main_bounded_retry(
             assert len(ledger["completed"]) == 2 and ledger["unknown"] == []
         assert len(sends) == (3 if final_status == 500 else 2) and tool.ran == 1
         assert ledger["failed"] == []
+    finally:
+        await sdk.close()
+
+
+@pytest.mark.parametrize("recovery_finishes", [True, False])
+@pytest.mark.parametrize("usage_v2", [True, False])
+async def test_length_recovery_preserves_company_cost_and_user_quota(
+    monkeypatch, ledger, recovery_finishes, usage_v2,
+):
+    """Real runtime + SDK + chat publication; fake HTTP/DB, no paid provider calls."""
+    from app.core.errors import AppError
+    from app.models.idempotency_key import IdempotencyKey
+    from app.models.message import Message
+    from app.services import chat
+    from tests.test_agent_runtime import _FakeRegistry, _FakeTool, _post
+    from tests.test_chat import FakeSession
+
+    sends, charges = [], []
+    tool = _FakeTool()
+    monkeypatch.setattr(runtime, "_registry_override", _FakeRegistry(tool))
+    monkeypatch.setattr(runtime, "should_run", lambda *args: True)
+    monkeypatch.setattr(llm.settings, "llm_max_tokens", 1024)
+    monkeypatch.setattr(llm.settings, "model_chat", "gpt-6-luna")
+    monkeypatch.setattr(chat.settings, "turn_usage_v2_enabled", usage_v2)
+
+    async def accumulate(session, user_id, activity_date, consumed):
+        charges.append(consumed)
+
+    monkeypatch.setattr(chat, "_accumulate_tokens", accumulate)
+
+    async def handler(request):
+        sends.append(json.loads(request.content))
+        payload = response("openai")
+        truncated = len(sends) == 1 or not recovery_finishes
+        payload["choices"][0]["finish_reason"] = "length" if truncated else "stop"
+        payload["choices"][0]["message"]["content"] = "잘린 답변" if truncated else "완성된 답변이야."
+        payload["usage"]["completion_tokens"] = 192 if truncated else 3
+        return httpx.Response(200, json=payload)
+
+    sdk, _ = install(monkeypatch, "openai", handler)
+    session = FakeSession()
+    try:
+        operation = _post(session, monkeypatch)
+        if recovery_finishes:
+            out = await operation
+            expected = llm.billable_tokens(llm.LLMResult(
+                text="완성된 답변이야.", input_tokens=12, output_tokens=3, model="gpt-6-luna",
+            ))
+            assert out.tokens_used == 1000 + expected
+            assert charges == [expected]
+            messages = [m for m in session.added if isinstance(m, Message)]
+            assert len(messages) == 2  # One user/assistant pair, no partial reply.
+            reply = next(m for m in messages if m.sender == "moly")
+            assert reply.content == "완성된 답변이야."
+            assert reply.billable_tokens == expected
+            assert reply.output_tokens == 3
+            cached = next(m for m in session.added if isinstance(m, IdempotencyKey))
+            replay_session = FakeSession(get_map={"IdempotencyKey": cached})
+            replay = await _post(replay_session, monkeypatch)
+            assert replay.model_dump(mode="json") == out.model_dump(mode="json")
+            assert replay_session.added == []
+            assert charges == [expected]  # Retrying the HTTP request cannot charge twice.
+        else:
+            with pytest.raises(AppError) as caught:
+                await operation
+            assert caught.value.code == "AI_UNAVAILABLE"
+            assert charges == session.added == []
+        assert tool.ran == 0
+        assert len(sends) == 2
+        assert [s["max_completion_tokens"] for s in sends] == [192, 1024]
+        assert sends[0]["messages"] == sends[1]["messages"][:-1]
+        assert sends[1]["messages"][-1]["role"] == "system"
+        assert "[Length recovery]" in sends[1]["messages"][-1]["content"]
+        assert "tools" not in sends[1]
+        assert len(ledger["opened"]) == len(ledger["completed"]) == 2
+        assert [row[1]["output_tokens"] for row in ledger["completed"]] == [
+            192, 3 if recovery_finishes else 192,
+        ]
     finally:
         await sdk.close()

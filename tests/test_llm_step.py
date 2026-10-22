@@ -402,6 +402,16 @@ async def test_missing_call_id_marked(monkeypatch):
     assert step.tool_calls[0].validation_error == "malformed_call"
 
 
+async def test_discarded_structured_call_still_blocks_plain_text_recovery(monkeypatch):
+    resp = _resp(
+        content="partial", finish_reason="length",
+        tool_calls=[_wire_call("c1", "final_response", '{"text":')],
+    )
+    step, _ = await _step(monkeypatch, resp, response_tools={"final_response": BaseModel})
+    assert step.tool_calls == [] and step.final_response is None
+    assert step.raw_tool_calls == 1
+
+
 # =====================================================================================
 # 8) usage = W1의 LlmCall (TurnUsage 누적 가능)
 # =====================================================================================

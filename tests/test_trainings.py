@@ -254,11 +254,39 @@ async def test_resending_the_same_request_replays_without_spending_again(store, 
     assert again == first
     assert store.tries[UID].tries_left == 4
 
+
     passed = _pick("b")
     first = await _submit(session, 1, passed)
     again = await _submit(session, 1, passed)
     assert again == first and again["progress"]["next_stage"] == 2
     assert len(store.answers) == 1
+
+
+async def test_dev_exhausted_account_can_repeat_wrong_pick_and_write(store, session, monkeypatch):
+    monkeypatch.setattr(trainings.settings, 'environment', 'development')
+    store.tries[UID] = TrainingTries(user_id=UID, tries_left=0, refill_from=NOW, updated_at=NOW)
+    detail = await trainings.get_training(session, str(UID), TID, locale='ko', now=NOW)
+    assert detail['tries']['left'] == 5
+    for _ in range(7):
+        result = await _submit(session, 1, _pick('a'))
+        assert (result['result'], result['tries']['left']) == ('retry', 5)
+        assert result['answer'] is None and result['reward'] is None
+    await _submit(session, 1, _pick('b'))
+    for _ in range(7):
+        result = await _submit(session, 2, TrainingAnswerRequest(client_request_id=uuid.uuid4(), text='ㅋㅋㅋ'))
+        assert (result['result'], result['tries']['left']) == ('retry', 5)
+    assert store.tries[UID].tries_left == 0  # QA does not overwrite the normal balance.
+
+
+@pytest.mark.parametrize('environment', ['production', 'prod', 'local', ''])
+async def test_non_dev_still_deducts_and_blocks_exhausted_account(store, session, monkeypatch, environment):
+    monkeypatch.setattr(trainings.settings, 'environment', environment)
+    result = await _submit(session, 1, _pick('a'))
+    assert result['tries']['left'] == 4
+    store.tries[UID].tries_left = 0
+    with pytest.raises(AppError) as error:
+        await _submit(session, 1, _pick('b'))
+    assert error.value.code == 'TRAINING_NO_TRIES'
 
 
 async def test_stage_must_be_the_current_one(store, session):

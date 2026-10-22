@@ -19,6 +19,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core import errors
 from app.core.advisory_lock import advisory_xact_lock
 from app.models.profile import Profile
@@ -166,7 +167,8 @@ async def _reserve(session, uid, training, stage, body) -> TrainingSubmission:
 
 
 def _settled(row: TrainingTries | None, now: datetime) -> Tries:
-    if row is None:
+    # 개발 서버 QA는 소진된 계정도 대기 없이 반복한다. 운영/로컬 규칙은 유지한다.
+    if settings.environment == "development" or row is None:
         return training_tries.FULL
     return training_tries.settle(row.tries_left, row.refill_from, now)
 
@@ -438,7 +440,7 @@ async def _record(
                 amount=stage.reward_hay, granted_at=now,
             ))
             reward = {"granted": stage.reward_hay, "balance_after": tx.balance_after}
-    else:
+    elif settings.environment != "development":
         tries = training_tries.spend(tries, now)
         if tries_row is None:
             session.add(TrainingTries(

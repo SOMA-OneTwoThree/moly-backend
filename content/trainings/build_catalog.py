@@ -82,11 +82,6 @@ for order, (topic, rows) in enumerate(arrangement.items()):
                                          'hint': None if index == correct else (erase_hint if erase else choose_hint)})
             if s['pick_comment']:
                 stage['explanation'] = copy[s['pick_comment']]
-            # The edited birthday choices no longer match the original numbered explanation.
-            if topic == 'acceptance' and number == 14:
-                stage['explanation'] = loc('실수는 인정하고 사과하되, 그 실수로 내 인격 전체를 판단하지 않아도 돼요.',
-                                           'Acknowledge the mistake and apologize without judging your whole character.',
-                                           'ミスは認めて謝りつつ、それだけで人格全体を決めつけなくて大丈夫です。')
         stages.append(stage)
     trainings.append({'id': tid, 'order': order, 'icon_key': 'sun' if topic == 'positive' else 'red_heart',
                       'title': title, 'summary': summary, 'stages': stages})

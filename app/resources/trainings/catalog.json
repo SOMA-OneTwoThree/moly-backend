@@ -547,9 +547,9 @@
             }
           ],
           "explanation": {
-            "ko": "원하던 자리를 원래 별로였다고 깎아내리는 건 아쉬움을 감추려는 자기합리화예요(2번). 지금 앉은 자리에서 얻을 수 있는 실질적인 장점을 찾아내는 게 건강한 전환이에요.",
-            "en": "Dismissing the seat you wanted as bad all along hides your disappointment (option 2). Look for a real advantage of the seat you have now.",
-            "ja": "欲しかった席を「もともとよくない」とけなすのは、残念さを隠す考え方です（選択肢2）。今の席にある具体的なよさを探してみましょう。"
+            "ko": "지금 앉은 자리에서 얻을 수 있는 장점을 찾아보세요.",
+            "en": "Notice the benefits of the seat you have now.",
+            "ja": "今座っている席のよい点を見つけてみましょう。"
           }
         },
         {
@@ -1117,9 +1117,9 @@
             }
           ],
           "explanation": {
-            "ko": "상대방을 깎아내리며 필요한 조언까지 무시하는 건 성장을 가로막는 회피형 태도예요(2번). 아쉬운 피드백을 내 결과물의 완성도를 한 단계 끌어올리는 이정표로 삼는 것이 건강한 긍정 회로예요.",
-            "en": "Dismissing the person and their useful advice avoids growth (option 2). Use the feedback as a guide to improving your work.",
-            "ja": "相手をけなして必要な助言まで無視すると、成長の機会を逃します（選択肢2）。指摘を、成果物をよりよくする手がかりにしましょう。"
+            "ko": "피드백에서 결과물을 더 좋게 만들 단서를 찾아보세요.",
+            "en": "Look for ways the feedback can help improve your work.",
+            "ja": "フィードバックから、成果をよくするヒントを探しましょう。"
           }
         },
         {
@@ -1384,9 +1384,9 @@
             }
           ],
           "explanation": {
-            "ko": "서운한 감정을 피하려고 관계 자체를 평가절하하며 거리를 두는 건 회피를 긍정으로 포장한 거예요(2번). 갈등을 서로를 더 잘 이해하고 조율하는 과정으로 바라보는 것이 건강해요.",
-            "en": "Devaluing the friendship to avoid hurt disguises avoidance as positivity (option 2). See the disagreement as a chance to understand and adjust to each other.",
-            "ja": "傷つくのを避けるために関係そのものをけなすのは、前向きさとは違います（選択肢2）。違いを知り、歩み寄る機会として捉えてみましょう。"
+            "ko": "갈등을 서로의 생각을 더 잘 알아가는 계기로 볼 수 있어요.",
+            "en": "A disagreement can help you understand each other better.",
+            "ja": "意見の違いを、お互いを知るきっかけにできます。"
           }
         },
         {
@@ -1824,9 +1824,9 @@
             }
           ],
           "explanation": {
-            "ko": "상대방의 미숙한 감정 표현이나 기분 태도까지 내 잘못으로 끌어안지 마세요. 내 몫과 상대방의 몫을 분리하면 마음이 가벼워져요.",
-            "en": "You don't need to take responsibility for someone else's mood or how they express it. Separate your part from theirs.",
-            "ja": "相手の気分や感情の表し方まで、自分の責任にしなくて大丈夫です。自分の分と相手の分を分けてみましょう。"
+            "ko": "상대방의 기분까지 내 책임으로 떠안을 필요는 없어요.",
+            "en": "You do not have to take responsibility for someone else’s mood.",
+            "ja": "相手の気分まで自分の責任にしなくて大丈夫です。"
           }
         },
         {
@@ -1938,9 +1938,9 @@
             }
           ],
           "explanation": {
-            "ko": "업무 중 일어난 일시적인 실수를 '무능한 사람'이라는 꼬리표로 연결하지 마세요. 실수를 인정하고 빠르게 수습한 것으로 충분해요.",
-            "en": "A one-off work mistake doesn't make you an incompetent person. Acknowledging it and putting it right is enough.",
-            "ja": "仕事の一度のミスを「能力のない人」という決めつけにつなげなくて大丈夫です。認めて、すぐ対応できたことを受け止めましょう。"
+            "ko": "실수를 인정하고 수습한 것으로 충분해요.",
+            "en": "Acknowledging and fixing the mistake is enough.",
+            "ja": "ミスを認めて対応できたなら、それで十分です。"
           }
         },
         {
@@ -2069,9 +2069,9 @@
             }
           ],
           "explanation": {
-            "ko": "지금에 와서야 알게 된 정보로 과거의 선택을 꾸짖지 마세요. 그때 알고 있던 정보 안에서는 그것이 최선의 결정이었어요.",
-            "en": "Don't judge a past choice using information you only learned later. You chose with the information available then.",
-            "ja": "後から知った情報で、過去の選択を責めなくて大丈夫です。そのとき分かっていた情報の中で選んだことを認めましょう。"
+            "ko": "그때 알고 있던 정보 안에서 내린 선택을 이해해주세요.",
+            "en": "Be understanding of the choice you made with what you knew then.",
+            "ja": "当時知っていたことの中で選んだ自分を理解してあげましょう。"
           }
         },
         {
@@ -2144,9 +2144,9 @@
             }
           ],
           "explanation": {
-            "ko": "지금에 와서야 알게 된 정보로 과거의 선택을 꾸짖지 마세요. 그때 알고 있던 정보 안에서는 그것이 최선의 결정이었어요.",
-            "en": "Don't judge a past choice using information you only learned later. You chose with the information available then.",
-            "ja": "後から知った情報で、過去の選択を責めなくて大丈夫です。そのとき分かっていた情報の中で選んだことを認めましょう。"
+            "ko": "그때 알고 있던 정보 안에서 내린 선택을 이해해주세요.",
+            "en": "Be understanding of the choice you made with what you knew then.",
+            "ja": "当時知っていたことの中で選んだ自分を理解してあげましょう。"
           }
         },
         {
@@ -2219,9 +2219,9 @@
             }
           ],
           "explanation": {
-            "ko": "직접 겪어보기 전에는 알 수 없는 일들이 있어요. 과거의 나를 탓하기보다 그때의 최선이었음을 인정하고 다음 방향을 고민해보세요.",
-            "en": "Some things only become clear through experience. Recognize the care you took then and consider your next direction.",
-            "ja": "経験して初めて分かることもあります。過去の自分を責めず、そのときの最善を認めて、次の方向を考えてみましょう。"
+            "ko": "해보기 전에는 몰랐던 점을 받아들이고 다음 방향을 생각해보세요.",
+            "en": "Accept what you could only learn by trying, and consider your next step.",
+            "ja": "やってみて初めてわかったことを受け止め、次を考えましょう。"
           }
         },
         {
@@ -2333,9 +2333,9 @@
             }
           ],
           "explanation": {
-            "ko": "대화 중 생긴 작은 엇갈림을 '인간관계를 망치는 사람'이라는 극단적인 자기비하로 연결하지 마세요. 서툰 표현은 다시 대화를 통해 풀어가면 돼요.",
-            "en": "A misunderstanding doesn't mean you ruin relationships. Clumsy wording can be clarified in another conversation.",
-            "ja": "小さな行き違いを「人間関係を壊す人」という決めつけにしなくて大丈夫です。不器用な表現は、また話して伝え直せます。"
+            "ko": "서툴게 표현한 말은 다시 대화하며 풀어갈 수 있어요.",
+            "en": "You can clear up an awkward remark by talking again.",
+            "ja": "うまく伝わらなかった言葉は、もう一度話して解きほぐせます。"
           }
         },
         {
@@ -2623,9 +2623,9 @@
             }
           ],
           "explanation": {
-            "ko": "실수는 인정하고 사과하되, 그 실수로 내 인격 전체를 판단하지 않아도 돼요.",
-            "en": "Acknowledge the mistake and apologize without judging your whole character.",
-            "ja": "ミスは認めて謝りつつ、それだけで人格全体を決めつけなくて大丈夫です。"
+            "ko": "실수는 인정하고 사과하되, 나 전체를 비난하지 않아도 돼요.",
+            "en": "Acknowledge the mistake and apologize without condemning yourself.",
+            "ja": "ミスは認めて謝りつつ、自分全体を責めなくて大丈夫です。"
           }
         },
         {
@@ -2737,9 +2737,9 @@
             }
           ],
           "explanation": {
-            "ko": "이미 사과와 보상을 마쳤다면 끝없는 자기비난은 멈춰도 괜찮아요. 자책에 빠져 있을수록 오히려 지금 친구와의 시간에 집중하기 어려워요.",
-            "en": "Once you've apologized and made amends, you can stop the endless self-criticism and focus on time together now.",
-            "ja": "謝って埋め合わせをしたなら、責め続けなくても大丈夫です。今一緒に過ごす時間へ気持ちを戻してみましょう。"
+            "ko": "사과와 보상을 마쳤다면 자책을 내려놓아도 괜찮아요.",
+            "en": "Once you have apologized and made amends, you can let go of self-blame.",
+            "ja": "謝って弁償もしたなら、自分を責め続けなくて大丈夫です。"
           }
         },
         {
@@ -2877,9 +2877,9 @@
             }
           ],
           "explanation": {
-            "ko": "아픈 것을 실패의 핑곗거리로 삼아 안도하는 건 회피에 가까워요(2번). 지친 내 몸을 다정하게 살펴주고 휴식의 필요성을 인정해주는 것이 진짜 나를 돌보는 태도예요.",
-            "en": "Treating illness as an excuse for failure is avoidance (option 2). Caring for yourself means recognizing when you need rest.",
-            "ja": "病気を失敗の言い訳にして安心するのは、向き合うことを避ける考え方です（選択肢2）。疲れた体をいたわり、休息の必要を認めましょう。"
+            "ko": "몸이 아플 때는 쉬어야 한다는 필요를 인정해주세요.",
+            "en": "Recognize your need to rest when you are unwell.",
+            "ja": "体調が悪いときは、休む必要があると認めてあげましょう。"
           }
         },
         {
@@ -2952,9 +2952,9 @@
             }
           ],
           "explanation": {
-            "ko": "아픈 것을 실패의 핑곗거리로 삼아 안도하는 건 회피에 가까워요(2번). 지친 내 몸을 다정하게 살펴주고 휴식의 필요성을 인정해주는 것이 진짜 나를 돌보는 태도예요.",
-            "en": "Treating illness as an excuse for failure is avoidance (option 2). Caring for yourself means recognizing when you need rest.",
-            "ja": "病気を失敗の言い訳にして安心するのは、向き合うことを避ける考え方です（選択肢2）。疲れた体をいたわり、休息の必要を認めましょう。"
+            "ko": "몸이 아플 때는 쉬어야 한다는 필요를 인정해주세요.",
+            "en": "Recognize your need to rest when you are unwell.",
+            "ja": "体調が悪いときは、休む必要があると認めてあげましょう。"
           }
         },
         {
@@ -3211,9 +3211,9 @@
             }
           ],
           "explanation": {
-            "ko": "상처받지 않으려고 상대방을 원색적으로 비난하고 저주하는 건 마음에 날 선 감정만 남겨요(2번). 나의 예의 바른 태도와 상대방의 무례함을 차분히 구분하는 것만으로 내 자존감을 지킬 수 있어요.",
-            "en": "Insulting someone to protect yourself leaves more bitterness (option 2). Calmly separate your respectful effort from their rude behavior.",
-            "ja": "傷つかないために相手を罵っても、心にとげが残ります（選択肢2）。自分の丁寧な態度と相手の失礼な行動を、落ち着いて分けましょう。"
+            "ko": "내가 예의를 지킨 것과 상대방의 무례함을 구분해주세요.",
+            "en": "Separate your respectful behavior from the other person’s rudeness.",
+            "ja": "自分の礼儀正しさと、相手の失礼な態度を分けて考えましょう。"
           }
         },
         {
@@ -3286,9 +3286,9 @@
             }
           ],
           "explanation": {
-            "ko": "내 도시락을 긍정하기 위해 남들이 먹는 식당 음식을 깎아내릴 필요는 없어요(2번). 완벽한 식단은 아니어도 내 형편에 맞게 이어간 작은 노력을 있는 그대로 인정해주세요.",
-            "en": "You don't need to put down other people's food to appreciate your own (option 2). Recognize the small effort you sustained within your circumstances.",
-            "ja": "自分のお弁当を認めるために、ほかの人の食事をけなす必要はありません（選択肢2）。完璧でなくても、できる範囲で続けた努力を認めましょう。"
+            "ko": "내 형편에 맞게 이어간 작은 노력을 인정해주세요.",
+            "en": "Appreciate the small efforts you kept up within your means.",
+            "ja": "自分の状況に合わせて続けた、小さな努力を認めましょう。"
           }
         },
         {
@@ -3400,9 +3400,9 @@
             }
           ],
           "explanation": {
-            "ko": "목표를 못 이뤘다고 시험의 가치 자체를 폄하해버리는 건 아쉬움을 외면하는 신 포도 심보예요(1번). 완벽한 목표 점수가 아니더라도 내가 이뤄낸 백 점 상승의 노력을 온전히 칭찬해주세요.",
-            "en": "Dismissing the test because you missed your goal avoids disappointment (option 1). Give yourself credit for the hundred points you gained.",
-            "ja": "目標に届かなかったからと試験自体の価値を下げるのは、残念さから目をそらす考え方です（選択肢1）。百点伸ばした努力を認めましょう。"
+            "ko": "목표에 못 미쳤더라도 점수를 올린 노력은 인정할 수 있어요.",
+            "en": "Even short of your goal, you can appreciate the effort behind your improvement.",
+            "ja": "目標に届かなくても、点数を伸ばした努力は認められます。"
           }
         },
         {

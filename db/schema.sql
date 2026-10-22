@@ -2952,7 +2952,7 @@ CREATE TABLE public.training_claims (
   user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   training_id text NOT NULL,
   stage smallint NOT NULL CHECK (stage BETWEEN 1 AND 30),
-  reason text NOT NULL CHECK (reason IN ('should_pass', 'should_fail', 'wrong_hint')),
+  reason text NOT NULL CHECK (reason IN ('should_pass', 'should_fail', 'wrong_hint', 'technical_error', 'other')),
   answer_text text NOT NULL CHECK (char_length(answer_text) BETWEEN 1 AND 200),
   verdict text NOT NULL CHECK (verdict IN ('passed', 'retry')),
   hint text CHECK (char_length(hint) BETWEEN 1 AND 300),

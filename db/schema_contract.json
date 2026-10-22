@@ -8760,7 +8760,7 @@
       "public.training_claims.training_claims_reason_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((reason = ANY (ARRAY['should_pass'::text, 'should_fail'::text, 'wrong_hint'::text])))",
+        "definition": "CHECK ((reason = ANY (ARRAY['should_pass'::text, 'should_fail'::text, 'wrong_hint'::text, 'technical_error'::text, 'other'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -15801,5 +15801,5 @@
       }
     }
   },
-  "schema_sha256": "36ea85a8981800d7efb2bb645358fdf845912b7db1cc4c1e5468c75e7944272f"
+  "schema_sha256": "7a0983228b36a5379430b762cf15363bc5492eb626c9419feed2fce419968a85"
 }

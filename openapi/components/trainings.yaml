@@ -216,7 +216,7 @@ schemas:
     additionalProperties: false
     required: [reason, answer_text, verdict]
     properties:
-      reason: {type: string, enum: [should_pass, should_fail, wrong_hint]}
+      reason: {type: string, enum: [should_pass, should_fail, wrong_hint, technical_error, other]}
       answer_text:
         type: string
         minLength: 1

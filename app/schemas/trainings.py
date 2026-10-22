@@ -129,7 +129,7 @@ class TrainingAnswerRequest(BaseModel):
 class TrainingClaimRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    reason: Literal["should_pass", "should_fail", "wrong_hint"]
+    reason: Literal["should_pass", "should_fail", "wrong_hint", "technical_error", "other"]
     answer_text: str
     verdict: Literal["passed", "retry"]
     hint: str | None = Field(default=None, max_length=300)

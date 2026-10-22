@@ -311,3 +311,14 @@ async def test_fallback_concurrent_reward_commits_once(monkeypatch, failure):
             await session.execute(text('DELETE FROM auth.users WHERE id=:u'), {'u': uid})
             await session.commit()
         await engine.dispose()
+
+
+@pytest.mark.parametrize('reason', ['wrong_hint', 'should_pass', 'should_fail', 'technical_error', 'other'])
+async def test_claim_categories_persist_without_changing_progress(db, reason):
+    user = await signup(db)
+    await trainings.claim(db, user, TID, 2, TrainingClaimRequest(
+        reason=reason, answer_text='포장 실수', verdict='retry'))
+    args = {'u': uuid.UUID(user)}
+    assert await db.scalar(text('SELECT reason FROM training_claims WHERE user_id=:u'), args) == reason
+    assert await db.scalar(text('SELECT count(*) FROM training_progress WHERE user_id=:u'), args) == 0
+    assert await rewards(db, user) == []

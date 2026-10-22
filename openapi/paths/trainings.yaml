@@ -150,7 +150,7 @@
                       errors:
                       - loc: [body, reason]
                         type: literal_error
-                        msg: "Input should be 'should_pass', 'should_fail' or 'wrong_hint'"
+                        msg: "Input should be 'should_pass', 'should_fail', 'wrong_hint', 'technical_error' or 'other'"
               pickStage:
                 summary: 주관식이 아닌 단계
                 value: {error: {code: VALIDATION, message: 주관식 단계에만 이의를 남길 수 있어요., details: {}}}

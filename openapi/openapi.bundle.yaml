@@ -18,6 +18,134 @@ info:
 
     local·development 환경의 명시 플래그로만 등록되는 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
 paths:
+  /article-progress:
+    get:
+      tags:
+      - articles
+      summary: 내 아티클 읽음·평가·보상 상태
+      operationId: listArticleActivity
+      security:
+      - SupabaseBearer: []
+      responses:
+        '200':
+          description: 내 아티클 읽음·평가·보상 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleActivityList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+  /articles/{article_id}/feedback:
+    put:
+      tags:
+      - articles
+      summary: 아티클 평가 저장 및 읽음 처리
+      operationId: setArticleFeedback
+      security:
+      - SupabaseBearer: []
+      responses:
+        '200':
+          description: 아티클 평가 저장 및 읽음 처리
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleActivity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '404':
+          description: 아티클 없음 또는 계정 삭제 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 아티클을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 아티클 없음 또는 계정 삭제 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 아티클을 찾을 수 없어요.
+                      details: {}
+      parameters:
+      - name: article_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleFeedbackRequest'
+  /articles/{article_id}/reward:
+    post:
+      tags:
+      - articles
+      summary: 아티클 최초 1회 건초 20개 지급 및 읽음 처리
+      operationId: claimArticleReward
+      security:
+      - SupabaseBearer: []
+      responses:
+        '200':
+          description: 아티클 최초 1회 건초 20개 지급 및 읽음 처리
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleActivity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '404':
+          description: 아티클 없음 또는 계정 삭제 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 아티클을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 아티클 없음 또는 계정 삭제 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 아티클을 찾을 수 없어요.
+                      details: {}
+      parameters:
+      - name: article_id
+        in: path
+        required: true
+        schema:
+          type: string
+      description: 인증 계정과 아티클별 최초 1회 20개. 재요청은 granted=0 및 현재 잔액을 반환하며 중복 지급하지 않는다. 평가는 선택 사항이다.
   /bgm/tracks:
     get:
       tags:
@@ -3501,6 +3629,69 @@ paths:
       - SupabaseBearer: []
 components:
   schemas:
+    ArticleActivity:
+      additionalProperties: false
+      properties:
+        article_id:
+          title: Article Id
+          type: string
+        feedback:
+          anyOf:
+          - enum:
+            - helpful
+            - not_helpful
+            type: string
+          - type: 'null'
+          title: Feedback
+        is_read:
+          title: Is Read
+          type: boolean
+        reward_claimed:
+          title: Reward Claimed
+          type: boolean
+        granted:
+          minimum: 0
+          title: Granted
+          type: integer
+        balance_after:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Balance After
+      required:
+      - article_id
+      - feedback
+      - is_read
+      - reward_claimed
+      - granted
+      - balance_after
+      title: ArticleActivity
+      type: object
+    ArticleActivityList:
+      additionalProperties: false
+      properties:
+        articles:
+          items:
+            $ref: '#/components/schemas/ArticleActivity'
+          title: Articles
+          type: array
+      required:
+      - articles
+      title: ArticleActivityList
+      type: object
+    ArticleFeedbackRequest:
+      additionalProperties: false
+      properties:
+        feedback:
+          enum:
+          - helpful
+          - not_helpful
+          title: Feedback
+          type: string
+      required:
+      - feedback
+      title: ArticleFeedbackRequest
+      type: object
     BgmTrack:
       additionalProperties: false
       properties:
@@ -5010,6 +5201,7 @@ components:
           - refund_revoke
           - admin_adjustment
           - training_reward
+          - article_reward
           title: Type
           description: 원장 거래 type.
         amount:

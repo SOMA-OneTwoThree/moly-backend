@@ -498,6 +498,46 @@
         "not_null": true,
         "type": "jsonb"
       },
+      "public.article_progress.article_id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.article_progress.feedback": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
+      "public.article_progress.read_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.article_progress.rewarded_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.article_progress.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
       "public.async_jobs.attempt": {
         "collation": null,
         "default": "0",
@@ -6449,6 +6489,39 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.article_progress.article_progress_article_id_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((article_id = ANY (ARRAY['sample-1'::text, 'sample-2'::text, 'sample-3'::text, 'sample-4'::text, 'sample-5'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.article_progress.article_progress_feedback_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((feedback = ANY (ARRAY['helpful'::text, 'not_helpful'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.article_progress.article_progress_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (user_id, article_id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.article_progress.article_progress_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.article_progress:17:O",
+          "public.article_progress:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
+        "validated": true
+      },
       "public.async_jobs.async_jobs_attempt_check": {
         "deferrable": false,
         "deferred": false,
@@ -7310,7 +7383,7 @@
       "public.hay_transactions.hay_transactions_type_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text])))",
+        "definition": "CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text, 'article_reward'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -9626,6 +9699,15 @@
         "unique": true,
         "valid": true
       },
+      "public.article_progress_pkey": {
+        "definition": "CREATE UNIQUE INDEX article_progress_pkey ON public.article_progress USING btree (user_id, article_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.article_progress",
+        "unique": true,
+        "valid": true
+      },
       "public.async_jobs_claim_idx": {
         "definition": "CREATE INDEX async_jobs_claim_idx ON public.async_jobs USING btree (queue, priority, available_at, created_at) WHERE (state = 'ready'::text)",
         "exclusion": false,
@@ -11661,6 +11743,30 @@
         "grantable": false
       },
       "public.app_config:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.article_progress:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.article_progress:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.article_progress:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.article_progress:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.article_progress:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.article_progress:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.article_progress:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.article_progress:service_role:UPDATE": {
         "grantable": false
       },
       "public.async_jobs:anon:DELETE": {
@@ -15272,6 +15378,13 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.article_progress": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.async_jobs": {
         "options": [],
         "owner": "postgres",
@@ -15801,5 +15914,5 @@
       }
     }
   },
-  "schema_sha256": "7a0983228b36a5379430b762cf15363bc5492eb626c9419feed2fce419968a85"
+  "schema_sha256": "d7a78e7a9e063ad322db18d2cd214cf49ca19f84636f7d366414da92793d02d4"
 }

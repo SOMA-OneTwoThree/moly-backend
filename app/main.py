@@ -5,6 +5,7 @@ import time
 
 from fastapi import FastAPI, Request
 
+from app.api import articles
 from app.api.ads import router as ads_router
 from app.api.attribution import router as attribution_router
 from app.api.banners import router as banners_router
@@ -104,6 +105,7 @@ def create_app() -> FastAPI:
     app.include_router(feedback_router)
     app.include_router(fortune_router)
     app.include_router(trainings_router)
+    app.include_router(articles.router)
     app.include_router(subscription_router)
     app.include_router(ads_router)
     # 로컬/격리 개발 서버 전용: 워커·회상·모델 평가를 Swagger에서 손으로 검증한다.

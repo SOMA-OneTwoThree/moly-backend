@@ -1,0 +1,64 @@
+schemas:
+  ArticleActivity:
+    additionalProperties: false
+    properties:
+      article_id:
+        title: Article Id
+        type: string
+      feedback:
+        anyOf:
+        - enum:
+          - helpful
+          - not_helpful
+          type: string
+        - type: 'null'
+        title: Feedback
+      is_read:
+        title: Is Read
+        type: boolean
+      reward_claimed:
+        title: Reward Claimed
+        type: boolean
+      granted:
+        minimum: 0
+        title: Granted
+        type: integer
+      balance_after:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        title: Balance After
+    required:
+    - article_id
+    - feedback
+    - is_read
+    - reward_claimed
+    - granted
+    - balance_after
+    title: ArticleActivity
+    type: object
+  ArticleActivityList:
+    additionalProperties: false
+    properties:
+      articles:
+        items:
+          $ref: '#/schemas/ArticleActivity'
+        title: Articles
+        type: array
+    required:
+    - articles
+    title: ArticleActivityList
+    type: object
+  ArticleFeedbackRequest:
+    additionalProperties: false
+    properties:
+      feedback:
+        enum:
+        - helpful
+        - not_helpful
+        title: Feedback
+        type: string
+    required:
+    - feedback
+    title: ArticleFeedbackRequest
+    type: object

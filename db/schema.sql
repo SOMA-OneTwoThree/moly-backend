@@ -561,7 +561,7 @@ CREATE TABLE public.hay_transactions (
     order_id uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT hay_transactions_amount_check CHECK ((amount <> 0)),
-    CONSTRAINT hay_transactions_type_check CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text])))
+    CONSTRAINT hay_transactions_type_check CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text, 'article_reward'::text])))
 );
 
 -- SEQUENCE: public.hay_transactions_id_seq
@@ -2972,7 +2972,7 @@ GRANT ALL ON public.training_progress, public.training_answers, public.training_
   TO service_role;
 
 
-COMMIT;
+
 
 -- Apply only with the matching backend release; changes the preflight catalog.
 -- No campaign activation and no historical payment/grant ownership backfill.
@@ -3048,7 +3048,7 @@ CREATE CONSTRAINT TRIGGER payments_cleanup_unowned_subscription
 DELETE FROM public.subscriptions s
 WHERE s.user_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM public.payments p WHERE p.subscription_id = s.id);
-COMMIT;
+
 
 -- free_launch_until is the store release moment. Before it, accounts created since
 -- subscription_launch.new_member_since are new members, so testers and reviewers on the new
@@ -3194,7 +3194,7 @@ REVOKE ALL ON FUNCTION public.subscription_offer_status(uuid) FROM PUBLIC, anon,
 GRANT EXECUTE ON FUNCTION public.subscription_offer_status(uuid) TO service_role;
 REVOKE ALL ON FUNCTION public.claim_subscription_offer(uuid,text,text) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.claim_subscription_offer(uuid,text,text) TO service_role;
-COMMIT;
+
 
 -- Account deletion fence for the auth server's DELETE /me (docs/API_SPEC.md): it calls begin
 -- before deleting the account and abort only when that delete fails. Same steps as the barrier
@@ -3280,7 +3280,7 @@ REVOKE ALL ON FUNCTION public.begin_subject_deletion(uuid, uuid) FROM PUBLIC, an
 GRANT EXECUTE ON FUNCTION public.begin_subject_deletion(uuid, uuid) TO service_role;
 REVOKE ALL ON FUNCTION public.abort_subject_deletion(uuid, uuid) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.abort_subject_deletion(uuid, uuid) TO service_role;
-COMMIT;
+
 -- Apply after explore_training.sql and before deploying request receipt support.
 -- Additive: no existing answers/progress are changed. No backfill of rejected text.
 CREATE TABLE public.training_submissions (
@@ -3298,3 +3298,17 @@ CREATE TABLE public.training_submissions (
 ALTER TABLE public.training_submissions ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.training_submissions FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON public.training_submissions TO service_role;
+
+CREATE TABLE IF NOT EXISTS public.article_progress (
+    user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    article_id text NOT NULL CHECK (article_id IN ('sample-1','sample-2','sample-3','sample-4','sample-5')),
+    feedback text CHECK (feedback IN ('helpful','not_helpful')),
+    read_at timestamptz NOT NULL DEFAULT now(),
+    rewarded_at timestamptz,
+    PRIMARY KEY (user_id, article_id)
+);
+ALTER TABLE public.article_progress ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.article_progress FROM anon, authenticated;
+GRANT ALL ON public.article_progress TO service_role;
+
+COMMIT;

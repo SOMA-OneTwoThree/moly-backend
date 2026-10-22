@@ -149,6 +149,7 @@ schemas:
         - refund_revoke
         - admin_adjustment
         - training_reward
+        - article_reward
         title: Type
         description: 원장 거래 type.
       amount:

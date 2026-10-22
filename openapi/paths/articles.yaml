@@ -1,0 +1,113 @@
+/article-progress:
+  get:
+    tags:
+    - articles
+    summary: 내 아티클 읽음·평가·보상 상태
+    operationId: listArticleActivity
+    security:
+    - SupabaseBearer: []
+    responses:
+      '200':
+        description: 내 아티클 읽음·평가·보상 상태
+        content:
+          application/json:
+            schema:
+              $ref: ../components/articles.yaml#/schemas/ArticleActivityList
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+/articles/{article_id}/feedback:
+  put:
+    tags:
+    - articles
+    summary: 아티클 평가 저장 및 읽음 처리
+    operationId: setArticleFeedback
+    security:
+    - SupabaseBearer: []
+    responses:
+      '200':
+        description: 아티클 평가 저장 및 읽음 처리
+        content:
+          application/json:
+            schema:
+              $ref: ../components/articles.yaml#/schemas/ArticleActivity
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+      '404':
+        description: 아티클 없음 또는 계정 삭제 중
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              error:
+                value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
+      '409':
+        description: 아티클 없음 또는 계정 삭제 중
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              error:
+                value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
+    parameters:
+    - name: article_id
+      in: path
+      required: true
+      schema:
+        type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../components/articles.yaml#/schemas/ArticleFeedbackRequest
+/articles/{article_id}/reward:
+  post:
+    tags:
+    - articles
+    summary: 아티클 최초 1회 건초 20개 지급 및 읽음 처리
+    operationId: claimArticleReward
+    security:
+    - SupabaseBearer: []
+    responses:
+      '200':
+        description: 아티클 최초 1회 건초 20개 지급 및 읽음 처리
+        content:
+          application/json:
+            schema:
+              $ref: ../components/articles.yaml#/schemas/ArticleActivity
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+      '404':
+        description: 아티클 없음 또는 계정 삭제 중
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              error:
+                value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
+      '409':
+        description: 아티클 없음 또는 계정 삭제 중
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              error:
+                value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
+    parameters:
+    - name: article_id
+      in: path
+      required: true
+      schema:
+        type: string
+    description: 인증 계정과 아티클별 최초 1회 20개. 재요청은 granted=0 및 현재 잔액을 반환하며 중복 지급하지 않는다.
+      평가는 선택 사항이다.

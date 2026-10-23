@@ -180,6 +180,9 @@ schemas:
       routine_pair:
         $ref: ./routines.yaml#/schemas/RoutinePairStatus
         description: routine 2개 보상 상태.
+      mood:
+        $ref: '#/schemas/MoodRewardStatus'
+        description: 오늘의 감정일기 기록 보상 상태.
       hay_products:
         items:
           $ref: '#/schemas/HayProduct'
@@ -197,9 +200,35 @@ schemas:
     - attendance
     - ad
     - routine_pair
+    - mood
     - hay_products
     - balance
     title: ChargingStationResponse
+  MoodRewardStatus:
+    properties:
+      recorded_today:
+        type: boolean
+        title: Recorded Today
+        description: 같은 local reward date의 감정일기가 있는지.
+      claimable:
+        type: boolean
+        title: Claimable
+      claimed:
+        type: boolean
+        title: Claimed
+        description: 같은 reward date에 이미 받았는지. 감정일기를 지워도 true로 남는다.
+      reward:
+        type: integer
+        minimum: 0
+        title: Reward
+        description: 현재 감정일기 보상 20.
+    type: object
+    required:
+    - recorded_today
+    - claimable
+    - claimed
+    - reward
+    title: MoodRewardStatus
   HayProduct:
     properties:
       product_id:
@@ -234,6 +263,7 @@ schemas:
         - attendance
         - ad_reward
         - routine_reward
+        - mood_reward
         - iap_purchase
         - subscription_grant
         - shop_purchase

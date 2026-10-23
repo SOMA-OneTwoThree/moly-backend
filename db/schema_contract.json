@@ -5330,6 +5330,14 @@
         "not_null": true,
         "type": "bigint"
       },
+      "public.user_daily_stats.mood_reward_claimed_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
       "public.user_daily_stats.morning_notified_at": {
         "collation": null,
         "default": null,
@@ -7110,7 +7118,7 @@
       "public.hay_transactions.hay_transactions_type_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text])))",
+        "definition": "CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'mood_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -15185,5 +15193,5 @@
       }
     }
   },
-  "schema_sha256": "7fa9f4869661950dbd9428404b82e799257e88cb737aec379c475a5a76b9aa29"
+  "schema_sha256": "b77356665edb83a97a451e18a36b8308f10cc6863cc33660ff19dba63d2baedf"
 }

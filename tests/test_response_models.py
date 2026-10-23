@@ -104,6 +104,9 @@ ROUTINE = {
                     "claimed": False,
                     "reward": 20,
                 },
+                "mood": {
+                    "recorded_today": True, "claimable": True, "claimed": False, "reward": 20,
+                },
                 "hay_products": [
                     {"product_id": "com.geniusjun.moly.hay.300",
                      "play_store_product_id": "moly_hay_300", "amount": 300}
@@ -295,6 +298,9 @@ def test_response_models_reject_unknown_fields_and_invalid_enums():
                     "claimable": False,
                     "claimed": False,
                     "reward": 20,
+                },
+                "mood": {
+                    "recorded_today": True, "claimable": True, "claimed": False, "reward": 20,
                 },
                 "hay_products": [{"product_id": None, "amount": None}],
                 "balance": 100,

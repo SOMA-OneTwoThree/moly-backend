@@ -50,6 +50,8 @@ paths:
     $ref: ./paths/economy.yaml#/~1charging-station~1attendance
   /charging-station/routine-reward:
     $ref: ./paths/economy.yaml#/~1charging-station~1routine-reward
+  /charging-station/mood-reward:
+    $ref: ./paths/economy.yaml#/~1charging-station~1mood-reward
   /attendance:
     $ref: ./paths/economy.yaml#/~1attendance
   /attendance/check-in:
@@ -128,6 +130,8 @@ components:
       $ref: ./components/mood.yaml#/schemas/MoodEntryResponse
     MoodListResponse:
       $ref: ./components/mood.yaml#/schemas/MoodListResponse
+    MoodRewardStatus:
+      $ref: ./components/economy.yaml#/schemas/MoodRewardStatus
     BannerFeed:
       $ref: ./components/banners.yaml#/schemas/BannerFeed
     AdSsvResponse:

@@ -59,3 +59,11 @@ async def routine_reward(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     return await economy.claim_routine_reward(session, user_id)
+
+
+@router.post("/charging-station/mood-reward", response_model=RewardResponse)
+async def mood_reward(
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    return await economy.claim_mood_reward(session, user_id)

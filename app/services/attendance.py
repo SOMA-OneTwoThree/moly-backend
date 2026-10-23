@@ -2,7 +2,7 @@
 
 출석한 날은 user_daily_stats.attendance_claimed_at이 있는 날이다(이전 충전소 수령 포함). 연속 출석 전에는
 루틴 연속이 그 자리였으므로, 처음 출석 체크할 때 어제까지 이어진 루틴 연속을 출석한 날로 한 번 옮겨 두고
-(attendance_streak_seeds) 이후로는 루틴과 무관하게 센다.
+(attendance_streak_seeds) 이후로는 루틴과 무관하게 센다. 지급량은 연속 일수를 따라 7일 주기로 돌아간다.
 """
 from __future__ import annotations
 
@@ -23,7 +23,13 @@ from app.services import economy, hay_ledger, routine, routine_records
 from app.services.account import _load_profile
 
 WINDOW_MAX_DAYS = 371
+REWARD_CYCLE = (20, 20, 60, 20, 20, 20, 120)
 _ONE_DAY = timedelta(days=1)
+
+
+def reward(streak: int) -> int:
+    """연속 출석 streak일째의 지급량. 8일째부터 다시 1일째 값이다."""
+    return REWARD_CYCLE[(streak - 1) % len(REWARD_CYCLE)]
 
 
 def streaks(days: set[date], today: date) -> tuple[int, int]:
@@ -101,23 +107,33 @@ async def check_in(session: AsyncSession, user_id: str) -> dict[str, Any]:
         seed = await _new_seed(session, profile, today)
         session.add(seed)
     checked_in = False
-    balance = profile.hay_balance
     if not regressed:  # tz 역행 날짜에는 출석도 보상도 기록하지 않는다
         stats = await economy._daily(session, uid, today)
         if stats.attendance_claimed_at is None:
             stats.attendance_claimed_at = datetime.now(timezone.utc)
-            tx = await hay_ledger.apply(session, uid, "attendance", economy.HAY_ATTENDANCE)
-            checked_in, balance = True, tx.balance_after
+            checked_in = True
     _, current, best = _record(await _attended(session, uid, today), seed, today)
+    granted, balance = 0, profile.hay_balance
+    if checked_in:
+        granted = reward(current)
+        balance = (await hay_ledger.apply(session, uid, "attendance", granted)).balance_after
     await session.commit()
     return {
         "today": today,
         "checked_in": checked_in,
-        "granted": economy.HAY_ATTENDANCE if checked_in else 0,
+        "granted": granted,
         "balance_after": max(0, balance),
         "current_streak": current,
         "best_streak": best,
+        "streak_rewards": list(REWARD_CYCLE),
     }
+
+
+async def today_reward(session: AsyncSession, profile: Profile, today: date) -> int:
+    """오늘 출석했거나 지금 출석하면 받는 지급량. 아직 출석 체크 전이면 옮겨 둘 루틴 연속을 미리 센다."""
+    seed = await _stored_seed(session, profile.id) or await _new_seed(session, profile, today)
+    _, current, _ = _record(await _attended(session, profile.id, today) | {today}, seed, today)
+    return reward(current)
 
 
 async def get_attendance(session: AsyncSession, user_id: str, start: date, end: date) -> dict[str, Any]:

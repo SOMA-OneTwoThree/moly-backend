@@ -12,7 +12,7 @@ from app.core.errors import AppError
 from app.main import app
 from app.schemas.routine import PatchRoutineRequest
 from app.schemas.shop import EquipmentPutRequest, EquipmentPutRequestV2, ShopProduct
-from app.services import economy, hay_ledger, review, routine, shop
+from app.services import attendance, economy, hay_ledger, review, routine, shop
 
 UID = "11111111-1111-1111-1111-111111111111"
 UID_UUID = uuid.UUID(UID)
@@ -114,12 +114,16 @@ async def test_attendance_success(monkeypatch):
         return SimpleNamespace(attendance_claimed_at=None)
 
     async def _apply(session, uid, t, amt, **kw):
-        return SimpleNamespace(id=1, balance_after=660)
+        return SimpleNamespace(id=1, balance_after=640 + amt)
+
+    async def _today_reward(session, profile, today):
+        return 60
 
     monkeypatch.setattr(economy, "_daily", _daily)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
+    monkeypatch.setattr(attendance, "today_reward", _today_reward)
     out = await economy.claim_attendance(FakeSession(), UID)
-    assert out == {"granted": 20, "balance_after": 660}
+    assert out == {"granted": 60, "balance_after": 700}
 
 
 async def test_attendance_already_claimed(monkeypatch):

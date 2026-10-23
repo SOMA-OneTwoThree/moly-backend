@@ -123,7 +123,7 @@ async def test_attendance_success(monkeypatch):
     monkeypatch.setattr(hay_ledger, "apply", _apply)
     monkeypatch.setattr(attendance, "today_streak", _today_streak)
     out = await economy.claim_attendance(FakeSession(), UID)
-    assert out == {"granted": 60, "balance_after": 700}
+    assert out == {"granted": 40, "balance_after": 680}
 
 
 async def test_attendance_already_claimed(monkeypatch):

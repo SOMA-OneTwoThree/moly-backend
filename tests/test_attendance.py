@@ -40,7 +40,7 @@ def test_streaks(days, expected):
 
 
 @pytest.mark.parametrize(("streak", "expected"), [
-    (1, 20), (2, 20), (3, 60), (4, 20), (6, 20), (7, 120), (8, 20), (10, 60), (14, 120),
+    (1, 20), (2, 20), (3, 40), (4, 20), (6, 20), (7, 100), (8, 20), (10, 40), (14, 100),
 ])
 def test_reward_follows_the_weekly_cycle(streak, expected):
     assert attendance.reward(streak) == expected
@@ -176,7 +176,7 @@ async def test_second_check_in_is_idempotent(check_in_env):
     assert len(session.tables[AttendanceStreakSeed]) == 1
 
 
-@pytest.mark.parametrize(("attended_before", "granted"), [(2, 60), (6, 120), (7, 20)])
+@pytest.mark.parametrize(("attended_before", "granted"), [(2, 40), (6, 100), (7, 20)])
 async def test_check_in_grants_the_reward_of_today_s_streak_day(check_in_env, attended_before, granted):
     session = _Session({UserDailyStats: [_stats(offset) for offset in range(1, attended_before + 1)]})
     session.tables[AttendanceStreakSeed] = [

@@ -125,15 +125,14 @@ async def check_in(session: AsyncSession, user_id: str) -> dict[str, Any]:
         "balance_after": max(0, balance),
         "current_streak": current,
         "best_streak": best,
-        "streak_rewards": list(REWARD_CYCLE),
     }
 
 
-async def today_reward(session: AsyncSession, profile: Profile, today: date) -> int:
-    """오늘 출석했거나 지금 출석하면 받는 지급량. 아직 출석 체크 전이면 옮겨 둘 루틴 연속을 미리 센다."""
+async def today_streak(session: AsyncSession, profile: Profile, today: date) -> int:
+    """오늘 출석했거나 지금 출석하면 이어지는 연속 일수. 아직 출석 체크 전이면 옮겨 둘 루틴 연속을 미리 센다."""
     seed = await _stored_seed(session, profile.id) or await _new_seed(session, profile, today)
     _, current, _ = _record(await _attended(session, profile.id, today) | {today}, seed, today)
-    return reward(current)
+    return current
 
 
 async def get_attendance(session: AsyncSession, user_id: str, start: date, end: date) -> dict[str, Any]:

@@ -116,12 +116,12 @@ async def test_attendance_success(monkeypatch):
     async def _apply(session, uid, t, amt, **kw):
         return SimpleNamespace(id=1, balance_after=640 + amt)
 
-    async def _today_reward(session, profile, today):
-        return 60
+    async def _today_streak(session, profile, today):
+        return 3
 
     monkeypatch.setattr(economy, "_daily", _daily)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
-    monkeypatch.setattr(attendance, "today_reward", _today_reward)
+    monkeypatch.setattr(attendance, "today_streak", _today_streak)
     out = await economy.claim_attendance(FakeSession(), UID)
     assert out == {"granted": 60, "balance_after": 700}
 

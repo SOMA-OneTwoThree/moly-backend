@@ -244,8 +244,8 @@
     operationId: checkInAttendance
     security:
     - SupabaseBearer: []
-    description: 앱 진입 출석. 오늘 reward date의 첫 요청이면 출석을 기록하고 오늘까지의 연속 출석 일수에 해당하는 streak_rewards
-      건초(20, 20, 60, 20, 20, 20, 120을 7일마다 되풀이)를 원장과 함께 지급한다. 이미 출석했으면 아무것도 바꾸지 않고
+    description: 앱 진입 출석. 오늘 reward date의 첫 요청이면 출석을 기록하고 오늘까지의 연속 출석 일수에 해당하는 건초(GET
+      /charging-station attendance.streak_rewards, 20, 20, 60, 20, 20, 20, 120을 7일마다 되풀이)를 원장과 함께 지급한다. 이미 출석했으면 아무것도 바꾸지 않고
       checked_in=false로 현재 연속을 반환한다(멱등). POST /charging-station/attendance와 같은 출석 기록과 지급량을 공유하므로
       어느 쪽으로 받아도 하루 한 번이다.
     responses:

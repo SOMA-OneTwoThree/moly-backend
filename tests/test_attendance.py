@@ -153,7 +153,7 @@ async def test_first_check_in_seeds_the_routine_streak_and_grants_hay(check_in_e
     out = await attendance.check_in(session, str(UID))
     assert out == {
         "today": TODAY, "checked_in": True, "granted": 20, "balance_after": 660,
-        "current_streak": 5, "best_streak": 9, "streak_rewards": [20, 20, 60, 20, 20, 20, 120],
+        "current_streak": 5, "best_streak": 9,
     }
     [seed] = session.tables[AttendanceStreakSeed]
     assert (seed.user_id, seed.through_date, seed.streak, seed.best_streak) == (UID, TODAY - timedelta(days=1), 4, 9)
@@ -169,7 +169,7 @@ async def test_second_check_in_is_idempotent(check_in_env):
     out = await attendance.check_in(session, str(UID))
     assert out == {
         "today": TODAY, "checked_in": False, "granted": 0, "balance_after": 640,
-        "current_streak": 2, "best_streak": 2, "streak_rewards": [20, 20, 60, 20, 20, 20, 120],
+        "current_streak": 2, "best_streak": 2,
     }
     assert check_in_env.grants == []
     assert check_in_env.routine_streaks == 0  # 이어받기는 한 번만 센다
@@ -196,18 +196,21 @@ async def test_check_in_after_a_break_starts_the_cycle_again(check_in_env):
     assert (out["current_streak"], out["granted"]) == (1, 20)
 
 
-async def test_today_reward_counts_today_whether_or_not_attended(check_in_env):
+async def test_today_streak_counts_today_whether_or_not_attended(check_in_env):
     profile = SimpleNamespace(id=UID)
     seed = AttendanceStreakSeed(user_id=UID, through_date=TODAY - timedelta(days=30), streak=0, best_streak=0)
     before = _Session({UserDailyStats: [_stats(1), _stats(2)]})
     before.tables[AttendanceStreakSeed] = [seed]
     after = _Session({UserDailyStats: [_stats(0), _stats(1), _stats(2)]})
     after.tables[AttendanceStreakSeed] = [seed]
-    assert await attendance.today_reward(before, profile, TODAY) == 60
-    assert await attendance.today_reward(after, profile, TODAY) == 60
+    broken = _Session({UserDailyStats: [_stats(2), _stats(3)]})
+    broken.tables[AttendanceStreakSeed] = [seed]
+    assert await attendance.today_streak(before, profile, TODAY) == 3
+    assert await attendance.today_streak(after, profile, TODAY) == 3
+    assert await attendance.today_streak(broken, profile, TODAY) == 1
     fresh = _Session({UserDailyStats: [_stats(1), _stats(2)]})
     # 아직 출석 체크 전이면 어제까지의 루틴 연속 4일을 이어받을 것으로 세되, 옮겨 두지는 않는다.
-    assert await attendance.today_reward(fresh, profile, TODAY) == 20
+    assert await attendance.today_streak(fresh, profile, TODAY) == 5
     assert AttendanceStreakSeed not in fresh.tables
 
 
@@ -282,7 +285,7 @@ def test_attendance_routes(client, monkeypatch):
     async def check_in(session, user_id):
         return {
             "today": TODAY, "checked_in": True, "granted": 60, "balance_after": 700,
-            "current_streak": 3, "best_streak": 7, "streak_rewards": list(attendance.REWARD_CYCLE),
+            "current_streak": 3, "best_streak": 7,
         }
 
     monkeypatch.setattr(attendance, "get_attendance", get_attendance)
@@ -298,6 +301,6 @@ def test_attendance_routes(client, monkeypatch):
     assert checked.status_code == 200
     assert checked.json() == {
         "today": "2026-10-22", "checked_in": True, "granted": 60, "balance_after": 700,
-        "current_streak": 3, "best_streak": 7, "streak_rewards": [20, 20, 60, 20, 20, 20, 120],
+        "current_streak": 3, "best_streak": 7,
     }
     assert client.get("/attendance", params={"from": "2026-10-01"}).status_code == 422

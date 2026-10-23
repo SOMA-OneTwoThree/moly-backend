@@ -23,7 +23,7 @@ from app.services import economy, hay_ledger, routine, routine_records
 from app.services.account import _load_profile
 
 WINDOW_MAX_DAYS = 371
-REWARD_CYCLE = (20, 20, 60, 20, 20, 20, 120)
+REWARD_CYCLE = (20, 20, 40, 20, 20, 20, 100)
 _ONE_DAY = timedelta(days=1)
 
 

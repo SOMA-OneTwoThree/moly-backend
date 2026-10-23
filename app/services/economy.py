@@ -108,6 +108,7 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
     attendance_claimed = stats is not None and stats.attendance_claimed_at is not None
     routine_claimed = stats is not None and stats.routine_reward_claimed_at is not None
     done = await _routine_completions_today(session, uid, ad)
+    streak = await attendance.today_streak(session, profile, ad)
     packs = list(
         (
             await session.execute(
@@ -121,7 +122,8 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
         "activity_date": ad.isoformat(),
         "attendance": {
             "claimable": not attendance_claimed, "claimed": attendance_claimed,
-            "reward": await attendance.today_reward(session, profile, ad),
+            "reward": attendance.reward(streak),
+            "streak": streak, "streak_rewards": list(attendance.REWARD_CYCLE),
         },
         "ad": {"views_used": ad_used, "views_limit": AD_DAILY_LIMIT, "reward_per_view": HAY_AD},
         "routine_pair": {
@@ -205,7 +207,7 @@ async def claim_attendance(session: AsyncSession, user_id: str) -> dict[str, int
     if stats.attendance_claimed_at is not None:
         raise errors.already_claimed()
     stats.attendance_claimed_at = datetime.now(timezone.utc)
-    granted = await attendance.today_reward(session, profile, ad)
+    granted = attendance.reward(await attendance.today_streak(session, profile, ad))
     tx = await hay_ledger.apply(session, uid, "attendance", granted)
     await session.commit()
     return {"granted": granted, "balance_after": max(0, tx.balance_after)}

@@ -984,9 +984,10 @@ paths:
       operationId: checkInAttendance
       security:
       - SupabaseBearer: []
-      description: 앱 진입 출석. 오늘 reward date의 첫 요청이면 출석을 기록하고 오늘까지의 연속 출석 일수에 해당하는 streak_rewards 건초(20,
-        20, 60, 20, 20, 20, 120을 7일마다 되풀이)를 원장과 함께 지급한다. 이미 출석했으면 아무것도 바꾸지 않고 checked_in=false로 현재 연속을
-        반환한다(멱등). POST /charging-station/attendance와 같은 출석 기록과 지급량을 공유하므로 어느 쪽으로 받아도 하루 한 번이다.
+      description: 앱 진입 출석. 오늘 reward date의 첫 요청이면 출석을 기록하고 오늘까지의 연속 출석 일수에 해당하는 건초(GET /charging-station
+        attendance.streak_rewards, 20, 20, 60, 20, 20, 20, 120을 7일마다 되풀이)를 원장과 함께 지급한다. 이미 출석했으면 아무것도
+        바꾸지 않고 checked_in=false로 현재 연속을 반환한다(멱등). POST /charging-station/attendance와 같은 출석 기록과 지급량을 공유하므로
+        어느 쪽으로 받아도 하루 한 번이다.
       responses:
         '200':
           description: 이번 요청의 출석 여부, 지급량, 잔액과 연속
@@ -3559,7 +3560,8 @@ components:
           type: integer
           minimum: 0
           title: Granted
-          description: 이번 요청의 지급량. 처음 출석이면 오늘까지의 연속 출석 일수에 해당하는 streak_rewards 값, 아니면 0.
+          description: 이번 요청의 지급량. 처음 출석이면 오늘까지의 연속 출석 일수에 해당하는 GET /charging-station attendance.streak_rewards
+            값, 아니면 0.
         balance_after:
           type: integer
           minimum: 0
@@ -3575,13 +3577,6 @@ components:
           minimum: 0
           title: Best Streak
           description: 전 기간 최장 연속 출석 일수. 옮겨 둔 루틴 최장 연속보다 작지 않다.
-        streak_rewards:
-          type: array
-          items:
-            type: integer
-          minItems: 1
-          title: Streak Rewards
-          description: 연속 출석 1일째부터의 지급량. 연속 n일째는 (n-1) % 길이 번째 값을 받고, 끊기면 1일째로 돌아간다.
       type: object
       required:
       - today
@@ -3590,7 +3585,6 @@ components:
       - balance_after
       - current_streak
       - best_streak
-      - streak_rewards
       title: AttendanceCheckInResponse
     AttendanceResponse:
       properties:
@@ -3640,12 +3634,26 @@ components:
           type: integer
           minimum: 0
           title: Reward
-          description: 오늘 출석으로 받는(받은) 지급량. 연속 출석 일수에 따라 streak_rewards 주기를 따른다.
+          description: 오늘 출석으로 받는(받은) 지급량. streak일째에 해당하는 streak_rewards 값이다.
+        streak:
+          type: integer
+          minimum: 1
+          title: Streak
+          description: 오늘 출석했으면 오늘까지의 연속 출석 일수, 아직이면 지금 출석할 때 이어지는 연속 출석 일수.
+        streak_rewards:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+          title: Streak Rewards
+          description: 연속 출석 1일째부터의 지급량. 연속 n일째는 (n-1) % 길이 번째 값을 받고, 끊기면 1일째로 돌아간다.
       type: object
       required:
       - claimable
       - claimed
       - reward
+      - streak
+      - streak_rewards
       title: AttendanceStatus
     Canvas:
       properties:

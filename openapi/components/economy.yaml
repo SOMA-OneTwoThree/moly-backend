@@ -66,7 +66,7 @@ schemas:
         type: integer
         minimum: 0
         title: Reward
-        description: 현재 출석 보상 20.
+        description: 오늘 출석으로 받는(받은) 지급량. 연속 출석 일수에 따라 streak_rewards 주기를 따른다.
     type: object
     required:
     - claimable
@@ -88,7 +88,7 @@ schemas:
         type: integer
         minimum: 0
         title: Granted
-        description: 이번 요청의 지급량. 처음 출석이면 20, 아니면 0.
+        description: 이번 요청의 지급량. 처음 출석이면 오늘까지의 연속 출석 일수에 해당하는 streak_rewards 값, 아니면 0.
       balance_after:
         type: integer
         minimum: 0
@@ -104,6 +104,13 @@ schemas:
         minimum: 0
         title: Best Streak
         description: 전 기간 최장 연속 출석 일수. 옮겨 둔 루틴 최장 연속보다 작지 않다.
+      streak_rewards:
+        type: array
+        items:
+          type: integer
+        minItems: 1
+        title: Streak Rewards
+        description: 연속 출석 1일째부터의 지급량. 연속 n일째는 (n-1) % 길이 번째 값을 받고, 끊기면 1일째로 돌아간다.
     type: object
     required:
     - today
@@ -112,6 +119,7 @@ schemas:
     - balance_after
     - current_streak
     - best_streak
+    - streak_rewards
     title: AttendanceCheckInResponse
   AttendanceResponse:
     properties:

@@ -100,3 +100,4 @@ class AttendanceCheckInResponse(StrictResponse):
     balance_after: int = Field(ge=0)
     current_streak: int = Field(ge=0)
     best_streak: int = Field(ge=0)
+    streak_rewards: list[int] = Field(min_length=1)  # 연속 1일째부터의 지급량, 이 길이마다 되풀이

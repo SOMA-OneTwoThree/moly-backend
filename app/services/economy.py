@@ -22,7 +22,6 @@ from app.services import hay_ledger
 from app.services.account import _load_profile, _uid
 
 _log = logging.getLogger("moly-backend")
-HAY_ATTENDANCE = 20
 HAY_ROUTINE_REWARD = 20
 HAY_AD = 20
 AD_DAILY_LIMIT = 5
@@ -93,6 +92,8 @@ async def _routine_completions_today(session: AsyncSession, uid: uuid.UUID, acti
 
 
 async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, Any]:
+    from app.services import attendance
+
     profile = await _load_profile(session, user_id)
     uid = profile.id
     ad = current_reward_date(profile.timezone)
@@ -120,7 +121,7 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
         "activity_date": ad.isoformat(),
         "attendance": {
             "claimable": not attendance_claimed, "claimed": attendance_claimed,
-            "reward": HAY_ATTENDANCE,
+            "reward": await attendance.today_reward(session, profile, ad),
         },
         "ad": {"views_used": ad_used, "views_limit": AD_DAILY_LIMIT, "reward_per_view": HAY_AD},
         "routine_pair": {
@@ -191,6 +192,8 @@ async def _reward_window_regressed(
 
 
 async def claim_attendance(session: AsyncSession, user_id: str) -> dict[str, int]:
+    from app.services import attendance
+
     profile = await _load_profile(session, user_id)
     uid = profile.id
     # 순서 불변식: lock → 커서 assert → _daily → mutation → commit(SOMA-375 동시성).
@@ -202,9 +205,10 @@ async def claim_attendance(session: AsyncSession, user_id: str) -> dict[str, int
     if stats.attendance_claimed_at is not None:
         raise errors.already_claimed()
     stats.attendance_claimed_at = datetime.now(timezone.utc)
-    tx = await hay_ledger.apply(session, uid, "attendance", HAY_ATTENDANCE)
+    granted = await attendance.today_reward(session, profile, ad)
+    tx = await hay_ledger.apply(session, uid, "attendance", granted)
     await session.commit()
-    return {"granted": HAY_ATTENDANCE, "balance_after": max(0, tx.balance_after)}
+    return {"granted": granted, "balance_after": max(0, tx.balance_after)}
 
 
 async def claim_routine_reward(session: AsyncSession, user_id: str) -> dict[str, int]:

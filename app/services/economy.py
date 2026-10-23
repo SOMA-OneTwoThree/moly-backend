@@ -1,4 +1,4 @@
-"""건초·충전소 — 지갑 조회·원장 내역·출석/루틴 보상(서버 권위·멱등)."""
+"""건초·충전소 — 지갑 조회·원장 내역·출석/루틴/감정일기 보상(서버 권위·멱등)."""
 from __future__ import annotations
 
 import logging
@@ -14,6 +14,7 @@ from app.core import errors
 from app.core.advisory_lock import advisory_xact_lock
 from app.core.time_utils import current_reward_date
 from app.models.hay_transaction import HayTransaction
+from app.models.mood import MoodEntry
 from app.models.product import Product
 from app.models.reward_ad_session import RewardAdSession
 from app.models.routine import RoutineCompletion
@@ -23,6 +24,7 @@ from app.services.account import _load_profile, _uid
 
 _log = logging.getLogger("moly-backend")
 HAY_ROUTINE_REWARD = 20
+HAY_MOOD_REWARD = 20
 HAY_AD = 20
 AD_DAILY_LIMIT = 5
 ROUTINE_PAIR_REQUIRED = 2
@@ -91,6 +93,16 @@ async def _routine_completions_today(session: AsyncSession, uid: uuid.UUID, acti
     ).scalar() or 0
 
 
+async def _mood_recorded_today(session: AsyncSession, uid: uuid.UUID, activity_date) -> bool:
+    return (
+        await session.execute(
+            select(MoodEntry.entry_date).where(
+                MoodEntry.user_id == uid, MoodEntry.entry_date == activity_date
+            )
+        )
+    ).scalar() is not None
+
+
 async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, Any]:
     from app.services import attendance
 
@@ -107,7 +119,9 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
     ad_used = stats.ad_reward_count if stats else 0
     attendance_claimed = stats is not None and stats.attendance_claimed_at is not None
     routine_claimed = stats is not None and stats.routine_reward_claimed_at is not None
+    mood_claimed = stats is not None and stats.mood_reward_claimed_at is not None
     done = await _routine_completions_today(session, uid, ad)
+    mood_recorded = await _mood_recorded_today(session, uid, ad)
     streak = await attendance.today_streak(session, profile, ad)
     packs = list(
         (
@@ -132,6 +146,12 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
             "claimed": routine_claimed,  # 당일 수령 여부 — 체크 해제해도 재수령 막음
             "reward": HAY_ROUTINE_REWARD,
         },
+        "mood": {
+            "recorded_today": mood_recorded,
+            "claimable": mood_recorded and not mood_claimed,
+            "claimed": mood_claimed,  # 당일 수령 여부 — 기록을 지워도 재수령 막음
+            "reward": HAY_MOOD_REWARD,
+        },
         "hay_products": [
             {
                 "product_id": p.app_store_product_id,
@@ -148,7 +168,7 @@ async def get_charging_status(session: AsyncSession, user_id: str) -> dict[str, 
 async def _reward_cursor(session: AsyncSession, uid: uuid.UUID) -> date | None:
     """유저가 실제로 보상을 받은 최대 reward_date(없으면 None). tz 역행 재수령 차단용 단조 커서.
 
-    세 보상 종류 통합(union): user_daily_stats(출석·루틴·광고카운트) ∪ reward_ad_sessions(granted).
+    보상 종류 통합(union): user_daily_stats(출석·루틴·감정일기·광고카운트) ∪ reward_ad_sessions(granted).
     per-type가 아니라 union이라야 공격자가 날짜를 되돌리며 보상 종류를 번갈아 받는 걸 막는다.
     광고는 granted 시 ad_reward_count도 오르지만, 과거 데이터 불일치 대비 세션 날짜도 보수적으로 포함.
     """
@@ -159,6 +179,7 @@ async def _reward_cursor(session: AsyncSession, uid: uuid.UUID) -> date | None:
                 or_(
                     UserDailyStats.attendance_claimed_at.isnot(None),
                     UserDailyStats.routine_reward_claimed_at.isnot(None),
+                    UserDailyStats.mood_reward_claimed_at.isnot(None),
                     UserDailyStats.ad_reward_count > 0,
                 ),
             )
@@ -229,3 +250,21 @@ async def claim_routine_reward(session: AsyncSession, user_id: str) -> dict[str,
     tx = await hay_ledger.apply(session, uid, "routine_reward", HAY_ROUTINE_REWARD)
     await session.commit()
     return {"granted": HAY_ROUTINE_REWARD, "balance_after": max(0, tx.balance_after)}
+
+
+async def claim_mood_reward(session: AsyncSession, user_id: str) -> dict[str, int]:
+    profile = await _load_profile(session, user_id)
+    uid = profile.id
+    await advisory_xact_lock(session, uid)  # lock → 커서 assert → _daily → mutation
+    ad = current_reward_date(profile.timezone)
+    if await _reward_window_regressed(session, uid, ad):
+        raise errors.already_claimed()  # tz 역행 차단
+    if not await _mood_recorded_today(session, uid, ad):
+        raise errors.mood_not_recorded()
+    stats = await _daily(session, uid, ad)
+    if stats.mood_reward_claimed_at is not None:
+        raise errors.already_claimed()
+    stats.mood_reward_claimed_at = datetime.now(timezone.utc)
+    tx = await hay_ledger.apply(session, uid, "mood_reward", HAY_MOOD_REWARD)
+    await session.commit()
+    return {"granted": HAY_MOOD_REWARD, "balance_after": max(0, tx.balance_after)}

@@ -12,6 +12,7 @@ TransactionType = Literal[
     "attendance",
     "ad_reward",
     "routine_reward",
+    "mood_reward",
     "iap_purchase",
     "subscription_grant",
     "shop_purchase",
@@ -66,6 +67,13 @@ class RoutinePairStatus(StrictResponse):
     reward: int = Field(ge=0)
 
 
+class MoodRewardStatus(StrictResponse):
+    recorded_today: bool
+    claimable: bool
+    claimed: bool
+    reward: int = Field(ge=0)
+
+
 class HayProduct(StrictResponse):
     product_id: str  # App Store 상품ID(RC SDK 구매에 사용)
     play_store_product_id: str | None = None  # Google Play 상품ID(미확정 시 null)
@@ -78,6 +86,7 @@ class ChargingStationResponse(StrictResponse):
     attendance: AttendanceStatus
     ad: AdStatus
     routine_pair: RoutinePairStatus
+    mood: MoodRewardStatus
     hay_products: list[HayProduct]
     balance: int = Field(ge=0)
 

@@ -86,10 +86,12 @@ class TrainingOption(TrainingModel):
 
 
 class TrainingGrading(TrainingModel):
-    """AI에게만 보내는 영어 기준과 통과 예시."""
+    """서버 전용 채점 기준. 기존 과정의 평가용 예시는 프롬프트에 보내지 않는다."""
 
     criteria: Annotated[str, Field(min_length=1, max_length=1000)]
-    example: LocalizedText
+    example: LocalizedText | None = None
+    topic: Literal["refusal"] | None = None
+    retry_hint: LocalizedText | None = None
 
 
 class TrainingStage(TrainingModel):
@@ -114,8 +116,8 @@ class TrainingStage(TrainingModel):
         if (self.reward_hay > 0) != self.review_point:
             raise ValueError("only review points grant hay")
         if self.answer_type == "write":
-            if self.pick_style or self.options or self.explanation or self.grading is None:
-                raise ValueError("write stages carry grading only")
+            if self.pick_style or self.options or self.grading is None:
+                raise ValueError("write stages require grading and cannot carry pick options or style")
             return self
         if self.pick_style is None or self.grading is not None:
             raise ValueError("pick stages need a pick style and no grading")

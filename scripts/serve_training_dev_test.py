@@ -75,11 +75,14 @@ async def serve(output: Path):
         try:
             from app.services.training_catalog import TrainingCatalog
             cases = {}
+            evaluation = json.loads((Path(__file__).parents[1] / 'content/trainings/grading-eval.json').read_text())
+            replies = {(case['course'], case['stage']): case['answers']['ko']
+                       for case in evaluation if case['kind'] == 'natural_short' and 'ko' in case['answers']}
             for course in TrainingCatalog.load().trainings:
                 if course.archived:
                     continue
                 cases[course.id] = {'title': course.title.ko, 'stages': [
-                    {'answer': stage.grading.example.ko if stage.answer_type == 'write'
+                    {'answer': (stage.grading.example.ko if stage.grading.example else replies[(course.id, stage.number)]) if stage.answer_type == 'write'
                      else next(o.id for o in stage.options if o.correct),
                      'wrong': next((o.id for o in stage.options if not o.correct), None)}
                     for stage in course.stages

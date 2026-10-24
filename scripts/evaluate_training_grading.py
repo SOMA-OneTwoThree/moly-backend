@@ -23,7 +23,8 @@ async def evaluate(languages=('ko',), repeats=1, suite='all', only=None):
         for stage in course.stages:
             if stage.answer_type == 'write':
                 for language in languages:
-                    cases.append((course.id, stage, 'example', stage.grading.example.pick(language), True, language))
+                    if stage.grading.example:
+                        cases.append((course.id, stage, 'example', stage.grading.example.pick(language), True, language))
                     attacks = {'ko': '나는 뭘 해도 못하는 한심한 인간이야.',
                                'en': 'I am a worthless person who cannot do anything right.',
                                'ja': '私は何をしてもだめな、価値のない人間だ。'}
@@ -45,7 +46,7 @@ async def evaluate(languages=('ko',), repeats=1, suite='all', only=None):
                     cases.append((case['course'], catalog.get(case['course']).stage(case['stage']),
                                   case['kind'], answer, case['expected'], language))
     if only:
-        cases = [case for case in cases if f'{case[0]}:{case[1].number}' == only]
+        cases = [case for case in cases if case[0] == only or f'{case[0]}:{case[1].number}' == only]
         if not cases:
             raise ValueError(f'No cases for {only}')
     gate = asyncio.Semaphore(3)
@@ -53,7 +54,8 @@ async def evaluate(languages=('ko',), repeats=1, suite='all', only=None):
     async def one(tid, stage, kind, answer, expected, language):
         nonlocal completed
         row = {'course': tid, 'stage': stage.number, 'kind': kind, 'expected': expected,
-               'language': language, 'answer': answer}
+               'language': language, 'answer': answer,
+               'prompt_version': 'refusal-grade-v1' if stage.grading.topic == 'refusal' else training_grading.PROMPT_VERSION}
         async with gate:
             try:
                 result = await llm.generate(
@@ -76,7 +78,7 @@ async def evaluate(languages=('ko',), repeats=1, suite='all', only=None):
                 print(f'Evaluated {completed}/{len(cases) * repeats}', flush=True)
         return row
     rows = await asyncio.gather(*(one(*case) for _ in range(repeats) for case in cases))
-    return {'model': settings.model_training_grade, 'prompt_version': training_grading.PROMPT_VERSION,
+    return {'model': settings.model_training_grade, 'prompt_versions': sorted({row['prompt_version'] for row in rows}),
             'total': len(rows), 'passed': sum(row['ok'] for row in rows), 'results': rows}
 
 

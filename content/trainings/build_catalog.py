@@ -85,6 +85,7 @@ for order, (topic, rows) in enumerate(arrangement.items()):
         stages.append(stage)
     trainings.append({'id': tid, 'order': order, 'icon_key': 'sun' if topic == 'positive' else 'red_heart',
                       'title': title, 'summary': summary, 'stages': stages})
+trainings.append(json.loads((ROOT / 'refusal.json').read_text()))
 # Existing progress remains readable by its old id; the Explore list shows only the new courses.
 for legacy in json.loads((ROOT / 'legacy-catalog.json').read_text())['trainings']:
     legacy['archived'] = True
@@ -94,4 +95,4 @@ if '--check' in sys.argv:
     assert TARGET.read_text() == raw, 'catalog differs from its reviewed sources'
 else:
     TARGET.write_text(raw)
-print('Training catalog: two active courses, 60 stages; legacy history preserved.')
+print('Training catalog: three active courses, 90 stages; legacy history preserved.')

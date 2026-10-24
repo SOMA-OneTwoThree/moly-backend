@@ -5,6 +5,7 @@ Service commits become flushes so the whole flow shares one transaction that is 
 from __future__ import annotations
 
 import os
+import json
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -232,15 +233,17 @@ async def test_real_sessions_share_one_grading_reservation(monkeypatch):
 
 
 @pytest.mark.parametrize('language', ['ko', 'en', 'ja'])
-async def test_new_courses_complete_all_60_stages_with_their_keys_and_rubrics(db, monkeypatch, language):
+async def test_active_courses_complete_all_90_stages_with_their_keys_and_rubrics(db, monkeypatch, language):
     catalog = TrainingCatalog.load()
     monkeypatch.setattr(training_catalog, 'current', lambda: catalog)
     user = await signup(db)
+    cases = json.loads((Path(__file__).parents[2] / 'content/trainings/grading-eval.json').read_text())
+    replies = {(case['course'], case['stage']): case['answers'] for case in cases if case['kind'] == 'natural_short'}
     for course in catalog.trainings:
         if course.archived:
             continue
         for stage in course.stages:
-            body = chosen(next(o.id for o in stage.options if o.correct)) if stage.answer_type == 'pick' else written(stage.grading.example.pick(language))
+            body = chosen(next(o.id for o in stage.options if o.correct)) if stage.answer_type == 'pick' else written(stage.grading.example.pick(language) if stage.grading.example else replies[(course.id, stage.number)][language])
             result = await trainings.submit(db, user, course.id, stage.number, body, locale=language, now=NOW)
             assert result['result'] == 'passed', (course.id, stage.number)
             assert result['tries']['left'] == 5
@@ -248,8 +251,8 @@ async def test_new_courses_complete_all_60_stages_with_their_keys_and_rubrics(db
         detail = await trainings.get_training(db, user, course.id, locale=language, now=NOW)
         assert len(detail['answers']) == 30
     cards = (await trainings.list_trainings(db, user, locale=language))['trainings']
-    assert len(cards) == 2 and all(c['completed'] for c in cards)
-    assert sum(amount for amount, _ in await rewards(db, user)) == 310
+    assert len(cards) == 3 and all(c['completed'] for c in cards)
+    assert sum(amount for amount, _ in await rewards(db, user)) == 1060
 
 
 @pytest.mark.parametrize('failure', ['timeout', 'provider', 'malformed'])
@@ -344,3 +347,32 @@ async def test_claim_categories_persist_without_changing_progress(db, reason):
     assert await db.scalar(text('SELECT reason FROM training_claims WHERE user_id=:u'), args) == reason
     assert await db.scalar(text('SELECT count(*) FROM training_progress WHERE user_id=:u'), args) == 0
     assert await rewards(db, user) == []
+
+
+async def test_refusal_full_course_explanations_rewards_and_replay_are_isolated(db, monkeypatch):
+    catalog = TrainingCatalog.load()
+    monkeypatch.setattr(training_catalog, 'current', lambda: catalog)
+    course = catalog.get('refusal-practice-v1')
+    user = await signup(db)
+    initial = await db.scalar(text('SELECT hay_balance FROM profiles WHERE id = :u'), {'u': uuid.UUID(user)})
+    granted = 0
+    for stage in course.stages:
+        body = (chosen(next(o.id for o in stage.options if o.correct)) if stage.answer_type == 'pick'
+                else written('이 단계의 합성 테스트 답변'))
+        result = await trainings.submit(db, user, course.id, stage.number, body, locale='ko', now=NOW)
+        assert result['result'] == 'passed'
+        assert result['explanation'] == (stage.explanation.ko if stage.explanation else None)
+        assert 'example' not in result
+        if stage.reward_hay:
+            granted += stage.reward_hay
+            assert result['reward'] == {'granted': stage.reward_hay, 'balance_after': initial + granted}
+        again = await trainings.submit(db, user, course.id, stage.number, body, locale='ko', now=NOW)
+        assert again == result
+    assert result['progress'] == {'next_stage': None, 'passed_count': 30, 'completed': True}
+    assert granted == 580
+    assert len(await rewards(db, user)) == 5
+    detail = await trainings.get_training(db, user, course.id, locale='ko', now=NOW)
+    assert len(detail['answers']) == 30
+    cards = (await trainings.list_trainings(db, user, locale='ko'))['trainings']
+    assert [(c['id'], c['passed_count']) for c in cards] == [
+        ('positive-circuit-v2', 0), ('self-acceptance-v2', 0), ('refusal-practice-v1', 30)]

@@ -659,5 +659,313 @@
     "answers": {
       "ko": "오늘 환율이 얼마인지 알려줘"
     }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 3,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "안입어볼래",
+      "en": "No thanks.",
+      "ja": "着ないよ。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 3,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "알겠어 입어볼게",
+      "en": "Okay, I’ll try it on.",
+      "ja": "分かった、着てみる。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 6,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "커트만 할게요",
+      "en": "Just a haircut.",
+      "ja": "カットだけで。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 6,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "네 두피케어도 추가해주세요",
+      "en": "Please add the treatment.",
+      "ja": "ケアもお願いします。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 9,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "좀 생각해볼게요",
+      "en": "Let me think first.",
+      "ja": "少し考えさせて。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 9,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "네 제가 맡을게요",
+      "en": "Yes, I’ll handle it.",
+      "ja": "はい、引き受けます。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 12,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "오늘 안나갈래",
+      "en": "Not tonight.",
+      "ja": "今日は行かない。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 12,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "지금 나갈게",
+      "en": "I’m coming out now.",
+      "ja": "今から行く。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 16,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "난 먼저 집갈게",
+      "en": "I’m heading home.",
+      "ja": "先に帰るね。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 16,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "좋아 한잔 더 하자",
+      "en": "Sure, one more drink.",
+      "ja": "もう一杯行こう。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 18,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "난 캠핑 안갈래",
+      "en": "I’ll skip camping.",
+      "ja": "キャンプは行かない。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 18,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "힘들어도 같이갈게",
+      "en": "I’ll go even if it’s hard.",
+      "ja": "大変でも一緒に行く。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 21,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "번역 업체에 문의해봐",
+      "en": "Try a translation service.",
+      "ja": "翻訳会社に聞いてみて。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 21,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "그러면 내가 번역해줄게",
+      "en": "Then I’ll translate it for you.",
+      "ja": "じゃあ私が翻訳する。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 23,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "이번엔 안갈래",
+      "en": "I’ll pass this time.",
+      "ja": "今回は行かない。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 23,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "부담스러워도 갈게",
+      "en": "I’ll go even though I’m uncomfortable.",
+      "ja": "気が重いけど行く。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 24,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "이번주엔 못가요",
+      "en": "I can’t come this weekend.",
+      "ja": "今週末は行けません。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 24,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "네 이번 주말에도 갈게요",
+      "en": "I’ll come again this weekend.",
+      "ja": "今週末も行きます。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 26,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "안 빌려줄래",
+      "en": "No.",
+      "ja": "貸さないよ。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 26,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "대신 조심히 쓰고 돌려줘",
+      "en": "Just be careful and return it.",
+      "ja": "大事に使って返してね。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 27,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "자료조사만 할게",
+      "en": "I’ll just do the research.",
+      "ja": "資料調査だけにする。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 27,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "칭찬 고마워 발표도 내가할게",
+      "en": "Thanks, I’ll present too.",
+      "ja": "ありがとう、発表もやる。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 28,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "내 얼굴 가려줘",
+      "en": "Cover my face first.",
+      "ja": "私の顔を隠して。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 28,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "태그만 하지마",
+      "en": "Just don’t tag me.",
+      "ja": "タグ付けだけしないで。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 29,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "그래도 못해줘",
+      "en": "Still no.",
+      "ja": "それでも無理。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 29,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "알았어 이번한번만 해줄게",
+      "en": "Okay, just this once.",
+      "ja": "分かった、今回だけね。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 30,
+    "kind": "natural_short",
+    "expected": true,
+    "answers": {
+      "ko": "서운해도 어쩔수없어 못해",
+      "en": "I still can’t do it.",
+      "ja": "それでも引き受けられない。"
+    }
+  },
+  {
+    "course": "refusal-practice-v1",
+    "stage": 30,
+    "kind": "clear_counterexample",
+    "expected": false,
+    "answers": {
+      "ko": "미안해 내가 해줄게",
+      "en": "Sorry, I’ll do it.",
+      "ja": "ごめん、私がやるよ。"
+    }
   }
 ]

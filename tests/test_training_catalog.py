@@ -200,7 +200,7 @@ def test_new_courses_keep_verified_stage_flow(tid, pattern, diary, erase):
 
 def test_new_content_is_separate_from_legacy_answers_and_choice_only_stage_has_no_slot():
     catalog = TrainingCatalog.load()
-    assert [t.id for t in catalog.trainings if not t.archived] == ['positive-circuit-v2', 'self-acceptance-v2']
+    assert [t.id for t in catalog.trainings if not t.archived] == ['positive-circuit-v2', 'self-acceptance-v2', 'refusal-practice-v1']
     assert catalog.get('no-self-blame').archived
     assert not any(line.slot for line in catalog.get('self-acceptance-v2').stage(18).lines)
 

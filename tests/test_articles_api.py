@@ -32,4 +32,5 @@ def test_reward_response_and_identity(monkeypatch):
         r=TestClient(app).post('/articles/sample-1/reward')
         assert r.status_code==200 and r.json()['granted']==20
         assert calls==[('account-from-token','sample-1')]
-    finally: app.dependency_overrides.clear()
+    finally:
+        app.dependency_overrides.clear()

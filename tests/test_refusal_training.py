@@ -16,7 +16,7 @@ def test_approved_course_structure_and_exact_rewards():
     assert {s.number: s.reward_hay for s in COURSE.stages if s.review_point} == {
         6: 30, 12: 80, 18: 120, 24: 150, 30: 200,
     }
-    assert {s.number for s in COURSE.stages if not any(l.slot for l in s.lines)} == {5, 13, 19}
+    assert {s.number for s in COURSE.stages if not any(line.slot for line in s.lines)} == {5, 13, 19}
     assert all(s.layout == 'chat' for s in COURSE.stages)
 
 

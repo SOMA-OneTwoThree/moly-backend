@@ -3301,7 +3301,7 @@ GRANT ALL ON public.training_submissions TO service_role;
 
 CREATE TABLE IF NOT EXISTS public.article_progress (
     user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    article_id text NOT NULL CHECK (article_id IN ('sample-1','sample-2','sample-3','sample-4','sample-5')),
+    article_id text NOT NULL CHECK (article_id IN ('sample-1','sample-2','sample-3','sample-4','sample-5','sample-6','sample-7')),
     feedback text CHECK (feedback IN ('helpful','not_helpful')),
     read_at timestamptz NOT NULL DEFAULT now(),
     rewarded_at timestamptz,

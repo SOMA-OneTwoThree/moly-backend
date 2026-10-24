@@ -6492,7 +6492,7 @@
       "public.article_progress.article_progress_article_id_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((article_id = ANY (ARRAY['sample-1'::text, 'sample-2'::text, 'sample-3'::text, 'sample-4'::text, 'sample-5'::text])))",
+        "definition": "CHECK ((article_id = ANY (ARRAY['sample-1'::text, 'sample-2'::text, 'sample-3'::text, 'sample-4'::text, 'sample-5'::text, 'sample-6'::text, 'sample-7'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -15914,5 +15914,5 @@
       }
     }
   },
-  "schema_sha256": "d7a78e7a9e063ad322db18d2cd214cf49ca19f84636f7d366414da92793d02d4"
+  "schema_sha256": "e1df3aad413b5ea035f4ea15ce7f19d01f2edce41019f8807763a70763095995"
 }

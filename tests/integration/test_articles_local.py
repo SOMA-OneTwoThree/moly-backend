@@ -38,20 +38,21 @@ async def request(engine, uid, article='sample-1', **kwargs):
     async with AsyncSession(engine, expire_on_commit=False) as db:
         return await articles.record(db, uid, article, **kwargs)
 
-async def test_feedback_reward_and_replay_are_independent(engine, users):
+@pytest.mark.parametrize("article_id", ["sample-1", "sample-6", "sample-7"])
+async def test_feedback_reward_and_replay_are_independent(engine, users, article_id):
     uid, other = users
     async with AsyncSession(engine) as db:
         assert not any(a['is_read'] for a in (await articles.list_activity(db, uid))['articles'])
-    feedback = await request(engine, uid, feedback='not_helpful')
+    feedback = await request(engine, uid, article_id, feedback='not_helpful')
     assert feedback['is_read'] and not feedback['reward_claimed'] and feedback['granted'] == 0
-    reward = await request(engine, uid)
+    reward = await request(engine, uid, article_id)
     assert reward['granted'] == 20 and reward['balance_after'] == 20
     assert reward['feedback'] == 'not_helpful'
-    replay = await request(engine, uid)
+    replay = await request(engine, uid, article_id)
     assert replay['granted'] == 0 and replay['balance_after'] == 20
-    updated = await request(engine, uid, feedback='helpful')
+    updated = await request(engine, uid, article_id, feedback='helpful')
     assert updated['reward_claimed'] and updated['feedback'] == 'helpful'
-    assert (await request(engine, other))['granted'] == 20
+    assert (await request(engine, other, article_id))['granted'] == 20
     assert (await request(engine, uid, 'sample-2'))['balance_after'] == 40
 
 async def test_concurrent_rewards_and_feedback_do_not_double_pay(engine, users):

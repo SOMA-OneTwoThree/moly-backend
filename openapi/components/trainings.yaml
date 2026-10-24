@@ -175,7 +175,7 @@ schemas:
         anyOf:
         - type: string
         - type: 'null'
-        description: 풀이가 있는 객관식 단계를 통과했을 때만 있다.
+        description: 풀이가 있는 단계를 통과했을 때만 있다. 객관식과 글쓰기 모두 해당한다.
       reward:
         anyOf:
         - $ref: '#/schemas/TrainingRewardGrant'

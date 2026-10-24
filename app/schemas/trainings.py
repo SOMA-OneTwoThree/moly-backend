@@ -100,7 +100,7 @@ class TrainingAnswerResult(StrictResponse):
     result: Literal["passed", "retry"]
     judge: Literal["answer_key", "rule", "ai", "fallback"]
     hint: str | None = Field(description="Set only when the answer did not pass.")
-    explanation: str | None = Field(description="Set only when a pick stage with an explanation passed.")
+    explanation: str | None = Field(description="Set only when a stage with an explanation passed.")
     reward: TrainingRewardGrant | None = Field(description="Set only on the first pass of a review point.")
     answer: TrainingAnswerView | None = Field(description="The saved answer; set only when passed.")
     progress: TrainingProgress

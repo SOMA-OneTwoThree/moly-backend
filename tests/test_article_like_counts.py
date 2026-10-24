@@ -22,30 +22,31 @@ class AsyncReadSession:
 
 
 @pytest.mark.asyncio
-async def test_global_likes_do_not_leak_other_users_progress():
+@pytest.mark.parametrize("article_id,index", [("sample-1", 0), ("sample-6", 5), ("sample-7", 6)])
+async def test_global_likes_do_not_leak_other_users_progress(article_id, index):
     engine = create_engine('sqlite://')
     ArticleProgress.__table__.create(engine)
     current, other, third = (uuid.uuid4() for _ in range(3))
     with Session(engine) as db:
         db.add_all([
-            ArticleProgress(user_id=other, article_id='sample-1', feedback='helpful', read_at=datetime.now(timezone.utc)),
-            ArticleProgress(user_id=third, article_id='sample-1', feedback='helpful', read_at=datetime.now(timezone.utc)),
+            ArticleProgress(user_id=other, article_id=article_id, feedback='helpful', read_at=datetime.now(timezone.utc)),
+            ArticleProgress(user_id=third, article_id=article_id, feedback='helpful', read_at=datetime.now(timezone.utc)),
             ArticleProgress(user_id=current, article_id='sample-2', feedback='not_helpful', read_at=datetime.now(timezone.utc)),
         ])
         db.commit()
         adapter = AsyncReadSession(db)
         items = (await articles.list_activity(adapter, str(current)))['articles']
-        assert [a['like_count'] for a in items] == [2, 0, 0, 0, 0]
-        assert not items[0]['is_read'] and items[0]['feedback'] is None
+        assert [a['like_count'] for a in items] == [2 if i == index else 0 for i in range(7)]
+        assert not items[index]['is_read'] and items[index]['feedback'] is None
         assert items[1]['is_read'] and items[1]['feedback'] == 'not_helpful'
-        row = db.get(ArticleProgress, (other, 'sample-1'))
+        row = db.get(ArticleProgress, (other, article_id))
         row.feedback = 'helpful'
         db.commit()
-        assert (await articles.list_activity(adapter, str(current)))['articles'][0]['like_count'] == 2
+        assert (await articles.list_activity(adapter, str(current)))['articles'][index]['like_count'] == 2
         row.feedback = 'not_helpful'
         db.commit()
-        assert (await articles.list_activity(adapter, str(current)))['articles'][0]['like_count'] == 1
+        assert (await articles.list_activity(adapter, str(current)))['articles'][index]['like_count'] == 1
         db.delete(row)
         db.commit()
-        assert (await articles.list_activity(adapter, str(current)))['articles'][0]['like_count'] == 1
+        assert (await articles.list_activity(adapter, str(current)))['articles'][index]['like_count'] == 1
     engine.dispose()

@@ -10,7 +10,7 @@ from app.models.article import ArticleProgress
 from app.models.profile import Profile
 from app.services import hay_ledger
 
-ARTICLE_IDS = tuple(f"sample-{i}" for i in range(1, 6))
+ARTICLE_IDS = tuple(f"sample-{i}" for i in range(1, 8))
 REWARD_HAY = 20
 
 def _view(article_id, row, granted=0, balance=None, like_count=0):

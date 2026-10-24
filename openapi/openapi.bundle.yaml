@@ -3635,6 +3635,10 @@ components:
         article_id:
           title: Article Id
           type: string
+        like_count:
+          type: integer
+          minimum: 0
+          description: 전체 계정의 helpful 평가 수. 계정당 글마다 최대 1개.
         feedback:
           anyOf:
           - enum:
@@ -3660,6 +3664,7 @@ components:
           title: Balance After
       required:
       - article_id
+      - like_count
       - feedback
       - is_read
       - reward_claimed

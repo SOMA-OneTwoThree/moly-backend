@@ -24,7 +24,7 @@ def test_reward_response_and_identity(monkeypatch):
     async def session(): yield None
     async def record(db, uid, article_id, **kw):
         calls.append((uid,article_id))
-        return dict(article_id=article_id,feedback=None,is_read=True,reward_claimed=True,granted=20,balance_after=20)
+        return dict(article_id=article_id,feedback=None,is_read=True,reward_claimed=True,granted=20,balance_after=20,like_count=0)
     monkeypatch.setattr(articles,'record',record)
     app.dependency_overrides[get_current_user] = lambda:'account-from-token'
     app.dependency_overrides[get_session] = session

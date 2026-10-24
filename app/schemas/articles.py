@@ -8,6 +8,7 @@ class ArticleFeedbackRequest(BaseModel):
 
 class ArticleActivity(StrictResponse):
     article_id: str
+    like_count: int = Field(ge=0)
     feedback: Literal["helpful", "not_helpful"] | None
     is_read: bool
     reward_claimed: bool

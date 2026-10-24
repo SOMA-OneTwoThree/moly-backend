@@ -2,7 +2,7 @@
 from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import errors
 from app.core.advisory_lock import advisory_xact_lock
@@ -13,15 +13,20 @@ from app.services import hay_ledger
 ARTICLE_IDS = tuple(f"sample-{i}" for i in range(1, 6))
 REWARD_HAY = 20
 
-def _view(article_id, row, granted=0, balance=None):
+def _view(article_id, row, granted=0, balance=None, like_count=0):
     return dict(article_id=article_id, feedback=row.feedback if row else None,
                 is_read=row is not None, reward_claimed=bool(row and row.rewarded_at),
-                granted=granted, balance_after=balance)
+                granted=granted, balance_after=balance, like_count=like_count)
 
 async def list_activity(session: AsyncSession, user_id: str):
     rows = (await session.scalars(select(ArticleProgress).where(ArticleProgress.user_id == uuid.UUID(user_id)))).all()
     by_id = {row.article_id: row for row in rows}
-    return {"articles": [_view(id, by_id.get(id)) for id in ARTICLE_IDS]}
+    counts = dict((await session.execute(
+        select(ArticleProgress.article_id, func.count())
+        .where(ArticleProgress.feedback == "helpful", ArticleProgress.article_id.in_(ARTICLE_IDS))
+        .group_by(ArticleProgress.article_id)
+    )).all())
+    return {"articles": [_view(id, by_id.get(id), like_count=counts.get(id, 0)) for id in ARTICLE_IDS]}
 
 async def record(session: AsyncSession, user_id: str, article_id: str, *, feedback: str | None = None):
     if article_id not in ARTICLE_IDS:
@@ -44,6 +49,9 @@ async def record(session: AsyncSession, user_id: str, article_id: str, *, feedba
         granted, balance = REWARD_HAY, tx.balance_after
     else:
         balance = await session.scalar(select(Profile.hay_balance).where(Profile.id == uid))
-    result = _view(article_id, row, granted, balance)
+    await session.flush()
+    like_count = await session.scalar(select(func.count()).select_from(ArticleProgress).where(
+        ArticleProgress.article_id == article_id, ArticleProgress.feedback == "helpful"))
+    result = _view(article_id, row, granted, balance, like_count=like_count)
     await session.commit()
     return result

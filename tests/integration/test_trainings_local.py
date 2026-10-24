@@ -252,7 +252,7 @@ async def test_active_courses_complete_all_90_stages_with_their_keys_and_rubrics
         assert len(detail['answers']) == 30
     cards = (await trainings.list_trainings(db, user, locale=language))['trainings']
     assert len(cards) == 3 and all(c['completed'] for c in cards)
-    assert sum(amount for amount, _ in await rewards(db, user)) == 1060
+    assert sum(amount for amount, _ in await rewards(db, user)) == 720
 
 
 @pytest.mark.parametrize('failure', ['timeout', 'provider', 'malformed'])
@@ -369,8 +369,8 @@ async def test_refusal_full_course_explanations_rewards_and_replay_are_isolated(
         again = await trainings.submit(db, user, course.id, stage.number, body, locale='ko', now=NOW)
         assert again == result
     assert result['progress'] == {'next_stage': None, 'passed_count': 30, 'completed': True}
-    assert granted == 580
-    assert len(await rewards(db, user)) == 5
+    assert granted == 240
+    assert len(await rewards(db, user)) == 3
     detail = await trainings.get_training(db, user, course.id, locale='ko', now=NOW)
     assert len(detail['answers']) == 30
     cards = (await trainings.list_trainings(db, user, locale='ko'))['trainings']

@@ -3655,9 +3655,9 @@
               },
               "correct": false,
               "hint": {
-                "ko": "추위를 참기보다 내가 편하게 앉을 수 있는 자리를 말해볼까요?",
-                "en": "Try suggesting a seat where you will feel comfortable.",
-                "ja": "寒さを我慢するより、心地よく座れる場所を伝えてみましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             },
             {
@@ -3669,6 +3669,20 @@
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "어디든 괜찮아. 네가 편한 데로 정해!",
+                "en": "Anywhere is fine. Pick wherever you like!",
+                "ja": "どこでもいいよ。座りたいところに決めて！"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
             }
           ],
           "explanation": {
@@ -3729,9 +3743,9 @@
               },
               "correct": false,
               "hint": {
-                "ko": "메뉴를 탓하기보다 내가 먹고 싶은 것을 따로 선택해볼까요?",
-                "en": "Try choosing what you want without blaming their choice.",
-                "ja": "相手の選択を責めずに、自分の食べたいものを選んでみましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             },
             {
@@ -3743,6 +3757,20 @@
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "저만 다르게 시키면 번거로우니까, 저도 김치찌개로 할게요.",
+                "en": "It would be a hassle if I ordered something different, so I'll have kimchi stew too.",
+                "ja": "私だけ違うものだと面倒ですし、私もキムチチゲにします。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
             }
           ]
         },
@@ -3860,15 +3888,29 @@
             {
               "id": "b",
               "text": {
-                "ko": "아뇨 괜찮아요! 운전 무섭게 하셔서 안 탈래요!",
-                "en": "No thanks! Your driving scares me, so I'm not getting in!",
-                "ja": "結構です！運転が怖いので乗りません！"
+                "ko": "아, 그래도 괜찮으세요? 그럼 신세 좀 질게요.",
+                "en": "Oh, are you sure? Then I'll take you up on that.",
+                "ja": "あ、本当にいいんですか？では、お言葉に甘えます。"
               },
               "correct": false,
               "hint": {
-                "ko": "상대의 운전을 평가하지 않고 내가 이용할 교통편을 말해볼까요?",
-                "en": "Try stating how you will travel without judging their driving.",
-                "ja": "運転を評価するのではなく、自分の帰り方を伝えてみましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "차 어디에 세우셨어요? 제가 그쪽으로 갈게요.",
+                "en": "Where did you park? I'll meet you there.",
+                "ja": "車はどこに停めましたか？そちらに行きます。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             }
           ],
@@ -4052,26 +4094,40 @@
             {
               "id": "a",
               "text": {
-                "ko": "아... 네! 선배님이 말씀하시는데 제가 해야죠!",
-                "en": "Oh… yes! If you're asking, of course I have to!",
-                "ja": "あ…はい！先輩のお話なら、やります！"
+                "ko": "네, 제가 어떤 일 맡으면 될까요?",
+                "en": "Sure, what would you like me to handle?",
+                "ja": "はい、何を担当すればいいですか？"
               },
               "correct": false,
               "hint": {
-                "ko": "바로 수락하기 전에 내 일정을 확인할 시간을 확보해볼까요?",
-                "en": "Ask for time to check your schedule before agreeing.",
-                "ja": "引き受ける前に予定を確認する時間をもらいましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             },
             {
               "id": "b",
               "text": {
-                "ko": "제안해 주셔서 감사합니다! 그런데 제가 다음 달 일정을 먼저 확인해 봐야 해서요, 내일 오전까지 말씀드려도 될까요?",
-                "en": "Thanks for thinking of me! I need to check next month's schedule first. Could I let you know tomorrow morning?",
-                "ja": "声をかけていただきありがとうございます！来月の予定を確認して、明日の午前中にお返事してもいいですか？"
+                "ko": "다음 달 일정을 먼저 확인해 봐야 할 것 같아요. 내일 오전까지 말씀드려도 될까요?",
+                "en": "I need to check next month's schedule first. May I get back to you tomorrow morning?",
+                "ja": "まず来月の予定を確認したいです。明日の午前中までにお返事してもいいですか？"
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "많이 바쁘지만 않으면 괜찮을 것 같은데요. 일단 같이 할게요.",
+                "en": "I think it'll be fine as long as it isn't too busy. Count me in for now.",
+                "ja": "忙しすぎなければ大丈夫だと思います。ひとまず参加します。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
             }
           ],
           "explanation": {
@@ -4136,15 +4192,29 @@
             {
               "id": "b",
               "text": {
-                "ko": "아... 생각해보니 귀찮을 것 같아서 안 할래요.",
-                "en": "Actually, it sounds like a hassle, so I'll pass.",
-                "ja": "考えたら面倒そうなので、やめます。"
+                "ko": "일정이 좀 겹치기는 하는데… 네, 같이 할게요.",
+                "en": "I do have some scheduling conflicts… but yes, I'll join.",
+                "ja": "少し予定が重なるんですが…はい、参加します。"
               },
               "correct": false,
               "hint": {
-                "ko": "정중하게 최종 거절을 전하는 표현을 골라볼까요?",
-                "en": "Choose a way to politely communicate your final decision.",
-                "ja": "最終的に断る気持ちを丁寧に伝える表現を選んでみましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "일정이 빠듯하긴 한데, 제가 다른 일을 좀 미뤄볼게요. 같이 하겠습니다.",
+                "en": "My schedule is tight, but I'll put some other things off. I'll join you.",
+                "ja": "予定は詰まっていますが、ほかの用事を少し後回しにします。参加します。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             }
           ]
@@ -4253,26 +4323,40 @@
             {
               "id": "a",
               "text": {
-                "ko": "아... 네, 지금 바로 도와드릴게요!",
-                "en": "Oh… sure, I'll help right now!",
-                "ja": "あ…はい、今すぐ手伝います！"
+                "ko": "네, 어느 부분부터 하면 될까요?",
+                "en": "Sure, which part should I start with?",
+                "ja": "はい、どこから始めればいいですか？"
               },
               "correct": false,
               "hint": {
-                "ko": "지금 맡겠다고 하기보다 퇴근 시간을 지킬 수 있는 답을 골라보세요.",
-                "en": "Choose an answer that protects your time to leave.",
-                "ja": "今引き受けるのではなく、退勤時間を守れる答えを選びましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             },
             {
               "id": "b",
               "text": {
-                "ko": "앗 제가 오늘은 바로 가봐야 해서 지금은 도와드리기 어려워요. 급한 건이 아니면 내일 오전에 같이 봐드릴까요?",
-                "en": "I need to leave on time today, so I can't help now. If it isn't urgent, could we look at it tomorrow morning?",
-                "ja": "今日はすぐに帰るので、今は難しいです。急ぎでなければ明日の午前中に一緒に見ましょうか？"
+                "ko": "제가 오늘은 바로 가봐야 해서 지금은 도와드리기 어려워요. 급한 건이 아니면 내일 오전에 같이 봐드릴까요?",
+                "en": "I need to leave on time today, so I can't help right now. If it isn't urgent, shall we look at it tomorrow morning?",
+                "ja": "今日はすぐ帰るので、今はお手伝いできません。急ぎでなければ、明日の午前中に一緒に確認しましょうか？"
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "양이 많지는 않죠? 그럼 이것만 하고 갈게요.",
+                "en": "There isn't too much, right? Then I'll finish this before I leave.",
+                "ja": "量は多くないですよね？では、これだけ終わらせてから帰ります。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
             }
           ],
           "explanation": {
@@ -4327,26 +4411,40 @@
             {
               "id": "a",
               "text": {
-                "ko": "네 괜찮아요, 말씀하세요!",
-                "en": "Sure, go ahead!",
-                "ja": "大丈夫です、どうぞ！"
+                "ko": "네, 무슨 일이세요?",
+                "en": "Sure, what's up?",
+                "ja": "はい、どうしましたか？"
               },
               "correct": false,
               "hint": {
-                "ko": "쉬는 시간을 포기하지 않고 통화가 어렵다고 말해볼까요?",
-                "en": "Try saying you cannot talk without giving up your rest.",
-                "ja": "休む時間を諦めず、通話が難しいと伝えてみましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             },
             {
               "id": "b",
               "text": {
-                "ko": "지금은 개인적으로 쉬는 시간이라 통화가 어려워요. 급한 일이 아니라면 월요일 오전에 출근해서 이야기 나누시죠!",
-                "en": "I'm taking some personal rest time, so I can't talk now. If it's not urgent, let's discuss it at work on Monday morning.",
-                "ja": "今は休む時間にしているので、通話が難しいです。急ぎでなければ月曜の午前中、出勤してから話しましょう。"
+                "ko": "지금은 쉬는 중이라 업무 이야기는 월요일에 나누고 싶어요. 월요일 오전에 통화할까요?",
+                "en": "I'm resting right now and would prefer to discuss work on Monday. Shall we talk Monday morning?",
+                "ja": "今は休んでいるので、仕事の話は月曜日にしたいです。月曜の午前中にお電話しましょうか？"
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "잠시만요. 노트북 켜고 자료 보면서 말씀드릴게요.",
+                "en": "One moment. I'll turn on my laptop so we can go through the materials.",
+                "ja": "少し待ってください。パソコンを開いて、資料を見ながらお話しします。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
             }
           ],
           "explanation": {
@@ -4529,15 +4627,15 @@
             {
               "id": "a",
               "text": {
-                "ko": "성수동 사람 많아서 싫은데... 너 혼자 다녀와!",
-                "en": "I hate the crowds there… Go by yourself!",
-                "ja": "人が多いから嫌だな…一人で行ってきて！"
+                "ko": "토요일? 응, 몇 시에 만날까?",
+                "en": "Saturday? Sure, what time shall we meet?",
+                "ja": "土曜日？うん、何時に会う？"
               },
               "correct": false,
               "hint": {
-                "ko": "친구를 밀어내는 말보다 내가 쉬고 싶다는 마음을 전해볼까요?",
-                "en": "Try expressing your need to rest without dismissing your friend.",
-                "ja": "友達を突き放すより、自分が休みたい気持ちを伝えてみましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             },
             {
@@ -4549,6 +4647,20 @@
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "이번 주 좀 피곤하긴 한데… 그래, 오랜만인데 가자.",
+                "en": "I'm a little worn out this week… but sure, it's been a while. Let's go.",
+                "ja": "今週ちょっと疲れてるけど…うん、久しぶりだし行こう。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
             }
           ]
         },
@@ -4623,9 +4735,23 @@
               },
               "correct": false,
               "hint": {
-                "ko": "이 친구와 다시 만나고 싶은 마음이 드러나는 답을 골라보세요.",
-                "en": "Choose an answer that shows you want to meet again.",
-                "ja": "また会いたい気持ちが伝わる答えを選びましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "아니다, 괜히 서운하게 했네. 쉬는 건 나중에 하고 이번 토요일에 나갈게.",
+                "en": "Actually, I didn't mean to let you down. I'll rest another time and come this Saturday.",
+                "ja": "やっぱり、がっかりさせちゃったね。休むのはまた今度にして、今週の土曜日に行くよ。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             }
           ],
@@ -4739,26 +4865,40 @@
             {
               "id": "a",
               "text": {
-                "ko": "오늘 왜 자꾸 보자고 해? 나 피곤한 거 안 보여?",
-                "en": "Why do you keep asking? Can't you see I'm tired?",
-                "ja": "なんで何度も会おうって言うの？疲れてるのが分からない？"
+                "ko": "응, 도착할 때쯤 연락해. 나갈게.",
+                "en": "Sure, let me know when you're almost here. I'll come out.",
+                "ja": "うん、着く頃に連絡して。外に出るね。"
               },
               "correct": false,
               "hint": {
-                "ko": "상대를 탓하기보다 오늘 내 컨디션을 설명하는 답을 골라보세요.",
-                "en": "Choose an answer about how you feel, rather than blaming your partner.",
-                "ja": "相手を責めるより、今日の体調を伝える答えを選びましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             },
             {
               "id": "b",
               "text": {
-                "ko": "나도 보고 싶은데, 오늘은 머리가 좀 지끈거려서 퇴근하고 바로 자야 할 것 같아. 보러 와준다는 마음은 진짜 고마워!",
-                "en": "I'd like to see you too, but my head hurts today and I need to sleep after work. Thank you for wanting to come over!",
-                "ja": "私も会いたいけど、今日は頭が痛くて、帰ったらすぐ寝たいんだ。会いに来ようとしてくれてありがとう！"
+                "ko": "나도 보고 싶은데, 오늘은 머리가 좀 아파서 혼자 푹 쉬고 싶어. 우리 다른 날 보자.",
+                "en": "I miss you too, but I have a headache and want to rest on my own today. Let's meet another day.",
+                "ja": "私も会いたいけど、今日は少し頭が痛いから一人でゆっくり休みたいんだ。また別の日に会おう。"
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "나도 보고 싶어. 오는 길에 연락해, 준비하고 있을게.",
+                "en": "I miss you too. Text me on your way; I'll get ready.",
+                "ja": "私も会いたい。来る途中で連絡して。準備して待ってるね。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
             }
           ]
         },
@@ -4946,15 +5086,29 @@
             {
               "id": "b",
               "text": {
-                "ko": "아... 금방 끝나는 거 아니긴 한데 일단 줘봐, 밤새워서 해볼게.",
-                "en": "It won't exactly be quick, but send it over. I'll stay up all night to do it.",
-                "ja": "すぐには終わらないけど、とりあえず送って。徹夜でやってみるよ。"
+                "ko": "언제까지 필요해? 일단 자료 보내줘.",
+                "en": "When do you need it? Send me the files first.",
+                "ja": "いつまでに必要？とりあえず資料を送って。"
               },
               "correct": false,
               "hint": {
-                "ko": "밤을 새워 떠안기보다 지금 맡기 어렵다는 뜻을 전해볼까요?",
-                "en": "Try declining instead of taking it on at the cost of sleep.",
-                "ja": "徹夜で引き受けるより、今は難しいと伝えてみましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "분량이 좀 많네… 주말에 다른 거 안 하고 하면 되긴 하겠다. 내가 해줄게.",
+                "en": "That's quite a lot… I could manage if I kept the weekend clear. I'll do it.",
+                "ja": "結構な量だね…週末にほかのことをしなければできそう。私がやるよ。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             }
           ]
@@ -5063,26 +5217,40 @@
             {
               "id": "a",
               "text": {
-                "ko": "야 15만 원은 너무 비싸지 않냐? 난 돈 아까워서 싫어!",
-                "en": "Isn't that way too expensive? I don't want to waste my money!",
-                "ja": "15万ウォンは高すぎない？もったいないから嫌だ！"
+                "ko": "응, 계좌 알려줘. 언제부터 보내면 돼?",
+                "en": "Sure, send me the bank details. When should I start paying?",
+                "ja": "うん、口座を教えて。いつから振り込めばいい？"
               },
               "correct": false,
               "hint": {
-                "ko": "친구들의 계획을 평가하기보다 내 지출 계획을 말해볼까요?",
-                "en": "Try stating your spending plans without judging theirs.",
-                "ja": "友達の計画を評価せず、自分の支出の予定を伝えてみましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             },
             {
               "id": "b",
               "text": {
-                "ko": "다 같이 모여서 놀러 가는 건 좋은데, 내가 요즘 지출을 줄이고 있어서 매달 15만 원씩 내기는 조금 부담스러울 것 같아.",
-                "en": "A trip together sounds nice, but I'm cutting my spending, so contributing 150,000 won every month would be difficult.",
-                "ja": "みんなで旅行するのはいいけど、今は支出を減らしているから、毎月15万ウォンは少し厳しそう。"
+                "ko": "같이 놀러 가는 건 좋은데, 요즘 지출을 줄이고 있어서 나는 이번 모임 통장에는 참여하기 어려울 것 같아.",
+                "en": "I'd love to go away together, but I'm cutting back on spending, so I can't join this savings fund.",
+                "ja": "一緒に遊びに行くのはいいね。でも今は出費を減らしているから、今回の積み立てには参加できそうにないんだ。"
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "매달 15만 원? 조금 빠듯하긴 한데… 일단 나도 같이 할게.",
+                "en": "150,000 won every month? That's a bit tight… but count me in for now.",
+                "ja": "毎月15万ウォン？少し厳しいけど…ひとまず私も参加するよ。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
             }
           ],
           "explanation": {
@@ -5253,26 +5421,40 @@
             {
               "id": "a",
               "text": {
-                "ko": "어... 그럼 절대 다른 사람 알려주면 안 되고 내가 안 쓰는 새벽 시간에만 들어야 해!",
-                "en": "Um… only if you tell nobody and use it late at night when I'm not on!",
-                "ja": "うん…絶対ほかの人に教えないで、私が使わない深夜だけならいいよ！"
+                "ko": "동시에 접속하면 안 될 텐데… 언제 들으려고? 그 시간에는 내가 안 들어갈게.",
+                "en": "We probably can't log in at the same time… When will you watch? I'll stay off then.",
+                "ja": "同時にログインはできないと思うけど…いつ見る予定？その時間は私が使わないようにするね。"
               },
               "correct": false,
               "hint": {
-                "ko": "조건을 붙여 계정을 빌려주기보다 공유하지 않는 답을 골라보세요.",
-                "en": "Choose not to share rather than lending the account with conditions.",
-                "ja": "条件付きで貸すのではなく、共有しない答えを選びましょう。"
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
               }
             },
             {
               "id": "b",
               "text": {
-                "ko": "아 미안하지만 계정 공유는 정지 위험도 있고, 내 개인정보가 들어 있어서 빌려주기가 어려워.",
-                "en": "Sorry, but sharing could get my account suspended, and it contains private information, so I can't lend it.",
-                "ja": "ごめんね。共有すると利用停止になるかもしれないし、個人情報も入っているから貸せないんだ。"
+                "ko": "계정 공유는 정지 위험도 있고, 내 개인정보가 들어 있어서 빌려주기가 어려워.",
+                "en": "Sharing could get my account suspended, and it contains my personal information, so I can't lend it to you.",
+                "ja": "共有すると利用停止になるかもしれないし、私の個人情報も入っているから、貸すことはできないんだ。"
               },
               "correct": true,
               "hint": null
+            },
+            {
+              "id": "c",
+              "text": {
+                "ko": "다른 사람한테는 알려주면 안 돼. 아이디랑 비밀번호 보내줄게.",
+                "en": "Don't share it with anyone else. I'll send you the username and password.",
+                "ja": "ほかの人には教えないでね。IDとパスワードを送るよ。"
+              },
+              "correct": false,
+              "hint": {
+                "ko": "상황에서 내가 원하는 선택을 떠올리고, 그 뜻을 분명히 전하는 말을 골라볼까요?",
+                "en": "Think about what you want in this situation, and choose a reply that clearly communicates it.",
+                "ja": "この状況で自分はどうしたいのかを思い出し、その気持ちがはっきり伝わる返事を選んでみましょう。"
+              }
             }
           ],
           "explanation": {

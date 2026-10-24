@@ -18,6 +18,8 @@ def test_approved_course_structure_and_exact_rewards():
     }
     assert {s.number for s in COURSE.stages if not any(line.slot for line in s.lines)} == {5, 13, 19}
     assert all(s.layout == 'chat' for s in COURSE.stages)
+    assert all(len(s.options) == 3 and sum(o.correct for o in s.options) == 1
+               for s in COURSE.stages if s.answer_type == 'pick')
 
 
 @pytest.mark.parametrize('language', ['ko', 'en', 'ja'])
@@ -41,7 +43,7 @@ def test_linked_dialogue_localization_and_private_grading(language):
 
 
 def test_original_situations_and_approved_editorial_corrections():
-    assert '쉬는 시간' in COURSE.stage(11).options[1].text.ko
+    assert '쉬는 중' in COURSE.stage(11).options[1].text.ko
     assert '밖에서' not in COURSE.stage(11).options[1].text.ko
     assert '멀미' not in COURSE.stage(4).options[0].text.ko
     assert '디자인' not in COURSE.stage(20).lines[0].text.ko

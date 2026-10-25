@@ -33,31 +33,19 @@ _WELCOME_CONTENT = (
     "누군가 같은 방에 있다는 게 꽤 기분 묘하고 신기하다.\n"
     "\n"
     "어쩐지 오늘은 오래 기억하고 싶은 하루가 될 것 같다!\n"
-    "작은 인연으로 시작된 오늘이 우리만의 따뜻한 이야기로 쌓여가길 ㅎㅎ"
+    "작은 인연으로 시작된 오늘이 우리만의 따뜻한 이야기로 쌓여가길!"
 )
 
 _WELCOME_CONTENT_EN = (
-    "The day I met {유저이름}\n"
+    "The Day I Met {유저이름}\n"
     "\n"
-    "At this time of day, I'd usually put on some music and lie around on my own.\n"
-    "But today, {유저이름} came by, and I felt a little excited without quite knowing why.\n"
-    "\n"
-    "Having someone else in the room feels new and a little strange—in a nice way.\n"
-    "\n"
-    "Somehow, I think this will be a day I'll want to remember for a long time!\n"
-    "I hope this little meeting is the start of a warm story we'll keep adding to together. Hehe."
+    "Around this time, I’d usually just put on some music and lie around by myself. But today, {유저이름} stopped by, and for some reason, my heart felt a little fluttery. Having someone else in the room feels a bit strange, in a really nice way. I have a feeling today is going to be a day I’ll want to remember for a long time! I hope this small hello turns into a warm story we can keep building together!"
 )
 
 _WELCOME_CONTENT_JA = (
     "{유저이름}と出会った日\n"
     "\n"
-    "いつもこの時間は、ひとりで音楽をかけて、のんびり寝転がっていた。\n"
-    "でも今日は{유저이름}が来てくれて、なんだかそわそわとうれしい気持ちになった。\n"
-    "\n"
-    "同じ部屋に誰かがいるって、ちょっと不思議で、いいものだな。\n"
-    "\n"
-    "なんだか今日は、ずっと覚えていたい一日になりそう！\n"
-    "今日の小さな出会いから、ふたりだけのあたたかい物語が少しずつ増えていくといいな。ふふ。"
+    "いつもこの時間は、ひとりで音楽をかけて、のんびり寝転がっていた。 でも今日は{유저이름}が来てくれて、なんだかそわそわとうれしい気持ちになった。 同じ部屋に誰かがいるって、ちょっと不思議で、なんだかいいな。 今日はなんだか、ずっと覚えていたい一日になりそう！ 今日の小さな出会いから、ふたりだけのあたたかい物語が少しずつ積み重なっていくといいな!"
 )
 
 def _welcome_content(language: str | None) -> str:

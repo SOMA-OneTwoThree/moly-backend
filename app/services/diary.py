@@ -25,24 +25,28 @@ _VISIBLE_KINDS = ("welcome", "shared_day", "capi_day")
 # 웰컴 일기는 대화 여부와 무관하게 가입 직후 첫 조회에서 생성한다.
 # 실제 대화나 유저의 발언을 지어내지 않고, 이름은 조회 시 현재 닉네임으로 렌더한다.
 _WELCOME_CONTENT = (
-    "{유저이름}, 첫 만남\n\n"
-    "오늘 새 친구 {유저이름}을 만났다.\n"
-    "어떤 친구일까? 앞으로 함께할 날들이 궁금하다."
+    "{유저이름}을 만난 날\n"
+    "\n"
+    "나는 원래 이 시간엔 혼자 음악을 틀어놓고 가만히 누워 있곤 했다.\n"
+    "그런데 오늘은 {유저이름}이 찾아와 왠지 모르게 마음이 들떴다.\n"
+    "\n"
+    "누군가 같은 방에 있다는 게 꽤 기분 묘하고 신기하다.\n"
+    "\n"
+    "어쩐지 오늘은 오래 기억하고 싶은 하루가 될 것 같다!\n"
+    "작은 인연으로 시작된 오늘이 우리만의 따뜻한 이야기로 쌓여가길!"
 )
+
 _WELCOME_CONTENT_EN = (
-    "{유저이름}, our first meeting\n\n"
-    "Today I met a new friend, {유저이름}.\n"
-    "What kind of friend will they be? I look forward to our days together."
+    "The Day I Met {유저이름}\n"
+    "\n"
+    "Around this time, I’d usually just put on some music and lie around by myself. But today, {유저이름} stopped by, and for some reason, my heart felt a little fluttery. Having someone else in the room feels a bit strange, in a really nice way. I have a feeling today is going to be a day I’ll want to remember for a long time! I hope this small hello turns into a warm story we can keep building together!"
 )
 
-
-# 일본어 유저용 웰컴 일기. {유저이름} placeholder 유지(egress에서 현재 닉네임 렌더).
 _WELCOME_CONTENT_JA = (
-    "{유저이름}、はじめての出会い\n\n"
-    "今日、新しい友だちの{유저이름}に出会った。\n"
-    "どんな友だちなんだろう。これから一緒に過ごす日々が楽しみだ。"
+    "{유저이름}と出会った日\n"
+    "\n"
+    "いつもこの時間は、ひとりで音楽をかけて、のんびり寝転がっていた。 でも今日は{유저이름}が来てくれて、なんだかそわそわとうれしい気持ちになった。 同じ部屋に誰かがいるって、ちょっと不思議で、なんだかいいな。 今日はなんだか、ずっと覚えていたい一日になりそう！ 今日の小さな出会いから、ふたりだけのあたたかい物語が少しずつ積み重なっていくといいな!"
 )
-
 
 def _welcome_content(language: str | None) -> str:
     bucket = i18n.resolve(language)

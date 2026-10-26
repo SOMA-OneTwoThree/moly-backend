@@ -1056,13 +1056,16 @@ async def test_length_recovery_respects_existing_deadline_and_minimum(monkeypatc
     assert clock() <= 1010
 
 
+@pytest.mark.parametrize("initial_failure", ["length", "timeout"])
 @pytest.mark.parametrize("failure", ["length", "blank", "timeout", "cancel"])
-async def test_failed_length_recovery_never_starts_third_step(monkeypatch, failure):
+async def test_failed_recovery_never_starts_third_step(monkeypatch, failure, initial_failure):
     calls = []
 
     async def generate(*args, **kw):
         calls.append(kw)
         if len(calls) == 1:
+            if initial_failure == "timeout":
+                raise TimeoutError()
             return replace(_text_step("partial"), finish_reason="length")
         if failure == "timeout":
             raise TimeoutError()
@@ -1095,3 +1098,27 @@ async def test_direct_and_timeout_fallback_use_full_answer_budget(monkeypatch):
     with pytest.raises(llm_module.IncompleteResponseError):
         await _run(generate, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
     assert [c["max_tokens"] for c in seen] == [192, 1024]
+
+
+@pytest.mark.parametrize("status", [429, 500, "timeout"])
+async def test_transient_fallback_preserves_original_turn_and_deadline(monkeypatch, status):
+    import httpx
+    from openai import APIStatusError
+
+    seen = []
+
+    async def generate(system, transcript, **kw):
+        seen.append({"transcript": list(transcript), **kw})
+        if len(seen) == 1:
+            if status == "timeout":
+                raise TimeoutError()
+            response = httpx.Response(status, request=httpx.Request("POST", "https://test.invalid"))
+            raise APIStatusError("synthetic", response=response, body=None)
+        return _text_step("완성 답변", purpose="chat")
+
+    await _run(generate, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
+    assert len(seen) == 2
+    assert seen[1]["transcript"] == seen[0]["transcript"]
+    assert seen[1]["tools"] is None
+    assert seen[1]["foreground_deadline"] == seen[0]["foreground_deadline"]
+    assert seen[1]["max_tokens"] == agent_runtime.settings.llm_max_tokens

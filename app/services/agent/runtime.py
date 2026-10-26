@@ -746,8 +746,8 @@ async def run_turn(
         #
         # timeout만이 아니라 연결 실패·429·5xx도 같은 fallback을 탄다. 예전엔 SDK가 이것들을 조용히
         # 재시도했는데, 재시도를 끈 지금(llm._no_retry) 여기서 받지 않으면 일시 오류가 곧장 5xx다.
-        # 도구 없는 호출은 프롬프트 앞부분이 달라 **다른 서버로 라우팅된다**(운영 실측 3/3: 캐시 적중 0%)
-        # — 느린 서버에 같은 요청을 다시 붙이는 SDK 재시도와 달리 실제로 우회가 된다.
+        # 도구 없는 요청은 달라지지만, 캐시 미적중만으로 서버가 바뀌었다고 판단할 수 없다.
+        # 이 fallback도 같은 제공자 지연을 겪을 수 있다.
         if not (use_tools and llm.is_transient_failure(exc) and deadline - now() >= FALLBACK_MIN_S):
             raise
         _log.warning(

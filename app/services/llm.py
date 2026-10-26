@@ -121,6 +121,43 @@ def _retry_after_s(exc: BaseException) -> float:
     return _IN_BUDGET_RETRY_BACKOFF_S
 
 
+async def _create_attempt(client, kwargs: dict, *, purpose: str, trace_id: str, attempt: int):
+    """One physical send, traceable even if no response headers arrive.
+
+    Only transport metadata is logged: never prompts, outputs, user IDs or keys.
+    X-Client-Request-Id lets provider support locate timed-out requests; it does
+    not change caching, routing, retry policy or the user's idempotency key.
+    """
+    client_request_id = f"{trace_id}-{attempt}"
+    request = {**kwargs, "extra_headers": {
+        **(kwargs.get("extra_headers") or {}), "X-Client-Request-Id": client_request_id,
+    }}
+    fields = {
+        "purpose": purpose, "model": kwargs.get("model"), "attempt": attempt,
+        "client_request_id": client_request_id,
+        "max_tokens": kwargs.get("max_completion_tokens"),
+        "timeout_s": round(kwargs["timeout"], 3),
+    }
+    _log.info("llm_attempt_started %s", json.dumps(fields))
+    started = perf_counter()
+    try:
+        response = await client.chat.completions.create(**request)
+    except BaseException as exc:
+        fields.update(
+            outcome="failed", error=type(exc).__name__,
+            request_id=getattr(exc, "request_id", None),
+            status=getattr(exc, "status_code", None),
+        )
+        raise
+    else:
+        # An HTTP response is not necessarily a publishable conversational reply.
+        fields.update(outcome="received", request_id=getattr(response, "_request_id", None))
+        return response
+    finally:
+        fields["latency_ms"] = round((perf_counter() - started) * 1000)
+        _log.info("llm_attempt %s", json.dumps(fields))
+
+
 async def _create_in_budget(client, kwargs: dict, *, purpose: str):
     """chat.completions.create를 **kwargs["timeout"] 안에서** 최대 두 번 시도한다.
 
@@ -129,13 +166,14 @@ async def _create_in_budget(client, kwargs: dict, *, purpose: str):
     한 번 더 부른다. timeout으로 끝난 시도는 예산을 다 썼으니 다시 부르지 않는다 — 합계는 언제나
     timeout 이하라 호출측의 마감·fallback 계산이 그대로 맞는다.
 
-    재시도는 `prompt_cache_key`를 새로 줘서 **다른 서버**로 보낸다. 같은 요청을 그대로 다시 보내면
-    같은 서버로 간다(운영 실측: 재전송 9/9 캐시 100% 적중, 키를 바꾸면 6/6 적중 0%).
+    재시도는 기존처럼 `prompt_cache_key`를 새로 준다. 캐시 적중 변화만으로 실제 서버가
+    바뀌었거나 지연을 우회했다고 단정할 수는 없다.
     """
     budget = kwargs["timeout"]
     started = perf_counter()
+    trace_id = uuid.uuid4().hex
     try:
-        return await client.chat.completions.create(**kwargs)
+        return await _create_attempt(client, kwargs, purpose=purpose, trace_id=trace_id, attempt=1)
     except Exception as e:  # noqa: BLE001
         # timeout은 예산을 다 쓴 실패다 — 다시 부르지 않는다(남은 시간 계산과 무관하게 명시적으로).
         if not is_transient_failure(e) or _is_timeout_failure(e):
@@ -163,7 +201,7 @@ async def _create_in_budget(client, kwargs: dict, *, purpose: str):
         await asyncio.sleep(wait)
     retry = {**kwargs, "timeout": remaining, "prompt_cache_key": f"retry-{uuid.uuid4().hex[:12]}"}
     try:
-        return await client.chat.completions.create(**retry)
+        return await _create_attempt(client, retry, purpose=purpose, trace_id=trace_id, attempt=2)
     except Exception as again:  # noqa: BLE001
         if is_transient_failure(again):
             raise

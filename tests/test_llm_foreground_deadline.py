@@ -9,7 +9,7 @@ import uuid
 
 from anthropic import AsyncAnthropic
 import httpx
-from openai import AsyncOpenAI
+from openai import APITimeoutError, AsyncOpenAI
 import pytest
 
 from app.services import llm, usage_ledger
@@ -18,6 +18,60 @@ from app.services.agent.config import build_snapshot
 from datetime import date
 
 LEDGER = usage_ledger.LedgerContext(lane="foreground", purpose="chat")
+
+
+@pytest.mark.parametrize("first_status", [200, 500, "timeout", "cancel"])
+async def test_physical_attempt_ids_survive_timeout_without_logging_content(
+    monkeypatch, ledger, caplog, first_status,
+):
+    """Every physical send can be traced, including a bounded retry or no headers."""
+    sent = []
+
+    async def handler(request):
+        sent.append(request)
+        if first_status == "cancel":
+            raise asyncio.CancelledError()
+        if len(sent) == 1 and first_status == "timeout":
+            raise httpx.ReadTimeout("private-provider-error", request=request)
+        if len(sent) == 1 and first_status == 500:
+            return httpx.Response(500, json={"error": {"message": "private-provider-error"}},
+                                  headers={"x-request-id": "req-failed"})
+        return httpx.Response(200, json=response("openai"), headers={"x-request-id": "req-ok"})
+
+    sdk, _ = install(monkeypatch, "openai", handler)
+    caplog.set_level("INFO", logger="app.services.llm")
+    try:
+        if first_status in {"timeout", "cancel"}:
+            error = asyncio.CancelledError if first_status == "cancel" else APITimeoutError
+            with pytest.raises(error):
+                await invoke("step", deadline=monotonic() + 3)
+        else:
+            await invoke("step", deadline=monotonic() + 3)
+        records = [json.loads(r.getMessage().removeprefix("llm_attempt "))
+                   for r in caplog.records if r.getMessage().startswith("llm_attempt ")]
+        assert len(records) == len(sent) == (2 if first_status == 500 else 1)
+        starts = [json.loads(r.getMessage().removeprefix("llm_attempt_started "))
+                  for r in caplog.records if r.getMessage().startswith("llm_attempt_started ")]
+        ids = [r.headers["X-Client-Request-Id"] for r in sent]
+        assert [r["client_request_id"] for r in starts] == ids
+        if first_status == 500:
+            assert records[0]["request_id"] == "req-failed"
+            assert records[0]["status"] == 500
+        assert len(set(ids)) == len(ids)
+        assert [r["client_request_id"] for r in records] == ids
+        assert [r["attempt"] for r in records] == list(range(1, len(sent) + 1))
+        assert all(r["model"] == "gpt-6-luna" and r["max_tokens"] == 64 for r in records)
+        assert all(r["latency_ms"] >= 0 and r["timeout_s"] <= 3 for r in records)
+        if first_status in {"timeout", "cancel"}:
+            assert records[0]["outcome"] == "failed" and records[0]["request_id"] is None
+            assert len(ledger["unknown"]) == 1
+        else:
+            assert records[-1]["outcome"] == "received"
+            assert records[-1]["request_id"] == "req-ok"
+        assert "private-provider-error" not in caplog.text
+        assert not any(k in r for r in records for k in ("messages", "text", "user_id", "api_key"))
+    finally:
+        await sdk.close()
 
 
 @pytest.fixture
@@ -547,10 +601,11 @@ async def test_read_tool_runs_once_and_final_keeps_main_bounded_retry(
         await sdk.close()
 
 
+@pytest.mark.parametrize("initial_failure", ["length", "timeout"])
 @pytest.mark.parametrize("recovery_finishes", [True, False])
 @pytest.mark.parametrize("usage_v2", [True, False])
-async def test_length_recovery_preserves_company_cost_and_user_quota(
-    monkeypatch, ledger, recovery_finishes, usage_v2,
+async def test_recovery_preserves_company_cost_and_user_quota(
+    monkeypatch, ledger, recovery_finishes, usage_v2, initial_failure,
 ):
     """Real runtime + SDK + chat publication; fake HTTP/DB, no paid provider calls."""
     from app.core.errors import AppError
@@ -575,6 +630,8 @@ async def test_length_recovery_preserves_company_cost_and_user_quota(
 
     async def handler(request):
         sends.append(json.loads(request.content))
+        if len(sends) == 1 and initial_failure == "timeout":
+            raise httpx.ReadTimeout("synthetic", request=request)
         payload = response("openai")
         truncated = len(sends) == 1 or not recovery_finishes
         payload["choices"][0]["finish_reason"] = "length" if truncated else "stop"
@@ -613,13 +670,17 @@ async def test_length_recovery_preserves_company_cost_and_user_quota(
         assert tool.ran == 0
         assert len(sends) == 2
         assert [s["max_completion_tokens"] for s in sends] == [192, 1024]
-        assert sends[0]["messages"] == sends[1]["messages"][:-1]
-        assert sends[1]["messages"][-1]["role"] == "system"
-        assert "[Length recovery]" in sends[1]["messages"][-1]["content"]
+        if initial_failure == "length":
+            assert sends[0]["messages"] == sends[1]["messages"][:-1]
+            assert sends[1]["messages"][-1]["role"] == "system"
+            assert "[Length recovery]" in sends[1]["messages"][-1]["content"]
+        else:
+            assert sends[0]["messages"] == sends[1]["messages"]
         assert "tools" not in sends[1]
-        assert len(ledger["opened"]) == len(ledger["completed"]) == 2
-        assert [row[1]["output_tokens"] for row in ledger["completed"]] == [
-            192, 3 if recovery_finishes else 192,
-        ]
+        assert len(ledger["opened"]) == 2
+        assert len(ledger["unknown"]) == (1 if initial_failure == "timeout" else 0)
+        expected_outputs = ([] if initial_failure == "timeout" else [192])
+        expected_outputs.append(3 if recovery_finishes else 192)
+        assert [row[1]["output_tokens"] for row in ledger["completed"]] == expected_outputs
     finally:
         await sdk.close()

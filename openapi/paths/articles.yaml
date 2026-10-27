@@ -66,6 +66,39 @@
         application/json:
           schema:
             $ref: ../components/articles.yaml#/schemas/ArticleFeedbackRequest
+  delete:
+    tags:
+    - articles
+    summary: 아티클 평가 취소(읽음·보상 기록은 유지)
+    operationId: clearArticleFeedback
+    security:
+    - SupabaseBearer: []
+    responses:
+      '200':
+        description: 아티클 평가 취소(읽음·보상 기록은 유지)
+        content:
+          application/json:
+            schema:
+              $ref: ../components/articles.yaml#/schemas/ArticleActivity
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+      '404':
+        description: 아티클 없음 또는 계정 삭제 중
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              error:
+                value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
+    parameters:
+    - name: article_id
+      in: path
+      required: true
+      schema:
+        type: string
 /articles/{article_id}/reward:
   post:
     tags:

@@ -15,6 +15,10 @@ async def list_article_activity(user_id: str = Depends(get_current_user), sessio
 async def set_article_feedback(article_id: str, body: ArticleFeedbackRequest, user_id: str = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     return await articles.record(session, user_id, article_id, feedback=body.feedback)
 
+@router.delete("/articles/{article_id}/feedback", response_model=ArticleActivity)
+async def clear_article_feedback(article_id: str, user_id: str = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
+    return await articles.record(session, user_id, article_id, clear_feedback=True)
+
 @router.post("/articles/{article_id}/reward", response_model=ArticleActivity)
 async def claim_article_reward(article_id: str, user_id: str = Depends(get_current_user), session: AsyncSession = Depends(get_session)):
     return await articles.record(session, user_id, article_id)

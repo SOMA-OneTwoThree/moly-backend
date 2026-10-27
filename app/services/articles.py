@@ -28,7 +28,7 @@ async def list_activity(session: AsyncSession, user_id: str):
     )).all())
     return {"articles": [_view(id, by_id.get(id), like_count=counts.get(id, 0)) for id in ARTICLE_IDS]}
 
-async def record(session: AsyncSession, user_id: str, article_id: str, *, feedback: str | None = None):
+async def record(session: AsyncSession, user_id: str, article_id: str, *, feedback: str | None = None, clear_feedback: bool = False):
     if article_id not in ARTICLE_IDS:
         raise errors.AppError("NOT_FOUND", 404, "아티클을 찾을 수 없어요.")
     uid = uuid.UUID(user_id)
@@ -41,7 +41,10 @@ async def record(session: AsyncSession, user_id: str, article_id: str, *, feedba
         session.add(row)
     granted = 0
     balance = None
-    if feedback is not None:
+    if clear_feedback:
+        # 평가 취소. 읽음과 보상 기록은 그대로 둔다.
+        row.feedback = None
+    elif feedback is not None:
         row.feedback = feedback
     elif row.rewarded_at is None:
         tx = await hay_ledger.apply(session, uid, "article_reward", REWARD_HAY)

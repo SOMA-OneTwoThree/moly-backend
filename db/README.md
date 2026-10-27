@@ -46,7 +46,8 @@ baseline 실행을 거부한다. **`schema.sql`은 기존 DB를 갱신하는 스
 이는 이번 릴리스의 검토·인계 산출물이며 과거 마이그레이션 원장을 다시 만드는 것이 아니다.
 
 둘러보기 아티클 릴리스의 차이 SQL은 `changes/explore_content.sql`이다. 같은 방식으로 운영 머지 전에
-`docs/OPERATIONS.md`의 둘러보기 아티클 DB 전환 절차(선행 SQL 순서 포함)를 따른다.
+`docs/OPERATIONS.md`의 둘러보기 아티클 DB 전환 절차를 따른다. prod는 dev 이력 파일 대신
+`changes/explore_prod.sql`·`changes/hay_transactions_types.sql`을 그 표 순서대로 적용한다.
 
 ## 구조 변경 절차
 

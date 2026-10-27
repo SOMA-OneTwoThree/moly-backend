@@ -538,6 +538,62 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.articles.content_i18n": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.articles.cover": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.articles.id": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.articles.is_active": {
+        "collation": null,
+        "default": "false",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.articles.preview_block_count": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "integer"
+      },
+      "public.articles.read_minutes": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "integer"
+      },
+      "public.articles.sort_order": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "integer"
+      },
       "public.async_jobs.attempt": {
         "collation": null,
         "default": "0",
@@ -6489,13 +6545,6 @@
         "enforcement_triggers": [],
         "validated": true
       },
-      "public.article_progress.article_progress_article_id_check": {
-        "deferrable": false,
-        "deferred": false,
-        "definition": "CHECK ((article_id = ANY (ARRAY['sample-1'::text, 'sample-2'::text, 'sample-3'::text, 'sample-4'::text, 'sample-5'::text, 'sample-6'::text, 'sample-7'::text])))",
-        "enforcement_triggers": [],
-        "validated": true
-      },
       "public.article_progress.article_progress_feedback_check": {
         "deferrable": false,
         "deferred": false,
@@ -6520,6 +6569,55 @@
           "public.profiles:17:O",
           "public.profiles:9:O"
         ],
+        "validated": true
+      },
+      "public.articles.articles_content_i18n_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((jsonb_typeof(content_i18n) = 'object'::text) AND (content_i18n ? 'ko'::text)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.articles.articles_cover_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((cover ~ '^[a-z][a-z0-9_]{0,31}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.articles.articles_id_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((id ~ '^[a-z0-9][a-z0-9-]{0,63}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.articles.articles_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.articles.articles_preview_block_count_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((preview_block_count >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.articles.articles_read_minutes_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((read_minutes > 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.articles.articles_sort_order_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((sort_order >= 0))",
+        "enforcement_triggers": [],
         "validated": true
       },
       "public.async_jobs.async_jobs_attempt_check": {
@@ -9708,6 +9806,15 @@
         "unique": true,
         "valid": true
       },
+      "public.articles_pkey": {
+        "definition": "CREATE UNIQUE INDEX articles_pkey ON public.articles USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.articles",
+        "unique": true,
+        "valid": true
+      },
       "public.async_jobs_claim_idx": {
         "definition": "CREATE INDEX async_jobs_claim_idx ON public.async_jobs USING btree (queue, priority, available_at, created_at) WHERE (state = 'ready'::text)",
         "exclusion": false,
@@ -11767,6 +11874,30 @@
         "grantable": false
       },
       "public.article_progress:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.articles:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.articles:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.articles:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.articles:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.articles:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.articles:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.articles:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.articles:service_role:UPDATE": {
         "grantable": false
       },
       "public.async_jobs:anon:DELETE": {
@@ -15385,6 +15516,13 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.articles": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.async_jobs": {
         "options": [],
         "owner": "postgres",
@@ -15914,5 +16052,5 @@
       }
     }
   },
-  "schema_sha256": "e1df3aad413b5ea035f4ea15ce7f19d01f2edce41019f8807763a70763095995"
+  "schema_sha256": "983db85d1936a1d5fe6f8994a4ddea73334b3e41cee65dcf6c2b715222ff3b60"
 }

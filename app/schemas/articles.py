@@ -17,3 +17,20 @@ class ArticleActivity(StrictResponse):
 
 class ArticleActivityList(StrictResponse):
     articles: list[ArticleActivity]
+
+class ArticleBlock(StrictResponse):
+    kind: Literal["paragraph", "heading", "callout", "bullet"]
+    text: str
+    highlights: list[str]
+
+class ArticleContent(StrictResponse):
+    id: str
+    title: str
+    summary: str
+    read_minutes: int = Field(gt=0)
+    cover: str
+    preview_block_count: int | None = Field(ge=0)
+    blocks: list[ArticleBlock]
+
+class ArticleContentList(StrictResponse):
+    articles: list[ArticleContent]

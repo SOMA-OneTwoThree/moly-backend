@@ -37,7 +37,7 @@ async def request(engine, uid, article='sample-1', **kwargs):
     async with AsyncSession(engine, expire_on_commit=False) as db:
         return await articles.record(db, uid, article, **kwargs)
 
-@pytest.mark.parametrize("article_id", ["sample-1", "sample-6", "sample-7"])
+@pytest.mark.parametrize("article_id", ["sample-1", "sample-5"])
 async def test_feedback_reward_and_replay_are_independent(engine, users, article_id):
     uid, other = users
     async with AsyncSession(engine) as db:
@@ -80,3 +80,21 @@ async def test_unknown_article_does_not_grant(engine, users):
     from app.core.errors import AppError
     with pytest.raises(AppError):
         await request(engine, users[0], 'sample-999')
+
+async def test_seeded_listing_and_retired_article(engine, users):
+    from app.core.errors import AppError
+    async with AsyncSession(engine) as db:
+        listed = (await articles.list_articles(db, 'ja'))['articles']
+        assert [a['id'] for a in listed] == [f'sample-{i}' for i in range(1, 6)]
+        assert listed[0]['title'] == '나에게만 유독 엄격한 당신에게' and len(listed[4]['blocks']) == 30
+        assert [a['article_id'] for a in (await articles.list_activity(db, users[0]))['articles']] == [a['id'] for a in listed]
+    async with engine.begin() as conn:
+        await conn.execute(text("UPDATE articles SET is_active=false WHERE id='sample-5'"))
+    try:
+        with pytest.raises(AppError):
+            await request(engine, users[0], 'sample-5')
+        async with AsyncSession(engine) as db:
+            assert 'sample-5' not in [a['article_id'] for a in (await articles.list_activity(db, users[0]))['articles']]
+    finally:
+        async with engine.begin() as conn:
+            await conn.execute(text("UPDATE articles SET is_active=true WHERE id='sample-5'"))

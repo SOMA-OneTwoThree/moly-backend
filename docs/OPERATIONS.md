@@ -171,6 +171,36 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 - 개발 수동 생성도 종료된 활동일과 `force=false` 규약을 따른다. `DIARY_FORCE_NOT_ALLOWED`/`DIARY_POLICY_UNAVAILABLE`를 무시하고 우회 생성하지 않는다.
 - 해당 개발 통합시험은 합성 fixture와 외부 호출 대체 범위를 확인한 뒤 기존 개발 DB에서 실행한다. 시험 자체가 실제 일기 발송·실모델 품질을 증명하지 않는다.
 
+## 둘러보기 아티클 DB 전환
+
+`db/changes/explore_content.sql`(검토 SHA-256 `75db677a6b21859b745f5deec594eb2f8a0556272f93c3fcf83289fd0a52debb`)은 아티클을 코드 원고에서 DB 데이터로 옮긴다. 개발 DB에는 2026-10-28 적용·검증했다. 오늘의 한마디는 main 계열의 `GET /daily-affirmation`(`public.daily_affirmations`)을 쓴다.
+
+- 내용: `article_progress_article_id_check`(sample-1~7 고정 id) 제거, `public.articles` 생성(RLS, `service_role`만 권한), 아티클 5행(sample-1~5) 입력. 기존 진행·보상 행은 바꾸지 않는다.
+- 전제(prod, 이 순서): 2026-10-28 기준 main 스키마에는 둘러보기 생각 연습·아티클 테이블이 없다. 아래를 하나씩 dry-run → 적용 → `db.verify` 한다. 이미 반영된 항목은 건너뛴다.
+
+  | 순서 | SQL | 검토 SHA-256 |
+  |---|---|---|
+  | 1 | `explore_training.sql` | `30a9dc7231d28adc3f38b17d219f1238c473f8959dd97358d260a358ec806593` |
+  | 2 | `training_submissions.sql` | `ae41f3b6094e30586f62431296dd001b0a45f5037ab31d7c65beb481ff9bc789` |
+  | 3 | `training_claim_reasons.sql` | `bcd1e45e2257b3d13f669799359b1a25ad9f9853592633f0361c37fab33cc99d` |
+  | 4 | `explore_articles.sql` | `6aa1d8a35cf59ea85e10b2f36e1fe6cc5cd4d892cb04d7d42b11ce4a7f4ecef1` |
+  | 5 | `daily_affirmations.sql`(main 계열에 이미 있음, prod 미반영일 때만) | `3f3ea4e34461b53b87332e73a59a06355714b4edf1754b1b8ccb3b43af2f5b2d` |
+  | 6 | `explore_content.sql` | 위 SHA |
+
+- **주의:** 1·4번은 `hay_transactions_type_check`를 지우고 dev 기준 목록으로 다시 만든다. main의 `mood_reward.sql`이 추가한 `mood_reward`가 이 목록에 없다. 그대로 prod에 실행하지 말고, prod의 현재 목록에 `training_reward`·`article_reward`만 더한 정의로 고친 SQL을 다시 검토해 SHA를 새로 기록한다.
+- 순서: **SQL 적용 → `db.verify` → main 머지·배포.** 새 코드는 `articles`가 없으면 아티클 조회가 실패한다. 이전 이미지는 새 테이블을 쓰지 않고 CHECK 제거는 제약 완화라, SQL 적용 후 롤링 중 구/신 혼합도 안전하다. `db.verify`는 이 릴리스 커밋에서 실행한다.
+- 실행: [배포 순서](#리뷰-후-머지-직전)의 명령에 `RELEASE_SQL`과 위 SHA를 넣어 dry-run → `--commit --allow-prod` → `db.verify --env prod`. `article_progress`에 짧은 ACCESS EXCLUSIVE lock이 걸린다. 기본 lock 2초 제한에 걸리면 rollback 후 한가한 시점에 재시도한다. `explore_content.sql` 재실행은 첫 `DROP CONSTRAINT`부터 실패하고 rollback되므로 이미 적용된 DB에 다시 실행하지 않는다.
+- 사후 확인(인증 필요): `GET /articles`가 5개, `GET /article-progress`가 같은 id 5개를 반환한다. 미인증은 401이다.
+- 되돌리기: 코드는 이전 이미지로 되돌리면 되고 테이블은 남겨도 된다. DB까지 되돌릴 때만 `DROP TABLE public.articles;`를 실행한다. CHECK는 `SELECT count(*) FROM public.article_progress WHERE article_id NOT IN ('sample-1','sample-2','sample-3','sample-4','sample-5','sample-6','sample-7')`가 0일 때만 `explore_articles.sql`의 정의로 다시 추가한다. 새 id의 진행·보상 기록이 있으면 지우지 않는다.
+- 내용 변경은 검토한 SQL을 같은 `db.apply` 절차로 실행한다. 원고는 한국어가 원본이고 번역이 없는 언어는 한국어로 보인다.
+
+```sql
+-- 번역 추가·수정: 언어 키 하나를 통째로 바꾼다({"title", "summary", "blocks": [...]})
+UPDATE public.articles SET content_i18n = content_i18n || jsonb_build_object('en', '<검토한 JSON>'::jsonb) WHERE id = 'sample-1';
+-- 숨김. 새 글은 새 id로 INSERT한다. 보상이 사용자·id당 한 번이라 다른 글에 기존 id를 재사용하지 않는다.
+UPDATE public.articles SET is_active = false WHERE id = 'sample-3';
+```
+
 ## 변경 시 확인할 원본
 
 - DB·권한·반영: [db/README.md](../db/README.md), `db/schema.sql`, `db/schema_contract.json`.

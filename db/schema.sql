@@ -3301,7 +3301,7 @@ GRANT ALL ON public.training_submissions TO service_role;
 
 CREATE TABLE IF NOT EXISTS public.article_progress (
     user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    article_id text NOT NULL CHECK (article_id IN ('sample-1','sample-2','sample-3','sample-4','sample-5','sample-6','sample-7')),
+    article_id text NOT NULL,
     feedback text CHECK (feedback IN ('helpful','not_helpful')),
     read_at timestamptz NOT NULL DEFAULT now(),
     rewarded_at timestamptz,
@@ -3310,5 +3310,19 @@ CREATE TABLE IF NOT EXISTS public.article_progress (
 ALTER TABLE public.article_progress ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.article_progress FROM anon, authenticated;
 GRANT ALL ON public.article_progress TO service_role;
+
+-- Server-owned explore content, edited as data. Progress rows keep retired article ids.
+CREATE TABLE public.articles (
+  id text PRIMARY KEY CHECK (id ~ '^[a-z0-9][a-z0-9-]{0,63}$'),
+  sort_order integer NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
+  is_active boolean NOT NULL DEFAULT false,
+  cover text NOT NULL CHECK (cover ~ '^[a-z][a-z0-9_]{0,31}$'),
+  read_minutes integer NOT NULL CHECK (read_minutes > 0),
+  preview_block_count integer CHECK (preview_block_count >= 0),
+  content_i18n jsonb NOT NULL CHECK (jsonb_typeof(content_i18n) = 'object' AND content_i18n ? 'ko')
+);
+ALTER TABLE public.articles ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.articles FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.articles TO service_role;
 
 COMMIT;

@@ -67,3 +67,83 @@ schemas:
     - feedback
     title: ArticleFeedbackRequest
     type: object
+  ArticleBlock:
+    additionalProperties: false
+    properties:
+      kind:
+        enum:
+        - paragraph
+        - heading
+        - callout
+        - bullet
+        title: Kind
+        type: string
+      text:
+        title: Text
+        type: string
+      highlights:
+        items:
+          type: string
+        title: Highlights
+        type: array
+        description: text 안에서 강조할 부분 문자열.
+    required:
+    - kind
+    - text
+    - highlights
+    title: ArticleBlock
+    type: object
+  ArticleContent:
+    additionalProperties: false
+    properties:
+      id:
+        title: Id
+        type: string
+      title:
+        title: Title
+        type: string
+      summary:
+        title: Summary
+        type: string
+      read_minutes:
+        exclusiveMinimum: 0
+        title: Read Minutes
+        type: integer
+      cover:
+        title: Cover
+        type: string
+        description: 앱 번들 표지 그림 키(mug, sofa, night, tasks, tea 등). 모르는 키는 앱이 기본 그림으로 보여 준다.
+      preview_block_count:
+        anyOf:
+        - type: integer
+          minimum: 0
+        - type: 'null'
+        title: Preview Block Count
+        description: null이면 전체 공개. 숫자면 비구독 회원이 볼 수 있는 앞 블록 수.
+      blocks:
+        items:
+          $ref: '#/schemas/ArticleBlock'
+        title: Blocks
+        type: array
+    required:
+    - id
+    - title
+    - summary
+    - read_minutes
+    - cover
+    - preview_block_count
+    - blocks
+    title: ArticleContent
+    type: object
+  ArticleContentList:
+    additionalProperties: false
+    properties:
+      articles:
+        items:
+          $ref: '#/schemas/ArticleContent'
+        title: Articles
+        type: array
+    required:
+    - articles
+    title: ArticleContentList
+    type: object

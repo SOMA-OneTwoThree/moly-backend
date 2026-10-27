@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timezone
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
 from app.models.article import ArticleProgress
@@ -26,6 +26,11 @@ class AsyncReadSession:
 async def test_global_likes_do_not_leak_other_users_progress(article_id, index):
     engine = create_engine('sqlite://')
     ArticleProgress.__table__.create(engine)
+    with engine.begin() as conn:
+        # Only the columns the activity query reads; sample-8 is retired.
+        conn.execute(text('CREATE TABLE articles (id TEXT PRIMARY KEY, sort_order INTEGER, is_active BOOLEAN)'))
+        conn.execute(text('INSERT INTO articles VALUES ' + ','.join(
+            f"('sample-{i}', {i}, {int(i < 8)})" for i in range(1, 9))))
     current, other, third = (uuid.uuid4() for _ in range(3))
     with Session(engine) as db:
         db.add_all([

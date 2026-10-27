@@ -1,3 +1,28 @@
+/articles:
+  get:
+    tags:
+    - articles
+    summary: 활성 아티클 목록과 본문
+    operationId: listArticles
+    description: sort_order 순서의 활성 아티클 전체. 본문은 요청 언어가 없으면 한국어 원고를 반환한다.
+      preview_block_count가 null이면 모두에게 전체 공개, 숫자면 비구독 회원에게 그 수만큼의 블록만 보여 준다(구독 판정은 앱).
+    parameters:
+    - name: X-App-Locale
+      in: header
+      required: false
+      schema:
+        type: string
+    security:
+    - SupabaseBearer: []
+    responses:
+      '200':
+        description: 활성 아티클 목록과 본문
+        content:
+          application/json:
+            schema:
+              $ref: ../components/articles.yaml#/schemas/ArticleContentList
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
 /article-progress:
   get:
     tags:

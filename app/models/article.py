@@ -1,11 +1,21 @@
-"""Per-account article feedback and one-time reward receipt."""
+"""Server-owned articles, plus per-account feedback and one-time reward receipt."""
 from __future__ import annotations
 import uuid
 from datetime import datetime
-from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.db import Base
+
+class Article(Base):
+    __tablename__ = "articles"
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    sort_order: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
+    cover: Mapped[str] = mapped_column(String)
+    read_minutes: Mapped[int] = mapped_column(Integer)
+    preview_block_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    content_i18n: Mapped[dict] = mapped_column(JSONB)
 
 class ArticleProgress(Base):
     __tablename__ = "article_progress"

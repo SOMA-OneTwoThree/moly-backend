@@ -201,6 +201,13 @@ UPDATE public.articles SET content_i18n = content_i18n || jsonb_build_object('en
 UPDATE public.articles SET is_active = false WHERE id = 'sample-3';
 ```
 
+오늘의 한마디(`GET /daily-affirmation`)는 `public.daily_affirmations`의 현지 날짜 이하 가장 최근 행을 보여 준다. 문장을 날짜별로 추가하며 이미 지난 날짜의 행은 바꾸지 않는다. 개발 DB의 2026년 행은 임시 문장이다.
+
+```sql
+INSERT INTO public.daily_affirmations (local_date, text_ko, text_en, text_ja)
+VALUES ('2027-01-01', '<검토한 한국어>', '<검토한 영어>', '<검토한 일본어>');
+```
+
 ## 변경 시 확인할 원본
 
 - DB·권한·반영: [db/README.md](../db/README.md), `db/schema.sql`, `db/schema_contract.json`.

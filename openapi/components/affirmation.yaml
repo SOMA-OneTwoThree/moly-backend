@@ -1,0 +1,23 @@
+schemas:
+  DailyAffirmationResponse:
+    type: object
+    additionalProperties: false
+    required:
+    - local_date
+    - locale
+    - text
+    properties:
+      local_date:
+        type: string
+        format: date
+        description: 검증한 X-App-Timezone(생략 시 profiles.timezone) 기준 오늘 현지 달력일. 문장의 저장 날짜가 아니다.
+      locale:
+        type: string
+        enum:
+        - ko
+        - en
+        - ja
+        description: 문장에 적용한 언어. 미설정·미지원 언어는 en이다.
+      text:
+        type: string
+        description: 오늘 이하 가장 최근 날짜에 저장된 문장을 요청 언어로 반환한다.

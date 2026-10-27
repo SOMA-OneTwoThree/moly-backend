@@ -62,7 +62,7 @@ erDiagram
 | 테이블 | 책임·주요 제약 |
 |---|---|
 | `hay_transactions` | 건초의 원장. 거래 후 잔액과 주문 연결을 보존; 프로필 잔액은 원장과 함께 갱신 |
-| `user_daily_stats` | 토큰 누적·일일 보상·알림 선점. 사용자/도메인 기준일 유일 |
+| `user_daily_stats` | 토큰 누적·일일 보상·알림 선점. 사용자/도메인 기준일 유일. `affirmation_acknowledged_at`은 쓰지 않는 컬럼(오늘의 글귀 확인은 앱 기기 저장) |
 | `products` | 서버 상품 카탈로그·에셋 버전·구독 전용 조건. `price_hay=NULL`은 비매품 |
 | `orders`, `order_items`, `payments` | 주문·상품 항목·실결제를 구분하고 공급자 거래 중복 반영 방지 |
 | `user_items` | 보유와 슬롯별 장착. 구매/권한 및 아이템 소유자를 검증 |
@@ -120,6 +120,7 @@ erDiagram
 | `routine_template_categories`, `routine_templates` | 선택 가능한 루틴 템플릿 |
 | `fortune_profiles`, `daily_fortunes` | 입력 revision과 사용자별 현재 날짜 snapshot·별도 해금 상태 |
 | `fortune_ad_sessions` | 당일 운세 SSV 세션·검증 거래 |
+| `daily_affirmations` | 날짜별 오늘의 글귀(ko/en/ja). 운영자가 직접 넣고, 오늘 이하 가장 최근 날짜의 문장을 낸다 |
 | `bgm_tracks` | 원격 음원 카탈로그·노출/권한 정보 |
 
 감정 메모를 캐피 일기나 장기기억으로 자동 간주하지 않는다. 운세 문구 버전 변경만으로 유효한 당일

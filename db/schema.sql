@@ -400,6 +400,15 @@ CREATE TABLE public.conversation_focus (
     CONSTRAINT conversation_focus_reference_ids_check CHECK (((cardinality(reference_ids) >= 1) AND (cardinality(reference_ids) <= 3)))
 );
 
+-- TABLE: public.daily_affirmations
+CREATE TABLE public.daily_affirmations (
+    local_date date NOT NULL,
+    text_ko text NOT NULL,
+    text_en text NOT NULL,
+    text_ja text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
 -- TABLE: public.daily_fortunes
 CREATE TABLE public.daily_fortunes (
     user_id uuid NOT NULL,
@@ -1116,7 +1125,8 @@ CREATE TABLE public.user_daily_stats (
     morning_notified_at timestamp with time zone,
     evening_notified_at timestamp with time zone,
     routine_notified_at timestamp with time zone,
-    evening_push_variant text
+    evening_push_variant text,
+    affirmation_acknowledged_at timestamp with time zone
 );
 
 -- SEQUENCE: public.user_daily_stats_id_seq
@@ -1301,6 +1311,10 @@ ALTER TABLE ONLY public.conversation_checkpoints
 -- CONSTRAINT: public.conversation_focus conversation_focus_pkey
 ALTER TABLE ONLY public.conversation_focus
     ADD CONSTRAINT conversation_focus_pkey PRIMARY KEY (user_id);
+
+-- CONSTRAINT: public.daily_affirmations daily_affirmations_pkey
+ALTER TABLE ONLY public.daily_affirmations
+    ADD CONSTRAINT daily_affirmations_pkey PRIMARY KEY (local_date);
 
 -- CONSTRAINT: public.daily_fortunes daily_fortunes_pkey
 ALTER TABLE ONLY public.daily_fortunes
@@ -2191,6 +2205,9 @@ ALTER TABLE public.conversation_checkpoints ENABLE ROW LEVEL SECURITY;
 -- ROW SECURITY: public.conversation_focus
 ALTER TABLE public.conversation_focus ENABLE ROW LEVEL SECURITY;
 
+-- ROW SECURITY: public.daily_affirmations
+ALTER TABLE public.daily_affirmations ENABLE ROW LEVEL SECURITY;
+
 -- ROW SECURITY: public.daily_fortunes
 ALTER TABLE public.daily_fortunes ENABLE ROW LEVEL SECURITY;
 
@@ -2433,6 +2450,10 @@ GRANT ALL ON TABLE public.conversation_checkpoints TO service_role;
 -- ACL: public.TABLE conversation_focus
 REVOKE ALL ON TABLE public.conversation_focus FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON TABLE public.conversation_focus TO service_role;
+
+-- ACL: public.TABLE daily_affirmations
+REVOKE ALL ON TABLE public.daily_affirmations FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.daily_affirmations TO service_role;
 
 -- ACL: public.TABLE daily_fortunes
 REVOKE ALL ON TABLE public.daily_fortunes FROM PUBLIC, anon, authenticated, service_role;

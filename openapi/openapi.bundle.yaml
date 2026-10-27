@@ -3140,6 +3140,111 @@ paths:
           $ref: '#/components/responses/Validation'
       security:
       - SupabaseBearer: []
+  /daily-affirmation:
+    get:
+      tags:
+      - affirmation
+      summary: 오늘의 글귀 조회
+      operationId: getDailyAffirmation
+      description: daily_affirmations에서 현지 날짜 이하 가장 최근 날짜의 문장을 요청 언어로 반환한다. 오늘 문장이 없으면 가장 최근 문장을 계속 반환한다.
+        확인 표시는 앱이 기기에 저장한다.
+      parameters:
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '글귀 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 최대 64자로 받는다. 미설정·미지원
+          언어는 en으로 폴백하며 응답의 locale은 ko, en, ja 중 하나다.'
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대 1..64자. 생략 시 profiles.timezone, 잘못된 값은 422 APP_TIMEZONE_INVALID.
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      responses:
+        '200':
+          description: 오늘의 문장
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyAffirmationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 시간대 헤더가 없을 때의 프로필 없음 또는 저장된 문장 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+                dailyAffirmationNotFound:
+                  summary: 저장된 문장 없음
+                  value:
+                    error:
+                      code: DAILY_AFFIRMATION_NOT_FOUND
+                      message: 아직 오늘의 글귀가 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          description: 요청 형식 또는 시간대 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - header
+                          - x-app-locale
+                          type: string_too_long
+                          msg: String should have at most 64 characters
+                appTimezoneInvalid:
+                  summary: 시간대 형식 오류
+                  value:
+                    error:
+                      code: APP_TIMEZONE_INVALID
+                      message: 시간대 형식이 올바르지 않습니다.
+                      details: {}
+      security:
+      - SupabaseBearer: []
   /attribution/meta-referrer/decrypt:
     post:
       tags:
@@ -4262,6 +4367,28 @@ components:
       - personal_diary_eligible
       - limit_reached
       title: ChatStateResponse
+    DailyAffirmationResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - local_date
+      - locale
+      - text
+      properties:
+        local_date:
+          type: string
+          format: date
+          description: 검증한 X-App-Timezone(생략 시 profiles.timezone) 기준 오늘 현지 달력일. 문장의 저장 날짜가 아니다.
+        locale:
+          type: string
+          enum:
+          - ko
+          - en
+          - ja
+          description: 문장에 적용한 언어. 미설정·미지원 언어는 en이다.
+        text:
+          type: string
+          description: 오늘 이하 가장 최근 날짜에 저장된 문장을 요청 언어로 반환한다.
     DailyFortuneContextRef:
       type: object
       additionalProperties: false
@@ -7810,6 +7937,8 @@ tags:
   description: 구독 조회, 고정 플랜, RevenueCat webhook
 - name: fortune
   description: 운세 프로필, 당일 결과, 공개용 광고 세션
+- name: affirmation
+  description: 오늘의 글귀 조회
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution

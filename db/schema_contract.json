@@ -7536,7 +7536,7 @@
       "public.hay_transactions.hay_transactions_type_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text, 'article_reward'::text])))",
+        "definition": "CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'mood_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text, 'article_reward'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -16147,5 +16147,5 @@
       }
     }
   },
-  "schema_sha256": "1d3cb2003a68889923cb0e5b84f14936a54b23c1a68ff7798c4df37620521ece"
+  "schema_sha256": "76d7e308eabade23fb46576cad0fe194e84239aea264bf1293488b0495a6ea67"
 }

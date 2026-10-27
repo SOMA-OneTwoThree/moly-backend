@@ -570,7 +570,7 @@ CREATE TABLE public.hay_transactions (
     order_id uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT hay_transactions_amount_check CHECK ((amount <> 0)),
-    CONSTRAINT hay_transactions_type_check CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text, 'article_reward'::text])))
+    CONSTRAINT hay_transactions_type_check CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'mood_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text, 'article_reward'::text])))
 );
 
 -- SEQUENCE: public.hay_transactions_id_seq

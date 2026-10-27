@@ -47,7 +47,7 @@ def test_original_situations_and_approved_editorial_corrections():
     assert '밖에서' not in COURSE.stage(11).options[1].text.ko
     assert '멀미' not in COURSE.stage(4).options[0].text.ko
     assert '디자인' not in COURSE.stage(20).lines[0].text.ko
-    assert '수 있다' in COURSE.stage(19).options[1].text.ko
+    assert '수 있' in COURSE.stage(19).options[1].text.ko  # 어려움을 단정하지 않는다
     for s in COURSE.stages:
         assert '경계' not in s.mission.ko
         assert '사용자가 직접 입력' not in str(training_catalog.public_stage(s, 'ko'))

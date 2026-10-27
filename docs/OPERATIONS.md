@@ -176,20 +176,19 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 `db/changes/explore_content.sql`(검토 SHA-256 `75db677a6b21859b745f5deec594eb2f8a0556272f93c3fcf83289fd0a52debb`)은 아티클을 코드 원고에서 DB 데이터로 옮긴다. 개발 DB에는 2026-10-28 적용·검증했다. 오늘의 한마디는 main 계열의 `GET /daily-affirmation`(`public.daily_affirmations`)을 쓴다.
 
 - 내용: `article_progress_article_id_check`(sample-1~7 고정 id) 제거, `public.articles` 생성(RLS, `service_role`만 권한), 아티클 5행(sample-1~5) 입력. 기존 진행·보상 행은 바꾸지 않는다.
-- 전제(prod, 이 순서): 2026-10-28 기준 main 스키마에는 둘러보기 생각 연습·아티클 테이블이 없다. 아래를 하나씩 dry-run → 적용 → `db.verify` 한다. 이미 반영된 항목은 건너뛴다.
+- prod 반영 순서(위에서 아래로 그대로 실행, 각 SQL은 dry-run → `--commit --allow-prod --expected-sha256` → 다음 단계):
 
-  | 순서 | SQL | 검토 SHA-256 |
+  | 순서 | 실행 | 검토 SHA-256 |
   |---|---|---|
-  | 1 | `explore_training.sql` | `30a9dc7231d28adc3f38b17d219f1238c473f8959dd97358d260a358ec806593` |
-  | 2 | `training_submissions.sql` | `ae41f3b6094e30586f62431296dd001b0a45f5037ab31d7c65beb481ff9bc789` |
-  | 3 | `training_claim_reasons.sql` | `bcd1e45e2257b3d13f669799359b1a25ad9f9853592633f0361c37fab33cc99d` |
-  | 4 | `explore_articles.sql` | `6aa1d8a35cf59ea85e10b2f36e1fe6cc5cd4d892cb04d7d42b11ce4a7f4ecef1` |
-  | 5 | `daily_affirmations.sql`(main 계열에 이미 있음, prod 미반영일 때만) | `3f3ea4e34461b53b87332e73a59a06355714b4edf1754b1b8ccb3b43af2f5b2d` |
-  | 6 | `explore_content.sql` | 위 SHA |
+  | 0 | origin/main 체크아웃에서 `db.verify --env prod`. 실패하면 중단한다. 통과는 `daily_affirmations`·`mood_reward` 등 main 변경이 이미 반영됐다는 뜻이다 | - |
+  | 1 | `explore_prod.sql`: 생각 연습·아티클 진행 테이블 | `9f60bf9072e76658f814bfc829062361a15e8ceb00321ff94870cae856147469` |
+  | 2 | `hay_transactions_types.sql`: 원장 type 목록 = main 목록 + `training_reward`·`article_reward` | `d92d09205302d3b10f81e2fd9c87f286fa3057c7bb4bd4da99cb4f1078daf178` |
+  | 3 | `explore_content.sql`: 아티클 테이블·5행 | 위 SHA |
+  | 4 | 승격(dev → main) 머지 커밋 체크아웃에서 `db.verify --env prod` | - |
 
-- **주의:** 1·4번은 `hay_transactions_type_check`를 지우고 dev 기준 목록으로 다시 만든다. main의 `mood_reward.sql`이 추가한 `mood_reward`가 이 목록에 없다. 그대로 prod에 실행하지 말고, prod의 현재 목록에 `training_reward`·`article_reward`만 더한 정의로 고친 SQL을 다시 검토해 SHA를 새로 기록한다.
+  `explore_prod.sql`은 dev에 적용한 `explore_training.sql`·`training_submissions.sql`·`training_claim_reasons.sql`·`explore_articles.sql`을 순서대로 합치고 원장 type CHECK 문만 뺀 것이다. 원본 네 파일은 dev의 main `mood_reward`가 없는 목록을 넣으므로 prod에 실행하지 않는다. 2026-10-28 origin/main의 `schema.sql`·`seed.sql`로 만든 로컬 PostgreSQL 17에 `mood_reward` 원장 행을 넣고 0~3을 실행해 통과했고, dev 계약 기본 검증도 통과했다. `--strict`는 main에만 있는 `attendance_streak_seeds`와 `user_daily_stats.mood_reward_claimed_at`만 추가 객체로 보고하며, 승격 머지 계약에는 둘 다 들어간다. 개발 DB에는 `hay_transactions_types.sql`을 2026-10-28 적용했다. 2번은 목록을 넓히기만 해 실행 중인 구버전 코드에는 영향이 없다. 다만 배포 preflight는 CHECK 정의 차이를 거부하므로, 2번 이후에는 main의 이전 이미지 재배포·`workflow_dispatch` 복구가 `changed constraints: public.hay_transactions.hay_transactions_type_check`로 멈춘다(시뮬레이션에서 확인). 그래서 1~3은 승격 머지 직전에 실행한다. 승격 전 이미지로 복구해야 하면 `training_reward`·`article_reward` 원장 행이 0건일 때만 main `schema.sql`의 type 목록으로 CHECK를 되돌린 뒤 복구한다.
 - 순서: **SQL 적용 → `db.verify` → main 머지·배포.** 새 코드는 `articles`가 없으면 아티클 조회가 실패한다. 이전 이미지는 새 테이블을 쓰지 않고 CHECK 제거는 제약 완화라, SQL 적용 후 롤링 중 구/신 혼합도 안전하다. `db.verify`는 이 릴리스 커밋에서 실행한다.
-- 실행: [배포 순서](#리뷰-후-머지-직전)의 명령에 `RELEASE_SQL`과 위 SHA를 넣어 dry-run → `--commit --allow-prod` → `db.verify --env prod`. `article_progress`에 짧은 ACCESS EXCLUSIVE lock이 걸린다. 기본 lock 2초 제한에 걸리면 rollback 후 한가한 시점에 재시도한다. `explore_content.sql` 재실행은 첫 `DROP CONSTRAINT`부터 실패하고 rollback되므로 이미 적용된 DB에 다시 실행하지 않는다.
+- 실행: [배포 순서](#리뷰-후-머지-직전)의 명령에 `RELEASE_SQL`과 표의 SHA를 넣는다. `article_progress`·`hay_transactions`에 짧은 ACCESS EXCLUSIVE lock이 걸린다(2번은 기존 원장 행을 다시 검사한다). 기본 lock 2초 제한에 걸리면 rollback 후 한가한 시점에 재시도한다. `explore_content.sql` 재실행은 첫 `DROP CONSTRAINT`부터 실패하고 rollback되므로 이미 적용된 DB에 다시 실행하지 않는다.
 - 사후 확인(인증 필요): `GET /articles`가 5개, `GET /article-progress`가 같은 id 5개를 반환한다. 미인증은 401이다.
 - 되돌리기: 코드는 이전 이미지로 되돌리면 되고 테이블은 남겨도 된다. DB까지 되돌릴 때만 `DROP TABLE public.articles;`를 실행한다. CHECK는 `SELECT count(*) FROM public.article_progress WHERE article_id NOT IN ('sample-1','sample-2','sample-3','sample-4','sample-5','sample-6','sample-7')`가 0일 때만 `explore_articles.sql`의 정의로 다시 추가한다. 새 id의 진행·보상 기록이 있으면 지우지 않는다.
 - 내용 변경은 검토한 SQL을 같은 `db.apply` 절차로 실행한다. 원고는 한국어가 원본이고 번역이 없는 언어는 한국어로 보인다.

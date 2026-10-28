@@ -33,7 +33,7 @@ from datetime import datetime, timezone
 from sqlalchemy import text
 
 from app.core.db import get_sessionmaker
-from app.services import diary_recall_repo, jobs, memory_pipeline
+from app.services import diary_recall_repo, diary_shared_embeddings, jobs, memory_pipeline
 from app.services.jobs import ClaimedJob
 from worker import consumer
 from worker.consumer import JobResult
@@ -137,14 +137,87 @@ LIMIT :limit
 # 없었다.** 그래서 상한이 아무 일도 하지 않았다. 여기서 올린다.
 MAX_EMBEDDING_REPAIR = 3
 
-_MISSING_EMBEDDING = text("""
-SELECT user_id, diary_id, embedding_repair_attempts
-FROM diary_recall_documents
-WHERE embedding IS NULL
-  AND embedding_repair_attempts < :max_attempts
-ORDER BY updated_at
+# A valid pending shared row has its own owner-independent repair budget. In
+# particular, ready shared rows with NULL private embeddings are healthy.
+_VALID_SHARED_DOCUMENT = """
+  SELECT 1 FROM diary_template_embeddings se
+  WHERE se.id=rd.shared_embedding_id
+    AND se.source_hash=rd.source_hash AND se.embedding_model=rd.embedding_model
+    AND se.index_version=rd.index_version AND se.dimensions=1536
+    AND se.search_text=rd.search_text
+    AND EXISTS (SELECT 1 FROM diaries owned_diary
+                WHERE owned_diary.user_id=rd.user_id AND owned_diary.id=rd.diary_id
+                  AND owned_diary.kind IN ('welcome','capi_day'))
+"""
+
+_MISSING_EMBEDDING = text(f"""
+SELECT rd.user_id, rd.diary_id, rd.embedding_repair_attempts
+FROM diary_recall_documents rd
+JOIN diaries d ON d.user_id=rd.user_id AND d.id=rd.diary_id
+WHERE rd.embedding IS NULL
+  AND rd.embedding_repair_attempts < :max_attempts
+  AND d.record_status='published' AND d.deleted_at IS NULL
+  AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
+                  WHERE b.user_id=rd.user_id AND b.state <> 'active')
+  AND NOT EXISTS ({_VALID_SHARED_DOCUMENT})
+ORDER BY rd.updated_at, rd.user_id, rd.diary_id
 LIMIT :limit
 """)
+
+_MISSING_SHARED_EMBEDDING = text("""
+SELECT se.id, se.embedding_repair_attempts
+FROM diary_template_embeddings se
+WHERE se.embedding IS NULL AND se.embedding_repair_attempts < :max_attempts
+  AND NOT EXISTS (
+    SELECT 1 FROM async_jobs j
+    WHERE j.job_type='diary_template_embed' AND j.user_id IS NULL
+      AND j.payload->>'shared_id'=se.id::text AND j.state IN ('ready','running')
+  )
+ORDER BY se.updated_at, se.id
+LIMIT :limit
+""")
+
+_BUMP_SHARED_REPAIR_BATCH = text("""
+UPDATE diary_template_embeddings se
+SET embedding_repair_attempts=se.embedding_repair_attempts+1,updated_at=now()
+FROM unnest(:shared_ids ::uuid[], :repair_attempts ::integer[]) AS t(id,attempt)
+WHERE se.id=t.id AND se.embedding IS NULL
+  AND se.embedding_repair_attempts=t.attempt
+  AND se.embedding_repair_attempts < :max_attempts
+  AND NOT EXISTS (
+    SELECT 1 FROM async_jobs j
+    WHERE j.job_type='diary_template_embed' AND j.user_id IS NULL
+      AND j.payload->>'shared_id'=se.id::text AND j.state IN ('ready','running')
+  )
+RETURNING se.id,se.embedding_repair_attempts
+""")
+
+
+async def _enqueue_shared_repairs(session, missing: list) -> int:
+    if not missing:
+        return 0
+    bumped = (await session.execute(
+        _BUMP_SHARED_REPAIR_BATCH,
+        {
+            "shared_ids": [shared_id for shared_id, _attempt in missing],
+            "repair_attempts": [int(attempt) for _shared_id, attempt in missing],
+            "max_attempts": MAX_EMBEDDING_REPAIR,
+        },
+    )).all()
+    return await jobs.enqueue_many(
+        session,
+        queue=jobs.QUEUE_CONTENT,
+        job_type=diary_shared_embeddings.JOB_DIARY_TEMPLATE_EMBED,
+        items=[
+            (
+                None,
+                f"diarytemplate:repair:{shared_id}:{attempt}",
+                {"shared_id": str(shared_id), "schema_version": diary_recall_repo.INDEX_VERSION},
+            )
+            for shared_id, attempt in bumped
+        ],
+    )
+
 
 # 발행됐는데 **회상 문서 자체가 없는** 일기.
 #
@@ -174,14 +247,54 @@ LIMIT :limit
 
 # 올리면서 다시 확인한다. 그 사이 임베딩이 채워졌으면 건드리지 않는다.
 # 배치(#15a): 대상 전체를 한 UPDATE로 올리고, 실제로 오른 행만 RETURNING으로 받는다.
-_BUMP_REPAIR_BATCH = text("""
-UPDATE diary_recall_documents d
-SET embedding_repair_attempts = d.embedding_repair_attempts + 1, updated_at = now()
-FROM unnest(:user_ids ::uuid[], :diary_ids ::uuid[]) AS t(user_id, diary_id)
-WHERE d.user_id = t.user_id AND d.diary_id = t.diary_id AND d.embedding IS NULL
-  AND d.embedding_repair_attempts < :max_attempts
-RETURNING d.user_id, d.diary_id, d.embedding_repair_attempts
+_BUMP_REPAIR_BATCH = text(f"""
+UPDATE diary_recall_documents rd
+SET embedding_repair_attempts=rd.embedding_repair_attempts+1,updated_at=now()
+FROM unnest(:user_ids ::uuid[], :diary_ids ::uuid[], :repair_attempts ::integer[])
+     AS t(user_id,diary_id,attempt)
+WHERE rd.user_id=t.user_id AND rd.diary_id=t.diary_id AND rd.embedding IS NULL
+  AND rd.embedding_repair_attempts=t.attempt
+  AND rd.embedding_repair_attempts < :max_attempts
+  AND NOT EXISTS ({_VALID_SHARED_DOCUMENT})
+  AND EXISTS (
+    SELECT 1 FROM diaries d WHERE d.user_id=rd.user_id AND d.id=rd.diary_id
+      AND d.record_status='published' AND d.deleted_at IS NULL
+  )
+  AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
+                  WHERE b.user_id=rd.user_id AND b.state <> 'active')
+RETURNING rd.user_id,rd.diary_id,rd.embedding_repair_attempts
 """)
+
+async def _enqueue_private_repairs(session, bumped: list) -> int:
+    if not bumped:
+        return 0
+    items = [
+        (
+            user_id,
+            f"diaryembed:repair:{diary_id}:{attempt}",
+            {"schema_version": diary_recall_repo.INDEX_VERSION, "diary_id": str(diary_id)},
+        )
+        for user_id, diary_id, attempt in bumped
+    ]
+    # A source change resets its repair counter, so an old attempt's job can
+    # still exist. Observe committed duplicates without waiting for finalize's
+    # job-row UPDATE while this sweep already owns the user's advisory lock.
+    existing = {
+        row[0] for row in (await session.execute(text("""
+            SELECT dedup_key FROM async_jobs
+            WHERE job_type=:job_type AND dedup_key=ANY(CAST(:dedup_keys AS text[]))
+        """), {"job_type": diary_recall_repo.JOB_DIARY_RECALL_EMBED,
+               "dedup_keys": [key for _uid, key, _payload in items]})).all()
+    }
+    remaining = [item for item in items if item[1] not in existing]
+    if not remaining:
+        return 0
+    # enqueue_many retains ON CONFLICT as the final guard for a new-job race.
+    return await jobs.enqueue_many(
+        session, queue=jobs.QUEUE_CONTENT,
+        job_type=diary_recall_repo.JOB_DIARY_RECALL_EMBED, items=remaining,
+    )
+
 
 # #28: provider 삭제가 failed로 남은 잔존물 회수 — pending으로 되돌려 재시도 경로에 태운다.
 # 노출은 semantic 필터가 이미 막고 있으므로(저장 비용 문제) bounded면 충분하다.
@@ -202,6 +315,24 @@ _PIPELINE_EPOCHS = text("""
 SELECT user_id, privacy_epoch FROM memory_pipeline_states WHERE user_id = ANY(:user_ids)
 """)
 
+_TRY_DOCUMENT_USER_LOCK = text(
+    "SELECT pg_try_advisory_xact_lock(hashtextextended(:user_id, 0))"
+)
+
+
+async def _try_lock_document_users(session, undocumented: list) -> set:
+    """Claim all later upsert locks before any row/job writes, never waiting.
+
+    A repair can already hold an owned/canonical row by the time document
+    creation runs. Acquiring its user lock then would invert publication's
+    user -> row order. Busy users remain undocumented for the next sweep.
+    """
+    locked = set()
+    for user_id in sorted({user_id for user_id, _diary_id in undocumented}, key=str):
+        if await session.scalar(_TRY_DOCUMENT_USER_LOCK, {"user_id": str(user_id)}):
+            locked.add(user_id)
+    return locked
+
 
 async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
     """멈춘 사용자에게 다음 turn 잡을 다시 걸고, 비어 있는 일기 임베딩을 다시 만든다. 멱등이다."""
@@ -219,6 +350,10 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
                 {"limit": SWEEP_LIMIT, "max_attempts": MAX_EMBEDDING_REPAIR},
             )
         ).all()
+        shared_missing = (await session.execute(
+            _MISSING_SHARED_EMBEDDING,
+            {"limit": SWEEP_LIMIT, "max_attempts": MAX_EMBEDDING_REPAIR},
+        )).all()
         undocumented = (
             await session.execute(_MISSING_DOCUMENT, {"limit": SWEEP_LIMIT})
         ).all()
@@ -229,8 +364,8 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
             ))
         ) is not None
 
-    if (not rows and not missing and not undocumented and not stalled and not unjudged
-            and not has_failed_deletes):
+    if (not rows and not missing and not shared_missing and not undocumented
+            and not stalled and not unjudged and not has_failed_deletes):
         return JobResult(result_code="nothing_stalled")
 
     if stalled:
@@ -252,13 +387,15 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
     revived: list[str] = []
     repaired = 0
     indexed = 0
+    shared_repaired = 0
     resumed = 0
     rejudged = 0
 
     recovered_deletes = 0
 
     async def _apply(session) -> None:
-        nonlocal repaired, indexed, resumed, rejudged, recovered_deletes
+        nonlocal repaired, shared_repaired, indexed, resumed, rejudged, recovered_deletes
+        document_users = await _try_lock_document_users(session, undocumented)
         # 시간 칸을 키에 넣어 한 시간에 한 번만 다시 건다. 매 틱마다 새 잡을 쌓지 않는다.
         bucket = datetime.now(timezone.utc).strftime("%Y%m%d%H")
 
@@ -314,30 +451,20 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
                     {
                         "user_ids": [u for u, _d, _a in missing],
                         "diary_ids": [d for _u, d, _a in missing],
+                        "repair_attempts": [int(a) for _u, _d, a in missing],
                         "max_attempts": MAX_EMBEDDING_REPAIR,
                     },
                 )
             ).all()  # RETURNING에 없는 행 = 그 사이 채워졌거나 상한에 닿았다
             # 원래 잡과 같은 중복 방지 키를 쓰면 죽은 잡에 막혀 다시 걸리지 않는다.
             # 회차를 키에 넣어 매번 새 잡이 되게 한다.
-            repaired += await jobs.enqueue_many(
-                session,
-                queue=jobs.QUEUE_CONTENT,
-                job_type=diary_recall_repo.JOB_DIARY_RECALL_EMBED,
-                items=[
-                    (
-                        user_id,
-                        f"diaryembed:repair:{diary_id}:{attempt}",
-                        {
-                            "schema_version": diary_recall_repo.INDEX_VERSION,
-                            "diary_id": str(diary_id),
-                        },
-                    )
-                    for user_id, diary_id, attempt in bumped
-                ],
-            )
+            repaired += await _enqueue_private_repairs(session, bumped)
+
+        shared_repaired += await _enqueue_shared_repairs(session, shared_missing)
 
         for user_id, diary_id in undocumented:
+            if user_id not in document_users:
+                continue
             # 문서 생성은 upsert가 한다. 같은 조건을 두 곳에 두지 않으려고 그 함수를 그대로
             # 부른다(정상 상태 0건이라 배치화 실익도 없다). 성공하면 임베딩 잡도 함께 걸린다.
             await diary_recall_repo.upsert_diary_recall_document(
@@ -383,6 +510,8 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
             "revived": len(revived),
             "missing_embedding": len(missing),
             "repair_enqueued": repaired,
+            "missing_shared_embedding": len(shared_missing),
+            "shared_repair_enqueued": shared_repaired,
             "missing_document": len(undocumented),
             "document_created": indexed,
             "has_failed_deletes": has_failed_deletes,

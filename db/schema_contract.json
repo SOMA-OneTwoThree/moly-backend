@@ -2154,6 +2154,14 @@
         "not_null": true,
         "type": "text"
       },
+      "public.diary_recall_documents.shared_embedding_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "uuid"
+      },
       "public.diary_recall_documents.source_hash": {
         "collation": "\"default\"",
         "default": null,
@@ -2185,6 +2193,86 @@
         "identity": "",
         "not_null": true,
         "type": "uuid"
+      },
+      "public.diary_template_embeddings.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.diary_template_embeddings.dimensions": {
+        "collation": null,
+        "default": "1536",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "integer"
+      },
+      "public.diary_template_embeddings.embedding": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "public.vector(1536)"
+      },
+      "public.diary_template_embeddings.embedding_model": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.diary_template_embeddings.embedding_repair_attempts": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "integer"
+      },
+      "public.diary_template_embeddings.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.diary_template_embeddings.index_version": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.diary_template_embeddings.search_text": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.diary_template_embeddings.source_hash": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.diary_template_embeddings.updated_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
       },
       "public.feedback.contact": {
         "collation": "\"default\"",
@@ -7430,6 +7518,34 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.diary_template_embeddings.diary_template_embeddings_dimensions_ck": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((dimensions = 1536))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.diary_template_embeddings.diary_template_embeddings_key_uq": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "UNIQUE (source_hash, embedding_model, index_version, dimensions)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.diary_template_embeddings.diary_template_embeddings_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.diary_template_embeddings.diary_template_embeddings_repair_ck": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((embedding_repair_attempts >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.feedback.feedback_contact_check": {
         "deferrable": false,
         "deferred": false,
@@ -10311,6 +10427,42 @@
         "unique": false,
         "valid": true
       },
+      "public.diary_recall_shared_embedding_idx": {
+        "definition": "CREATE INDEX diary_recall_shared_embedding_idx ON public.diary_recall_documents USING btree (shared_embedding_id) WHERE (shared_embedding_id IS NOT NULL)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.diary_recall_documents",
+        "unique": false,
+        "valid": true
+      },
+      "public.diary_template_embeddings_key_uq": {
+        "definition": "CREATE UNIQUE INDEX diary_template_embeddings_key_uq ON public.diary_template_embeddings USING btree (source_hash, embedding_model, index_version, dimensions)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.diary_template_embeddings",
+        "unique": true,
+        "valid": true
+      },
+      "public.diary_template_embeddings_pending_idx": {
+        "definition": "CREATE INDEX diary_template_embeddings_pending_idx ON public.diary_template_embeddings USING btree (updated_at, id) WHERE (embedding IS NULL)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.diary_template_embeddings",
+        "unique": false,
+        "valid": true
+      },
+      "public.diary_template_embeddings_pkey": {
+        "definition": "CREATE UNIQUE INDEX diary_template_embeddings_pkey ON public.diary_template_embeddings USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.diary_template_embeddings",
+        "unique": true,
+        "valid": true
+      },
       "public.feedback_pkey": {
         "definition": "CREATE UNIQUE INDEX feedback_pkey ON public.feedback USING btree (id)",
         "exclusion": false,
@@ -12580,6 +12732,30 @@
         "grantable": false
       },
       "public.diary_recall_documents:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.diary_template_embeddings:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.diary_template_embeddings:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.diary_template_embeddings:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.diary_template_embeddings:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.diary_template_embeddings:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.diary_template_embeddings:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.diary_template_embeddings:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.diary_template_embeddings:service_role:UPDATE": {
         "grantable": false
       },
       "public.feedback:anon:DELETE": {
@@ -15837,6 +16013,13 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.diary_template_embeddings": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.feedback": {
         "options": [],
         "owner": "postgres",
@@ -16268,5 +16451,5 @@
       }
     }
   },
-  "schema_sha256": "d75523b03146c18390486fa2102ddc35c23089e70894be057522b14cd49f42ae"
+  "schema_sha256": "bf3bc3c56a19ba0c3726b9fd7f40ac5eff2dcd0c1fa8a63dd89e44f158d68d23"
 }

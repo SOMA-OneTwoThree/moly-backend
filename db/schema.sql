@@ -518,7 +518,26 @@ CREATE TABLE public.diary_recall_documents (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     embedding_model text DEFAULT 'text-embedding-3-small'::text NOT NULL,
     embedding_repair_attempts smallint DEFAULT 0 NOT NULL,
+    shared_embedding_id uuid,
     CONSTRAINT diary_recall_repair_attempts_ck CHECK (((embedding_repair_attempts >= 0) AND (embedding_repair_attempts <= 3)))
+);
+
+-- TABLE: public.diary_template_embeddings
+CREATE TABLE public.diary_template_embeddings (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    source_hash text NOT NULL,
+    embedding_model text NOT NULL,
+    index_version text NOT NULL,
+    dimensions integer DEFAULT 1536 NOT NULL,
+    search_text text NOT NULL,
+    embedding public.vector(1536),
+    embedding_repair_attempts integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT diary_template_embeddings_pkey PRIMARY KEY (id),
+    CONSTRAINT diary_template_embeddings_key_uq UNIQUE (source_hash, embedding_model, index_version, dimensions),
+    CONSTRAINT diary_template_embeddings_dimensions_ck CHECK ((dimensions = 1536)),
+    CONSTRAINT diary_template_embeddings_repair_ck CHECK ((embedding_repair_attempts >= 0))
 );
 
 -- TABLE: public.feedback
@@ -1703,6 +1722,12 @@ CREATE UNIQUE INDEX diaries_user_id_id_uq ON public.diaries USING btree (user_id
 -- INDEX: public.diaries_user_published_idx
 CREATE INDEX diaries_user_published_idx ON public.diaries USING btree (user_id, published_at);
 
+-- INDEX: public.diary_recall_shared_embedding_idx
+CREATE INDEX diary_recall_shared_embedding_idx ON public.diary_recall_documents USING btree (shared_embedding_id) WHERE (shared_embedding_id IS NOT NULL);
+
+-- INDEX: public.diary_template_embeddings_pending_idx
+CREATE INDEX diary_template_embeddings_pending_idx ON public.diary_template_embeddings USING btree (updated_at, id) WHERE (embedding IS NULL);
+
 -- INDEX: public.diary_claim_sources_user_msg_idx
 CREATE INDEX diary_claim_sources_user_msg_idx ON public.diary_claim_sources USING btree (user_id, message_id);
 
@@ -2249,6 +2274,9 @@ ALTER TABLE public.diary_generation_results ENABLE ROW LEVEL SECURITY;
 -- ROW SECURITY: public.diary_recall_documents
 ALTER TABLE public.diary_recall_documents ENABLE ROW LEVEL SECURITY;
 
+-- ROW SECURITY: public.diary_template_embeddings
+ALTER TABLE public.diary_template_embeddings ENABLE ROW LEVEL SECURITY;
+
 -- ROW SECURITY: public.feedback
 ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
 
@@ -2509,6 +2537,10 @@ GRANT ALL ON TABLE public.diary_generation_results TO service_role;
 -- ACL: public.TABLE diary_recall_documents
 REVOKE ALL ON TABLE public.diary_recall_documents FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON TABLE public.diary_recall_documents TO service_role;
+
+-- ACL: public.TABLE diary_template_embeddings
+REVOKE ALL ON TABLE public.diary_template_embeddings FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.diary_template_embeddings TO service_role;
 
 -- ACL: public.TABLE feedback
 REVOKE ALL ON TABLE public.feedback FROM PUBLIC, anon, authenticated, service_role;

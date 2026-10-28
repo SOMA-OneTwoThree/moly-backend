@@ -26,8 +26,9 @@ async def morning_db(monkeypatch):
     if os.environ.get('MOLY_NOTIFICATION_TEST_ENV') == 'dev':
         if os.environ.get('MOLY_SCHEMA_TEST_DSN'):
             pytest.fail('choose dev or scratch, not both')
-        dsn = load_conn('dev')
-        assert_dev_target('dev', dsn)
+        env_file = os.environ.get('MOLY_NOTIFICATION_ENV_FILE', 'dev')
+        dsn = load_conn(env_file)
+        assert_dev_target(env_file, dsn)
     else:
         dsn = os.environ.get('MOLY_SCHEMA_TEST_DSN')
         if not dsn:

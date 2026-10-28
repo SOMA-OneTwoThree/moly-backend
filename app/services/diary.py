@@ -13,6 +13,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.core.advisory_lock import advisory_xact_lock
 from app.core.time_utils import safe_zone
 from app.models.diary import Diary
 from app.models.profile import Profile
@@ -84,6 +85,10 @@ async def ensure_welcome(session: AsyncSession, profile: Profile) -> uuid.UUID |
     )
     if existing is not None:
         return None
+    # Keep the common read-only path cheap; acquire before INSERT takes the
+    # profile FK lock. ON CONFLICT still handles a welcome created while waiting.
+    await advisory_xact_lock(session, profile.id)
+    await privacy.ensure_subject_active(session, profile.id)
     created_at = profile.created_at
     created_at = (
         created_at.replace(tzinfo=timezone.utc)

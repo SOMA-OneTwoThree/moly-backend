@@ -149,8 +149,20 @@ async def test_account_delete_preserves_rpc_and_cascade_contract(connection):
     ''', str(uid))
     assert await connection.fetchval('SELECT public.delete_user_memories($1)', uid) == 1
     assert await connection.fetchval('SELECT public.delete_user_memories($1)', uid) == 0
+    for sql in [
+        "INSERT INTO public.training_submissions(user_id,training_id,request_id,stage,payload_hash,lease_token,lease_until) "
+        "VALUES($1,'t',gen_random_uuid(),1,repeat('a',64),gen_random_uuid(),now())",
+        "INSERT INTO public.training_progress(user_id,training_id,next_stage) VALUES($1,'t',2)",
+        "INSERT INTO public.training_answers(user_id,training_id,stage,option_id) VALUES($1,'t',1,'a')",
+        "INSERT INTO public.training_rewards(user_id,training_id,stage,amount) VALUES($1,'t',1,15)",
+        'INSERT INTO public.training_tries(user_id,tries_left,refill_from) VALUES($1,4,now())',
+        "INSERT INTO public.training_claims(user_id,training_id,stage,reason,answer_text,verdict)"
+        " VALUES($1,'t',1,'should_pass','a','retry')",
+    ]:
+        await connection.execute(sql, uid)
     await connection.execute('DELETE FROM auth.users WHERE id=$1', uid)
-    for table in ['profiles', 'user_items', 'routines']:
+    for table in ['profiles', 'user_items', 'routines', 'training_progress', 'training_answers',
+                  'training_rewards', 'training_tries', 'training_claims', 'training_submissions']:
         column = 'id' if table == 'profiles' else 'user_id'
         assert await connection.fetchval(
             f'SELECT count(*) FROM public.{table} WHERE {column}=$1', uid,

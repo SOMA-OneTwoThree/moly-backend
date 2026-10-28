@@ -5,6 +5,7 @@ import time
 
 from fastapi import FastAPI, Request
 
+from app.api import articles
 from app.api.ads import router as ads_router
 from app.api.affirmation import router as affirmation_router
 from app.api.attendance import router as attendance_router
@@ -23,6 +24,7 @@ from app.api.routine import router as routine_router
 from app.api.routine import templates_router as routine_templates_router
 from app.api.shop import router as shop_router
 from app.api.subscription import router as subscription_router
+from app.api.trainings import router as trainings_router
 from app.config import settings
 from app.core.errors import register_error_handlers
 from app.core.logging_setup import configure_logging
@@ -43,7 +45,7 @@ def create_app() -> FastAPI:
     # 프로세스 종료 때 유실돼 reconciler(24h)까지 unknown으로 밀린다).
     @contextlib.asynccontextmanager
     async def _lifespan(app: FastAPI):
-        from app.services import usage_ledger
+        from app.services import training_catalog, usage_ledger
         from app.services.banner_catalog import BannerCatalog
         from app.services.topic_catalog import TopicCatalog
 
@@ -57,6 +59,8 @@ def create_app() -> FastAPI:
             app.state.topic_catalog = TopicCatalog.load()
         except (OSError, ValueError) as exc:
             logging.getLogger('moly-backend').error('topic catalog unavailable: %s', type(exc).__name__)
+        # 트레이닝 원고를 부팅 때 한 번 검증한다. 깨졌으면 로그를 남기고 빈 목록으로 둔다.
+        training_catalog.current()
         stop = asyncio.Event()
         flusher = asyncio.ensure_future(usage_ledger.run_close_flusher(stop))
         try:
@@ -104,6 +108,8 @@ def create_app() -> FastAPI:
     app.include_router(review_router)
     app.include_router(feedback_router)
     app.include_router(fortune_router)
+    app.include_router(trainings_router)
+    app.include_router(articles.router)
     app.include_router(affirmation_router)
     app.include_router(subscription_router)
     app.include_router(ads_router)

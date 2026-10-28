@@ -18,6 +18,224 @@ info:
 
     local·development 환경의 명시 플래그로만 등록되는 `/dev/*` 라우터와 moly-auth 소유 계정 API(`/me` 포함)는 이 계약 범위 밖이다.'
 paths:
+  /articles:
+    get:
+      tags:
+      - articles
+      summary: 활성 아티클 목록과 본문
+      operationId: listArticles
+      description: sort_order 순서의 활성 아티클 전체. 본문은 요청 언어가 없으면 한국어 원고를 반환한다. preview_block_count가 null이면
+        공개 글이고, 숫자(0 포함)면 구독 전용 글이다. 이 응답은 전체 본문을 반환하며 미리보기 표시는 앱이 처리한다. 서버의 구독 검사는 전용 글의 신규 보상 지급에 적용한다.
+      parameters:
+      - name: X-App-Locale
+        in: header
+        required: false
+        schema:
+          type: string
+      security:
+      - SupabaseBearer: []
+      responses:
+        '200':
+          description: 활성 아티클 목록과 본문
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleContentList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /article-progress:
+    get:
+      tags:
+      - articles
+      summary: 내 아티클 읽음·평가·보상 상태
+      operationId: listArticleActivity
+      security:
+      - SupabaseBearer: []
+      responses:
+        '200':
+          description: 내 아티클 읽음·평가·보상 상태
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleActivityList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+  /articles/{article_id}/feedback:
+    put:
+      tags:
+      - articles
+      summary: 아티클 평가 저장 및 읽음 처리
+      operationId: setArticleFeedback
+      security:
+      - SupabaseBearer: []
+      responses:
+        '200':
+          description: 아티클 평가 저장 및 읽음 처리
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleActivity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '404':
+          description: 아티클 없음 또는 비활성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 아티클을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+      parameters:
+      - name: article_id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleFeedbackRequest'
+    delete:
+      tags:
+      - articles
+      summary: 아티클 평가 취소(읽음·보상 기록은 유지)
+      operationId: clearArticleFeedback
+      security:
+      - SupabaseBearer: []
+      responses:
+        '200':
+          description: 아티클 평가 취소(읽음·보상 기록은 유지)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleActivity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/Validation'
+        '404':
+          description: 아티클 없음 또는 비활성
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 아티클을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+      parameters:
+      - name: article_id
+        in: path
+        required: true
+        schema:
+          type: string
+  /articles/{article_id}/reward:
+    post:
+      tags:
+      - articles
+      summary: 아티클 최초 1회 건초 20개 지급 및 읽음 처리
+      operationId: claimArticleReward
+      security:
+      - SupabaseBearer: []
+      responses:
+        '200':
+          description: 아티클 최초 1회 건초 20개 지급 및 읽음 처리
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleActivity'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 무료 계정의 구독 전용 글 최초 보상 요청. 읽음·평가·보상·잔액은 변경하지 않는다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                subscriptionRequired:
+                  value:
+                    error:
+                      code: ARTICLE_SUBSCRIPTION_REQUIRED
+                      message: 이 글의 보상은 구독 중에 받을 수 있어요.
+                      details: {}
+        '422':
+          $ref: '#/components/responses/Validation'
+        '404':
+          description: 아티클 없음 또는 비활성, 프로필 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 아티클을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                error:
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+      parameters:
+      - name: article_id
+        in: path
+        required: true
+        schema:
+          type: string
+      description: 인증 계정과 아티클별 최초 1회 20개. 재요청은 granted=0 및 현재 잔액을 반환하며 중복 지급하지 않는다. preview_block_count가
+        null이 아닌 글(0 포함)의 최초 보상은 서버 entitlement의 plan이 free이면 403이다. 이미 받은 보상의 재조회는 구독 만료 후에도 허용한다. 평가는
+        선택 사항이며 저장·취소에는 구독 제한이 없다.
   /bgm/tracks:
     get:
       tags:
@@ -3370,8 +3588,522 @@ paths:
                       details: {}
       description: LLM 호출 없음. Idempotency-Key는 필수이며 같은 키의 재시도는 기존 entry의 현재 상태를 반환한다. 키 내용 변경은 409. 준비
         키 중복 방지는 30일 동안 유지된다. pending의 content만 화면에 표시하고, 첫 사용자 답변에 topic_entry_id와 locale를 보낸다.
+  /trainings:
+    get:
+      tags:
+      - training
+      summary: 트레이닝 카드 목록
+      description: 둘러보기에 노출 순서대로 보여 줄 트레이닝과 내 진행. 원고가 없으면 빈 배열이다.
+      operationId: listTrainings
+      parameters:
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '트레이닝 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 받는다. 대소문자를 구분하지
+          않는다. 없으면 계정 언어를 쓰고, 그 밖의 값은 422다.'
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(?:[Kk][Oo]|[Ee][Nn]|[Jj][Aa])(?:-[A-Za-z0-9]{2,8})*$
+            examples:
+            - ko
+            - ko-KR
+            - en-US
+            - ja-JP
+          - type: 'null'
+      responses:
+        '200':
+          description: 트레이닝 카드 목록
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          $ref: '#/components/responses/Validation'
+      security:
+      - SupabaseBearer: []
+  /trainings/{training_id}:
+    get:
+      tags:
+      - training
+      summary: 트레이닝 상세
+      description: 단계 전부(정답·힌트·풀이 제외)와 내 진행·통과한 답·도전 기회.
+      operationId: getTraining
+      parameters:
+      - name: training_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 트레이닝 id. 없는 id는 TRAINING_NOT_FOUND.
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '트레이닝 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 받는다. 대소문자를 구분하지
+          않는다. 없으면 계정 언어를 쓰고, 그 밖의 값은 422다.'
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(?:[Kk][Oo]|[Ee][Nn]|[Jj][Aa])(?:-[A-Za-z0-9]{2,8})*$
+            examples:
+            - ko
+            - ko-KR
+            - en-US
+            - ja-JP
+          - type: 'null'
+      responses:
+        '200':
+          description: 트레이닝 상세
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 없는 트레이닝·단계, 또는 보상을 줄 때 프로필이 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                trainingNotFound:
+                  summary: 없는 트레이닝·단계
+                  value:
+                    error:
+                      code: TRAINING_NOT_FOUND
+                      message: 트레이닝을 찾을 수 없어요.
+                      details: {}
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          $ref: '#/components/responses/Validation'
+      security:
+      - SupabaseBearer: []
+  /trainings/{training_id}/stages/{stage}/answers:
+    post:
+      tags:
+      - training
+      summary: 단계 답 제출·판정
+      description: 객관식은 원고 정답과 비교하고, 주관식은 짧은 답·베낀 답 규칙 뒤 AI가 판정한다. AI가 실패하거나 10초 안에 답하지 못하면 통과로 처리한다(judge=fallback).
+        통과하지 못한 답마다 도전 기회를 하나 쓰고, 통과한 답만 저장한다. 같은 client_request_id로 다시 보내면 처음 판정을 돌려주고 기회를 다시 쓰지 않는다.
+        서버 entitlement의 plan이 free이면 6단계 이상 신규 제출은 403이다. 이미 완료된 동일 요청은 구독 만료 후에도 저장된 판정을 반환하며 재채점하거나
+        기회·보상을 다시 처리하지 않는다. 보관된 과정은 신규 제출을 404로 거절하지만, 완료된 동일 요청의 재조회와 과거 답 조회는 유지한다. AI 채점을 기다리므로 클라이언트는
+        긴 제한 시간(30초)을 쓴다.
+      operationId: submitTrainingAnswer
+      parameters:
+      - name: training_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 트레이닝 id. 없는 id는 TRAINING_NOT_FOUND.
+      - name: stage
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: 단계 번호(1부터). 없는 단계는 TRAINING_NOT_FOUND.
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '트레이닝 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 받는다. 대소문자를 구분하지
+          않는다. 없으면 계정 언어를 쓰고, 그 밖의 값은 422다.'
+        schema:
+          anyOf:
+          - type: string
+            pattern: ^(?:[Kk][Oo]|[Ee][Nn]|[Jj][Aa])(?:-[A-Za-z0-9]{2,8})*$
+            examples:
+            - ko
+            - ko-KR
+            - en-US
+            - ja-JP
+          - type: 'null'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingAnswerRequest'
+      responses:
+        '200':
+          description: 판정과 바뀐 진행·도전 기회
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingAnswerResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 무료 계정의 6단계 이상 신규 제출. 기회·진행·답·제출 기록·보상을 바꾸지 않으며 AI 채점을 시작하지 않는다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                subscriptionRequired:
+                  value:
+                    error:
+                      code: TRAINING_SUBSCRIPTION_REQUIRED
+                      message: 구독하면 이어서 풀 수 있어요.
+                      details:
+                        free_stage_count: 5
+        '404':
+          description: 없는 트레이닝·단계, 보관된 과정의 신규 제출, 또는 보상 지급 시 프로필 없음. 보관된 과정의 완료 요청 재조회는 허용한다.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                trainingNotFound:
+                  summary: 없는 트레이닝·단계
+                  value:
+                    error:
+                      code: TRAINING_NOT_FOUND
+                      message: 트레이닝을 찾을 수 없어요.
+                      details: {}
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 지금 풀 차례가 아닌 단계, 도전 기회 없음, 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                stageNotCurrent:
+                  summary: 잠긴 단계이거나 이미 통과한 단계
+                  value:
+                    error:
+                      code: TRAINING_STAGE_NOT_CURRENT
+                      message: 지금 풀 차례인 단계가 아니에요.
+                      details: {}
+                noTries:
+                  summary: 도전 기회 0. details.tries는 TrainingTries와 같은 모양
+                  value:
+                    error:
+                      code: TRAINING_NO_TRIES
+                      message: 도전 기회를 모두 썼어요.
+                      details:
+                        tries:
+                          left: 0
+                          max: 5
+                          next_refill_at: '2026-10-21T10:00:00+00:00'
+                          full_at: '2026-10-21T14:00:00+00:00'
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          description: 빈 답, 200자 초과, 없는 보기, 답 방식과 다른 본문, 지원하지 않는 언어 헤더
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 형식 오류
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - body
+                          type: value_error
+                          msg: Value error, send exactly one of option_id or text
+                wrongOption:
+                  summary: 이 단계에 없는 보기
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 보기를 다시 골라 주세요.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+  /trainings/{training_id}/stages/{stage}/claims:
+    post:
+      tags:
+      - training
+      summary: 채점 이의 남기기
+      description: 주관식 판정에 대한 이의를 운영팀이 볼 수 있게 저장한다. 판정은 바꾸지 않는다.
+      operationId: claimTrainingGrade
+      parameters:
+      - name: training_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 트레이닝 id. 없는 id는 TRAINING_NOT_FOUND.
+      - name: stage
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: 단계 번호(1부터). 없는 단계는 TRAINING_NOT_FOUND.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingClaimRequest'
+      responses:
+        '204':
+          description: 저장함
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 없는 트레이닝·단계
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                trainingNotFound:
+                  summary: 없는 트레이닝·단계
+                  value:
+                    error:
+                      code: TRAINING_NOT_FOUND
+                      message: 트레이닝을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          description: 요청 형식 오류 또는 객관식 단계에 대한 이의
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 형식 오류
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - body
+                          - reason
+                          type: literal_error
+                          msg: Input should be 'should_pass', 'should_fail', 'wrong_hint', 'technical_error'
+                            or 'other'
+                pickStage:
+                  summary: 주관식이 아닌 단계
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 주관식 단계에만 이의를 남길 수 있어요.
+                      details: {}
+      security:
+      - SupabaseBearer: []
 components:
   schemas:
+    ArticleActivity:
+      additionalProperties: false
+      properties:
+        article_id:
+          title: Article Id
+          type: string
+        like_count:
+          type: integer
+          minimum: 0
+          description: 전체 계정의 helpful 평가 수. 계정당 글마다 최대 1개.
+        feedback:
+          anyOf:
+          - enum:
+            - helpful
+            - not_helpful
+            type: string
+          - type: 'null'
+          title: Feedback
+        is_read:
+          title: Is Read
+          type: boolean
+        reward_claimed:
+          title: Reward Claimed
+          type: boolean
+        granted:
+          minimum: 0
+          title: Granted
+          type: integer
+        balance_after:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Balance After
+      required:
+      - article_id
+      - like_count
+      - feedback
+      - is_read
+      - reward_claimed
+      - granted
+      - balance_after
+      title: ArticleActivity
+      type: object
+    ArticleActivityList:
+      additionalProperties: false
+      properties:
+        articles:
+          items:
+            $ref: '#/components/schemas/ArticleActivity'
+          title: Articles
+          type: array
+      required:
+      - articles
+      title: ArticleActivityList
+      type: object
+    ArticleFeedbackRequest:
+      additionalProperties: false
+      properties:
+        feedback:
+          enum:
+          - helpful
+          - not_helpful
+          title: Feedback
+          type: string
+      required:
+      - feedback
+      title: ArticleFeedbackRequest
+      type: object
+    ArticleBlock:
+      additionalProperties: false
+      properties:
+        kind:
+          enum:
+          - paragraph
+          - heading
+          - callout
+          - bullet
+          title: Kind
+          type: string
+        text:
+          title: Text
+          type: string
+        highlights:
+          items:
+            type: string
+          title: Highlights
+          type: array
+          description: text 안에서 강조할 부분 문자열.
+      required:
+      - kind
+      - text
+      - highlights
+      title: ArticleBlock
+      type: object
+    ArticleContent:
+      additionalProperties: false
+      properties:
+        id:
+          title: Id
+          type: string
+        title:
+          title: Title
+          type: string
+        summary:
+          title: Summary
+          type: string
+        read_minutes:
+          exclusiveMinimum: 0
+          title: Read Minutes
+          type: integer
+        cover:
+          title: Cover
+          type: string
+          description: 앱 번들 표지 그림 키(mug, sofa, night, tasks, tea 등). 모르는 키는 앱이 기본 그림으로 보여 준다.
+        preview_block_count:
+          anyOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+          title: Preview Block Count
+          description: null이면 전체 공개. 숫자면 비구독 회원이 볼 수 있는 앞 블록 수.
+        blocks:
+          items:
+            $ref: '#/components/schemas/ArticleBlock'
+          title: Blocks
+          type: array
+      required:
+      - id
+      - title
+      - summary
+      - read_minutes
+      - cover
+      - preview_block_count
+      - blocks
+      title: ArticleContent
+      type: object
+    ArticleContentList:
+      additionalProperties: false
+      properties:
+        articles:
+          items:
+            $ref: '#/components/schemas/ArticleContent'
+          title: Articles
+          type: array
+      required:
+      - articles
+      title: ArticleContentList
+      type: object
     BgmTrack:
       additionalProperties: false
       properties:
@@ -5023,6 +5755,8 @@ components:
           - shop_purchase
           - refund_revoke
           - admin_adjustment
+          - training_reward
+          - article_reward
           title: Type
           description: 원장 거래 type.
         amount:
@@ -6936,6 +7670,373 @@ components:
           committed: '#/components/schemas/CommittedTopicEntry'
           pending: '#/components/schemas/PendingTopicEntry'
           superseded: '#/components/schemas/SupersededTopicEntry'
+    TrainingCard:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - icon_key
+      - stage_count
+      - passed_count
+      - completed
+      properties:
+        id:
+          type: string
+          description: URL에 쓰는 고정 트레이닝 id.
+        title:
+          type: string
+        icon_key:
+          type: string
+          description: 루틴 아이콘 키.
+        stage_count:
+          type: integer
+          minimum: 1
+        passed_count:
+          type: integer
+          minimum: 0
+        completed:
+          type: boolean
+    TrainingListResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - trainings
+      properties:
+        trainings:
+          type: array
+          description: 노출 순서. 원고가 없으면 빈 배열이다.
+          items:
+            $ref: '#/components/schemas/TrainingCard'
+    TrainingLineView:
+      type: object
+      additionalProperties: false
+      required:
+      - speaker
+      - name
+      - text
+      - slot
+      properties:
+        speaker:
+          type: string
+          enum:
+          - narration
+          - other
+          - me
+          description: narration은 상황 설명·일기 본문, other는 상대 인물, me는 내 말.
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 상대 인물의 말일 때만 있다.
+        text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 답 자리 줄에서는 빈칸 앞에 붙는 말이다. 답 자리가 아닌 줄에는 항상 있다.
+        slot:
+          type: boolean
+          description: 답이 들어갈 자리. 주관식·문장 지우기는 한 줄이며 일반 객관식은 없을 수도 있다.
+    TrainingOptionView:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - text
+      properties:
+        id:
+          type: string
+          description: 단계 안에서 고유하며 공개 뒤 바뀌지 않는다.
+        text:
+          type: string
+    TrainingStageView:
+      type: object
+      additionalProperties: false
+      description: 정답·힌트·풀이·채점 기준은 담지 않는다.
+      required:
+      - number
+      - answer_type
+      - layout
+      - pick_style
+      - review_point
+      - reward_hay
+      - mission
+      - lines
+      - options
+      - max_length
+      properties:
+        icon_key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 상황에 맞는 기존 루틴 그림 키. 생략하면 그림을 표시하지 않는다.
+        number:
+          type: integer
+          minimum: 1
+        answer_type:
+          type: string
+          enum:
+          - pick
+          - write
+        layout:
+          type: string
+          enum:
+          - chat
+          - diary
+        pick_style:
+          anyOf:
+          - type: string
+            enum:
+            - choose
+            - erase
+          - type: 'null'
+          description: 객관식만. erase는 일기 조각 하나를 골라 지우는 단계이며 보기가 일기 조각이다.
+        review_point:
+          type: boolean
+          description: 통과하면 지금까지의 답을 모아 보여 주는 돌아보기 지점.
+        reward_hay:
+          type: integer
+          minimum: 0
+          description: 돌아보기 지점을 계정에서 처음 통과할 때 주는 건초.
+        mission:
+          type: string
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingLineView'
+        options:
+          type: array
+          description: 객관식만. 주관식은 빈 배열이다.
+          items:
+            $ref: '#/components/schemas/TrainingOptionView'
+        max_length:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+          description: 주관식만. 코드 포인트 기준 최대 글자 수.
+    TrainingProgress:
+      type: object
+      additionalProperties: false
+      required:
+      - next_stage
+      - passed_count
+      - completed
+      properties:
+        next_stage:
+          anyOf:
+          - type: integer
+            minimum: 1
+          - type: 'null'
+          description: 지금 풀 차례인 단계. 다 끝내면 null.
+        passed_count:
+          type: integer
+          minimum: 0
+        completed:
+          type: boolean
+    TrainingAnswerView:
+      type: object
+      additionalProperties: false
+      description: 통과한 답. option_id와 text 중 하나만 있다.
+      required:
+      - stage
+      - option_id
+      - text
+      - passed_at
+      properties:
+        stage:
+          type: integer
+          minimum: 1
+        option_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        text:
+          anyOf:
+          - type: string
+          - type: 'null'
+        passed_at:
+          type: string
+          format: date-time
+    TrainingTries:
+      type: object
+      additionalProperties: false
+      description: 계정 하나에 하나. 통과하지 못한 답마다 하나를 쓰고, max보다 적으면 1시간마다 하나씩 다시 찬다.
+      required:
+      - left
+      - max
+      - next_refill_at
+      - full_at
+      properties:
+        left:
+          type: integer
+          minimum: 0
+        max:
+          type: integer
+          minimum: 1
+        next_refill_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          description: 다음 하나가 차는 시각. left가 max보다 적을 때만 있다.
+        full_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          description: 모두 다시 차는 시각. left가 max보다 적을 때만 있다.
+    TrainingDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - title
+      - summary
+      - icon_key
+      - stages
+      - progress
+      - answers
+      - tries
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        icon_key:
+          type: string
+        stages:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingStageView'
+        progress:
+          $ref: '#/components/schemas/TrainingProgress'
+        answers:
+          type: array
+          description: 통과한 단계의 답. 단계 순서.
+          items:
+            $ref: '#/components/schemas/TrainingAnswerView'
+        tries:
+          $ref: '#/components/schemas/TrainingTries'
+    TrainingRewardGrant:
+      type: object
+      additionalProperties: false
+      required:
+      - granted
+      - balance_after
+      properties:
+        granted:
+          type: integer
+          minimum: 1
+        balance_after:
+          type: integer
+    TrainingAnswerResult:
+      type: object
+      additionalProperties: false
+      required:
+      - result
+      - judge
+      - hint
+      - explanation
+      - reward
+      - answer
+      - progress
+      - tries
+      properties:
+        result:
+          type: string
+          enum:
+          - passed
+          - retry
+        judge:
+          type: string
+          enum:
+          - answer_key
+          - rule
+          - ai
+          - fallback
+          description: answer_key는 객관식 정답, rule은 짧은 답·베낀 답 규칙, ai는 AI 판정, fallback은 AI 실패로 통과 처리.
+        hint:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 통과하지 못했을 때만 있다. 사용자 언어의 한 줄.
+        explanation:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: 풀이가 있는 단계를 통과했을 때만 있다. 객관식과 글쓰기 모두 해당한다.
+        reward:
+          anyOf:
+          - $ref: '#/components/schemas/TrainingRewardGrant'
+          - type: 'null'
+          description: 돌아보기 지점을 계정에서 처음 통과했을 때만 있다.
+        answer:
+          anyOf:
+          - $ref: '#/components/schemas/TrainingAnswerView'
+          - type: 'null'
+          description: 저장한 답. 통과했을 때만 있다.
+        progress:
+          $ref: '#/components/schemas/TrainingProgress'
+        tries:
+          $ref: '#/components/schemas/TrainingTries'
+    TrainingAnswerRequest:
+      type: object
+      additionalProperties: false
+      description: option_id(객관식)와 text(주관식) 중 정확히 하나를 보낸다.
+      required:
+      - client_request_id
+      properties:
+        client_request_id:
+          type: string
+          format: uuid
+          description: 같은 답을 다시 보낼 때는 같은 id를 쓴다. 이미 처리한 id면 처음 판정을 돌려주고 도전 기회를 다시 쓰지 않는다.
+        option_id:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 16
+          - type: 'null'
+        text:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 200
+          - type: 'null'
+          description: NFC로 맞추고 앞뒤 공백을 지운 뒤 1~200 코드 포인트.
+    TrainingClaimRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - reason
+      - answer_text
+      - verdict
+      properties:
+        reason:
+          type: string
+          enum:
+          - should_pass
+          - should_fail
+          - wrong_hint
+          - technical_error
+          - other
+        answer_text:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: 이의를 남기는 답. NFC로 맞추고 앞뒤 공백을 지운 뒤 1~200 코드 포인트.
+        verdict:
+          type: string
+          enum:
+          - passed
+          - retry
+        hint:
+          anyOf:
+          - type: string
+            maxLength: 300
+          - type: 'null'
   securitySchemes:
     SupabaseBearer:
       type: http
@@ -7123,6 +8224,8 @@ tags:
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution
   description: Meta 설치 리퍼러 복호화
+- name: training
+  description: 둘러보기 트레이닝 목록, 상세, 답 제출·채점, 다시 풀기, 채점 이의
 x-source-of-truth:
   contract: openapi/openapi.yaml
   generated_bundle: openapi/openapi.bundle.yaml

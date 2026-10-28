@@ -35,7 +35,7 @@ flowchart LR
     Ads[광고 SSV] --> API
 ```
 
-- `moly-backend`: 대화·일기·감정 기록·루틴·경제·상점·구독·광고·운세·배너·BGM.
+- `moly-backend`: 대화·일기·감정 기록·루틴·경제·상점·구독·광고·운세·트레이닝·배너·BGM.
 - `moly-auth`: 계정·온보딩·프로필 변경·알림/기기 설정·로그아웃·계정 삭제 시작.
   두 서버가 공유하는 DB 함수·프로필·삭제 장벽 계약은 함께 유지한다.
 - API는 HTTP JSON 요청·응답을 사용한다. FCM은 별도 푸시 채널이며 기기 도착을 보장하지 않는다.
@@ -56,6 +56,7 @@ flowchart LR
 | 경제·상점 | `hay_ledger.py`, `shop.py` | 원장과 잔액 동시 갱신·서버 가격·소유권 |
 | 결제·권한 | `subscription.py`, `entitlement.py`, `gating.py` | 공급자 검증·거래 멱등·체험 출처 구분 |
 | 운세 | `fortune.py`, `fortune_catalog.py` | 당일 저장본·광고 해금 보존·문구/계산 분리 |
+| 트레이닝 | `trainings.py`, `training_catalog.py`, `training_grading.py`, `training_tries.py` | 정답 비공개·요청 id 멱등·AI 채점은 트랜잭션 밖·실패 시 통과 |
 | 콘텐츠 | `banner_catalog.py`, `topic_entries.py`, `bgm.py` | 서버 카탈로그·조건부 노출·지원 언어 |
 
 경로는 [app/services/](../app/services/) 기준이다. 도메인 상세는 [문서 안내](README.md)로 연결한다.
@@ -159,6 +160,10 @@ flowchart LR
 [llm.py](../app/services/llm.py)는 남은 foreground 마감 안에서 요청과 허용된 재시도를 제어한다.
 SDK의 숨은 재시도와 애플리케이션 재시도를 겹쳐 전체 마감을 넘기지 않는다. 실패 시 무조건 다시 호출하지
 않으며 취소/실패 원장을 정리한다. 확정되지 않은 실제 공급자 비용은 `unknown_usage`로 남을 수 있다.
+
+트레이닝 주관식 채점은 같은 `llm.py`로 `model_training_grade`를 부른다. 10초 foreground 마감을 주고 DB
+트랜잭션 밖에서 호출한 뒤, 잠금을 다시 잡고 단계·기회를 재확인해 저장한다. 실패·마감 초과·형식 오류는
+통과로 처리하고 원장에는 `training_grade` 용도로 남긴다. 계정을 알아볼 정보는 프롬프트에 넣지 않는다.
 
 ### 출력 방어
 

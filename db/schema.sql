@@ -581,7 +581,7 @@ CREATE TABLE public.hay_transactions (
     order_id uuid,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT hay_transactions_amount_check CHECK ((amount <> 0)),
-    CONSTRAINT hay_transactions_type_check CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'mood_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text])))
+    CONSTRAINT hay_transactions_type_check CHECK ((type = ANY (ARRAY['attendance'::text, 'ad_reward'::text, 'routine_reward'::text, 'mood_reward'::text, 'iap_purchase'::text, 'subscription_grant'::text, 'shop_purchase'::text, 'refund_revoke'::text, 'admin_adjustment'::text, 'training_reward'::text, 'article_reward'::text])))
 );
 
 -- SEQUENCE: public.hay_transactions_id_seq
@@ -2952,8 +2952,75 @@ GRANT ALL ON public.routine_schedules, public.routine_skips,
   public.routine_template_categories, public.routine_templates
   TO service_role;
 
+-- Explore trainings. Stage content lives in app/resources/trainings; these rows are per account.
+-- Only passed answers are kept. last_result replays the latest submission for its request id.
+CREATE TABLE public.training_progress (
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  training_id text NOT NULL,
+  next_stage smallint CHECK (next_stage BETWEEN 1 AND 30),
+  started_at timestamptz NOT NULL DEFAULT now(),
+  completed_at timestamptz,
+  last_request_id uuid,
+  last_result jsonb CHECK (jsonb_typeof(last_result) = 'object'),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, training_id),
+  CONSTRAINT training_progress_completion CHECK ((next_stage IS NULL) = (completed_at IS NOT NULL)),
+  CONSTRAINT training_progress_last_result CHECK ((last_request_id IS NULL) = (last_result IS NULL))
+);
+CREATE TABLE public.training_answers (
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  training_id text NOT NULL,
+  stage smallint NOT NULL CHECK (stage BETWEEN 1 AND 30),
+  option_id text,
+  answer_text text CHECK (char_length(answer_text) BETWEEN 1 AND 200),
+  passed_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, training_id, stage),
+  CONSTRAINT training_answers_one_kind CHECK ((option_id IS NULL) <> (answer_text IS NULL))
+);
+-- Kept on restart so each review point pays once per account.
+CREATE TABLE public.training_rewards (
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  training_id text NOT NULL,
+  stage smallint NOT NULL CHECK (stage BETWEEN 1 AND 30),
+  amount integer NOT NULL CHECK (amount > 0),
+  granted_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, training_id, stage)
+);
+-- No row means a full set of five tries.
+CREATE TABLE public.training_tries (
+  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  tries_left smallint NOT NULL CHECK (tries_left BETWEEN 0 AND 5),
+  refill_from timestamptz,
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT training_tries_refill CHECK ((tries_left = 5) = (refill_from IS NULL))
+);
+-- Written only when a user disputes an AI grade; the grade itself never changes.
+CREATE TABLE public.training_claims (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  training_id text NOT NULL,
+  stage smallint NOT NULL CHECK (stage BETWEEN 1 AND 30),
+  reason text NOT NULL CHECK (reason IN ('should_pass', 'should_fail', 'wrong_hint', 'technical_error', 'other')),
+  answer_text text NOT NULL CHECK (char_length(answer_text) BETWEEN 1 AND 200),
+  verdict text NOT NULL CHECK (verdict IN ('passed', 'retry')),
+  hint text CHECK (char_length(hint) BETWEEN 1 AND 300),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX training_claims_user_idx ON public.training_claims USING btree (user_id);
+ALTER TABLE public.training_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.training_answers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.training_rewards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.training_tries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.training_claims ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.training_progress, public.training_answers, public.training_rewards,
+  public.training_tries, public.training_claims
+  FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.training_progress, public.training_answers, public.training_rewards,
+  public.training_tries, public.training_claims
+  TO service_role;
 
-COMMIT;
+
+
 
 -- Apply only with the matching backend release; changes the preflight catalog.
 -- No campaign activation and no historical payment/grant ownership backfill.
@@ -3029,7 +3096,7 @@ CREATE CONSTRAINT TRIGGER payments_cleanup_unowned_subscription
 DELETE FROM public.subscriptions s
 WHERE s.user_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM public.payments p WHERE p.subscription_id = s.id);
-COMMIT;
+
 
 -- free_launch_until is the store release moment. Before it, accounts created since
 -- subscription_launch.new_member_since are new members, so testers and reviewers on the new
@@ -3175,7 +3242,7 @@ REVOKE ALL ON FUNCTION public.subscription_offer_status(uuid) FROM PUBLIC, anon,
 GRANT EXECUTE ON FUNCTION public.subscription_offer_status(uuid) TO service_role;
 REVOKE ALL ON FUNCTION public.claim_subscription_offer(uuid,text,text) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.claim_subscription_offer(uuid,text,text) TO service_role;
-COMMIT;
+
 
 -- Account deletion fence for the auth server's DELETE /me (docs/API_SPEC.md): it calls begin
 -- before deleting the account and abort only when that delete fails. Same steps as the barrier
@@ -3261,4 +3328,49 @@ REVOKE ALL ON FUNCTION public.begin_subject_deletion(uuid, uuid) FROM PUBLIC, an
 GRANT EXECUTE ON FUNCTION public.begin_subject_deletion(uuid, uuid) TO service_role;
 REVOKE ALL ON FUNCTION public.abort_subject_deletion(uuid, uuid) FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.abort_subject_deletion(uuid, uuid) TO service_role;
+
+-- Apply after explore_training.sql and before deploying request receipt support.
+-- Additive: no existing answers/progress are changed. No backfill of rejected text.
+CREATE TABLE public.training_submissions (
+  user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  training_id text NOT NULL,
+  request_id uuid NOT NULL,
+  stage smallint NOT NULL CHECK (stage BETWEEN 1 AND 30),
+  payload_hash text NOT NULL CHECK (length(payload_hash) = 64),
+  lease_token uuid NOT NULL,
+  lease_until timestamptz NOT NULL,
+  result jsonb CHECK (jsonb_typeof(result) = 'object'),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, training_id, request_id)
+);
+ALTER TABLE public.training_submissions ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.training_submissions FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.training_submissions TO service_role;
+
+CREATE TABLE IF NOT EXISTS public.article_progress (
+    user_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    article_id text NOT NULL,
+    feedback text CHECK (feedback IN ('helpful','not_helpful')),
+    read_at timestamptz NOT NULL DEFAULT now(),
+    rewarded_at timestamptz,
+    PRIMARY KEY (user_id, article_id)
+);
+ALTER TABLE public.article_progress ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.article_progress FROM anon, authenticated;
+GRANT ALL ON public.article_progress TO service_role;
+
+-- Server-owned explore content, edited as data. Progress rows keep retired article ids.
+CREATE TABLE public.articles (
+  id text PRIMARY KEY CHECK (id ~ '^[a-z0-9][a-z0-9-]{0,63}$'),
+  sort_order integer NOT NULL DEFAULT 0 CHECK (sort_order >= 0),
+  is_active boolean NOT NULL DEFAULT false,
+  cover text NOT NULL CHECK (cover ~ '^[a-z][a-z0-9_]{0,31}$'),
+  read_minutes integer NOT NULL CHECK (read_minutes > 0),
+  preview_block_count integer CHECK (preview_block_count >= 0),
+  content_i18n jsonb NOT NULL CHECK (jsonb_typeof(content_i18n) = 'object' AND content_i18n ? 'ko')
+);
+ALTER TABLE public.articles ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.articles FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.articles TO service_role;
+
 COMMIT;

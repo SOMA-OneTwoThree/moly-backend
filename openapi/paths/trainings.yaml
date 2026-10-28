@@ -1,0 +1,224 @@
+/trainings:
+  get:
+    tags: [training]
+    summary: 트레이닝 카드 목록
+    description: 둘러보기에 노출 순서대로 보여 줄 트레이닝과 내 진행. 원고가 없으면 빈 배열이다.
+    operationId: listTrainings
+    parameters:
+    - {$ref: '#/parameters/AppLocale'}
+    responses:
+      '200':
+        description: 트레이닝 카드 목록
+        content:
+          application/json:
+            schema: {$ref: ../components/trainings.yaml#/schemas/TrainingListResponse}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '409': {$ref: '#/responses/AccountDeleting'}
+      '422': {$ref: ../components/common.yaml#/responses/Validation}
+    security: [{SupabaseBearer: []}]
+
+/trainings/{training_id}:
+  get:
+    tags: [training]
+    summary: 트레이닝 상세
+    description: 단계 전부(정답·힌트·풀이 제외)와 내 진행·통과한 답·도전 기회.
+    operationId: getTraining
+    parameters:
+    - {$ref: '#/parameters/TrainingId'}
+    - {$ref: '#/parameters/AppLocale'}
+    responses:
+      '200':
+        description: 트레이닝 상세
+        content:
+          application/json:
+            schema: {$ref: ../components/trainings.yaml#/schemas/TrainingDetail}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '404': {$ref: '#/responses/NotFound'}
+      '409': {$ref: '#/responses/AccountDeleting'}
+      '422': {$ref: ../components/common.yaml#/responses/Validation}
+    security: [{SupabaseBearer: []}]
+
+/trainings/{training_id}/stages/{stage}/answers:
+  post:
+    tags: [training]
+    summary: 단계 답 제출·판정
+    description: >-
+      객관식은 원고 정답과 비교하고, 주관식은 짧은 답·베낀 답 규칙 뒤 AI가 판정한다. AI가 실패하거나 10초 안에
+      답하지 못하면 통과로 처리한다(judge=fallback). 통과하지 못한 답마다 도전 기회를 하나 쓰고, 통과한 답만
+      저장한다. 같은 client_request_id로 다시 보내면 처음 판정을 돌려주고 기회를 다시 쓰지 않는다.
+      서버 entitlement의 plan이 free이면 6단계 이상 신규 제출은 403이다. 이미 완료된 동일 요청은 구독 만료 후에도
+      저장된 판정을 반환하며 재채점하거나 기회·보상을 다시 처리하지 않는다.
+      보관된 과정은 신규 제출을 404로 거절하지만, 완료된 동일 요청의 재조회와 과거 답 조회는 유지한다.
+      AI 채점을 기다리므로 클라이언트는 긴 제한 시간(30초)을 쓴다.
+    operationId: submitTrainingAnswer
+    parameters:
+    - {$ref: '#/parameters/TrainingId'}
+    - {$ref: '#/parameters/Stage'}
+    - {$ref: '#/parameters/AppLocale'}
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: ../components/trainings.yaml#/schemas/TrainingAnswerRequest}
+    responses:
+      '200':
+        description: 판정과 바뀐 진행·도전 기회
+        content:
+          application/json:
+            schema: {$ref: ../components/trainings.yaml#/schemas/TrainingAnswerResult}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '403':
+        description: 무료 계정의 6단계 이상 신규 제출. 기회·진행·답·제출 기록·보상을 바꾸지 않으며 AI 채점을 시작하지 않는다.
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              subscriptionRequired:
+                value:
+                  error:
+                    code: TRAINING_SUBSCRIPTION_REQUIRED
+                    message: 구독하면 이어서 풀 수 있어요.
+                    details: {free_stage_count: 5}
+      '404':
+        $ref: '#/responses/NotFound'
+        description: 없는 트레이닝·단계, 보관된 과정의 신규 제출, 또는 보상 지급 시 프로필 없음. 보관된 과정의 완료 요청 재조회는 허용한다.
+      '409':
+        description: 지금 풀 차례가 아닌 단계, 도전 기회 없음, 계정 삭제 진행 중
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              stageNotCurrent:
+                summary: 잠긴 단계이거나 이미 통과한 단계
+                value: {error: {code: TRAINING_STAGE_NOT_CURRENT, message: 지금 풀 차례인 단계가 아니에요., details: {}}}
+              noTries:
+                summary: 도전 기회 0. details.tries는 TrainingTries와 같은 모양
+                value:
+                  error:
+                    code: TRAINING_NO_TRIES
+                    message: 도전 기회를 모두 썼어요.
+                    details:
+                      tries: {left: 0, max: 5, next_refill_at: '2026-10-21T10:00:00+00:00', full_at: '2026-10-21T14:00:00+00:00'}
+              accountDeleting:
+                summary: 계정 삭제 진행 중
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+      '422':
+        description: 빈 답, 200자 초과, 없는 보기, 답 방식과 다른 본문, 지원하지 않는 언어 헤더
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              validation:
+                summary: 요청 형식 오류
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc: [body]
+                        type: value_error
+                        msg: 'Value error, send exactly one of option_id or text'
+              wrongOption:
+                summary: 이 단계에 없는 보기
+                value: {error: {code: VALIDATION, message: 보기를 다시 골라 주세요., details: {}}}
+    security: [{SupabaseBearer: []}]
+
+/trainings/{training_id}/stages/{stage}/claims:
+  post:
+    tags: [training]
+    summary: 채점 이의 남기기
+    description: 주관식 판정에 대한 이의를 운영팀이 볼 수 있게 저장한다. 판정은 바꾸지 않는다.
+    operationId: claimTrainingGrade
+    parameters:
+    - {$ref: '#/parameters/TrainingId'}
+    - {$ref: '#/parameters/Stage'}
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: ../components/trainings.yaml#/schemas/TrainingClaimRequest}
+    responses:
+      '204': {description: 저장함}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '404':
+        description: 없는 트레이닝·단계
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              trainingNotFound:
+                summary: 없는 트레이닝·단계
+                value: {error: {code: TRAINING_NOT_FOUND, message: 트레이닝을 찾을 수 없어요., details: {}}}
+      '409': {$ref: '#/responses/AccountDeleting'}
+      '422':
+        description: 요청 형식 오류 또는 객관식 단계에 대한 이의
+        content:
+          application/json:
+            schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+            examples:
+              validation:
+                summary: 요청 형식 오류
+                value:
+                  error:
+                    code: VALIDATION
+                    message: 요청 형식이 올바르지 않습니다.
+                    details:
+                      errors:
+                      - loc: [body, reason]
+                        type: literal_error
+                        msg: "Input should be 'should_pass', 'should_fail', 'wrong_hint', 'technical_error' or 'other'"
+              pickStage:
+                summary: 주관식이 아닌 단계
+                value: {error: {code: VALIDATION, message: 주관식 단계에만 이의를 남길 수 있어요., details: {}}}
+    security: [{SupabaseBearer: []}]
+
+parameters:
+  AppLocale:
+    name: X-App-Locale
+    in: header
+    required: false
+    description: >-
+      트레이닝 문구 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 받는다.
+      대소문자를 구분하지 않는다. 없으면 계정 언어를 쓰고, 그 밖의 값은 422다.
+    schema:
+      anyOf:
+      - type: string
+        pattern: '^(?:[Kk][Oo]|[Ee][Nn]|[Jj][Aa])(?:-[A-Za-z0-9]{2,8})*$'
+        examples: [ko, ko-KR, en-US, ja-JP]
+      - type: 'null'
+  TrainingId:
+    name: training_id
+    in: path
+    required: true
+    schema: {type: string}
+    description: 트레이닝 id. 없는 id는 TRAINING_NOT_FOUND.
+  Stage:
+    name: stage
+    in: path
+    required: true
+    schema: {type: integer}
+    description: 단계 번호(1부터). 없는 단계는 TRAINING_NOT_FOUND.
+
+responses:
+  NotFound:
+    description: 없는 트레이닝·단계, 또는 보상을 줄 때 프로필이 없음
+    content:
+      application/json:
+        schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+        examples:
+          trainingNotFound:
+            summary: 없는 트레이닝·단계
+            value: {error: {code: TRAINING_NOT_FOUND, message: 트레이닝을 찾을 수 없어요., details: {}}}
+          profileNotFound:
+            summary: 프로필 없음
+            value: {error: {code: NOT_FOUND, message: 프로필을 찾을 수 없어요., details: {}}}
+  AccountDeleting:
+    description: 계정 삭제 진행 중
+    content:
+      application/json:
+        schema: {$ref: ../components/common.yaml#/schemas/ErrorEnvelope}
+        examples:
+          accountDeleting:
+            summary: 계정 삭제 진행 중
+            value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}

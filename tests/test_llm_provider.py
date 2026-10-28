@@ -223,9 +223,21 @@ def test_prod_guard_partial_rollback_still_requires_openai():
 def test_prod_guard_requires_anthropic_when_any_model_claude():
     s = _prod(
         model_chat="claude-sonnet-5", model_diary="claude-sonnet-5",
-        model_utility="claude-haiku-4-5-20251001", openai_api_key="", anthropic_api_key="",
+        model_utility="claude-haiku-4-5-20251001", model_training_grade="claude-haiku-4-5-20251001",
+        openai_api_key="", anthropic_api_key="",
     )
     with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
+        s.require_production_ready()
+
+
+def test_prod_guard_counts_the_training_grade_model():
+    # 대화·일기·utility를 claude로 되돌려도 트레이닝 채점이 gpt면 openai 키가 필요하다.
+    s = _prod(
+        model_chat="claude-sonnet-5", model_diary="claude-sonnet-5",
+        model_utility="claude-haiku-4-5-20251001", model_training_grade="gpt-6-luna",
+        openai_api_key="", anthropic_api_key="sk-a",
+    )
+    with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
         s.require_production_ready()
 
 

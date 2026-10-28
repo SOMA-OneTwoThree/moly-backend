@@ -1,0 +1,1843 @@
+{
+  "id": "positive-circuit-v2",
+  "order": 0,
+  "icon_key": "sun",
+  "title": {
+    "ko": "긍정 회로",
+    "en": "Positive Perspective",
+    "ja": "前向きな視点"
+  },
+  "summary": {
+    "ko": "아쉽거나 속상한 상황에서 자책하는 대신, 좋았던 점과 새로운 가능성으로 초점을 옮기는 30단계 연습이에요.",
+    "en": "Thirty steps to shift your focus from self-blame to good aspects and new possibilities in disappointing or upsetting moments.",
+    "ja": "残念だったり落ち込んだりする状況で、自分を責める代わりに、よかった点や新しい可能性へ目を向ける30のステップです。"
+  },
+  "stages": [
+    {
+      "icon_key": "bread",
+      "number": 1,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "오늘 빵집에 간 걸 어떻게 받아들이면 기분 좋은 하루로 남길 수 있을까요?",
+        "en": "How could you look at today's bakery visit so you can remember today as a good day?",
+        "ja": "今日パン屋に行ったことをどう受け止めれば、気持ちのよい一日として残せるでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "기대하던 유명한 빵집에 갔는데, 제일 먹고 싶었던 소금빵이 바로 앞사람에서 품절됐어요.",
+            "en": "You went to a famous bakery you had been looking forward to, but the salt bread you wanted most sold out to the person right ahead of you.",
+            "ja": "楽しみにしていた有名なパン屋に行ったのに、一番食べたかった塩パンがすぐ前の人で売り切れてしまいました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "조금만 더 서둘러 나올걸, 결국 내 게으름 때문에 눈앞에서 놓친 거야",
+            "en": "I should've left earlier; I missed it right in front of me because I was lazy",
+            "ja": "もう少し急いで出ればよかったのに、結局自分の怠け癖のせいで目の前で逃してしまった"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "우연한 타이밍까지 내 탓으로 돌릴 필요는 없어요.",
+            "en": "You don't need to blame yourself for unfortunate timing.",
+            "ja": "偶然のタイミングまで自分のせいにしなくて大丈夫ですよ。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "대신 골라온 밤식빵이 생각보다 훨씬 맛있어서 안 먹어봤을 메뉴를 알게 됐어",
+            "en": "The chestnut loaf I got instead was delicious, so I found a new favorite",
+            "ja": "代わりに選んだ栗食パンが思ったよりずっとおいしくて、普段なら食べないメニューを知れた"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "밀가루랑 버터를 줄여야 했는데 눈앞에서 품절된 덕분에 저절로 식단 관리를 했네",
+            "en": "I needed to cut back on flour and butter anyway, so this kept my diet on track",
+            "ja": "小麦粉とバターを控えるべきだったし、目の前で売り切れたおかげで自然と食事管理ができた"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "그 생각엔 빵을 먹고 싶었던 진짜 마음이 빠져 있어요.",
+            "en": "That thought leaves out how much you really wanted the bread.",
+            "ja": "その考えには、パンを食べたかった本当の気持ちが抜けていますよ。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "식단 관리 핑계로 먹고 싶던 마음을 외면하는 건 포장된 회피예요. 새로 발견한 즐거움에 초점을 두는 게 건강한 긍정 회로예요.",
+        "en": "Brushing aside your desire for the bread under the excuse of dieting is just avoidance in disguise. Focusing on a new pleasure you discovered is a healthier positive perspective.",
+        "ja": "食事管理を言い訳にして食べたかった気持ちから目をそらすのは、形を変えた回避です。新しく見つけた楽しさに目を向けるのが、健やかな前向きさです。"
+      }
+    },
+    {
+      "icon_key": "flexed_biceps",
+      "number": 2,
+      "answer_type": "pick",
+      "layout": "diary",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "이번 주를 돌아보며 일기의 빈칸을 어떻게 채우면 좋을까요?",
+        "en": "As you look back on this week, how could you fill in the blank in your diary?",
+        "ja": "今週を振り返りながら、日記の空欄をどう埋めるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "이번 달 헬스장 목표는 주 네 번이다. 이번 주에는 바빠서 두 번만 갔다. 돌아보면",
+            "en": "My gym goal this month is four visits a week. This week I was busy and only went twice. Looking back, it was a week where",
+            "ja": "今月のジムの目標は週4回。今週は忙しくて2回しか行けなかった。振り返ると、"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        },
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "한 주였다.",
+            "en": "despite everything.",
+            "ja": "一週間だった。"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "바쁜 일정 속에서도 포기하지 않고 끝까지 운동을 이어간",
+            "en": "I kept working out without giving up",
+            "ja": "忙しい予定の中でも諦めずに最後まで運動を続けた"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "운동은 덜 갔지만 새로 산 운동복이 마음에 들어서 좋았던",
+            "en": "I went less, but my new gym clothes made me feel good",
+            "ja": "運動に行く回数は減ったけれど、新しく買ったウェアが気に入ってよかった"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "운동복 이야기로 이번 주에 해낸 노력을 가리지 말아요.",
+            "en": "Don't let new workout clothes overshadow the effort you made this week.",
+            "ja": "ウェアの話で、今週がんばった自分を見えなくしないでくださいね。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "세워둔 계획 하나 제대로 못 지키는 내 의지박약만 확인한",
+            "en": "I only proved how weak-willed I am for breaking my plan",
+            "ja": "立てた計画ひとつまともに守れない自分の意志の弱さだけを確かめた"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "목표를 다 못 채웠다고 정말 의지박약인 걸까요?",
+            "en": "Does missing your full goal really mean you lack willpower?",
+            "ja": "目標に届かなかったからといって、本当に意志が弱いのでしょうか？"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "운동복 같은 엉뚱한 곳으로 시선을 돌리기보다, 바쁜 와중에도 두 번이나 운동을 해낸 내 노력을 인정해 주는 게 건강한 긍정 회로예요.",
+        "en": "Rather than distracting yourself with something unrelated like workout clothes, recognizing your effort for working out twice despite a busy week is a healthier positive perspective.",
+        "ja": "ウェアのような別のことに目をそらすより、忙しい中でも2回運動できた自分の努力を認めてあげるのが、健やかな前向きさです。"
+      }
+    },
+    {
+      "icon_key": "fork_and_knife_with_plate",
+      "number": 3,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "기다린 시간이나 식사에서 좋았던 부분에 초점을 맞춰 한두 문장으로 적어보세요.",
+        "en": "In a sentence or two, focus on something good about the wait or the meal.",
+        "ja": "待ち時間や食事でよかったことに目を向けて、一、二文で書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "점심시간에 새로 생긴 식당에 갔는데 줄이 길어서 20분이나 기다렸다가 밥을 먹었어요.",
+            "en": "You went to a new restaurant at lunchtime, but the line was long, so you waited 20 minutes before eating.",
+            "ja": "昼休みに新しくできたお店へ行きましたが、列が長くて20分待ってから食事をしました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept a pleasant or worthwhile aspect of waiting or eating, or a related constructive response without self-blame. A brief sign of enjoyment is enough; do not require an explanation of why it is positive.",
+        "example": {
+          "ko": "기다리는 동안 같이 온 친구랑 여유롭게 수다도 떨고, 음식도 기대만큼 맛있었어.",
+          "en": "While waiting, I had a nice unhurried chat with my friend, and the food was just as delicious as I'd hoped.",
+          "ja": "待っている間に友達とゆっくりおしゃべりできたし、料理も期待どおりおいしかった。"
+        },
+        "retry_hint": {
+          "ko": "기다리는 동안이나 식사할 때 즐거웠던 점부터 떠올려 볼까요?",
+          "en": "What did you enjoy while waiting or having your meal?",
+          "ja": "待っている間や食事のときに楽しかったことから思い出してみましょうか？"
+        }
+      },
+      "explanation": {
+        "ko": "기다리느라 지친 마음에만 머물지 않고, 대화나 맛있는 식사처럼 그 시간 속의 즐거움을 찾아보면 기분이 한결 나아져요.",
+        "en": "Instead of dwelling only on how tiring the wait was, noticing small pleasures like a good chat or a tasty meal can make you feel much better.",
+        "ja": "待ち疲れた気持ちにとどまらず、会話やおいしい食事など、その時間の中の楽しさを見つけると気分がぐっと楽になります。"
+      }
+    },
+    {
+      "icon_key": "camera",
+      "number": 4,
+      "answer_type": "pick",
+      "layout": "diary",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "중고 거래를 놓친 일을 돌아보며 일기의 빈칸을 어떻게 채우면 좋을까요?",
+        "en": "As you look back on missing out on the secondhand deal, how could you fill in the blank in your diary?",
+        "ja": "中古取引を逃したことを振り返りながら、日記の空欄をどう埋めるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "중고 거래로 사려던 카메라가 망설이는 사이 다른 사람에게 팔렸다. 이 일을 돌아보니",
+            "en": "The secondhand camera I wanted to buy sold to someone else while I hesitated. I find myself thinking that",
+            "ja": "中古で買おうとしていたカメラが、迷っている間に他の人に売れてしまった。このことを振り返ると、"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        },
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "생각이 든다.",
+            "en": "as I look back on it.",
+            "ja": "気がする。"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "b",
+          "text": {
+            "ko": "쓸데없이 망설이다가 좋은 기회를 놓친 내 판단력이 한심하다는",
+            "en": "my judgment was pathetic for hesitating and missing out",
+            "ja": "無駄に迷っていい機会を逃した自分の判断力が情けないという"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "신중하게 고민한 시간도 나름의 의미가 있지 않을까요?",
+            "en": "Wasn't taking time to think carefully meaningful in its own way?",
+            "ja": "慎重に考えた時間にも、それなりの意味があるのではないでしょうか？"
+          }
+        },
+        {
+          "id": "a",
+          "text": {
+            "ko": "급한 지출을 멈추고 정말 필요한 카메라인지 다시 따져볼 수 있겠다는",
+            "en": "I can pause a rushed buy and rethink if I really need it",
+            "ja": "急な出費を止めて、本当に必要なカメラかもう一度考え直せるという"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "남이 쓰던 카메라는 분명 보이지 않는 흠집이나 잔고장이 많았을 거라는",
+            "en": "a used camera probably had hidden scratches or flaws anyway",
+            "ja": "人が使っていたカメラには、きっと見えない傷や細かい不具合が多かったはずだという"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "놓친 물건을 깎아내리면 아쉬운 마음만 가려지게 돼요.",
+            "en": "Putting down the item you missed only covers up your disappointment.",
+            "ja": "逃した物を悪く言うと、残念な気持ちを隠すだけになってしまいます。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "물건에 흠이 있었을 거라며 억지로 깎아내리기보다, 충동구매를 멈추고 필요성을 다시 돌아볼 기회로 삼으면 한결 마음이 편해져요.",
+        "en": "Rather than forcing yourself to find fault with the item, seeing this as a chance to pause an impulse buy and reconsider whether you need it will help you feel much more at ease.",
+        "ja": "物に欠陥があったはずだと無理にけなすより、衝動買いを止めて必要性を考え直す機会にすると、気持ちがぐっと楽になります。"
+      }
+    },
+    {
+      "icon_key": "chess_pawn",
+      "number": 5,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": true,
+      "reward_hay": 30,
+      "mission": {
+        "ko": "게임에서 진 아쉬움 대신, 오늘 모임에서 좋았던 부분에 초점을 맞춰 한두 문장으로 적어보세요.",
+        "en": "Instead of focusing on losing the games, write a sentence or two focusing on what was good about today's gathering.",
+        "ja": "ゲームに負けた残念さより、今日の集まりでよかったことに目を向けて、一、二文で書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "오랜만에 친구들과 보드게임 카페에 갔는데 한 번도 못 이기고 계속 꼴찌만 했어요.",
+            "en": "You went to a board game cafe with friends for the first time in a while, but you didn't win once and kept coming in last.",
+            "ja": "久しぶりに友達とボードゲームカフェへ行きましたが、一度も勝てず、ずっと最下位でした。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept enjoyment, company, participating, trying again, or another constructive take on hanging out and playing with friends without self-blame or putting the game down. Winning or an explicit contrast with losing is not required.",
+        "example": {
+          "ko": "비록 게임은 다 졌지만 오랜만에 친구들이랑 실컷 웃고 떠들어서 정말 즐거웠어.",
+          "en": "Even though I lost every game, I had a great time laughing and chatting with my friends for the first time in a while.",
+          "ja": "ゲームには全部負けたけれど、久しぶりに友達と思いっきり笑っておしゃべりできて本当に楽しかった。"
+        },
+        "retry_hint": {
+          "ko": "승패는 잠시 내려놓고 친구들과 함께 웃었던 순간을 찾아봐요.",
+          "en": "Set winning and losing aside and recall a moment you laughed with your friends.",
+          "ja": "勝ち負けは少し置いて、友達と笑い合った瞬間を探してみましょう。"
+        }
+      },
+      "explanation": {
+        "ko": "승패에만 시선을 두면 모임 전체가 아쉽게 느껴져요. 친구들과 함께 웃고 떠든 즐거움에 초점을 맞추면 좋은 추억으로 남아요.",
+        "en": "If you only focus on winning or losing, the whole gathering can feel disappointing. Focusing on the fun of laughing and chatting with your friends leaves you with a good memory.",
+        "ja": "勝ち負けばかりに目を向けると、集まり全体が残念に感じられます。友達と笑って話した楽しさに焦点を当てれば、よい思い出として残ります。"
+      }
+    },
+    {
+      "icon_key": "headphone",
+      "number": 6,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "이어폰 없이 가는 출근길을 어떻게 받아들이면 좋을까요?",
+        "en": "How could you look at commuting to work without your earphones?",
+        "ja": "イヤホンなしで向かう通勤時間を、どう受け止めるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "출근길에 아끼는 무선 이어폰을 집에 두고 온 걸 지하철역에서 깨달았어요.",
+            "en": "At the subway station on your way to work, you realized you had left your favorite wireless earphones at home.",
+            "ja": "通勤途中の地下鉄の駅で、お気に入りのワイヤレスイヤホンを家に忘れたことに気づきました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "아침부터 덜렁대며 중요한 물건 하나 제대로 못 챙기다니 난 정말 한심해",
+            "en": "I'm so careless for forgetting something important first thing in the morning",
+            "ja": "朝からそそっかしくて大事な物ひとつまともに準備できないなんて、自分は本当に情けない"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "친구가 이어폰을 두고 왔다면 뭐라고 말해 줄 것 같아요?",
+            "en": "What would you say to a friend who left their earphones at home?",
+            "ja": "もし友達がイヤホンを忘れたら、どんな言葉をかけてあげますか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "복잡한 지하철에서 한쪽이라도 떨어뜨릴 걱정 없이 집에 두는 게 훨씬 속 편해",
+            "en": "Leaving them home beats worrying about dropping one on a crowded train",
+            "ja": "混雑した地下鉄で片方でも落とす心配がないから、家に置いておくほうがずっと気が楽だ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "걱정을 덜었다며 아쉬움을 덮기보다 지금 누릴 여유를 봐 주세요.",
+            "en": "Instead of covering up disappointment with relief, notice the calm you can enjoy now.",
+            "ja": "心配が減ったと残念さを隠すより、今味わえるゆとりに目を向けましょう。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "오랜만에 귀도 쉬게 해 주고 가만히 창밖 풍경을 보며 생각을 정리해야지",
+            "en": "I'll give my ears a rest and watch the view while organizing my thoughts",
+            "ja": "久しぶりに耳を休ませてあげて、静かに窓の外の景色を見ながら考えを整理しよう"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "잃어버릴 걱정을 덜었다며 아쉬움을 억지로 포장하기보다, 오랜만에 귀를 쉬게 하고 고요한 출근길을 누려보면 마음이 한결 편안해져요.",
+        "en": "Rather than forcing a silver lining about not losing them, giving your ears a break and enjoying a quiet commute will help you feel much more at ease.",
+        "ja": "なくす心配が減ったと残念さを無理に取り繕うより、久しぶりに耳を休ませて静かな通勤時間を味わうほうが、気持ちがぐっと穏やかになります。"
+      }
+    },
+    {
+      "icon_key": "office_building",
+      "number": 7,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "계단으로 걸어 올라가야 하는 이 상황을 어떻게 받아들이면 좋을까요?",
+        "en": "How could you look at having to walk up the stairs?",
+        "ja": "階段で上がらなければならないこの状況を、どう受け止めるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "매일 타던 엘리베이터가 점검 중이라 5층까지 계단으로 걸어 올라가야 했어요.",
+            "en": "The elevator you take every day was under inspection, so you had to walk up the stairs to the 5th floor.",
+            "ja": "毎日乗っているエレベーターが点検中で、5階まで階段で歩いて上がらなければなりませんでした。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "요즘 운동할 시간이 부족했는데 따로 시간 안 내고 자연스럽게 유산소 운동을 했네",
+            "en": "I've been short on workout time lately, so I got some free cardio in",
+            "ja": "最近運動する時間が足りなかったから、わざわざ時間を作らずに自然と有酸素運動ができたな"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "고층에 사는 사람들은 훨씬 더 힘들었을 텐데 나는 5층이라 이 정도면 양반이네",
+            "en": "People on higher floors have it worse; the 5th floor isn't bad at all",
+            "ja": "高層階の人はもっと大変だったはずだし、5階の自分なんかまだマシなほうだな"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "남과 비교해 위안 삼기보다 내가 직접 얻은 좋은 점을 찾아볼까요?",
+            "en": "Instead of comforting yourself by comparing with others, what benefit did you gain?",
+            "ja": "人と比べて慰めるより、自分が得られたよい点を探してみましょうか？"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "아침부터 계단을 오르느라 힘을 다 뺐으니 오늘 하루 종일 체력이 방전될 거야",
+            "en": "Climbing stairs drained me this morning, so I'll be wiped out all day",
+            "ja": "朝から階段を上って体力を使い果たしたから、今日は一日中バテてしまうだろうな"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "잠깐 계단을 올랐다고 정말 하루 종일 지치게 될까요?",
+            "en": "Will climbing the stairs briefly really leave you exhausted all day?",
+            "ja": "少し階段を上っただけで、本当に一日中疲れてしまうでしょうか？"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "다른 사람과 비교하며 위안 삼기보다, 계단을 걸어 올라간 불편함을 일상 속 운동 기회로 연결하면 기분 좋은 순간이 돼요.",
+        "en": "Rather than comforting yourself by comparing your situation with others, turning the inconvenience of taking the stairs into a chance for everyday exercise can make it a pleasant moment.",
+        "ja": "他の人と比べて自分を慰めるより、階段を上った不便さを日常の運動の機会につなげると、気持ちのよい瞬間になります。"
+      }
+    },
+    {
+      "icon_key": "books",
+      "number": 8,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "원하던 자리에 앉지 못한 이 상황을 어떻게 받아들이면 좋을까요?",
+        "en": "How could you look at not getting the seat you wanted?",
+        "ja": "座りたかった席に座れなかったこの状況を、どう受け止めるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "학교 도서관에 공부하러 갔는데 평소 앉던 창가 명당자리가 이미 다 차서 안쪽 벽면 자리에 앉았어요.",
+            "en": "You went to the school library to study, but all the best window seats you usually take were full, so you sat by an inner wall.",
+            "ja": "学校の図書館へ勉強しに行きましたが、いつも座る窓際の人気席がすべて埋まっていて、奥の壁際の席に座りました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "창밖 풍경에 한눈팔 일이 없으니 오늘 계획한 분량에 더 깊게 몰입할 수 있겠어",
+            "en": "With no view to distract me, I can focus deeper on today's study goal",
+            "ja": "窓の外の景色によそ見することがないから、今日計画した分により深く集中できそう"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "낮에는 햇볕이 따갑고 외풍까지 심한 창가 자리는 공부하기에 좋은 곳도 아니야",
+            "en": "Window seats are too sunny and drafty anyway, so they're bad for studying",
+            "ja": "昼間は日差しがきつくて隙間風も入る窓際の席は、そもそも勉強に向いている場所じゃない"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "좋아하던 자리를 깎아내리는 대신 지금 자리의 장점을 봐 주세요.",
+            "en": "Instead of putting down your favorite seat, look for the perks of your current spot.",
+            "ja": "好きだった席を悪く言うより、今の席のよさに目を向けてみましょう。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "시험 기간인 줄 알면서 아침 일찍 서두르지 않고 늦장을 부린 내 게으름 탓이야",
+            "en": "I knew it was exam week, so it's my fault for being lazy and late",
+            "ja": "試験期間だとわかっていたのに、朝早く急がずにぐずぐずした自分の怠け癖のせいだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "도서관 자리가 다 찬 일로 나를 너무 다그치지 말아요.",
+            "en": "Don't be so hard on yourself just because the library seats filled up.",
+            "ja": "図書館の席が埋まっていたことで、自分を責めすぎないでくださいね。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "평소 좋아하던 창가 자리를 억지로 깎아내리기보다, 지금 앉은 안쪽 자리에서 집중하기 좋은 점을 찾아보면 공부에 더 몰입할 수 있어요.",
+        "en": "Rather than forcing yourself to criticize the window seat you usually like, finding what helps you focus at your inner seat makes it easier to immerse yourself in studying.",
+        "ja": "いつも好きだった窓際の席を無理にけなすより、今座っている奥の席で集中しやすい点を見つけるほうが、勉強により没頭できます。"
+      }
+    },
+    {
+      "icon_key": "alarm_clock",
+      "number": 9,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "계획이 밀렸다고 자책하는 대신, 늦잠을 자서 오히려 좋았던 점을 한두 문장으로 적어보세요.",
+        "en": "Instead of blaming yourself for falling behind schedule, write a sentence or two about an upside to sleeping in.",
+        "ja": "予定が後ろ倒しになったと自分を責める代わりに、寝坊してかえってよかった点を一、二文で書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "주말 아침에 알람을 못 듣고 늦잠을 자서 원래 오전에 하려던 방 청소를 못 했어요.",
+            "en": "You slept through your weekend alarm and missed the morning time you had set aside to clean your room.",
+            "ja": "週末の朝、アラームに気づかず寝坊して、午前中に予定していた部屋の掃除ができませんでした。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept rest, recovery, bodily needs, taking things slowly, or another constructive upside to sleeping in without self-blame. A brief mention of feeling rested is enough; no need to explain both the benefit and the delayed cleaning.",
+        "example": {
+          "ko": "청소는 오후로 밀렸지만, 평일에 쌓인 피로를 풀 만큼 푹 자서 컨디션이 훨씬 좋아졌어.",
+          "en": "Cleaning got pushed to the afternoon, but I slept deeply enough to shake off my weekday fatigue and feel much better.",
+          "ja": "掃除は午後にずれたけれど、平日にたまった疲れが取れるくらいぐっすり眠れて体調がずっとよくなった。"
+        },
+        "retry_hint": {
+          "ko": "푹 자고 일어난 덕분에 몸이나 기분이 어땠는지부터 떠올려 볼까요?",
+          "en": "How did your body or mood feel thanks to getting a good, deep sleep?",
+          "ja": "ぐっすり眠れたおかげで、体や気分がどうだったか思い出してみましょうか？"
+        }
+      },
+      "explanation": {
+        "ko": "계획이 조금 밀렸더라도 자책할 필요 없어요. 그동안 쌓인 피로를 풀고 몸을 충분히 쉬게 해 준 시간으로 바라보면 마음이 편안해져요.",
+        "en": "Even if your plans got pushed back a little, there's no need to blame yourself. Seeing it as time that let your body rest and recover from built-up fatigue will help you feel at ease.",
+        "ja": "予定が少し後ろ倒しになっても、自分を責める必要はありません。たまった疲れを取り、体をしっかり休ませた時間だと捉えれば気持ちが楽になります。"
+      }
+    },
+    {
+      "icon_key": "cooking",
+      "number": 10,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "배달 음식을 못 시킨 아쉬움 대신, 직접 해 먹어서 오히려 좋았던 점을 한두 문장으로 적어보세요.",
+        "en": "Instead of dwelling on not ordering delivery, write a sentence or two about what was good about cooking for yourself.",
+        "ja": "出前を頼めなかった残念さの代わりに、自分で作って食べたからこそよかった点を一、二文で書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "배달 앱으로 저녁을 시키려다 최소 주문 금액이 안 맞아서 집 앞 마트에서 재료를 사 와 간단히 해 먹었어요.",
+            "en": "You tried to order dinner on a delivery app, but it didn't meet the minimum order amount, so you bought ingredients at a market near home and cooked something simple.",
+            "ja": "出前アプリで夕食を頼もうとしたら最低注文金額に届かず、家の前のスーパーで材料を買ってきて簡単に作って食べました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept any reasonable upside or constructive take on cooking and eating at home. A brief mention of everyday satisfaction, taste, health, convenience, or saving money is enough; do not require an explicit contrast with delivery food.",
+        "example": {
+          "ko": "배달비도 아끼고 신선한 재료로 내 입맛에 딱 맞게 만들어 먹을 수 있어서 좋았어.",
+          "en": "It was nice that I saved on delivery fees and made something with fresh ingredients that suited my taste.",
+          "ja": "配達料も節約できたし、新鮮な材料で自分の好みにぴったりの味に作れてよかった。"
+        },
+        "retry_hint": {
+          "ko": "직접 요리하며 아낀 비용이나 뿌듯했던 점도 함께 봐 주세요.",
+          "en": "Try noticing the money you saved or the pride of cooking for yourself.",
+          "ja": "自炊して節約できたことや、達成感にも目を向けてみましょう。"
+        }
+      },
+      "explanation": {
+        "ko": "원하던 배달 음식은 못 먹었지만, 돈을 아끼거나 내 입맛에 맞는 건강한 한 끼를 챙긴 점에 주목하면 만족스러운 저녁이 돼요.",
+        "en": "Even though you didn't get the delivery food you wanted, focusing on saving money or making a healthy meal suited to your taste can make it a satisfying dinner.",
+        "ja": "食べたかった出前は頼めなくても、お金を節約できたり自分の好みに合う健康的な食事をとれたりしたことに目を向けると、満足感のある夕食になります。"
+      }
+    },
+    {
+      "icon_key": "t_shirt",
+      "number": 11,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "새 셔츠에 국물이 튄 상황을 어떻게 바라보면 마음이 한결 나아질까요?",
+        "en": "How can you look at getting soup on your new shirt in a way that helps you feel better?",
+        "ja": "新しいシャツに汁がはねた状況をどう捉えれば、気持ちが少し楽になるでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "새로 산 흰 셔츠를 입고 나왔는데 점심을 먹다가 김치 국물이 한 방울 튀었어요.",
+            "en": "You wore your new white shirt out, and a drop of soup splashed onto it during lunch.",
+            "ja": "新しく買った白いシャツを着て出かけたのに、昼食を食べていたらスープが1滴はねてしまいました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "하필 새로 산 흰 옷을 입은 날 조심성 없이 밥을 먹은 내 탓이야",
+            "en": "It's my fault for eating so carelessly in my new white shirt",
+            "ja": "よりによって新しい白い服を着た日に、気をつけずに食べた自分のせいだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "실수한 나를 탓하기보다 지금 바로 수습할 수 있는 점에 주목해 봐요.",
+            "en": "Instead of blaming yourself, focus on what you can do to fix it right now.",
+            "ja": "自分を責めるより、今すぐ対処できる点に目を向けてみましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "중요한 회의가 끝난 뒤에 작게 튀어서 지금 바로 지울 수 있으니 다행이야",
+            "en": "Glad my big meeting is over and the spot is small enough to clean right now",
+            "ja": "大事な会議が終わった後だし、しみも小さくて今すぐ落とせるからよかった"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "아껴 입느라 신경 쓰였는데 자국이 남은 덕분에 이제 작업복처럼 편하게 입겠네",
+            "en": "Keeping it clean was stressful anyway; now I can just wear it casually",
+            "ja": "大事に着るのに気を使っていたから、跡がついたおかげで作業着みたいに楽に着られるな"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "그 생각엔 새 옷을 아끼고 싶었던 솔직한 마음이 빠져 있어요.",
+            "en": "That thought ignores how much you honestly wanted to take care of your new shirt.",
+            "ja": "その考えには、新しい服を大切にしたかった正直な気持ちが抜けています。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "새 옷이 더러워진 속상함을 외면한 채 막 입자고 넘기는 건 포장된 회피예요. 지금 바로 수습할 수 있다는 점에 주목하면 마음이 한결 빨리 가라앉아요.",
+        "en": "Brushing off your disappointment and deciding to just wear the new shirt roughly is disguised avoidance. Focusing on the fact that you can clean it up right away will help you calm down much faster.",
+        "ja": "新しい服が汚れたショックから目をそらして雑に着ようとするのは、前向きに見せかけた回避です。今すぐ対処できるという点に目を向けると、気持ちがずっと早く落ち着きます。"
+      }
+    },
+    {
+      "icon_key": "shopping_cart",
+      "number": 12,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "교환을 해야 하는 번거로운 상황을 어떻게 받아들이면 좋을까요?",
+        "en": "How can you view the hassle of having to make an exchange in a helpful way?",
+        "ja": "交換しなければならない面倒な状況を、どう受け止めればよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "인터넷으로 산 바지가 도착했는데 입어보니 허리가 조금 작아서 교환 신청을 해야 해요.",
+            "en": "You tried on the pants you bought online, and they are a little tight in the waist, so you need to request an exchange.",
+            "ja": "ネットで買ったズボンが届いて試着してみると、ウエストが少しきつくて交換を申し込まなければなりません。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "치수표를 꼼꼼히 확인하지 않고 대충 주문해버린 내 부주의함 때문이야",
+            "en": "It's my fault for ordering carelessly without checking the size chart",
+            "ja": "サイズ表をきちんと確認せずに適当に注文してしまった自分の不注意のせいだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "내 부주의함만 탓하기보다 지금 상황에서 다행인 점을 찾아볼까요?",
+            "en": "Instead of just blaming your carelessness, can you find what's fortunate right now?",
+            "ja": "自分の不注意を責めるより、今の状況でよかった点を探してみませんか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "교환하는 건 번거롭지만 이번 주문으로 쇼핑몰 적립금이 쌓였으니 그나마 위안이 되네",
+            "en": "Exchanging them is a hassle, but at least I got reward points from this order",
+            "ja": "交換するのは面倒だけど、今回の注文でポイントが貯まったからまだ救われるな"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "적립금은 바지와 상관없는 위안이에요. 교환하는 일 자체에서 다행인 점은 없을까요?",
+            "en": "Points don't solve the pants issue. What's fortunate about the exchange itself?",
+            "ja": "ポイントはズボンとは別の話です。交換自体でよかった点はありませんか？"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "급하게 입을 날 직전이 아니라 여유 있을 때 미리 확인해서 제때 바꿀 수 있어 다행이야",
+            "en": "Glad I tried them on early with plenty of time to exchange them",
+            "ja": "着る直前ではなく余裕があるうちに確認できて、間に合うように交換できるからよかった"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "적립금 같은 엉뚱한 점으로 위안 삼기보다, 제때 교환할 시간 여유가 있다는 점에 집중하면 번거로운 마음도 한결 가벼워져요.",
+        "en": "Rather than comforting yourself with unrelated things like store points, focusing on having enough time to exchange them makes the hassle feel much lighter.",
+        "ja": "ポイントのような別のことで気を紛らわすより、間に合ううちに交換できる時間の余裕があることに目を向けると、面倒な気持ちもずっと軽くなります。"
+      }
+    },
+    {
+      "icon_key": "cloud",
+      "number": 13,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "번거롭지만 이 상황이 오히려 다행인 이유를 찾아 한두 문장으로 적어보세요.",
+        "en": "In a sentence or two, write why this situation is actually fortunate despite the hassle.",
+        "ja": "手間はかかりますが、この状況がむしろよかったと思える理由を一、二文で書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "외출하려고 현관을 나서는데 갑자기 소나기가 쏟아져서 우산을 가지러 다시 집에 들어왔어요.",
+            "en": "Just as you stepped out the front door to go out, a sudden downpour started, so you went back inside to grab an umbrella.",
+            "ja": "出かけようと玄関を出たところで急ににわか雨が降り出し、傘を取りに家へ戻りました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept any reasonable upside or helpful response to the rain starting right outside home, such as avoiding getting soaked further away or being able to grab an umbrella right away. Simply being glad to still be near home or able to get an umbrella is enough; do not require multiple sentences or a detailed explanation.",
+        "example": {
+          "ko": "멀리 나가기 전에 비가 쏟아져서 우산을 바로 챙길 수 있어 다행이야.",
+          "en": "I'm glad it started pouring before I got far, so I could grab an umbrella right away.",
+          "ja": "遠くへ行く前に雨が降り出したから、すぐに傘を持っていけてよかった。"
+        },
+        "retry_hint": {
+          "ko": "집 앞에서 바로 비를 알게 된 덕분에 피한 불편함은 무엇일까요?",
+          "en": "What inconvenience did you avoid by noticing the rain right outside your door?",
+          "ja": "家のすぐ前で雨に気づいたおかげで避けられた不便は何でしょう？"
+        }
+      },
+      "explanation": {
+        "ko": "더 난감해지기 전에 대처할 수 있었다는 점에 초점을 맞추면 잠깐의 번거로움도 다행스러운 일로 바뀌어요.",
+        "en": "Focusing on how you could deal with it before things got worse turns a brief hassle into something fortunate.",
+        "ja": "もっと困ったことになる前に対処できたという点に目を向けると、ちょっとした手間もよかったと思えることに変わります。"
+      }
+    },
+    {
+      "icon_key": "laptop",
+      "number": 14,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "열 줄을 다시 써야 하는 속상함 대신 이 상황이 오히려 다행인 이유를 적어보세요.",
+        "en": "Instead of focusing on the frustration of rewriting 10 lines, write why this situation is actually fortunate.",
+        "ja": "10行書き直す悔しさの代わりに、この状況がむしろよかったと思える理由を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "노트북으로 과제를 쓰다가 프로그램이 갑자기 꺼졌는데, 자동 저장 기능 덕분에 마지막 열 줄만 지워졌어요.",
+            "en": "While you were working on an assignment on your laptop, the program suddenly crashed, but thanks to autosave only the last 10 lines were erased.",
+            "ja": "ノートパソコンで課題を書いている途中にソフトが突然落ちましたが、自動保存機能のおかげで最後の10行だけ消えました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept relief that most of the assignment remains, that only a small part was lost, or a manageable attitude toward rewriting the lost lines. Describing the redo as a small or quick amount is itself a positive cue, even in a brief fragment without emotion words or an explicit comparison. Do not require naming autosave or explaining why the limited loss is fortunate.",
+        "example": {
+          "ko": "자동 저장 덕분에 처음부터 전부 다시 쓰지 않아도 돼서 정말 다행이야.",
+          "en": "Thanks to autosave, I'm really glad I don't have to rewrite the whole thing from scratch.",
+          "ja": "自動保存のおかげで、最初から全部書き直さずに済んで本当によかった。"
+        },
+        "retry_hint": {
+          "ko": "사라진 열 줄보다 무사히 남아 있는 분량에 시선을 옮겨 볼까요?",
+          "en": "Can you shift your focus from the lost 10 lines to the work that is still safe?",
+          "ja": "消えた10行より、無事残っている分に目を向けてみませんか？"
+        }
+      },
+      "explanation": {
+        "ko": "잃어버린 일부보다 남아 있는 대부분에 시선을 두면 당황스러운 상황에서도 금방 마음을 추스를 수 있어요.",
+        "en": "Looking at the large part that remains rather than the small part you lost helps you regroup quickly even in a startling situation.",
+        "ja": "消えてしまった一部より残っている大部分に目を向けると、焦るような状況でもすぐに気持ちを立て直せます。"
+      }
+    },
+    {
+      "icon_key": "running_shoe",
+      "number": 15,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": true,
+      "reward_hay": 60,
+      "mission": {
+        "ko": "운동을 끝까지 못 한 아쉬움 대신 이 상황이 오히려 다행인 이유를 적어보세요.",
+        "en": "Instead of regretting not finishing your workout, write why this situation is actually fortunate.",
+        "ja": "運動を最後までできなかった残念さの代わりに、この状況がむしろよかったと思える理由を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "오랜만에 달리기를 하러 나갔는데 10분 만에 발목이 살짝 시큰거려서 무리하지 않고 천천히 걸어서 돌아왔어요.",
+            "en": "You went out for a run for the first time in a while, and after 10 minutes your ankle felt a bit sore, so you didn't push yourself and walked back slowly.",
+            "ja": "久しぶりに走りにいったら10分で足首が少し痛んだので、無理せずゆっくり歩いて帰ってきました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept any positive view of stopping early, such as avoiding a worse injury, noticing the body's signal, resting, walking back, or not overdoing it. A brief mention of protecting the body or avoiding further strain is enough; do not require medical reasoning. Encouraging ignoring pain and pushing through is contrary to the exercise.",
+        "example": {
+          "ko": "크게 다치기 전에 몸의 신호를 알아차리고 일찍 멈출 수 있어서 다행이야.",
+          "en": "I'm glad I noticed my body's signal and stopped early before getting badly hurt.",
+          "ja": "大きなけがをする前に体のサインに気づいて、早めにやめられてよかった。"
+        },
+        "retry_hint": {
+          "ko": "무리해서 계속 뛰었더라면 어땠을지 생각하며 다행인 점을 찾아봐요.",
+          "en": "Think about what might have happened if you kept running, and find the bright side.",
+          "ja": "無理に走り続けていたらどうなったか考えて、よかった点を探してみましょう。"
+        }
+      },
+      "explanation": {
+        "ko": "계획대로 끝내지 못한 아쉬움보다 내 몸을 지키는 선택을 했다는 점을 인정해 주는 게 중요해요.",
+        "en": "Rather than dwelling on not finishing as planned, it is important to give yourself credit for choosing to protect your body.",
+        "ja": "計画通りに終えられなかった残念さより、自分の体を守る選択ができたことを認めてあげることが大切です。"
+      }
+    },
+    {
+      "icon_key": "camping",
+      "number": 16,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "갑자기 약속이 취소된 오늘 하루를 어떻게 보내면 좋을까요?",
+        "en": "How could you spend the day now that your plans were suddenly canceled?",
+        "ja": "急に予定がなくなった今日一日を、どう過ごせばよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "주말에 친구와 야외 나들이를 가기로 했는데 아침부터 비가 많이 내려서 취소됐어요.",
+            "en": "You planned to go on an outdoor outing with a friend this weekend, but heavy rain since morning forced you to cancel.",
+            "ja": "週末に友達と屋外へ出かける予定でしたが、朝から大雨が降って中止になりました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "이왕 집에서 쉬게 된 김에 빗소리를 들으며 밀린 드라마를 몰아봐야겠어",
+            "en": "Since I'm resting at home, I'll listen to the rain and catch up on my shows",
+            "ja": "せっかく家で休めることになったから、雨音を聞きながら溜まっていたドラマを一気見しよう"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "미리 일기예보도 제대로 확인하지 않고 무작정 약속을 잡은 내 탓이야",
+            "en": "It's my fault for making plans without checking the weather forecast first",
+            "ja": "事前に天気予報もちゃんと確認しないで、むやみに予定を入れた自分のせいだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "어쩔 수 없는 날씨까지 내 탓으로 돌릴 필요는 없어요.",
+            "en": "There's no need to blame yourself for weather you can't control.",
+            "ja": "どうにもならない天気まで自分のせいにする必要はありませんよ。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "바깥 나들이는 인파에 치이고 돈만 쓰는 피곤한 일정이니 안 가길 잘했어",
+            "en": "Going out just means crowds and spending money, so I'm glad I stayed in",
+            "ja": "外へ出かけると人混みに疲れてお金を使うだけだから、行かなくて正解だったな"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "기대했던 나들이를 깎아내리는 대신 오늘 즐길 일을 골라볼까요?",
+            "en": "Instead of talking down the outing you looked forward to, what can you enjoy today?",
+            "ja": "楽しみだった外出を悪く言うより、今日楽しめることを選びませんか？"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "피곤하기만 했을 거라며 기대했던 나들이를 깎아내리기보다, 집에서 즐길 수 있는 새로운 기쁨으로 빈 시간을 채워보세요.",
+        "en": "Rather than talking down the outing you were looking forward to as exhausting, fill your free time with something new you can enjoy at home.",
+        "ja": "どうせ疲れるだけだったと楽しみにしていた外出を悪く言うより、家で味わえる新しい楽しみで空いた時間を満たしてみましょう。"
+      }
+    },
+    {
+      "icon_key": "mobile_phone",
+      "number": 17,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "휴대폰 없이 기다려야 하는 2시간을 어떻게 보내면 좋을까요?",
+        "en": "How could you spend the 2 hours you have to wait without your phone?",
+        "ja": "スマホなしで待たなければならない2時間を、どう過ごせばよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "휴대폰 액정이 살짝 깨져서 수리점에 맡겼더니 고치는 데 2시간이나 걸린대요.",
+            "en": "You dropped your phone off at a repair shop for a slightly cracked screen, and they said it will take 2 hours to fix.",
+            "ja": "スマホの画面が少し割れて修理店に預けたところ、直すのに2時間もかかると言われました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "평소에 보호 케이스도 안 끼우고 휴대폰을 험하게 다룬 내 부주의함 때문이야",
+            "en": "It's my fault for handling my phone roughly without a protective case",
+            "ja": "普段から保護ケースもつけずにスマホを雑に扱っていた自分の不注意のせいだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "이미 지나간 실수를 자책하기보다 지금 생긴 두 시간을 누려도 괜찮아요.",
+            "en": "Instead of blaming yourself for a past mistake, it's okay to enjoy these 2 hours.",
+            "ja": "過ぎた失敗を責めるより、今できた2時間を楽しんでも大丈夫ですよ。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "이왕 휴대폰이 없는 김에 근처 서점에 들러 눈여겨봤던 책을 조용히 읽어야겠어",
+            "en": "While I'm phoneless, I'll stop by a bookstore and quietly read a book",
+            "ja": "せっかくスマホがないから、近くの本屋に寄って気になっていた本を静かに読もう"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "주변 사람들 연락을 받아주는 것도 피곤했는데 수리 핑계로 답장을 다 미뤄버려야지",
+            "en": "Replying to people was tiring anyway, so I'll use this as an excuse to ignore them",
+            "ja": "周りの連絡に付き合うのも疲れていたし、修理を口実に返信を全部後回しにしよう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "수리를 핑계로 소통을 피하기보다 온전히 나에게 집중할 일을 찾아볼까요?",
+            "en": "Instead of using the repair to avoid people, what helps you focus on yourself?",
+            "ja": "修理を口実に連絡を避けるより、自分に集中できることを探しませんか？"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "주변 연락을 귀찮다며 외면하기보다, 잠시 휴대폰을 내려놓고 평소 미뤄둔 취미를 즐기는 시간으로 삼아보세요.",
+        "en": "Rather than brushing off messages from others as a chore, use this time away from your phone to enjoy a hobby you have been putting off.",
+        "ja": "周りからの連絡を面倒だと突き放すより、少しの間スマホを置いて普段後回しにしていた趣味を楽しむ時間にしてみましょう。"
+      }
+    },
+    {
+      "icon_key": "clipboard",
+      "number": 18,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "자리로 돌아와 팀장님의 의견을 정리할 때 어떻게 생각하면 힘이 될까요?",
+        "en": "As you return to your desk to organize your manager's feedback, what thought would give you strength?",
+        "ja": "席に戻って上司の意見を整理するとき、どう考えれば力になるでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "회사에서 공들여 준비한 기획안 발표를 마쳤는데, 팀장님께 자료 근거가 조금 부족하다는 의견을 들었어요.",
+            "en": "After you finished presenting a proposal you worked hard on at work, your manager commented that the supporting material was a bit lacking.",
+            "ja": "会社で念入りに準備した企画案の発表を終えたあと、上司から根拠となる資料が少し足りないという意見をもらいました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "칭찬을 못 들었으니 이번 발표는 실패한 거고 앞으로도 내 기획안은 인정받지 못할 거야",
+            "en": "I didn't get praised, so this failed and my proposals will never be valued",
+            "ja": "褒められなかったから今回の発表は失敗だし、これからも自分の企画案は認められないだろう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "보완할 의견 하나 때문에 발표 전체가 정말 실패한 걸까요?",
+            "en": "Does one piece of feedback for improvement really make the whole presentation a failure?",
+            "ja": "補うべき意見が一つあっただけで、発表全体が失敗なのでしょうか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "근거 자료는 좀 아쉽다고 하셨지만 발표 슬라이드 디자인이 깔끔해서 보기에는 좋았어",
+            "en": "The data fell short, but at least my slide design looked clean and neat",
+            "ja": "根拠資料は少し足りないと言われたけれど、スライドのデザインがきれいで見た目はよかったな"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "디자인으로 위안 삼기보다 팀장님이 짚어주신 핵심을 기회로 바꿔 봐요.",
+            "en": "Instead of taking comfort in the design, turn your manager's key point into a chance.",
+            "ja": "デザインで慰めるより、上司が指摘した核心を機会に変えてみましょう。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "짚어주신 근거 자료만 보강하면 설득력이 훨씬 높아질 테니 완성도를 높이는 계기로 삼아야지",
+            "en": "Adding the data they pointed out will make my proposal much more persuasive",
+            "ja": "指摘された根拠資料さえ補えば説得力がずっと高まるから、完成度を上げるきっかけにしよう"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "보완할 핵심을 비켜 가며 다른 점으로 위안 삼으면 성장할 기회를 놓치게 돼요. 아쉬운 평가를 완성도를 높이는 단서로 삼아보세요.",
+        "en": "Sidestepping the key area for improvement to comfort yourself with something else makes you miss a chance to grow. Use critical feedback as a clue to make your work more complete.",
+        "ja": "改善すべき核心から目をそらして別の点で自分を慰めると、成長する機会を逃してしまいます。厳しい評価こそ、完成度を高める手がかりにしてみましょう。"
+      }
+    },
+    {
+      "icon_key": "hot_beverage",
+      "number": 19,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "이렇게 된 김에 해볼 수 있는 새로운 시도를 한두 문장으로 적어보세요.",
+        "en": "In a sentence or two, write something new you could try now that things turned out this way.",
+        "ja": "せっかくこうなったからこそ試せる新しいことを、一、二文で書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "자주 가던 단골 카페가 오늘 내부 수리로 임시 휴무라 발길을 돌려야 했어요.",
+            "en": "Your go-to cafe was temporarily closed for interior repairs today, so you had to turn back.",
+            "ja": "よく行く行きつけのカフェが今日は内装工事で臨時休業だったため、引き返すことになりました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept any reasonable alternative, new cafe, change of routine, or opportunity after finding the usual cafe closed. A simple plan or realistic alternative is enough; do not require a named location, multiple sentences, or a detailed benefit.",
+        "example": {
+          "ko": "이왕 이렇게 된 김에 평소 궁금했던 옆 골목의 새로운 카페에 가봐야겠어.",
+          "en": "Since things turned out this way, I'll check out that new cafe in the next alley I've been curious about.",
+          "ja": "せっかくこうなったから、普段から気になっていた隣の路地の新しいカフェに行ってみよう。"
+        },
+        "retry_hint": {
+          "ko": "발길을 돌린 덕분에 새롭게 가볼 만한 곳은 어디일까요?",
+          "en": "Since you had to turn back, what new place could you check out instead?",
+          "ja": "引き返したおかげで、新しく行けそうな場所はどこでしょう？"
+        }
+      },
+      "explanation": {
+        "ko": "익숙한 계획이 막혔을 때를 새로운 장소나 취향을 발견하는 기회로 삼으면 뜻밖의 즐거움을 만날 수 있어요.",
+        "en": "When a familiar plan falls through, treating it as a chance to discover a new place or taste can bring unexpected joy.",
+        "ja": "いつもの予定がうまくいかないときを新しい場所や好みを見つける機会にすると、思わぬ楽しさに出会えます。"
+      }
+    },
+    {
+      "icon_key": "admission_tickets",
+      "number": 20,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "실수를 자책하는 대신 이렇게 된 김에 남은 1시간을 즐겁게 보낼 방법을 적어보세요.",
+        "en": "Instead of blaming yourself for the mistake, write how you can enjoy the remaining 1 hour.",
+        "ja": "失敗を責める代わりに、せっかくできた残りの1時間を楽しく過ごす方法を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "저녁에 보려던 영화의 상영 시간을 착각해서 영화관에 도착해보니 다음 회차까지 1시간이 남았어요.",
+            "en": "You mixed up the showtime for the evening movie you wanted to see, and when you arrived at the theater, there was still 1 hour left until the next showing.",
+            "ja": "夜に見ようと思っていた映画の上映時間を勘違いしてしまい、映画館に着くと次の回まで1時間ありました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept any reasonable way to enjoy or use the 1-hour wait, or a constructive response to mixing up the showtime without self-blame. A brief mention of an ordinary activity or a relaxed way to pass the time is enough. A gentle next-time plan is also enough.",
+        "example": {
+          "ko": "이왕 1시간이 비었으니 근처 서점을 구경하며 여유롭게 시간을 보내야겠어.",
+          "en": "Since I have 1 hour free, I'll browse a nearby bookstore and take my time.",
+          "ja": "せっかく1時間空いたから、近くの本屋を見て回りながらゆったり過ごそう。"
+        },
+        "retry_hint": {
+          "ko": "영화 시작 전까지 생긴 한 시간을 어떻게 즐기면 기분이 좋아질까요?",
+          "en": "How could you enjoy the 1 hour before the movie starts so you feel good?",
+          "ja": "映画が始まるまでの1時間をどう楽しめば気分がよくなるでしょう？"
+        }
+      },
+      "explanation": {
+        "ko": "실수로 생긴 빈 시간도 나를 위한 여유 시간으로 바라보면 기다림이 한결 여유롭고 즐거워져요.",
+        "en": "When you view free time created by a mistake as extra time for yourself, the wait becomes much more relaxed and enjoyable.",
+        "ja": "うっかりしてできた空き時間も自分のためのゆとりの時間と捉えれば、待ち時間がずっと穏やかで楽しいものになります。"
+      }
+    },
+    {
+      "icon_key": "school",
+      "number": 21,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "원하던 강의를 놓쳐 아쉽지만, 이렇게 된 김에 어떤 기회로 삼을 수 있을지 적어보세요.",
+        "en": "It's disappointing to miss the course you wanted, but since things turned out this way, write down what opportunity you could find in it.",
+        "ja": "希望の講義を取れず残念ですが、せっかくの機会としてどう生かせるか書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "듣고 싶던 인기 교양 과목 수강 신청에 실패했어요. 대신 전혀 몰랐던 역사 교양 과목을 신청하게 됐어요.",
+            "en": "You missed out on registering for a popular elective you wanted to take. Instead, you signed up for an unfamiliar history elective.",
+            "ja": "受けたかった人気の教養科目の履修登録に失敗してしまいました。代わりに、全く知らなかった歴史の教養科目を取ることになりました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept openness, curiosity, seeing the unfamiliar history class as a new opportunity, or another feasible way forward after missing the preferred course. The user need not promise to enjoy history or identify a specific learning outcome.",
+        "example": {
+          "ko": "이왕 이렇게 된 김에 평소 안 접해본 역사 이야기를 들어보면서 새로운 관심사를 찾아봐야지.",
+          "en": "Since things turned out this way, I'll listen to history stories I don't usually come across and look for a new interest.",
+          "ja": "こうなったからには、普段触れない歴史の話を聞きながら新しい関心事を探してみよう。"
+        },
+        "retry_hint": {
+          "ko": "새로 신청한 역사 수업에서 어떤 흥미로운 배움을 얻을 수 있을까요?",
+          "en": "What interesting things might you learn in the new history course?",
+          "ja": "新しく取った歴史の授業で、どんな面白い学びが得られそうでしょうか？"
+        }
+      },
+      "explanation": {
+        "ko": "계획대로 되지 않았을 때도 '이왕 이렇게 된 김에'라고 생각하면 뜻밖의 즐거움이나 새로운 관심사를 발견할 수 있어요.",
+        "en": "Even when things don't go as planned, thinking \"might as well make the most of it\" can help you discover unexpected enjoyment or a new interest.",
+        "ja": "計画通りにいかなかったときも、「せっかくだから」と考えてみると、思わぬ楽しさや新しい関心事を見つけられます。"
+      }
+    },
+    {
+      "icon_key": "hot_beverage",
+      "number": 22,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "정신없이 바빴던 2시간을 어떻게 받아들이면 좋을까요?",
+        "en": "How could you look at those hectic 2 hours in a positive way?",
+        "ja": "目まぐるしく忙しかった2時間を、どう受け止めるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "카페 알바 중에 손님이 한꺼번에 몰려서 정신없이 바쁜 2시간을 보냈어요.",
+            "en": "During your cafe shift, customers rushed in all at once and kept you frantically busy for 2 hours.",
+            "ja": "カフェのバイト中にお客さんが一気に押し寄せて、目まぐるしく忙しい2時間を過ごしました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "손님이 몰리니까 자꾸 손이 꼬이는 걸 보면 난 역시 일머리가 없나 봐",
+            "en": "I kept fumbling during the rush; I guess I'm just not cut out for this",
+            "ja": "お客さんが押し寄せると手元が狂ってばかりだし、やっぱり自分は要領が悪いんだな"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "손님이 몰릴 때 조금 서툴렀다고 정말 일머리가 없는 걸까요?",
+            "en": "Does fumbling a bit during a big rush really mean you have no work sense?",
+            "ja": "混雑したときに少し手間取っただけで、本当に要領が悪いと言えるでしょうか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "한가한 날엔 귀찮은 잡일만 더 시키니 여유로운 근무가 좋은 것도 아니지",
+            "en": "Slow days just mean more annoying chores, so easy shifts aren't great either",
+            "ja": "暇な日は面倒な雑用ばかり増えるから、余裕があるシフトがいいわけでもないよね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "한가한 날을 깎아내리지 않고도 바빴던 시간의 장점을 찾을 수 있어요.",
+            "en": "You can find a good side to a busy shift without putting down slow days.",
+            "ja": "暇な日を悪く言わなくても、忙しかった時間のよさを見つけられますよ。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "정신없이 움직였더니 지루할 틈 없이 퇴근 시간이 순식간에 가까워졌어",
+            "en": "Staying busy left no time to get bored, and my shift flew right by",
+            "ja": "夢中で動いていたら退屈する暇もなく、あっという間に退勤時間が近づいたな"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "한가한 날도 별로라며 억지로 위안 삼기보다, 바빴던 덕분에 퇴근 시간이 훌쩍 가까워졌다는 점에 초점을 맞추면 피로가 한결 가벼워져요.",
+        "en": "Rather than forcing comfort by telling yourself slow days are bad too, focusing on how the busy shift made quitting time come much faster will make your fatigue feel lighter.",
+        "ja": "暇な日も嫌だと無理に慰めるより、忙しかったおかげで退勤時間があっという間に近づいたことに目を向けると、疲れがぐっと軽くなります。"
+      }
+    },
+    {
+      "icon_key": "airplane",
+      "number": 23,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "친구에게 살짝 서운해진 지금, 이 상황을 어떻게 받아들이면 좋을까요?",
+        "en": "Now that you feel a bit hurt by your friend, how could you look at this situation?",
+        "ja": "友達に少しモヤモヤしている今、この状況をどう受け止めるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "친한 친구와 여행 계획을 짜다가 숙소 스타일로 의견이 갈렸어요. 결국 살짝 서운한 채로 대화를 마쳤어요.",
+            "en": "While planning a trip with a close friend, you disagreed on the style of accommodation. In the end, you finished the conversation feeling a little hurt.",
+            "ja": "親しい友達と旅行の計画を立てていて、宿の好みで意見が分かれました。結局、少しわだかまりが残ったまま話が終わりました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "여행 가기 전에 서로 중요하게 여기는 기준을 미리 알게 돼서 맞춰갈 수 있겠어",
+            "en": "Knowing each other's priorities before the trip will help us compromise",
+            "ja": "旅行の前にそれぞれが大事にしたい基準が分かったから、これからすり合わせていけそうだ"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "숙소 얘기는 더 꺼내지 말고 그냥 친구가 하자는 대로 다 따라가는 게 마음 편하겠어",
+            "en": "I'll just drop the hotel talk and go along with whatever my friend wants",
+            "ja": "宿の話はもう持ち出さないで、ただ友達の言う通りに全部従うほうが気楽でいいや"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "서운한 마음을 덮고 대화를 피하면 진짜 편안해질 수 있을까요?",
+            "en": "Will hiding your hurt feelings and avoiding the talk really help you feel at ease?",
+            "ja": "モヤモヤした気持ちを抑えて話し合いを避けて、本当に気が楽になるでしょうか？"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "출발도 전에 이렇게 부딪히는 걸 보니 이번 여행은 내내 싸우다 끝날 게 뻔해",
+            "en": "Clashing before we even leave means we'll clearly fight the whole trip",
+            "ja": "出発する前からこんなにぶつかるなんて、今回の旅行はずっとけんかして終わるに決まってる"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "의견이 한 번 갈렸다고 여행 전체가 나빠질 거라 단정하지 말아요.",
+            "en": "Don't assume the whole trip will go badly just because you disagreed once.",
+            "ja": "一度意見が違ったからといって、旅行全体が悪くなると決めつけないでくださいね。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "서운한 마음을 덮어두고 대화를 피하는 건 건강한 해결이 아니에요. 여행 전에 서로의 기준을 미리 확인했다고 생각하면 한결 마음이 편해져요.",
+        "en": "Bottling up your hurt feelings and avoiding conversation isn't a healthy solution. You'll feel much more at ease if you see this as checking each other's priorities before the trip.",
+        "ja": "モヤモヤした気持ちに蓋をして話し合いを避けるのは、健全な解決とは言えません。旅行の前にお互いの基準を確認できたと考えれば、ずっと気が楽になります。"
+      }
+    },
+    {
+      "icon_key": "mirror",
+      "number": 24,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "짧아진 머리가 어색하고 아쉽지만, 반대로 생각해보면 어떤 점이 좋을지 적어보세요.",
+        "en": "Your shorter hair feels awkward and disappointing, but write down what might be good about it if you look at it from the other side.",
+        "ja": "短くなった髪に見慣れず残念ですが、逆に考えてみるとどんなよい点があるか書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "미용실에서 머리를 자르고 왔는데 생각보다 기장이 더 짧게 잘렸어요.",
+            "en": "You got a haircut at the salon, and it turned out shorter than you expected.",
+            "ja": "美容院で髪を切ってきたのですが、思っていたより長さが短くなってしまいました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept any reasonable upside, convenience, adaptation, or constructive response to the shorter haircut. Mixed disappointment and acceptance are fine; do not require praising the haircut.",
+        "example": {
+          "ko": "아직 거울을 보면 좀 어색하지만, 아침마다 머리 말리고 손질하는 시간은 확 줄어들겠어.",
+          "en": "It still looks a bit awkward in the mirror, but drying and styling my hair every morning will take way less time.",
+          "ja": "まだ鏡を見ると少し見慣れないけれど、毎朝髪を乾かしてセットする時間はぐっと短くなりそうだ。"
+        },
+        "retry_hint": {
+          "ko": "머리가 짧아진 덕분에 아침마다 어떤 점이 한결 편해질까요?",
+          "en": "What might become much easier every morning thanks to your shorter hair?",
+          "ja": "髪が短くなったおかげで、毎朝どんなことがずっと楽になるでしょうか？"
+        }
+      },
+      "explanation": {
+        "ko": "예상과 다른 결과에 속상할 때도 반대로 편해진 점을 찾아보면 아쉬운 마음이 한결 가벼워져요.",
+        "en": "Even when you're upset about an unexpected result, looking for what has become more convenient can make your disappointment feel much lighter.",
+        "ja": "予想と違う結果にがっかりしたときも、逆に楽になった点を探してみると、残念な気持ちがぐっと軽くなります。"
+      }
+    },
+    {
+      "icon_key": "guitar",
+      "number": 25,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "남과 비교하며 위축되는 대신, 반대로 생각해보면 어떤 좋은 점이 있을지 적어보세요.",
+        "en": "Instead of feeling discouraged by comparing yourself with others, write down what good points you might find by looking at it another way.",
+        "ja": "人と比べて気後れする代わりに、逆に考えてみるとどんなよい点があるか書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "취미로 다니는 기타 학원에서 나보다 늦게 등록한 수강생이 진도를 훨씬 빨리 나가서 위축됐어요.",
+            "en": "At the guitar class you take as a hobby, a student who joined after you was progressing much faster, leaving you feeling discouraged.",
+            "ja": "趣味で通っているギター教室で、自分より後に登録した生徒の進度がずっと早く、気後れしてしまいました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept going at one's own pace, enjoying the hobby, encouragement, continued practice, or learning from the other student. One gentle, realistic response to comparison is enough.",
+        "example": {
+          "ko": "진도는 느려도 기초를 더 탄탄히 다지는 중이고, 잘 치는 수강생한테 팁을 물어볼 수도 있겠어.",
+          "en": "My progress may be slow, but I'm building a stronger foundation, and I can even ask that student for tips.",
+          "ja": "進みは遅くても基礎をしっかり固めているところだし、上手な生徒にコツを聞いてみることもできそうだ。"
+        },
+        "retry_hint": {
+          "ko": "내 속도대로 천천히 익힐 때 얻을 수 있는 장점은 무엇일까요?",
+          "en": "What is the advantage of learning slowly at your own pace?",
+          "ja": "自分のペースでゆっくり身につけることには、どんなよさがあるでしょうか？"
+        }
+      },
+      "explanation": {
+        "ko": "남의 속도에 위축될 때는 내 방식대로 천천히 즐기거나 배울 점을 찾는 쪽으로 시선을 옮겨보세요.",
+        "en": "When someone else's pace makes you feel discouraged, try shifting your focus to enjoying things slowly in your own way or finding something to learn from them.",
+        "ja": "人のペースに気後れするときは、自分なりにゆっくり楽しむことや、学べる点を探すほうへ目を向けてみましょう。"
+      }
+    },
+    {
+      "icon_key": "beach_with_umbrella",
+      "number": 26,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "배편이 끊겨 아쉽지만, 오히려 다행인 점이나 대신 즐길 일을 일기에 적어보세요.",
+        "en": "It's disappointing that the ferry was canceled, but write in your diary about what might actually be fortunate or what you can enjoy instead.",
+        "ja": "船が欠航して残念ですが、かえってよかった点や代わりに楽しめることを日記に書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "혼자 떠난 제주도 여행 마지막 날이었다. 바람이 너무 세게 불어서 기대했던 우도 배편이 결항됐다.",
+            "en": "It was the last day of my solo trip to the coast. The wind was blowing so hard that the island ferry I had been looking forward to was canceled.",
+            "ja": "一人で出かけた沖縄旅行の最終日だった。風があまりに強くて、楽しみにしていた離島行きの船が欠航になった。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept any reasonable alternative, relief about safety, rest, or another enjoyable plan after the canceled ferry. Do not require both a silver lining and an alternative plan, and no need to deny disappointment; unsafe travel despite the cancellation is not constructive.",
+        "example": {
+          "ko": "무리하게 배를 타서 멀미하는 것보다 안전해서 다행이다. 남은 시간엔 근처 조용한 카페와 동네를 여유롭게 둘러봐야겠다.",
+          "en": "It's a relief to stay safe rather than forcing myself onto the ferry and getting seasick. With the time I have left, I'll take it easy and explore a quiet cafe and the neighborhood nearby.",
+          "ja": "無理に船に乗って船酔いするより、安全でよかった。残りの時間は近くの静かなカフェや町をゆっくり見て回ろう。"
+        },
+        "retry_hint": {
+          "ko": "거센 바람에 배를 안 타서 다행인 점과 지금 즐길 일을 함께 적어볼까요?",
+          "en": "Why is skipping the windy ferry for the best, and what can you enjoy right now?",
+          "ja": "強風の中で船に乗らずによかった点と、今楽しめることを書いてみませんか？"
+        }
+      },
+      "explanation": {
+        "ko": "날씨 탓에 계획이 틀어져도 안전을 위한 일로 여기고 다른 즐거움을 찾으면 여행을 기분 좋게 마무리할 수 있어요.",
+        "en": "Even when the weather ruins your plans, seeing it as a matter of safety and finding something else to enjoy can help you wrap up your trip on a good note.",
+        "ja": "天気のせいで計画が狂っても、安全のためだと受け止めて別の楽しみを探せば、気持ちよく旅行を締めくくれます。"
+      }
+    },
+    {
+      "icon_key": "people_hugging",
+      "number": 27,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "모르는 사람들과 같은 조가 되어 어색하지만, 이렇게 된 김에 좋은 점을 찾아 적어보세요.",
+        "en": "Being grouped with people you don't know feels awkward, but since it happened, find a good side to it and write it down.",
+        "ja": "知らない人たちと同じ班になって気まずいですが、せっかくの機会としてよい点を見つけて書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "회사 워크숍에서 친분이 전혀 없던 다른 부서 사람들과 같은 조가 됐다. 처음엔 무슨 말을 해야 할지 몰라 조금 어색했다.",
+            "en": "At the company workshop, I was put in the same group as people from other departments I didn't know at all. At first, I didn't know what to say and felt a bit awkward.",
+            "ja": "会社のワークショップで、全く面識のなかった他部署の人たちと同じ班になった。最初はどんな話をすればいいか分からず、少し気まずかった。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept a small social step, a light greeting, curiosity, a chance for new conversation or connection, or giving the unfamiliar group a chance. No explicit lesson or major benefit is needed.",
+        "example": {
+          "ko": "이왕 같은 조가 된 김에 평소 마주칠 일 없던 다른 부서 사람들의 이야기를 들어볼 좋은 기회였다.",
+          "en": "Since we ended up in the same group, it was a good opportunity to hear from people in other departments whom I wouldn't normally run into.",
+          "ja": "せっかく同じ班になったからこそ、普段顔を合わせることのない他部署の人たちの話を聞けるよい機会だった。"
+        },
+        "retry_hint": {
+          "ko": "평소 만나기 힘든 타 부서 사람들과 친해질 기회라고 생각해도 괜찮아요.",
+          "en": "You can also see it as a chance to bond with people from other departments.",
+          "ja": "普段会えない他部署の人と親しくなる機会と考えても大丈夫ですよ。"
+        }
+      },
+      "explanation": {
+        "ko": "낯선 자리가 어색하더라도 새로운 사람을 알아가는 기회로 바라보면 마음이 한결 열려요.",
+        "en": "Even when an unfamiliar setting feels awkward, viewing it as a chance to get to know new people will help you open up much more easily.",
+        "ja": "慣れない場が気まずくても、新しい人を知る機会だと捉えれば、気持ちがぐっと開いていきます。"
+      }
+    },
+    {
+      "icon_key": "receipt",
+      "number": 28,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "목표 저축액을 못 채워 아쉽지만, 지출의 의미나 다음 달 계획을 담아 일기를 마무리해보세요.",
+        "en": "Missing your savings goal is disappointing, but finish the diary by reflecting on the meaning of your spending or your plan for next month.",
+        "ja": "目標の貯金額に届かず残念ですが、出費の意味や来月の計画を込めて日記を締めくくってみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "가계부를 정리하다가 지난달에 예상치 못한 경조사비가 많이 나간 걸 봤다. 결국 목표했던 저축액을 다 채우지 못했다.",
+            "en": "While organizing my expense tracker, I saw that I spent a lot on unexpected gifts and special occasions last month. In the end, I couldn't reach my savings goal.",
+            "ja": "家計簿を整理していて、先月は思いがけない冠婚葬祭の出費が重なったことに気づいた。結局、目標にしていた貯金額を達成できなかった。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept finding meaning in caring for others through the spending, adjusting expectations, or any reasonable next saving or budgeting step. Do not require both appreciation of the spending and a budget plan.",
+        "example": {
+          "ko": "저축은 목표보다 덜 했지만 소중한 사람들의 기쁜 일을 축하해 줄 수 있어서 뜻깊었다. 다음 달엔 경조사비 예산을 조금 따로 빼두어야겠다.",
+          "en": "I saved less than my goal, but it was meaningful to celebrate happy occasions for people I care about. Next month, I should set aside a small budget for special events.",
+          "ja": "貯金は目標より少なかったけれど、大切な人たちの嬉しい出来事をお祝いできて意味深かった。来月は冠婚葬祭の予算を少し別にとっておこう。"
+        },
+        "retry_hint": {
+          "ko": "소중한 사람들에게 따뜻한 마음을 전한 지출이었다고 바라보면 어떨까요?",
+          "en": "What if you see it as money spent to share warm wishes with people who matter?",
+          "ja": "大切な人たちに温かい気持ちを伝えた出費だと捉えてみてはどうでしょうか？"
+        }
+      },
+      "explanation": {
+        "ko": "숫자만 보면 아쉽지만 소중한 사람들에게 마음을 전한 지출이었다는 점에 초점을 맞추면 자책을 줄일 수 있어요.",
+        "en": "Looking only at the numbers may feel disappointing, but focusing on how that spending showed you care for important people can help you blame yourself less.",
+        "ja": "数字だけを見ると残念ですが、大切な人たちに気持ちを伝えた出費だったことに目を向ければ、自分を責めずに済みます。"
+      }
+    },
+    {
+      "icon_key": "trophy",
+      "number": 29,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "탈락해서 허탈하지만, 이번 과정에서 얻은 점이나 다음 다짐을 담아 일기를 마무리해보세요.",
+        "en": "Getting eliminated feels discouraging, but finish the diary with what you gained from the process or your resolve for next time.",
+        "ja": "落選してむなしい気持ちですが、今回の過程で得たことや次の決意を込めて日記を締めくくってみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "공들여 준비한 공모전 출품작이 예선에서 탈락했다. 기대가 컸던 만큼 허탈하고 기운이 빠지는 하루였다.",
+            "en": "The competition entry I worked so hard to prepare was eliminated in the preliminary round. Because my hopes were high, it was an empty and draining day.",
+            "ja": "力を入れて準備したコンテストの応募作が予選で落ちた。期待が大きかった分、むなしくて力が抜ける一日だった。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept recognizing the effort of finishing the piece, any learning from the process, self-encouragement, a small next step, or willingness to try again after elimination. Any single constructive angle is sufficient; no detailed lesson is required.",
+        "example": {
+          "ko": "결과는 아쉽지만 끝까지 작품 하나를 완성해 낸 것만으로도 큰 경험이 됐다. 오늘 푹 쉬고 보완해서 다음 공모전에 다시 도전해야겠다.",
+          "en": "The result is disappointing, but just completing a full piece to the end was a big experience. I'll get plenty of rest today, refine my work, and try again in the next competition.",
+          "ja": "結果は残念だけれど、最後まで一つの作品を完成させただけでも大きな経験になった。今日はゆっくり休んで手直しし、次のコンテストにまた挑戦しよう。"
+        },
+        "retry_hint": {
+          "ko": "결과를 떠나 끝까지 작품을 완성해 낸 나에게 어떤 말을 해주고 싶나요?",
+          "en": "Regardless of the result, what would you like to say to yourself for finishing it?",
+          "ja": "結果はともかく、最後まで完成させた自分にどんな言葉をかけたいですか？"
+        }
+      },
+      "explanation": {
+        "ko": "결과만으로 내 노력을 평가절하하지 마세요. 끝까지 작품을 완성해 낸 경험 자체도 소중한 자산이에요.",
+        "en": "Don't devalue your effort based only on the result. The experience of seeing a piece through to completion is a valuable asset in itself.",
+        "ja": "結果だけで自分の努力を低く見ないでくださいね。最後まで作品を完成させた経験そのものも大切な財産です。"
+      }
+    },
+    {
+      "icon_key": "briefcase",
+      "number": 30,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": true,
+      "reward_hay": 150,
+      "mission": {
+        "ko": "연달아 불합격해 마음이 조급하지만, 이번 경험이 도움이 되는 점이나 다음 행동을 적어보세요.",
+        "en": "Getting rejected in a row makes you feel anxious, but write down how this experience helps or what your next step will be.",
+        "ja": "続けて不採用になり焦りますが、今回の経験が役立つ点や次の行動を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "이직을 준비하며 넣은 서류 전형에서 연달아 세 곳이나 불합격 통보를 받았다. 자꾸 떨어지니 마음이 조급해졌다.",
+            "en": "While preparing to change jobs, I was rejected in the application screening by three companies in a row. Getting turned down repeatedly made me feel anxious.",
+            "ja": "転職の準備をしながら応募した書類選考で、続けて3社も不採用の通知を受けた。何度も落ちてしまい、気持ちが焦ってきた。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Positive reframing. Accept reviewing the resume, continuing applications, resting, adjusting plans, learning from the experience, or recognizing effort after the rejections. A simple feasible next step or helpful takeaway is enough; no detailed career strategy is required.",
+        "example": {
+          "ko": "초반에 떨어진 덕분에 내 이력서에서 부족한 부분을 미리 점검할 수 있었다. 서류를 다시 다듬어서 나에게 더 잘 맞는 회사에 지원해야겠다.",
+          "en": "Getting rejected early on helped me check what my resume was missing ahead of time. I'll polish my application documents and apply to companies that fit me better.",
+          "ja": "序盤に落ちたおかげで、履歴書の足りない部分をあらかじめ見直すことができた。書類をもう一度整えて、自分により合う会社に応募しよう。"
+        },
+        "retry_hint": {
+          "ko": "이번 경험을 발판 삼아 가볍게 시도해 볼 다음 행동을 적어볼까요?",
+          "en": "Using this experience as a stepping stone, what small next step could you try?",
+          "ja": "今回の経験を足がかりにして、軽く試せる次の行動を書いてみませんか？"
+        }
+      },
+      "explanation": {
+        "ko": "서류 탈락은 내 가치가 부족해서가 아니라 더 잘 맞는 곳을 찾아가는 과정이에요. 이력서를 점검할 계기로 삼아보세요.",
+        "en": "Not passing a resume screening doesn't mean you lack value; it's part of finding a better fit. Try using it as an opportunity to review your resume.",
+        "ja": "書類選考で落ちるのは、自分の価値が足りないからではなく、より合う場所を探していく過程です。履歴書を見直すきっかけにしてみましょう。"
+      }
+    }
+  ]
+}

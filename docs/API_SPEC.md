@@ -8,7 +8,7 @@
 
 | 서버 | 소유 범위 |
 |---|---|
-| `moly-backend` | 대화·일기·감정·경제·루틴·상점·운세·구독·광고·배너·BGM |
+| `moly-backend` | 대화·일기·감정·경제·루틴·상점·운세·트레이닝·구독·광고·배너·BGM |
 | `moly-auth` | `/me`, 온보딩, 프로필·알림·기기 설정, 로그아웃·회원탈퇴 |
 
 backend 운영/개발 API 주소는 각각 `https://voice.moly.asia`, `https://dev.moly.asia`다.
@@ -62,6 +62,7 @@ Swagger는 local/development 환경에서만 열리며, 개발 전용 라우트�
 | 구독 | `GET /subscription`, `GET /subscription/plans`, `POST /webhooks/revenuecat` | [subscriptions](../openapi/paths/subscriptions.yaml) |
 | 광고 | `POST /reward-ad-sessions`, `GET /webhooks/ad-ssv` | [economy](../openapi/paths/economy.yaml) |
 | 운세 | 프로필 `/fortune-profile`; `/daily-fortune/status`, `/reveal`, `/ad-sessions` | [fortune](../openapi/paths/fortune.yaml) |
+| 트레이닝 | 목록 `GET /trainings`; 상세 `GET /{training_id}`; 답 제출 `POST /{training_id}/stages/{stage}/answers`; 채점 이의 `POST .../claims` | [trainings](../openapi/paths/trainings.yaml) |
 | 오늘의 글귀 | `GET /daily-affirmation` | [affirmation](../openapi/paths/affirmation.yaml) |
 | 배너·BGM | `GET /banners`, `POST /banners/resolve`, `GET /bgm/tracks` | [banners](../openapi/paths/banners.yaml) · [bgm](../openapi/paths/bgm.yaml) |
 | 리뷰·문의 | `POST /review/prompted`, `POST /feedback` | [core](../openapi/paths/core.yaml), [feedback](../openapi/paths/feedback.yaml) |
@@ -104,8 +105,29 @@ Swagger는 local/development 환경에서만 열리며, 개발 전용 라우트�
   제외된다. 해볼 것·조심할 것의 화면 블러는 앱 표시 정책이며 API 권한 상태와 구분한다.
   광고/구독 해금과 문구 배포·프로필 변경의 보존 계약은 [운세](DAILY-FORTUNE.md)를 따른다.
 
+## 트레이닝
+
+- 원고(단계·보기)는 서버 카탈로그가 원본이다. 정답·힌트·풀이·채점 기준은 답을 내기 전에 내려주지 않는다.
+  언어는 운세와 같은 `X-App-Locale` 규칙을 따른다.
+- 답은 지금 풀 차례인 단계에만 낼 수 있다(아니면 `409 TRAINING_STAGE_NOT_CURRENT`). 통과하지 못한 답만
+  도전 기회를 쓰며, 기회가 없으면 `409 TRAINING_NO_TRIES`와 `details.tries`로 다음 충전 시각을 알린다.
+- 제출마다 `client_request_id`를 붙인다. 응답을 못 받아 다시 보낼 때는 같은 id를 쓴다. 서버는 처음 판정을
+  돌려주고 기회를 두 번 쓰지 않는다. 판정을 받은 뒤 같은 단계에 다시 낼 때는 새 id를 쓴다.
+- 주관식 AI 채점이 실패하거나 마감을 넘기면 통과(`judge=fallback`)로 처리한다. 채점 이의는 저장만 하고
+  판정을 바꾸지 않는다. 돌아보기 단계의 보상은 단계마다 한 번 `training_reward` 거래로 지급한다.
+
 ## 계약 변경
 
 OpenAPI 분할 원본과 Pydantic 응답을 함께 갱신하고 bundle을 재생성한다. SDK 생성과 실제 앱 렌더링은
 별도 검증이다. 추가 필드라고 자동 호환을 단정하지 않으며, 멱등 캐시·구버전 저장본·양 버전 reader/writer와
 탈퇴/비공개 상태도 검증한다. 배너·주제 피드는 사용자별 응답이며 공용 캐시로 재사용하지 않는다.
+
+### 트레이닝 제출 재시도 보강 (2026-10-21)
+
+동일 client_request_id는 중간에 다른 제출이 있어도 최초 판정을 재사용한다. 같은 id의 다른 단계/답은422로 거부한다. 채점 중 동일 요청은503 `TRAINING_SUBMISSION_PENDING`이며 입력과 id를 유지해 재시도한다. 30초 lease 만료 후 중단된 채점을 다시 시작할 수 있다. 목록에는 새 두 과정만 노출하고 archived 원고는 기존 id 상세 조회를 유지한다. 일반 객관식은 inline slot이 없을 수도 있다.
+
+### 지갑 이력 타입 호환
+
+`GET /wallet/transactions`의 기본 응답은 `mood_reward`·`training_reward`·`article_reward`를
+`admin_adjustment`로 표시해 구버전 decoder와 호환한다. 해당 세 type을 모두 지원하는 앱은
+`X-Moly-Capabilities: wallet-ledger-types-v2`로 원래 type을 받는다. 원장 및 id·금액·잔액·시간·커서는 유지한다.

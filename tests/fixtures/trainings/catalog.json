@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "trainings": [
+    {
+      "id": "practice-basics",
+      "order": 2,
+      "icon_key": "mending_heart",
+      "title": {"ko": "연습 기본", "en": "Practice basics", "ja": "練習の基本"},
+      "summary": {"ko": "테스트용 짧은 트레이닝이에요.", "en": "A short training for tests.", "ja": "テスト用の短いトレーニングです。"},
+      "stages": [
+        {
+          "number": 1,
+          "answer_type": "pick",
+          "layout": "chat",
+          "pick_style": "choose",
+          "mission": {"ko": "사실에 가까운 생각을 골라 보세요.", "en": "Pick the thought closest to the facts.", "ja": "事実に近い考えを選んでみましょう。"},
+          "lines": [
+            {"speaker": "narration", "text": {"ko": "택배 상자에 부품 하나가 빠져 있었어요.", "en": "One part was missing from the parcel.", "ja": "荷物の箱から部品が一つ抜けていました。"}},
+            {"speaker": "narration", "slot": true, "text": {"ko": "든 생각은?", "en": "What did you think?", "ja": "どう思った？"}}
+          ],
+          "options": [
+            {"id": "a", "text": {"ko": "내가 늘 이렇지 뭐", "en": "This always happens to me", "ja": "いつもこうなんだ"}, "hint": {"ko": "한 번 생긴 일을 늘로 넓히지 않아도 돼요.", "en": "One time does not mean always.", "ja": "一度のことを「いつも」に広げなくて大丈夫。"}},
+            {"id": "b", "text": {"ko": "포장하다 빠졌을 수 있어", "en": "It may have dropped out in packing", "ja": "梱包のときに抜けたのかも"}, "correct": true},
+            {"id": "c", "text": {"ko": "내가 주문을 잘못했나 봐", "en": "I must have ordered it wrong", "ja": "注文を間違えたのかも"}, "hint": {"ko": "주문 내역을 보면 기본 구성품이에요.", "en": "The order shows it is a standard part.", "ja": "注文内容では標準の部品です。"}}
+          ],
+          "explanation": {"ko": "일어난 일과 짐작을 나눠 보면 마음이 가벼워져요.", "en": "Separating facts from guesses lightens the load.", "ja": "事実と推測を分けると心が軽くなります。"}
+        },
+        {
+          "number": 2,
+          "answer_type": "write",
+          "layout": "chat",
+          "mission": {"ko": "내 탓이 아닌 까닭을 하나 적어 보세요.", "en": "Write one reason that is not your fault.", "ja": "自分のせいではない理由を一つ書いてみましょう。"},
+          "lines": [
+            {"speaker": "me", "text": {"ko": "왜 빠졌는지 하나씩 짚어 보자.", "en": "Let me go through why it was missing.", "ja": "なぜ抜けたのか一つずつ考えてみよう。"}},
+            {"speaker": "me", "slot": true, "text": {"ko": "첫 번째 후보는", "en": "The first candidate is", "ja": "一つ目の候補は"}}
+          ],
+          "grading": {"criteria": "Pass any plausible cause that is not the user's own skill.", "example": {"ko": "포장 실수", "en": "a packing mistake", "ja": "梱包のミス"}}
+        },
+        {
+          "number": 3,
+          "answer_type": "pick",
+          "layout": "diary",
+          "pick_style": "erase",
+          "review_point": true,
+          "reward_hay": 15,
+          "mission": {"ko": "나를 몰아세우는 문장을 지워 보세요.", "en": "Erase the sentence that is hard on you.", "ja": "自分を責める文を消してみましょう。"},
+          "lines": [
+            {"speaker": "narration", "text": {"ko": "부품이 빠진 날이었다.", "en": "A part was missing today.", "ja": "部品が足りない日だった。"}},
+            {"speaker": "narration", "slot": true},
+            {"speaker": "narration", "text": {"ko": "내일은 조립을 마칠 수 있다.", "en": "Tomorrow I can finish building it.", "ja": "明日は組み立てを終えられる。"}}
+          ],
+          "options": [
+            {"id": "a", "text": {"ko": "판매자에게 연락했다.", "en": "I contacted the seller.", "ja": "販売者に連絡した。"}, "hint": {"ko": "있었던 일을 적은 문장이에요.", "en": "This sentence just tells what happened.", "ja": "あったことを書いた文です。"}},
+            {"id": "b", "text": {"ko": "다음 날 부품이 왔다.", "en": "The part arrived the next day.", "ja": "翌日部品が届いた。"}, "hint": {"ko": "있었던 일을 적은 문장이에요.", "en": "This sentence just tells what happened.", "ja": "あったことを書いた文です。"}},
+            {"id": "c", "text": {"ko": "나는 아무것도 제대로 못 한다.", "en": "I can never do anything right.", "ja": "私は何もちゃんとできない。"}, "correct": true}
+          ]
+        },
+        {
+          "number": 4,
+          "answer_type": "pick",
+          "layout": "diary",
+          "pick_style": "choose",
+          "mission": {"ko": "일기를 어떻게 이어 쓸지 골라 보세요.", "en": "Choose how to continue the diary.", "ja": "日記の続きを選んでみましょう。"},
+          "lines": [
+            {"speaker": "narration", "text": {"ko": "조립이 생각보다 오래 걸렸다.", "en": "Building it took longer than expected.", "ja": "組み立てに思ったより時間がかかった。"}},
+            {"speaker": "narration", "slot": true}
+          ],
+          "options": [
+            {"id": "a", "text": {"ko": "처음이라 오래 걸리는 게 당연했다.", "en": "It was my first time, so it took a while.", "ja": "初めてだから時間がかかって当然だった。"}, "correct": true},
+            {"id": "b", "text": {"ko": "손이 느린 내가 답답했다.", "en": "I was annoyed at how slow I am.", "ja": "手が遅い自分にいらいらした。"}, "hint": {"ko": "처음 하는 일이었어요.", "en": "It was your first time.", "ja": "初めての作業でした。"}}
+          ]
+        },
+        {
+          "number": 5,
+          "answer_type": "write",
+          "layout": "diary",
+          "mission": {"ko": "나를 탓하지 않고 이어 써 보세요.", "en": "Continue without blaming yourself.", "ja": "自分を責めずに続けて書いてみましょう。"},
+          "lines": [
+            {"speaker": "narration", "text": {"ko": "선반 하나가 살짝 기울었다.", "en": "One shelf leaned a little.", "ja": "棚が一つ少し傾いた。"}},
+            {"speaker": "narration", "slot": true}
+          ],
+          "grading": {"criteria": "Pass if the user continues the diary without self-blame.", "example": {"ko": "나사를 다시 조여 보기로 했다.", "en": "I decided to tighten the screws again.", "ja": "ねじを締め直すことにした。"}}
+        },
+        {
+          "number": 6,
+          "answer_type": "write",
+          "layout": "diary",
+          "review_point": true,
+          "reward_hay": 40,
+          "mission": {"ko": "오늘 애쓴 나에게 고마운 점을 적어 보세요.", "en": "Write what you are thankful to yourself for today.", "ja": "今日頑張った自分に感謝したいことを書いてみましょう。"},
+          "lines": [
+            {"speaker": "narration", "text": {"ko": "드디어 책장이 섰다.", "en": "The bookcase finally stood up.", "ja": "ようやく本棚が立った。"}},
+            {"speaker": "narration", "slot": true}
+          ],
+          "grading": {"criteria": "Pass if the user thanks or praises themself.", "example": {"ko": "끝까지 해낸 내가 고맙다.", "en": "I am grateful I saw it through.", "ja": "最後までやり遂げた自分に感謝。"}}
+        }
+      ]
+    },
+    {
+      "id": "mini",
+      "order": 1,
+      "icon_key": "seedling",
+      "title": {"ko": "작은 연습", "en": "Mini practice", "ja": "ミニ練習"},
+      "summary": {"ko": "한 단계짜리 연습이에요.", "en": "A one-stage practice.", "ja": "一段階の練習です。"},
+      "stages": [
+        {
+          "number": 1,
+          "answer_type": "write",
+          "layout": "chat",
+          "mission": {"ko": "친구에게 답해 보세요.", "en": "Reply to your friend.", "ja": "友だちに返事をしてみましょう。"},
+          "lines": [
+            {"speaker": "other", "name": {"ko": "친구", "en": "Friend", "ja": "友だち"}, "text": {"ko": "오늘 재밌었어!", "en": "Today was fun!", "ja": "今日は楽しかった！"}},
+            {"speaker": "me", "slot": true}
+          ],
+          "grading": {"criteria": "Pass a friendly reply without self-blame.", "example": {"ko": "나도 즐거웠어!", "en": "I had fun too!", "ja": "私も楽しかった！"}}
+        }
+      ]
+    }
+  ]
+}

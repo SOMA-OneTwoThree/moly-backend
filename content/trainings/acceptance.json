@@ -1,0 +1,2009 @@
+{
+  "id": "self-acceptance-v2",
+  "order": 1,
+  "icon_key": "red_heart",
+  "title": {
+    "ko": "자기 수용",
+    "en": "Self-Acceptance",
+    "ja": "自己受容"
+  },
+  "summary": {
+    "ko": "실수하거나 부족한 순간에 나를 과하게 탓하는 대신, 그 일과 나의 가치를 구분해 바라보는 30단계 연습이에요.",
+    "en": "Thirty steps to separate mistakes and shortcomings from your worth instead of blaming yourself too harshly.",
+    "ja": "ミスや足りない瞬間があっても自分を責めすぎず、その出来事と自分の価値を分けて見つめる30のステップです。"
+  },
+  "stages": [
+    {
+      "icon_key": "cloud",
+      "number": 1,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "일정대로 되지 않은 여행 앞에서 어떤 생각을 하면 좋을까요?",
+        "en": "How might you think about a trip that didn't go as planned?",
+        "ja": "予定どおりにいかなかった旅行を前に、どう考えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "오랜만에 친구들과 바다 여행을 가기로 하고 일정을 짰는데, 내내 폭우가 쏟아져서 숙소에만 있었어요.",
+            "en": "You planned a beach trip with friends after a long time and put together the schedule, but heavy rain kept you all indoors at your lodging the whole time.",
+            "ja": "久しぶりに友達と海へ旅行に行くことになり日程を組みましたが、ずっと大雨で宿にこもるしかありませんでした。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "날짜를 잘못 잡아서 친구들의 주말을 다 망쳐버린 내 탓이야",
+            "en": "It's my fault for picking the wrong dates and ruining my friends' whole weekend",
+            "ja": "日程を間違えて友達の週末を台無しにした自分のせいだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "어쩔 수 없는 날씨까지 내 탓으로 떠안지 않아도 괜찮아요.",
+            "en": "You don't need to blame yourself for weather you couldn't control.",
+            "ja": "どうにもならない天気まで自分のせいにしなくて大丈夫です。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "숙소와 일정은 정성껏 준비했고 갑작스러운 날씨는 어쩔 수 없었어",
+            "en": "I planned the trip with care, and the sudden rain couldn't be helped",
+            "ja": "宿や日程は心を込めて準備したし、急な天気はどうしようもなかった"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "일정이 틀어진 건 아무 일도 아니니까 아쉬운 마음은 그냥 접어두자",
+            "en": "A change of plans is no big deal, so I should just brush off my disappointment",
+            "ja": "予定が狂ったのは大したことないから、残念な気持ちはしまっておこう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "아무렇지 않은 척하기보다 아쉬운 마음도 있는 그대로 인정해 봐요.",
+            "en": "Instead of pretending you're fine, try acknowledging your disappointment as it is.",
+            "ja": "平気なふりをするより、残念な気持ちもそのまま認めてみましょう。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "날씨는 누구도 마음대로 할 수 없어요. 아쉬운 감정을 애써 외면하거나 자책하기보다 정성껏 준비한 내 마음을 인정해 주세요.",
+        "en": "No one can control the weather. Instead of brushing aside your disappointment or blaming yourself, give yourself credit for the care you put into preparing.",
+        "ja": "天気は誰にもコントロールできません。残念な気持ちから目を背けたり自分を責めたりするより、心を込めて準備した自分を認めてあげましょう。"
+      }
+    },
+    {
+      "icon_key": "speech_balloon",
+      "number": 2,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "동료의 날 선 반응에 마음이 쓰일 때 어떻게 생각하면 좋을까요?",
+        "en": "When a coworker's sharp reaction bothers you, how might you think about it?",
+        "ja": "同僚のトゲのある反応が気になるとき、どう考えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "동료에게 일 때문에 필요한 걸 물어봤는데, 한숨을 쉬며 퉁명스럽게 대답해서 마음이 상했어요.",
+            "en": "You asked a coworker something you needed for work, and they sighed and answered curtly, which hurt your feelings.",
+            "ja": "仕事で必要なことを同僚に尋ねたら、ため息をついてそっけなく返事をされ、傷つきました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "내가 눈치도 없이 바보 같은 질문을 해서 동료 기분을 상하게 했나 봐",
+            "en": "I must have upset my coworker by being clueless and asking a foolish question",
+            "ja": "空気も読まずにばかな質問をして、同僚の機嫌を損ねてしまったんだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "동료의 거친 반응이 정말 내 질문 때문만일까요?",
+            "en": "Was your coworker's harsh reaction really just because of your question?",
+            "ja": "同僚のきつい反応は、本当に質問のせいだけでしょうか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "기분은 상했지만 필요한 걸 정중히 물어봤고 동료도 바쁜 사정이 있었겠지",
+            "en": "That stung, but I asked politely and my coworker was probably just busy",
+            "ja": "傷ついたけれど必要なことを丁寧に聞いたし、同僚にも忙しい事情があったのだろう"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "동료가 유독 예민하게 군 것뿐이니까 나는 조금도 마음에 둘 일 아니야",
+            "en": "My coworker was just being overly sensitive, so there's no reason for me to care at all",
+            "ja": "同僚がやけにピリピリしていただけだから、自分は少しも気にする必要はない"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "상대만 탓하는 생각엔 내 속상한 마음이 빠져 있어요.",
+            "en": "Blaming only the other person leaves out your own hurt feelings.",
+            "ja": "相手ばかり責める考えには、自分の傷ついた気持ちが抜けています。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "상대를 예민한 사람으로 단정하거나 나를 자책하지 않아도 돼요. 속상한 내 마음과 정당한 질문은 인정하되 상대의 기분까지 떠안지 마세요.",
+        "en": "You don't need to write them off as oversensitive or blame yourself. Acknowledge your hurt feelings and fair question without taking on their mood.",
+        "ja": "相手を神経質だと決めつけたり、自分を責めたりしなくて大丈夫です。傷ついた気持ちと正当な質問は認めつつ、相手の機嫌まで背負い込まないでください。"
+      }
+    },
+    {
+      "icon_key": "speech_balloon",
+      "number": 3,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "답장이 늦는 상황에서 나를 탓하지 않는 속마음을 한 문장으로 적어보세요.",
+        "en": "Write a one-sentence thought that avoids blaming yourself when a reply is late.",
+        "ja": "返事が遅い状況で、自分を責めない本音を一文で書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "오랜만에 친구에게 안부 메시지를 보냈는데, 하루가 지나도록 답장이 없어요.",
+            "en": "You sent a friend a message to check in after a long time, but a full day has passed with no reply.",
+            "ja": "久しぶりに友達へ近況を尋ねるメッセージを送りましたが、1日たっても返事がありません。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Self-acceptance. Accept any plausible personal reason on the friend's side for the delayed reply, not regretting or blaming oneself for reaching out, or viewing one's warm intention in checking in first positively. One contextual self-kind or non-blaming cue is enough; do not require multiple points or an explicit disclaimer.",
+        "example": {
+          "ko": "요즘 많이 바쁜가 보네, 먼저 안부 전한 것만으로도 충분해.",
+          "en": "They must be really busy lately, and just reaching out to say hi is enough.",
+          "ja": "最近すごく忙しいんだろうな、自分から連絡しただけでも十分だよ。"
+        },
+        "retry_hint": {
+          "ko": "내 잘못이라 여기기보다 친구에게 바쁜 사정이 있을지 떠올려 볼까요?",
+          "en": "Instead of blaming yourself, could your friend simply be busy with something?",
+          "ja": "自分のせいにするより、友達に忙しい事情があると考えてみませんか？"
+        }
+      },
+      "explanation": {
+        "ko": "답장이 늦는 데는 상대방의 사정이 있을 수 있어요. 먼저 안부를 전한 내 따뜻한 마음을 소중히 여겨주세요.",
+        "en": "A late reply often comes down to the other person's circumstances. Value your own warmth in reaching out first.",
+        "ja": "返事が遅いのには相手なりの事情があるのかもしれません。自分から声をかけた温かい気持ちを大切にしてください。"
+      }
+    },
+    {
+      "icon_key": "love_letter",
+      "number": 4,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "실수를 수습하고 난 지금, 이 상황을 어떻게 받아들이면 좋을까요?",
+        "en": "Now that you've fixed the mistake, how might you view this situation?",
+        "ja": "ミスに対処した今、この状況をどう受け止めるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "중요한 거래처에 파일을 빼먹고 메일을 보내서, 방금 사과 메일과 함께 다시 보내고 왔어요.",
+            "en": "You sent an email to an important client without the file attached, so you just sent it again with an apology.",
+            "ja": "大事な取引先にファイルを付け忘れてメールを送ってしまい、先ほどおわびのメールと一緒に送り直しました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "파일 하나도 제대로 못 챙기는 걸 보면 나는 일머리가 없는 무능한 사람이야",
+            "en": "Forgetting a simple file means I have no work sense and I'm incompetent",
+            "ja": "ファイル一つちゃんと確認できないなんて、自分は要領が悪くて無能な人間だ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "실수 한 번으로 내 능력 전체를 깎아내릴 필요는 없어요.",
+            "en": "One mistake is no reason to tear down your entire ability.",
+            "ja": "一度のミスで自分の能力すべてをけなす必要はありません。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "한 번 더 확인하지 못한 건 아쉽지만 바로 수습했고 내 능력 전체의 문제는 아니야",
+            "en": "I should've double-checked, but I fixed it fast and it doesn't define my skills",
+            "ja": "もう一度確認できなかったのは残念だけれど、すぐ対処したし能力全体の問題ではない"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "빠르게 후속 메일을 보냈으니 내 일 처리는 여전히 완벽하고 흠잡을 데가 없어",
+            "en": "I sent a quick follow-up, so my work is still flawless and beyond reproach",
+            "ja": "すぐにフォローのメールを送ったのだから、自分の仕事ぶりは完璧で非の打ちどころがない"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "실수한 사실까지 완벽했다고 포장하지 않아도 괜찮아요.",
+            "en": "You don't need to pretend even the mistake was flawless.",
+            "ja": "ミスした事実まで完璧だったと取り繕わなくて大丈夫です。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "실수까지 완벽했다고 포장하지 않아도 괜찮아요. 아쉬운 점은 인정하되 곧바로 수습한 행동과 내 가치를 구분해 보세요.",
+        "en": "You don't need to dress up a mistake as perfection. Acknowledge what fell short while recognizing your quick follow-up and separating the slip from your worth.",
+        "ja": "ミスまで完璧だったと取り繕わなくて大丈夫です。至らなかった点は認めつつ、すぐに対処した行動と自分の価値を分けて考えましょう。"
+      }
+    },
+    {
+      "icon_key": "broom",
+      "number": 5,
+      "answer_type": "pick",
+      "layout": "diary",
+      "pick_style": "erase",
+      "review_point": true,
+      "reward_hay": 30,
+      "mission": {
+        "ko": "일기에서 해낸 노력까지 없던 일로 만드는 문장을 지워보세요.",
+        "en": "Remove the sentence in the diary that dismisses the effort you did make.",
+        "ja": "日記の中で、やり遂げた努力までなかったことにする文を消しましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "주말에 대청소를 하려다가 피곤해서 빨래와 설거지만 끝내고 바닥 물걸레질은 못 했다.",
+            "en": "I planned to do a deep clean over the weekend, but I was tired, so I only finished the laundry and dishes and didn't mop the floor.",
+            "ja": "週末に大掃除をしようとしたけれど、疲れていたので洗濯と皿洗いだけ終えて、床の水拭きはできなかった。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "몸이 피곤했는데도 미루지 않고 빨래와 설거지는 끝까지 해냈다.",
+            "en": "Even though I was tired, I didn't put off the laundry and dishes and got them both done.",
+            "ja": "体が疲れていたのに、後回しにせず洗濯と皿洗いは最後までやり遂げた。"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "피곤한 와중에도 해낸 일을 있는 그대로 인정해 주는 문장이에요.",
+            "en": "This sentence fairly recognizes what you got done despite being tired.",
+            "ja": "疲れている中でもやり遂げたことを、そのまま認めている文です。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "바닥 물걸레질을 못 했으니 오늘 대청소는 아예 안 한 거나 다름없다.",
+            "en": "Since I didn't mop the floor, it's basically as if I did no deep cleaning at all today.",
+            "ja": "床の水拭きができなかったから、今日の大掃除はまったくしなかったのと同じだ。"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "계획을 다 채우진 못했지만 집이 한결 깨끗해진 것만으로도 충분하다.",
+            "en": "I didn't finish everything I planned, but getting the house noticeably cleaner is enough.",
+            "ja": "計画をすべてこなせなくても、家がぐっときれいになっただけで十分だ。"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "아쉬움은 인정하면서도 오늘 해낸 만큼의 가치를 받아들이는 문장이에요.",
+            "en": "This sentence accepts what you couldn't finish while valuing the progress you made.",
+            "ja": "できなかった部分は認めつつ、今日できた分の価値を受け止めている文です。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "못 한 일 하나 때문에 해낸 일까지 전부 지워버릴 필요는 없어요. 피곤한 중에도 움직인 내 노력을 그대로 인정해 주세요.",
+        "en": "Leaving one task undone doesn't erase everything you did accomplish. Give yourself credit for making the effort even while tired.",
+        "ja": "できなかったこと一つのために、やり遂げたことまで全部消してしまう必要はありません。疲れている中でも動いた自分の努力をそのまま認めてあげましょう。"
+      }
+    },
+    {
+      "icon_key": "shopping_cart",
+      "number": 6,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "갑작스러운 할인 소식을 봤을 때 어떻게 생각하면 좋을까요?",
+        "en": "When you see news of a sudden sale, how might you think about it?",
+        "ja": "突然のセール情報を見たとき、どう考えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "고민 끝에 산 겨울 코트가 1주 뒤에 깜짝 세일로 3만 원이나 더 싸게 팔리는 걸 봤어요.",
+            "en": "You saw the winter coat you carefully thought over and bought go on a surprise sale 1 week later for $30 less.",
+            "ja": "悩んだ末に買った冬のコートが、1週間後にサプライズセールで3,000円も安く売られているのを見ました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "앞으로 열릴 깜짝 세일까지 미리 알아보지 못한 내 탓이야",
+            "en": "It's my fault for not finding out about a future surprise sale in advance",
+            "ja": "これから始まるサプライズセールまで事前に調べなかった自分のせいだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "일주일 뒤의 깜짝 세일을 살 때부터 미리 알 수 있었을까요?",
+            "en": "Could you really have known about next week's surprise sale when you bought it?",
+            "ja": "1週間後のサプライズセールを、買うときに予測できたでしょうか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "조금 아쉽긴 하지만 살 때는 세일 소식을 미리 알 수 없었어",
+            "en": "It's a bit disappointing, but I couldn't have known about the sale back then",
+            "ja": "少し残念だけれど、買うときにはセールのことを事前に知る由もなかった"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "나중에야 알 수 있는 일까지 미리 예측할 수는 없어요. 그때 알고 있던 정보로 신중히 고른 내 선택을 이해해 주세요.",
+        "en": "You can't predict things that only become clear later. Be understanding of the careful choice you made with what you knew at the time.",
+        "ja": "後になって初めて分かることまで事前に予測はできません。そのとき知っていた情報で慎重に選んだ自分の選択を理解してあげましょう。"
+      }
+    },
+    {
+      "icon_key": "wrapped_gift",
+      "number": 7,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "선물을 드리고 난 뒤 아쉬움이 남을 때 어떻게 생각하면 좋을까요?",
+        "en": "When you wish you could have given a bigger gift, how might you think about it?",
+        "ja": "プレゼントを渡した後に心残りがするとき、どう考えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "부모님 결혼기념일에 근사한 식사를 대접하고 싶었는데, 여유가 부족해 작은 케이크와 용돈 10만 원만 드렸어요.",
+            "en": "You wanted to treat your parents to a nice meal for their wedding anniversary, but money was tight, so you gave them a small cake and $100.",
+            "ja": "両親の結婚記念日にすてきな食事をごちそうしたかったのですが、余裕が足りず小さなケーキと1万円だけを渡しました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "남들은 큰 선물도 해드린다는데 돈도 못 모은 나는 너무 못난 자식 같아",
+            "en": "Others give big gifts; I'm a terrible child for not saving enough money",
+            "ja": "他の人は大きなプレゼントも贈るというのに、お金も貯められない自分は情けない子どもだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "남들과 비교하느라 내가 정성껏 준비한 마음까지 놓치지 마세요.",
+            "en": "Don't let comparing yourself to others make you overlook the care you put in.",
+            "ja": "周りと比べて、自分が心を込めて準備した気持ちまで見失わないでください。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "더 해드리지 못해 아쉽지만 지금 형편에서 정성껏 마음을 전한 것만으로도 충분해",
+            "en": "I wish I could do more, but giving what I sincerely could is enough",
+            "ja": "もっとしてあげられず残念だけれど、今の状況で心を込めて気持ちを伝えただけでも十分だ"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "기념일은 무사히 넘겼잖아, 더 못 해드린 아쉬움은 생각하지 말고 잊어버릴래",
+            "en": "The anniversary is over anyway, so I'll just forget about wishing I did more",
+            "ja": "記念日は無事に過ぎたんだから、もっとしてあげたかった気持ちは忘れてしまおう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "더 해드리고 싶었던 아쉬운 마음도 억지로 지울 필요 없어요.",
+            "en": "You don't have to force away the wish that you could have done more for them.",
+            "ja": "もっとしてあげたかったという残念な気持ちも、無理に消す必要はありません。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "아쉬운 마음을 억지로 덮어두거나 남과 비교하며 자책하지 않아도 돼요. 지금 형편에서 최선을 다해 전한 내 정성을 인정해 주세요.",
+        "en": "You don't need to brush aside your regret or blame yourself by comparing yourself to others. Recognize the heartfelt care you gave within your current means.",
+        "ja": "残念な気持ちを無理に押し込めたり、人と比べて自分を責めたりしなくて大丈夫です。今の状況で精いっぱい伝えた自分の真心を認めてあげましょう。"
+      }
+    },
+    {
+      "icon_key": "office_building",
+      "number": 8,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "예상과 다른 회사 생활에 지칠 때 어떤 생각을 하면 좋을까요?",
+        "en": "When work life turns out differently than expected and wears you out, how might you think about it?",
+        "ja": "予想と違う会社生活に疲れたとき、どう考えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "첫 직장을 고를 때 연봉과 거리를 꼼꼼히 따져보고 들어왔는데, 막상 다녀보니 야근이 너무 많아 후회돼요.",
+            "en": "You carefully weighed the salary and commute before choosing your first job, but after starting, you regret how much overtime there is.",
+            "ja": "初めての職場を選ぶとき給料と通勤距離を細かく比べて入社しましたが、実際に働いてみると残業が多すぎて後悔しています。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "면접 때 야근 얘기를 숨긴 회사 잘못이 크니 내 선택을 돌아보며 후회하진 않을래",
+            "en": "The company hid the overtime at the interview, so I refuse to feel any regret",
+            "ja": "面接で残業の話を隠した会社が悪いのだから、自分の選択を振り返って後悔なんかしない"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "회사만 탓하는 말에는 지치고 후회되는 내 마음이 가려져 있어요.",
+            "en": "Only blaming the company covers up how exhausted and regretful you feel.",
+            "ja": "会社ばかり責める言葉には、疲れて後悔している自分の気持ちが隠れています。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "밖에서는 알기 힘든 사정이 있었을 뿐 그때의 나는 최선의 선택을 한 거야",
+            "en": "I couldn't know the inside reality back then; I made the best choice I could",
+            "ja": "外からは分かりにくい事情があっただけで、あのときの自分は最善の選択をしたんだ"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "첫 직장을 잘못 골라서 첫 단추부터 어긋났으니 내 앞길은 다 망쳐버렸어",
+            "en": "I picked the wrong first job and started off wrong, so my future is ruined",
+            "ja": "最初の職場選びを間違えてボタンを掛け違えたから、自分の将来はもう台無しだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "첫 직장이 힘들다고 해서 앞으로의 길까지 정말 다 망친 걸까요?",
+            "en": "Just because your first job is tough, does that really mean your whole future is ruined?",
+            "ja": "最初の職場が大変だからといって、これからの道まで本当に台無しでしょうか？"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "직접 겪어보기 전에는 알 수 없는 일도 있어요. 회사만 탓하거나 앞길을 비관하기보다 그때 최선을 다한 나를 다독여주세요.",
+        "en": "Some things are impossible to know until you experience them firsthand. Instead of only blaming the company or despairing over your future, be kind to yourself for doing your best then.",
+        "ja": "実際に経験してみるまで分からないこともあります。会社ばかり責めたり将来を悲観したりするより、そのとき最善を尽くした自分をいたわってあげましょう。"
+      }
+    },
+    {
+      "icon_key": "bus",
+      "number": 9,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "그때의 선택을 돌아보며 나를 탓하지 않는 생각을 한 문장으로 적어보세요.",
+        "en": "Looking back on that choice, write a one-sentence thought that doesn't blame yourself.",
+        "ja": "あのときの選択を振り返り、自分を責めない考えを一文で書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "출근길에 버스와 지하철 중 고민하다가 버스를 탔는데, 갑자기 도로 공사로 차가 막혀서 10분 지각했어요.",
+            "en": "On your way to work, you debated between the bus and the subway and took the bus, but sudden roadwork caused traffic and made you 10 minutes late.",
+            "ja": "通勤途中にバスと地下鉄で迷ってバスに乗りましたが、突然の道路工事で渋滞して10分遅刻しました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Self-acceptance. Accept recognizing that the sudden roadwork was unforeseeable, not blaming oneself for choosing the bus, or accepting the unavoidable situation and comforting oneself. A single contextual non-blaming or self-kind cue is enough; do not require multiple points or proving the bus was objectively optimal.",
+        "example": {
+          "ko": "갑자기 공사할 줄은 몰랐으니까 평소처럼 버스 탄 내 탓은 아니야.",
+          "en": "I couldn't have known about the sudden roadwork, so it's not my fault for taking the bus like usual.",
+          "ja": "急に工事があるなんて分からなかったから、いつもどおりバスに乗った自分のせいじゃない。"
+        },
+        "retry_hint": {
+          "ko": "갑작스러운 공사는 미리 알 수 없었다며 나를 다독여 주세요.",
+          "en": "Remind yourself kindly that you couldn't have known about the sudden roadwork.",
+          "ja": "突然の工事は事前に分からなかったと、自分をいたわってあげましょう。"
+        }
+      },
+      "explanation": {
+        "ko": "갑작스러운 도로 공사까지 미리 알 수는 없어요. 결과만 보고 그때의 선택을 탓하지 않아도 괜찮아요.",
+        "en": "There is no way to know about sudden roadwork in advance. You don't need to judge your past choice solely by how it turned out.",
+        "ja": "突然の道路工事まで事前に知ることはできません。結果だけを見て、あのときの選択を責めなくて大丈夫です。"
+      }
+    },
+    {
+      "icon_key": "people_hugging",
+      "number": 10,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "친구와 헤어지고 집으로 돌아오는 길에 어떤 생각을 하면 좋을까요?",
+        "en": "On your way home after parting with your friend, what thought would help?",
+        "ja": "友達と別れて家に帰る道で、どう考えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "친구의 고민을 들어주다가 내 말이 의도와 다르게 전해져서 친구가 살짝 서운해했어요.",
+            "en": "While listening to a friend's worries, what you said came across differently than intended and left your friend feeling a little hurt.",
+            "ja": "友達の悩みを聞いていたとき、自分の言葉が意図と違う形で伝わってしまい、友達が少し傷ついた様子でした。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "나는 공감 능력도 부족하고 말주변도 없어서 인간관계를 다 망치는 사람이야",
+            "en": "I have zero empathy and terrible wording, so I ruin all my relationships",
+            "ja": "自分は共感力も足りず口下手だから、人間関係を全部台無しにしてしまう人間だ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "표현이 한 번 서툴렀던 일과 내 인간관계 전체는 구분해 봐요.",
+            "en": "Try separating one clumsy phrasing from your relationships as a whole.",
+            "ja": "一度うまく伝えられなかったことと、人間関係全体は分けて考えましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "표현이 조금 서툴렀을 뿐이지 친구를 위하는 내 진심까지 나쁜 건 아니야",
+            "en": "My wording was a bit clumsy, but my genuine care for my friend wasn't bad",
+            "ja": "伝え方が少し不器用だっただけで、友達を思う自分の真心まで悪いわけではない"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "위로하려는 마음으로 건넨 말이니 내 대화 방식은 더할 나위 없이 훌륭했어",
+            "en": "I meant to comfort my friend, so the way I spoke was completely flawless",
+            "ja": "慰めようと思ってかけた言葉なのだから、自分の話し方はこれ以上ないほど立派だった"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "진심이 따뜻했더라도 표현이 조금 서툴렀던 점은 인정해도 괜찮아요.",
+            "en": "Even with warm intentions, it's okay to admit your phrasing was a bit clumsy.",
+            "ja": "真心が温かくても、伝え方が少し不器用だった点は認めて大丈夫です。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "표현까지 완벽했다고 우기거나 나 전체를 미워하지 않아도 돼요. 서툴렀던 점은 인정하되 친구를 위했던 진심까지 깎아내리지 마세요.",
+        "en": "You don't need to insist your wording was flawless or hate yourself completely. Acknowledge that your phrasing was clumsy without devaluing your genuine care for your friend.",
+        "ja": "伝え方まで完璧だったと言い張ったり、自分すべてを嫌ったりしなくて大丈夫です。不器用だった点は認めつつ、友達を思う真心まで否定しないでください。"
+      }
+    },
+    {
+      "icon_key": "mobile_phone",
+      "number": 11,
+      "answer_type": "pick",
+      "layout": "diary",
+      "pick_style": "erase",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "일기에서 상대의 무례함을 내 탓으로 돌리는 문장을 지워보세요.",
+        "en": "Remove the sentence in the diary that blames you for someone else's rudeness.",
+        "ja": "日記の中で、相手の失礼さを自分のせいにしている文を消しましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "중고 거래 앱에 안 쓰는 물건을 정중하게 올렸는데, 어떤 사람이 무리하게 값을 깎아 달라며 시비를 걸었다.",
+            "en": "I politely listed an unused item on a secondhand app, but someone demanded an unreasonable discount and picked a fight.",
+            "ja": "フリマアプリに使わない物を丁寧に出品したら、無理な値下げを要求して言いがかりをつける人がいた。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "모르는 사람에게 무례한 말을 들으니 기분이 꽤 상했다.",
+            "en": "Hearing such rude words from a stranger really upset me.",
+            "ja": "知らない人に失礼なことを言われて、かなり嫌な気分になった。"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "무례한 일을 겪었을 때 자연스럽게 들 수 있는 솔직한 감정이에요.",
+            "en": "This sentence honestly expresses how anyone would naturally feel after being treated rudely.",
+            "ja": "失礼な目に遭ったときに自然と湧く、正直な気持ちを表した文です。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "내가 판매 글을 허술하게 써서 상대가 만만하게 본 모양이다.",
+            "en": "They must have thought I was an easy target because I wrote the listing poorly.",
+            "ja": "出品文の書き方が甘かったせいで、相手に軽く見られたようだ。"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "무작정 시비를 거는 사람과는 대화를 멈추고 차단하는 게 낫다.",
+            "en": "It is better to stop talking and block someone who picks a fight for no reason.",
+            "ja": "むやみに言いがかりをつけてくる人とは、やり取りをやめてブロックした方がいい。"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "무례한 상대에게서 나를 지키는 건강한 대처 방법이에요.",
+            "en": "This sentence describes a healthy way to protect yourself from someone being unreasonable.",
+            "ja": "失礼な相手から自分を守るための、健全な対処法を書いた文です。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "상대가 무례하게 행동한 이유를 내 탓에서 찾지 않아도 돼요. 불쾌한 감정을 인정하고 거리를 두는 건 자연스러운 대처예요.",
+        "en": "You don't have to blame yourself for someone else's rude behavior. Acknowledging your unpleasant feelings and keeping your distance is a natural response.",
+        "ja": "相手が失礼な行動をとった理由を、自分のせいにしなくて大丈夫です。不快な気持ちを認めて距離を置くのは自然な対処です。"
+      }
+    },
+    {
+      "icon_key": "clipboard",
+      "number": 12,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "발표가 끝난 뒤 아쉬운 마음이 들 때, 어떻게 생각하면 좋을까요?",
+        "en": "When you feel disappointed after the presentation, how could you think about it?",
+        "ja": "発表が終わって悔しい気持ちのとき、どう考えればよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "팀 프로젝트를 열심히 준비해 발표했어요. 그런데 경쟁 팀 주제가 심사위원 취향에 딱 맞아서 아쉽게 졌어요.",
+            "en": "You worked hard to prepare and present a team project. However, the rival team's topic matched the judges' taste, so you narrowly lost.",
+            "ja": "チームの企画を一生懸命準備して発表しました。しかし、相手チームのテーマが審査員の好みにぴったり合ってしまい、惜しくも負けました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "심사위원 취향까지는 어쩔 수 없지, 우리가 끝까지 최선을 다한 걸로 충분해",
+            "en": "We can't control the judges' taste, so doing our best until the end is enough",
+            "ja": "審査員の好みまではどうしようもないし、最後まで最善を尽くしただけで十分だ"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "심사위원 성향도 미리 파악하지 못한 내 탓이라 팀원들에게 면목이 없어",
+            "en": "It's my fault for missing the judges' taste; I can't face my teammates",
+            "ja": "審査員の傾向を事前に把握できなかった自分のせいだから、メンバーに顔向けできない"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "어쩔 수 없는 결과보다 끝까지 최선을 다한 과정을 봐 주세요.",
+            "en": "Focus on how you did your best until the end, not the outcome you couldn't control.",
+            "ja": "変えられない結果より、最善を尽くした過程を見てあげましょう。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "준비 과정에 최선을 다했다면 충분해요. 심사위원의 취향처럼 내가 어쩔 수 없는 결과까지 내 탓으로 돌리지 않아도 괜찮아요.",
+        "en": "Doing your best while preparing is enough. You don't need to blame yourself for outcomes you can't control, like the judges' preferences.",
+        "ja": "準備の過程で最善を尽くしたなら十分です。審査員の好みのように、自分ではどうにもできない結果まで自分のせいにしなくて大丈夫です。"
+      }
+    },
+    {
+      "icon_key": "automobile",
+      "number": 13,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "시험장을 나오며 속상한 나에게 어떤 말을 해주면 좋을까요?",
+        "en": "What could you say to yourself when leaving the test site feeling upset?",
+        "ja": "試験場を出て落ち込んでいる自分に、どんな言葉をかけてあげるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "운전면허 도로주행 시험을 보다가 너무 긴장해서 마지막 구간에서 떨어졌어요.",
+            "en": "You got so nervous during your road driving test that you failed on the final section.",
+            "ja": "運転免許の路上試験で緊張しすぎてしまい、最後の区間で落ちてしまいました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "남들은 한 번에 붙는 시험인데 이것도 떨어지다니 나는 운동 신경이 전혀 없나 봐",
+            "en": "Everyone passes on the first try; failing means I have zero coordination",
+            "ja": "みんな一度で受かる試験なのに、これにも落ちるなんて自分は運動神経がまったくないんだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "시험 한 번 떨어졌다고 내 운동 신경 전체를 단정할 수 있을까요?",
+            "en": "Does failing one test really define all of your coordination?",
+            "ja": "一度試験に落ちただけで、運動神経がないと決めつけられるでしょうか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "처음 가보는 길이라 긴장할 만했어, 마지막 구간까지 잘 몰았으니 다음엔 붙을 거야",
+            "en": "Anyone would be nervous on a new road; I drove well up to the last part, so I'll pass next time",
+            "ja": "初めての道だから緊張するのも無理はないし、最後の区間までうまく運転できたから次は受かるよ"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "떨어진 일로 마음 쓰기 싫으니까 오늘 겪은 실수나 속상함은 못 본 척 넘겨버려야겠어",
+            "en": "I hate dwelling on failing, so I'll pretend today's mistake never happened",
+            "ja": "落ちたことで悩みたくないから、今日のミスや悔しい気持ちは見なかったことにしよう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "속상한 마음과 아쉬운 결과를 못 본 척 덮어두지 않아도 돼요.",
+            "en": "You don't need to ignore your upset feelings and the disappointing result.",
+            "ja": "悔しい気持ちや残念な結果を、見ないふりしなくても大丈夫です。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "긴장한 마음을 다독이며 해낸 부분을 봐주세요. 나를 비하하거나 속상한 결과를 애써 외면하지 않아도 다음 기회를 준비할 수 있어요.",
+        "en": "Comfort your nervous self and recognize what you did well. You can prepare for the next chance without putting yourself down or forcing yourself to ignore the disappointing result.",
+        "ja": "緊張した自分をいたわり、できた部分に目を向けてみましょう。自分を卑下したり残念な結果から無理に目を背けたりしなくても、次の機会に備えられます。"
+      }
+    },
+    {
+      "icon_key": "shortcake",
+      "number": 14,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "자책하는 마음이 들 때, 나에게 어떤 말을 해주면 좋을까요?",
+        "en": "When you start blaming yourself, what would be a good thing to tell yourself?",
+        "ja": "自分を責める気持ちになったとき、自分にどんな言葉をかけてあげるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "친구의 생일을 깜빡했다가 하루가 지나서야 뒤늦게 연락했어요.",
+            "en": "You forgot a friend's birthday and belatedly reached out a day late.",
+            "ja": "友達の誕生日をうっかり忘れてしまい、一日過ぎてから遅れて連絡しました。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "소중한 친구 생일도 못 챙기다니, 정이 없고 이기적인 사람인 것 같아 자책이 들어요.",
+            "en": "You blame yourself, feeling like a cold and selfish person for forgetting a dear friend's birthday.",
+            "ja": "大切な友達の誕生日も祝えないなんて、冷たくて自分勝手な人間だと思い、自分を責めてしまいます。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "밀린 업무가 너무 많아서 생긴 일인데 내가 친구한테 미안해할 이유는 없잖아",
+            "en": "I only forgot because I was swamped with work, so I have no reason to feel sorry",
+            "ja": "仕事がたまりすぎていたから起きたことだし、自分が友達に申し訳なく思う理由なんてないよ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "바쁜 일정만 핑계 삼으면 친구에게 미안한 진심까지 가려지게 돼요.",
+            "en": "Blaming your busy schedule hides how genuinely sorry you feel toward your friend.",
+            "ja": "忙しさばかり言い訳にすると、申し訳ないという本心まで隠れてしまいます。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "친한 친구 생일 하나 못 챙기는 걸 보면 나는 친구를 사귈 자격도 없어",
+            "en": "I couldn't even remember a close friend's birthday; I don't deserve friends",
+            "ja": "親友の誕生日一つ覚えられないなんて、自分には友達を作る資格なんてないんだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "날짜를 한 번 깜빡한 실수로 친구를 아끼는 마음마저 부정하진 마세요.",
+            "en": "Don't let forgetting one date make you deny how much you care for your friend.",
+            "ja": "一度日付を忘れたからといって、友達を思う気持ちまで否定しないでください。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "날짜를 놓친 건 미안한 일이지만, 지금이라도 진심으로 축하하고 챙겨주면 돼",
+            "en": "I feel bad for missing the date, but I can sincerely celebrate my friend now",
+            "ja": "日付を忘れたのは申し訳ないけれど、今からでも心から祝って大切にすればいい"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "날짜를 깜빡한 실수가 나 전체를 말해주지는 않아요. 바쁜 상황 탓으로 돌리며 미안함을 외면하기보다 진심으로 축하를 전하면 충분해요.",
+        "en": "Forgetting a date doesn't define who you are. Instead of blaming your busy schedule and ignoring your regret, sincerely celebrating your friend now is enough.",
+        "ja": "日付を忘れた一度のミスが、自分すべてを表すわけではありません。忙しさのせいにして申し訳なさから目を背けるより、今から心からお祝いを伝えれば十分です。"
+      }
+    },
+    {
+      "icon_key": "basket",
+      "number": 15,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": true,
+      "reward_hay": 60,
+      "mission": {
+        "ko": "번거로운 실수를 했을 때, 나를 다독이는 말을 한두 문장으로 적어보세요.",
+        "en": "Write one or two kind sentences to comfort yourself after making an inconvenient mistake.",
+        "ja": "面倒な失敗をしてしまったとき、自分をいたわる言葉を一、二文で書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "주머니 속 휴지를 빼지 않고 세탁기를 돌렸어요. 옷마다 하얀 휴지 조각이 잔뜩 묻어났어요.",
+            "en": "You ran the washing machine without taking a tissue out of a pocket. White bits of tissue stuck all over the clothes.",
+            "ja": "ポケットの中のティッシュを出さずに洗濯機を回してしまいました。服じゅうに白いティッシュのくずがたくさん付いています。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Self-acceptance. Accept treating this as a common, fixable slip anyone can make, separating the mistake from personal worth, or thinking of a practical next step to clean the clothes without harsh self-blame. One relevant gentle or practical cue is enough; do not require both or an explicit statement of personal worth.",
+        "example": {
+          "ko": "깜빡할 수도 있지. 바짝 말려서 차근차근 털어내자.",
+          "en": "Anyone can forget sometimes. I'll dry the clothes thoroughly and brush them off bit by bit.",
+          "ja": "うっかりすることもあるよね。しっかり乾かして、少しずつ払っていこう。"
+        },
+        "retry_hint": {
+          "ko": "나를 몰아세우기보다 지금 바로 수습할 수 있는 행동부터 찾아볼까요?",
+          "en": "Instead of blaming yourself, how about finding a way to clean it up right now?",
+          "ja": "自分を責めるより、今すぐ対処できる行動を探してみませんか？"
+        }
+      },
+      "explanation": {
+        "ko": "누구나 한 번쯤 겪는 일상 속 실수예요. 나를 몰아세우기보다 지금 수습할 수 있는 행동에 집중해 보세요.",
+        "en": "It's an everyday mistake anyone can make. Instead of being hard on yourself, focus on what you can do now to clean it up.",
+        "ja": "誰にでも一度はある日常のミスです。自分を追い詰めるより、今対処できる行動に集中してみましょう。"
+      }
+    },
+    {
+      "icon_key": "watch",
+      "number": 16,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "사과한 뒤에도 마음이 무거울 때, 나에게 어떤 말을 해주면 좋을까요?",
+        "en": "When your heart still feels heavy after apologizing, what could you tell yourself?",
+        "ja": "謝ったあとも気が重いとき、自分にどんな言葉をかけてあげるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "약속 시간을 착각해서 친구를 카페에서 30분이나 기다리게 하고 허둥지둥 도착했어요.",
+            "en": "You mixed up the meeting time and rushed to the cafe after making your friend wait for 30 minutes.",
+            "ja": "待ち合わせの時間を勘違いして、友達をカフェで30分も待たせてしまい、慌てて到着しました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "진심으로 사과하고 커피도 샀으니, 자책은 그만하고 지금 친구와 나누는 대화에 집중하자",
+            "en": "I apologized and bought coffee, so I'll stop blaming myself and focus on our chat",
+            "ja": "心から謝ってコーヒーもごちそうしたから、自分を責めるのはやめて今の友達との会話に集中しよう"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "약속 시간 하나 제대로 못 챙기다니, 나는 늘 주변 사람에게 민폐만 끼치는 사람이야",
+            "en": "I can't even get a meeting time right; I'm always a nuisance to others",
+            "ja": "約束の時間一つちゃんと守れないなんて、自分はいつも周りの人に迷惑ばかりかける人間だ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "시간을 한 번 착각했다고 해서 내가 늘 민폐만 끼치는 사람일까요?",
+            "en": "Does mixing up the time once mean you always cause trouble for others?",
+            "ja": "一度時間を勘違いしたからといって、いつも迷惑をかける人でしょうか？"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "평소엔 약속을 잘 지키니까 오늘 늦은 건 실수도 아니고 난 여전히 완벽한 친구야",
+            "en": "I'm usually on time, so today wasn't a mistake and I'm still a perfect friend",
+            "ja": "普段は約束をちゃんと守っているから、今日遅れたのはミスでもないし自分は相変わらず完璧な友達だ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "오늘 늦은 실수를 인정하더라도 내 가치가 사라지진 않아요.",
+            "en": "Admitting that you were late today doesn't make your worth disappear.",
+            "ja": "今日遅れたミスを認めても、自分の価値が消えるわけではありません。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "진심으로 사과했다면 자책하느라 함께 있는 시간을 놓치지 않아도 돼요. 실수를 부정하며 나를 포장하기보다 지금 대화에 마음을 쏟아보세요.",
+        "en": "Once you've sincerely apologized, you don't need to miss out on your time together by blaming yourself. Instead of denying the mistake to make yourself look good, put your heart into the conversation now.",
+        "ja": "心から謝ったなら、自分を責め続けて一緒にいる時間を無駄にしなくて大丈夫です。ミスを否定して自分を取り繕うより、今の会話に心を向けてみましょう。"
+      }
+    },
+    {
+      "icon_key": "cooking",
+      "number": 17,
+      "answer_type": "pick",
+      "layout": "diary",
+      "pick_style": "erase",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "일기에서 한 번의 요리 실수로 나를 단정하는 문장을 지워보세요.",
+        "en": "Remove the sentence in the diary that defines you by one cooking mistake.",
+        "ja": "日記の中で、一度の料理の失敗で自分を決めつけている文を消しましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "주말에 가족들에게 처음으로 파스타를 만들어 줬다. 면이 불고 간이 짜서 다들 조금만 먹고 남겼다.",
+            "en": "Over the weekend, I made pasta for my family for the first time. The noodles were overcooked and it was too salty, so everyone only ate a little and left the rest.",
+            "ja": "週末に家族へ初めてパスタを作ってあげた。麺が伸びて味も塩辛くなり、みんな少しだけ食べて残した。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "남은 음식을 치우다 보니 괜히 민망하고 속상한 마음이 들었다.",
+            "en": "As I cleared away the leftover food, I couldn't help feeling embarrassed and upset.",
+            "ja": "残った料理を片付けていたら、なんだか恥ずかしくて悔しい気持ちになった。"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "서툰 결과 앞에서 자연스럽게 들 수 있는 솔직한 속마음이에요.",
+            "en": "This sentence honestly captures the natural disappointment of a dish not turning out well.",
+            "ja": "うまくいかなかったときに自然と湧く、正直な気持ちを書いた文です。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "파스타 하나도 제대로 못 만드는 걸 보니 나는 요리에 재능이 없다.",
+            "en": "Seeing that I can't even make pasta properly shows I have no talent for cooking.",
+            "ja": "パスタ一つまともに作れないなんて、自分には料理の才能がない。"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "간 맞추기가 서툴렀을 뿐 가족을 챙기려던 마음은 충분히 좋았다.",
+            "en": "I was just clumsy with the seasoning, and my intention to care for my family was more than enough.",
+            "ja": "味付けに慣れていなかっただけで、家族を思う気持ちは十分素敵だった。"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "서툴렀던 점은 인정하면서도 가족을 위했던 내 정성을 돌아보는 문장이에요.",
+            "en": "This sentence admits what was clumsy while still valuing your kind intention for your family.",
+            "ja": "不慣れだった点は認めつつ、家族を思う自分の気持ちも大切にしている文です。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "처음 해보는 요리가 서툰 건 자연스러운 일이에요. 아쉬운 감정은 인정하되 한 번의 결과로 내 가능성까지 단정하지 마세요.",
+        "en": "It's natural to be clumsy when cooking something for the first time. Acknowledge your disappointment, but don't judge your potential by a single result.",
+        "ja": "初めて作る料理がうまくいかないのは自然なことです。残念な気持ちは認めつつ、一度の結果で自分の可能性まで決めつけないでください。"
+      }
+    },
+    {
+      "icon_key": "thermometer",
+      "number": 18,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "불안하고 초조한 밤, 나에게 어떤 말을 건네면 좋을까요?",
+        "en": "What could you say to yourself on this anxious and restless night?",
+        "ja": "不安で焦る夜、自分にどんな言葉をかけてあげるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "자격증 시험을 1주일 앞두고 몸살감기에 걸려 온종일 침대에만 누워 있었어요.",
+            "en": "Just 1 week before a certification exam, you came down with a bad cold and body aches and stayed in bed all day.",
+            "ja": "資格試験の1週間前に体の節々が痛む風邪をひいてしまい、一日中ベッドで寝込んでいました。"
+          }
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "중요한 시험 코앞에 몸 관리 하나 제대로 못 해서 드러누운 내 탓이야",
+            "en": "It's my fault for failing to manage my health right before an important exam",
+            "ja": "大事な試験の直前に体調管理一つまともにできず、寝込んでしまった自分のせいだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "아픈 나를 몰아세우기보다 그동안 애쓰느라 지친 몸부터 보살펴 주세요.",
+            "en": "Instead of blaming yourself for being sick, care for your tired body first.",
+            "ja": "体調が悪い自分を責めるより、頑張って疲れた体をいたわってあげましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "다가오는 시험 걱정은 머릿속에서 다 지우고 초조한 감정도 모른 척 덮어두면 돼",
+            "en": "I'll just erase all worries about the exam and pretend I'm not anxious at all",
+            "ja": "近づく試験の心配は頭から全部消して、焦る気持ちも気づかないふりをして蓋をすればいい"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "불안하고 초조한 감정도 모른 척 덮어두지 말고 다독여 주면 어떨까요?",
+            "en": "Instead of ignoring your anxious feelings, how about comforting yourself?",
+            "ja": "不安で焦る気持ちも見ないふりをせず、いたわってあげてはどうでしょうか？"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "그동안 애쓰느라 몸이 지친 거니, 오늘은 푹 쉬며 열부터 내리는 게 먼저야",
+            "en": "My body is worn out from working hard, so resting and breaking my fever comes first",
+            "ja": "これまで頑張って体が疲れているんだから、今日はゆっくり休んで熱を下げるのが先決だ"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "열심히 준비하다 보면 몸이 지칠 수 있어요. 아픈 나를 자책하거나 불안한 마음을 무작정 외면하기보다 오늘은 회복에 집중해 보세요.",
+        "en": "Working hard to prepare can leave your body exhausted. Instead of blaming yourself for getting sick or blindly ignoring your anxiety, focus on recovering today.",
+        "ja": "一生懸命準備していると、体が疲れてしまうこともあります。体調を崩した自分を責めたり不安からむやみに目を背けたりするより、今日は回復に集中してみましょう。"
+      }
+    },
+    {
+      "icon_key": "books",
+      "number": 19,
+      "answer_type": "pick",
+      "layout": "diary",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "주말에 단어장을 돌아보며 일기에 어떤 생각을 적으면 좋을까요?",
+        "en": "Looking back at your vocabulary book over the weekend, what thought would be good to write in your diary?",
+        "ja": "週末に単語帳を振り返りながら、日記にどんな考えを書くとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "매일 영어 단어를 서른 개씩 외우기로 계획했는데, 이번 주는 야근이 많아서 하루에 열 개씩만 외웠다.",
+            "en": "I planned to memorize 30 English words a day, but I had a lot of overtime this week and only memorized 10 a day.",
+            "ja": "毎日英単語を30個ずつ覚える計画だったが、今週は残業が多くて1日10個ずつだけ覚えた。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "계획한 분량을 다 못 채웠으니 이번 주 공부는 완전히 실패한 거나 다름없다",
+            "en": "Since I missed my target amount, my studying this week was a total failure",
+            "ja": "計画した分量を達成できなかったから、今週の勉強は完全に失敗したようなものだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "전부 실패했다는 생각엔 매일 열 개씩 외운 노력이 빠져 있어요.",
+            "en": "Calling it a total failure overlooks the effort of learning 10 words every day.",
+            "ja": "全部失敗したという考えには、毎日10個ずつ覚えた努力が抜けています。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "야근하느라 피곤했는데도 매일 단어장을 펴서 꾸준히 외운 것만으로도 충분하다",
+            "en": "Even while tired from overtime, studying steadily every day was enough",
+            "ja": "残業で疲れていたのに、毎日単語帳を開いてコツコツ覚えただけでも十分だ"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "저녁마다 야근을 시킨 회사 문제니까 분량을 못 채운 건 내 책임이 전혀 아니다",
+            "en": "The company made me work late, so missing my goal isn't my fault at all",
+            "ja": "毎晩残業させた会社の問題だから、分量をこなせなかったのは自分の責任ではまったくない"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "야근 탓만 하기보다 피곤한데도 매일 단어장을 편 나를 인정해 볼까요?",
+            "en": "Instead of just blaming overtime, how about recognizing your daily effort?",
+            "ja": "残業のせいにするより、疲れていても毎日単語帳を開いた自分を認めませんか？"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "계획만큼 못 했더라도 매일 꾸준히 이어간 노력은 사라지지 않아요. 전부 실패했다고 단정하거나 회사 탓만 하지 않아도 괜찮아요.",
+        "en": "Even if you didn't reach your original plan, the steady effort you made every day doesn't disappear. You don't need to call it a total failure or just blame your company.",
+        "ja": "計画通りにできなくても、毎日コツコツ続けた努力は消えません。すべて失敗したと決めつけたり、会社のせいばかりにしたりしなくて大丈夫です。"
+      }
+    },
+    {
+      "icon_key": "books",
+      "number": 20,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "피곤한 나를 탓하지 않고 다독이는 문장을 일기에 적어보세요.",
+        "en": "Write a comforting sentence in your diary without blaming your tired self.",
+        "ja": "疲れている自分を責めず、いたわる文を日記に書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "주말에 공부하려고 스터디카페에 갔는데, 피로가 안 풀려서 2시간 동안 꾸벅꾸벅 졸다가 집으로 돌아왔다.",
+            "en": "I went to a study cafe over the weekend to study, but my fatigue wouldn't go away, so I nodded off for 2 hours and came back home.",
+            "ja": "週末に勉強しようと自習カフェに行ったが、疲れが取れず2時間うとうと居眠りをして家に帰ってきた。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Self-acceptance. Accept acknowledging fatigue, allowing rest, recognizing the effort of going to the study cafe despite being tired, or planning a gentler next step without harsh self-blame. A brief caring response is enough; recognizing effort and permitting rest are alternatives, not a checklist.",
+        "example": {
+          "ko": "피곤한 몸을 이끌고 스터디카페까지 간 것만으로도 애썼다. 오늘은 푹 쉬어야겠다.",
+          "en": "Just dragging my tired body to the study cafe was a good effort. I should get plenty of rest today.",
+          "ja": "疲れた体で自習カフェまで行っただけでもよく頑張った。今日はゆっくり休もう。"
+        },
+        "retry_hint": {
+          "ko": "나를 혼내기 전에 피곤한 몸으로 책상까지 간 노력부터 알아주세요.",
+          "en": "Before scolding yourself, recognize the effort it took to go there while tired.",
+          "ja": "自分を叱る前に、疲れた体で机まで向かった努力を認めてあげましょう。"
+        }
+      },
+      "explanation": {
+        "ko": "몸이 지쳐 있을 때는 마음처럼 집중하기 어려워요. 책상 앞까지 가려 했던 마음을 인정하고 편안히 쉬어가도 괜찮아요.",
+        "en": "When your body is exhausted, it's hard to focus the way you want to. Recognize your intention to get to your desk, and allow yourself to rest comfortably.",
+        "ja": "体が疲れきっているときは、思うように集中しにくいものです。机に向かおうとした気持ちを認めて、ゆっくり休んでも大丈夫です。"
+      }
+    },
+    {
+      "icon_key": "hot_beverage",
+      "number": 21,
+      "answer_type": "pick",
+      "layout": "diary",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "아끼던 컵을 깬 아침, 이 상황을 어떻게 받아들이면 좋을까요?",
+        "en": "After breaking your favorite cup this morning, how should you take this situation?",
+        "ja": "お気に入りのカップを割ってしまった朝、この状況をどう受け止めればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "아침에 급하게 출근 준비를 하다가 아끼던 머그컵을 떨어뜨려 깨뜨렸다.",
+            "en": "While rushing to get ready for work this morning, I dropped and broke my favorite mug.",
+            "ja": "朝、急いで出勤の準備をしていたら、お気に入りのマグカップを落として割ってしまった。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "아침부터 컵 하나 제대로 못 챙기는 걸 보니 나는 늘 덜렁대는 못난 사람이다",
+            "en": "I can't even handle a cup in the morning; I'm always a clumsy, useless person",
+            "ja": "朝からカップ1つまともに扱えないなんて、自分はいつもそそっかしいだめな人間だ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "컵을 깬 실수 하나로 나 전체를 못난 사람이라 단정 짓지 마세요.",
+            "en": "Don't judge your whole self as useless over one mistake of breaking a cup.",
+            "ja": "カップを割ったミス1つで、自分全体をだめな人間だと決めつけないでください。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "아끼던 컵이라 속상하지만 급하다가 실수로 놓쳤을 뿐 내가 부족한 사람은 아니다",
+            "en": "I'm sad about my favorite cup, but it was an accident, not a personal flaw",
+            "ja": "お気に入りでショックだけれど、急いでいてうっかり落としただけで自分が劣っているわけではない"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "출근 시간을 맞추려다 생긴 일이라 나는 아침에도 철저히 움직였고 잘못한 게 없다",
+            "en": "It happened while rushing for work, so I was diligent and did nothing wrong",
+            "ja": "出勤時間に間に合わせようとして起きたことだから、朝もしっかり動いていたし自分は何も悪くない"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "급해서 실수한 사실까지 완벽한 행동이었다고 포장할 필요는 없어요.",
+            "en": "You don't need to dress up a hurried mistake as flawless behavior.",
+            "ja": "急いでミスした事実まで、完璧な行動だったと取り繕う必要はありません。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "아까운 마음은 인정하되 컵을 깬 일로 나 전체를 깎아내리지 마세요. 실수가 아니라고 억지로 포장하지 않아도 내 가치는 그대로예요.",
+        "en": "Acknowledge feeling upset about the cup, but don't put your whole self down over breaking it. Your worth stays intact without pretending it wasn't a mistake.",
+        "ja": "残念な気持ちは認めつつ、カップを割ったことで自分全体を貶めないでください。ミスではないと無理に取り繕わなくても、自分の価値は変わりません。"
+      }
+    },
+    {
+      "icon_key": "telephone_receiver",
+      "number": 22,
+      "answer_type": "pick",
+      "layout": "diary",
+      "pick_style": "erase",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "일기에서 나를 과하게 비난하는 문장을 지워보세요.",
+        "en": "Erase the sentence in the diary that blames you too harshly.",
+        "ja": "日記の中から、自分を責めすぎている文を消してみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "부모님과 통화하다가 순간 욱해서 말투가 거칠어졌다.",
+            "en": "I lost my temper during a call with my parents and spoke harshly.",
+            "ja": "親との電話でつい感情的になり、きつい言い方をしてしまった。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "순간 감정을 앞세워 거칠게 말한 건 분명 내 실수였다.",
+            "en": "Letting my emotions take over in the moment and speaking harshly was clearly my mistake.",
+            "ja": "一瞬感情的になってきつい言い方をしたのは、間違いなく自分のミスだった。"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "나 전체를 비난하지 않고 오늘 한 행동의 실수만 담백하게 인정하는 문장이에요.",
+            "en": "This sentence simply acknowledges what went wrong in your behavior without attacking who you are.",
+            "ja": "自分自身を否定せず、今日の行動のミスだけを率直に認めている文です。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "나는 부모님을 사랑할 줄도 모르는 최악의 자식이다.",
+            "en": "I'm the worst child who doesn't even know how to love my parents.",
+            "ja": "自分は親を愛することもできない、最低の子どもだ。"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "마음을 조금 가라앉히고 먼저 연락해 사과드려야겠다.",
+            "en": "I should calm down a little, reach out first, and apologize.",
+            "ja": "少し気持ちを落ち着かせて、自分から連絡して謝ろう。"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "자책에 머물지 않고 관계를 회복하기 위해 할 일을 다짐하는 문장이에요.",
+            "en": "This sentence focuses on how you can make things right rather than tearing yourself down.",
+            "ja": "自己嫌悪にとどまらず、関係を修復するためにできる行動を決意している文です。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "말투가 거칠었던 실수 하나로 나를 최악의 자식이라고 단정할 필요는 없어요. 잘못을 인정하고 사과하려는 다짐만으로도 충분해요.",
+        "en": "You don't need to label yourself the worst child over one mistake of speaking harshly. Admitting your fault and resolving to apologize is enough.",
+        "ja": "言い方がきつくなった1つのミスで、自分を最低の子どもだと決めつける必要はありません。非を認めて謝ろうと決めるだけで十分です。"
+      }
+    },
+    {
+      "icon_key": "speech_balloon",
+      "number": 23,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "집에 돌아와 씁쓸한 기분이 들 때, 이 상황을 어떻게 받아들이면 좋을까요?",
+        "en": "Back home feeling bitter, how should you take this situation?",
+        "ja": "帰宅して苦い気持ちになったとき、この状況をどう受け止めればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "소개팅에 나갔는데 상대가 대화 내내 휴대폰만 보고 단답으로 대답해서 어색하게 끝났어요.",
+            "en": "You went on a blind date, and it ended awkwardly because the other person kept looking at their phone and giving one-word replies.",
+            "ja": "紹介で会った相手が会話中ずっとスマホを見て一言しか返さなかったので、気まずいまま終わりました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "내가 매력이 없고 대화를 못 이끌어서 상대가 처음부터 흥미를 잃었나 봐",
+            "en": "They lost interest right away because I have no charm and can't lead a chat",
+            "ja": "自分に魅力がなくて会話をリードできなかったから、最初から興味を失ったのだろう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "상대의 무례한 태도까지 내 매력 탓으로 가져오지 않아도 돼요.",
+            "en": "You don't have to blame your own charm for the other person's rude behavior.",
+            "ja": "相手の失礼な態度まで、自分の魅力のせいにしなくて大丈夫です。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "어색했던 자리는 별일 아닌 걸로 치고 씁쓸한 기분도 그냥 잊고 신경 쓰지 말아야지",
+            "en": "The awkward date was no big deal, so I'll just forget this bitter feeling",
+            "ja": "気まずかった時間は大したことないと思って、苦い気持ちも忘れて気にしないでおこう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "불쾌하고 씁쓸한 기분을 별일 아닌 척 억지로 누르지 말아요.",
+            "en": "Don't force down your unpleasant, bitter feelings by pretending it's nothing.",
+            "ja": "不快で苦い気持ちを、大したことないふりをして押し込めないでください。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "나는 대화를 이어가려고 예의를 다했고 자리에서 매너를 안 지킨 건 상대 문제야",
+            "en": "I politely tried to keep the conversation going; their rude manners are on them",
+            "ja": "自分は礼儀をもって会話を続けようとしたし、その場でマナーを守らなかったのは相手の問題だ"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "내가 예의를 다한 것과 상대의 무례한 태도를 구분해 보세요. 씁쓸한 감정을 억지로 외면하거나 자책하지 않아도 내 가치를 지킬 수 있어요.",
+        "en": "Separate your own polite effort from the other person's rude behavior. You can protect your worth without blaming yourself or forcing yourself to ignore bitter feelings.",
+        "ja": "自分が礼儀を尽くしたことと、相手の失礼な態度を分けて考えましょう。苦い感情から無理に目を背けたり自分を責めたりしなくても、自分の価値は守れます。"
+      }
+    },
+    {
+      "icon_key": "bento_box",
+      "number": 24,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "점심시간에 단출한 도시락통을 열며 어떻게 생각하면 좋을까요?",
+        "en": "As you open your simple lunchbox at lunchtime, how should you think about it?",
+        "ja": "昼休みに質素なお弁当箱を開けるとき、どのように考えればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "직접 도시락을 싸서 다니기로 했는데, 오늘 아침엔 늦잠을 자서 밥과 김치, 계란후라이만 겨우 싸 왔어요.",
+            "en": "You decided to pack your own lunch, but you overslept this morning and barely managed to pack toast and a fried egg.",
+            "ja": "自分でお弁当を作って持っていくことにしましたが、今朝は寝坊して、ご飯と目玉焼きだけを何とか詰めてきました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "반찬이 이게 뭐야, 이렇게 허술하게 싸 올 거면 도시락은 그냥 포기하는 게 낫겠어",
+            "en": "What kind of lunch is this? If it's this sloppy, I might as well give up",
+            "ja": "こんなおかずじゃあんまりだ、こんなに適当に詰めるくらいならお弁当は諦めた方がいい"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "반찬이 단출하더라도 바쁜 아침에 도시락을 챙긴 노력을 기억해 봐요.",
+            "en": "Even if the sides are simple, remember your effort to pack lunch on a busy morning.",
+            "ja": "おかずは質素でも、忙しい朝にお弁当を用意した努力を思い出してみましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "전날 늦게까지 시달린 피로 때문에 늦잠을 잔 거라 부실한 도시락도 다 상황 때문이야",
+            "en": "I overslept from last night's fatigue, so this poor lunch is the situation's fault",
+            "ja": "前日の夜遅くまで続いた疲れで寝坊したのだから、質素なお弁当も全部状況のせいだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "상황 탓으로 돌리기보다 늦잠 자고도 포기하지 않은 점에 집중해 볼까요?",
+            "en": "Instead of blaming the situation, why not focus on not giving up after oversleeping?",
+            "ja": "状況のせいにするより、寝坊しても諦めなかった点に目を向けてみませんか？"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "거창한 반찬은 없지만 바쁜 아침에 포기하지 않고 도시락을 챙겨 온 것만으로도 잘했어",
+            "en": "It's nothing fancy, but I did well just by packing lunch on a rushed morning",
+            "ja": "立派なおかずはないけれど、忙しい朝に諦めずお弁当を用意してきただけでもよくやった"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "완벽한 식단이 아니어도 바쁜 아침에 다짐을 이어간 것만으로도 충분해요. 늦잠 잔 이유를 바깥 탓으로 돌리거나 포기하지 않아도 괜찮아요.",
+        "en": "Even if it isn't a perfect meal, keeping your commitment on a busy morning is enough. You don't need to blame outside circumstances for oversleeping or give up altogether.",
+        "ja": "完璧な献立でなくても、忙しい朝に決意を続けただけで十分です。寝坊した理由を周りのせいにしたり、諦めたりしなくても大丈夫です。"
+      }
+    },
+    {
+      "icon_key": "people_hugging",
+      "number": 25,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "자책하는 대신 상대의 무례한 말과 내 삶을 구분하는 생각을 적어보세요.",
+        "en": "Instead of blaming yourself, write a thought that separates the other person's rude words from your life.",
+        "ja": "自分を責める代わりに、相手の無礼な言葉と自分の人生を切り離す考えを書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "가족 모임에서 친척 어른이 취업과 결혼 문제로 무례한 잔소리를 늘어놓아서 기분이 상했어요.",
+            "en": "At a family gathering, an older relative went on with rude nagging about getting a job and marriage, leaving you upset.",
+            "ja": "家族の集まりで、年上の親戚から就職や結婚のことで無礼な小言を並べられ、嫌な気持ちになりました。"
+          }
+        },
+        {
+          "speaker": "me",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Self-acceptance. Accept boundaries, personal pace, own standards, or choosing not to blame yourself or internalize intrusive remarks. A short distancing phrase is enough; do not require an explicit declaration of personal worth.",
+        "example": {
+          "ko": "무례한 말에 흔들리지 말자. 내 삶은 내 속도로 살아가면 돼.",
+          "en": "I won't let rude remarks shake me. I can live my life at my own pace.",
+          "ja": "無礼な言葉に振り回されないようにしよう。自分の人生は自分のペースで生きていけばいい。"
+        },
+        "retry_hint": {
+          "ko": "상대의 무례한 기준과 내 삶의 속도를 구분하는 말을 나에게 건네보세요.",
+          "en": "Tell yourself something that separates their rude standards from your own pace.",
+          "ja": "相手の無礼な基準と自分のペースを分ける言葉を、自分にかけてみましょう。"
+        }
+      },
+      "explanation": {
+        "ko": "무례한 잔소리는 상대의 기준일 뿐 내 가치를 정하지 못해요. 내 삶은 내 속도에 맞춰 걸어가면 돼요.",
+        "en": "Rude nagging only reflects the other person's standards and cannot define your worth. You can walk through your life at your own pace.",
+        "ja": "無礼な小言は相手の基準にすぎず、自分の価値を決めることはできません。自分の人生は自分のペースで歩んでいけばいいのです。"
+      }
+    },
+    {
+      "icon_key": "student",
+      "number": 26,
+      "answer_type": "pick",
+      "layout": "diary",
+      "pick_style": "choose",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "성적표를 확인한 오늘, 이 결과를 어떻게 받아들이면 좋을까요?",
+        "en": "After checking your score report today, how should you take this result?",
+        "ja": "成績表を確認した今日、この結果をどう受け止めればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "방학 동안 토익 점수를 700점에서 850점까지 올리기로 했는데, 시험 결과 800점이 나왔다.",
+            "en": "I set out to raise my test score from 700 to 850 over the break, and my result came back as 800.",
+            "ja": "休み中にTOEICの点数を700点から850点まで上げる目標を立てたが、試験の結果は800点だった。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "단기간에 800점을 받았으니 내 영어 실력은 이미 완벽해서 부족한 점이 하나도 없다",
+            "en": "Getting 800 so fast means my skills are already perfect with nothing to fix",
+            "ja": "短期間で800点を取ったのだから、自分の英語力はすでに完璧で足りないところは1つもない"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "부족한 점까지 전혀 없다고 과장하지 않아도 충분히 잘 해냈어요.",
+            "en": "You did well enough without exaggerating that you have nothing left to improve.",
+            "ja": "足りない点が全くないと誇張しなくても、十分よく頑張りました。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "목표했던 점수에 못 미쳤으니 이번 방학 내내 학원에 다니며 애쓴 시간은 전부 헛수고였다",
+            "en": "I missed my target score, so all the time I spent studying over break was wasted",
+            "ja": "目標の点数に届かなかったのだから、休み中に塾へ通って頑張った時間はすべて無駄だった"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "목표보다 조금 낮다고 해서 방학 동안 올린 점수까지 정말 헛수고일까요?",
+            "en": "Does falling a bit short of your goal really make the points you gained a waste?",
+            "ja": "目標より少し低いからといって、休み中に上げた点数まで本当に無駄でしょうか？"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "목표에는 조금 못 미쳤지만 방학 동안 100점이나 올린 것도 충분히 의미 있는 성취다",
+            "en": "I fell a bit short, but raising my score by 100 points is still a real achievement",
+            "ja": "目標には少し届かなかったけれど、休み中に100点も上げたことは十分意味のある成果だ"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "목표 점수에 닿지 못했더라도 100점이나 올린 노력은 사라지지 않아요. 부족한 점까지 완벽하다고 포장하거나 노력을 헛수고로 깎아내리지 마세요.",
+        "en": "Even if you didn't reach your target score, the effort it took to gain 100 points doesn't disappear. Don't pretend you have no flaws or dismiss your hard work as a waste.",
+        "ja": "目標の点数に届かなくても、100点も上げた努力は消えません。足りない部分まで完璧だと取り繕ったり、努力を無駄だと切り捨てたりしないでください。"
+      }
+    },
+    {
+      "icon_key": "spiral_notepad",
+      "number": 27,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "빈칸만 보며 자책하는 대신 그동안 해낸 기록을 인정하는 문장을 적어보세요.",
+        "en": "Instead of blaming yourself over the blank days, write a sentence recognizing the entries you did complete.",
+        "ja": "空白ばかり見て自分を責める代わりに、これまで書き続けた記録を認める文を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "한 달 동안 매일 일기를 쓰기로 다짐했는데, 달력을 보니 스무 날 정도만 쓰고 열흘은 빈칸으로 남아 있다.",
+            "en": "I resolved to write in my diary every day for a month, but looking at the calendar, I only wrote on about 20 days and left 10 days blank.",
+            "ja": "1か月間毎日日記を書こうと決めたのに、カレンダーを見たら20日ほどしか書けておらず、10日分は空白のまま残っている。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Self-acceptance. Accept partial effort, imperfect consistency, not blaming yourself for the blank days, self-kindness, or simply continuing the diary. Do not require mentioning twenty days or explicitly praising past effort.",
+        "example": {
+          "ko": "빈 날도 있지만 스무 날이나 꾸준히 기록한 나도 충분히 잘했다.",
+          "en": "There are blank days, but I still did well by steadily writing for 20 days.",
+          "ja": "空白の日もあるけれど、20日もコツコツ記録した自分は十分よくやった。"
+        },
+        "retry_hint": {
+          "ko": "빈칸만 보기보다 그동안 꾸준히 채운 날들의 기록부터 떠올려 보세요.",
+          "en": "Rather than focusing on the blanks, think of the days you steadily filled in.",
+          "ja": "空白ばかり見るより、これまでコツコツ埋めた日々の記録を思い出してみて。"
+        }
+      },
+      "explanation": {
+        "ko": "매일 채우지 못했더라도 꾸준히 기록한 날들의 가치는 사라지지 않아요. 빈칸보다 내가 채운 날들을 먼저 봐 주세요.",
+        "en": "Even if you didn't fill every day, the value of the days you steadily recorded doesn't disappear. Look at the days you filled before the blank ones.",
+        "ja": "毎日埋められなくても、コツコツ記録した日々の価値は消えません。空白より、自分が埋めた日々を先に見てあげてください。"
+      }
+    },
+    {
+      "icon_key": "open_book",
+      "number": 28,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "끝까지 못 읽었다고 자책하는 대신 내 속도를 인정하는 문장을 적어보세요.",
+        "en": "Instead of blaming yourself for not finishing the book, write a sentence that accepts your own pace.",
+        "ja": "最後まで読めなかったと自分を責める代わりに、自分のペースを認める文を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "주말에 자기계발 책을 한 권 다 읽으려고 했는데, 절반쯤 읽다가 집중력이 떨어져서 책을 덮었다.",
+            "en": "I planned to finish a whole self-development book over the weekend, but I lost focus about halfway through and closed the book.",
+            "ja": "週末に自己啓発の本を1冊読み切るつもりだったが、半分ほど読んだところで集中力が切れて本を閉じた。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Self-acceptance. Accept partial progress, not blaming yourself for stopping halfway, taking a break, reading later, or going at your own pace. Do not require explicitly saying that reading half a book is meaningful.",
+        "example": {
+          "ko": "절반이나 읽은 것도 충분하니 오늘은 쉬고 다음에 이어서 읽어야겠다.",
+          "en": "Reading half is plenty for today, so I'll rest now and pick it up again next time.",
+          "ja": "半分も読めたのだから十分だし、今日は休んでまた今度続きを読もう。"
+        },
+        "retry_hint": {
+          "ko": "절반이라도 읽은 나를 칭찬하고 잠시 쉬었다 가도 좋아요.",
+          "en": "Give yourself credit for reading half, and remember it's okay to take a break.",
+          "ja": "半分でも読んだ自分を褒めて、少し休んでから進んでも大丈夫です。"
+        }
+      },
+      "explanation": {
+        "ko": "계획대로 한 번에 끝내지 못해도 괜찮아요. 절반이라도 읽은 나를 인정하고 쉬었다가 다시 이어가면 돼요.",
+        "en": "It's okay if you don't finish it all at once as planned. Give yourself credit for reading half, take a break, and pick it up again later.",
+        "ja": "計画通りに一度で読み切れなくても大丈夫です。半分でも読んだ自分を認めて、休んでからまた続ければいいのです。"
+      }
+    },
+    {
+      "icon_key": "headphone",
+      "number": 29,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "물건을 잃어버린 실수로 나 전체를 비난하지 않는 문장을 적어보세요.",
+        "en": "Write a sentence that doesn't blame your whole self for the mistake of losing something.",
+        "ja": "物をなくしたミスで自分全体を責めない文を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "아끼던 무선 이어폰 한쪽을 길에서 잃어버려서 하루 종일 우울하고 나 자신이 원망스러웠다.",
+            "en": "I lost one of my favorite wireless earbuds on the street, and I felt down and resented myself all day.",
+            "ja": "お気に入りのワイヤレスイヤホンの片方を道でなくしてしまい、1日中落ち込んで自分が恨めしかった。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Self-acceptance. Accept human fallibility, feeling upset without harsh self-blame, self-kindness, or an ordinary practical next step. Do not require a statement separating mistakes or possessions from personal worth.",
+        "example": {
+          "ko": "아끼던 거라 속상하지만 누구나 실수로 물건을 잃어버릴 수 있다.",
+          "en": "I'm upset because I treasured it, but anyone can accidentally lose things.",
+          "ja": "お気に入りだったからショックだけれど、誰だってうっかり物をなくすことはある。"
+        },
+        "retry_hint": {
+          "ko": "친한 친구가 물건을 잃어버려 속상해한다면 어떻게 말해 줄 것 같아요?",
+          "en": "What would you say to a close friend who was upset about losing something?",
+          "ja": "親しい友人が物をなくして落ち込んでいたら、どんな言葉をかけますか？"
+        }
+      },
+      "explanation": {
+        "ko": "물건을 잃어버려 속상한 마음은 당연하지만, 실수 하나로 나 자신까지 미워할 필요는 없어요.",
+        "en": "It's natural to feel upset about losing something, but you don't need to hate yourself over a single mistake.",
+        "ja": "物をなくして落ち込むのは当然ですが、1つのミスで自分自身まで嫌いになる必要はありません。"
+      }
+    },
+    {
+      "icon_key": "calendar",
+      "number": 30,
+      "answer_type": "write",
+      "layout": "diary",
+      "pick_style": null,
+      "review_point": true,
+      "reward_hay": 150,
+      "mission": {
+        "ko": "올 한 해 애쓴 나를 인정하는 말로 일기를 마무리해보세요.",
+        "en": "Finish the diary with words that recognize the effort you made this year.",
+        "ja": "この1年頑張った自分を認める言葉で、日記を締めくくりましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "slot": false,
+          "text": {
+            "ko": "올 한 해를 돌아보니 연초에 세운 거창한 계획 중 절반 이상을 이루지 못해서 시간을 허투루 보낸 기분이 들었다.",
+            "en": "Looking back on this year, I didn't achieve more than half of the ambitious plans I made at the start of the year, and I felt like I had wasted my time.",
+            "ja": "この1年を振り返ると、年初に立てた大きな計画の半分以上を達成できず、時間を無駄に過ごしたような気がした。"
+          }
+        },
+        {
+          "speaker": "narration",
+          "slot": true,
+          "text": null
+        }
+      ],
+      "options": [],
+      "grading": {
+        "criteria": "Self-acceptance. Accept endurance, effort, partial progress, not dismissing the whole year as wasted, realistic limits, or a kind next step for the coming year. Do not require listing achievements or explicitly praising the year.",
+        "example": {
+          "ko": "계획을 다 이루진 못했지만 한 해 동안 묵묵히 살아내며 애쓴 것만으로도 충분하다.",
+          "en": "I didn't achieve all my plans, but quietly getting through the year and doing my best is enough.",
+          "ja": "計画をすべては達成できなかったけれど、1年間地道に生き抜いて頑張っただけでも十分だ。"
+        },
+        "retry_hint": {
+          "ko": "못 이룬 계획보다 올 한 해 애쓴 나에게 따뜻한 말을 건네볼까요?",
+          "en": "Instead of focusing on unmet plans, how about offering warm words for your hard work?",
+          "ja": "達成できなかった計画より、この1年頑張った自分に温かい言葉をかけませんか？"
+        }
+      },
+      "explanation": {
+        "ko": "계획을 전부 이루지 못했어도 한 해를 버텨내며 애쓴 시간은 사라지지 않아요. 있는 그대로의 나를 따뜻하게 다독여주세요.",
+        "en": "Even if you didn't achieve all your plans, the time you spent working hard and getting through the year doesn't disappear. Comfort yourself warmly just as you are.",
+        "ja": "計画をすべて達成できなくても、この1年を乗り切るために頑張った時間は消えません。ありのままの自分を温かく労わってあげてください。"
+      }
+    }
+  ]
+}

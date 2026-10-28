@@ -1,0 +1,2192 @@
+{
+  "id": "refusal-practice-v1",
+  "order": 2,
+  "icon_key": "speech_balloon",
+  "title": {
+    "ko": "거절 연습",
+    "en": "Saying No",
+    "ja": "断る練習"
+  },
+  "summary": {
+    "ko": "부담스러운 부탁 앞에서 억지로 맞추는 대신, 내 상태와 마음을 솔직하고 부드럽게 말하는 30단계 연습이에요.",
+    "en": "Thirty steps to express your situation and feelings honestly and gently instead of forcing yourself to go along with burdensome requests.",
+    "ja": "負担に感じるお願いに無理に合わせる代わりに、自分の状態や気持ちを正直にやわらかく伝える30のステップです。"
+  },
+  "stages": [
+    {
+      "number": 1,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "hot_beverage",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "친구에게 어떤 말을 건네면 좋을까요?",
+        "en": "What would be good to say to your friend?",
+        "ja": "友達に何と伝えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "카페에서 친구가 에어컨 바람이 바로 오는 자리에 앉자고 해요. 추위를 많이 타서 내내 떨 것 같아요.",
+            "en": "At a café, your friend suggests sitting right in the path of the air conditioner. You get cold easily and feel like you'll be shivering the whole time.",
+            "ja": "カフェで友達が、エアコンの風が直接当たる席に座ろうと言っています。寒がりなので、ずっと震えてしまいそうです。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "우리 여기 에어컨 바로 앞자리에 앉을까? 시원하겠다!",
+            "en": "Shall we sit right in front of the air conditioner here? It'll be nice and cool!",
+            "ja": "ここのエアコンのすぐ前の席に座らない？涼しそう！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "응, 날도 더운데 시원하고 좋겠다! 그냥 여기 바로 앞자리에 앉자",
+            "en": "Yeah, it's hot out, so that'll feel great! Let's sit right here in front",
+            "ja": "うん、暑いし涼しくてよさそうだね！ここのすぐ前の席に座ろう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "추위를 참지 말고 내 상태를 솔직하게 이야기해 봐요.",
+            "en": "Instead of enduring the cold, try honestly sharing how you feel.",
+            "ja": "寒さを我慢せず、自分の状態を正直に伝えてみましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "나 추위를 많이 타서 그러는데, 바람 안 오는 안쪽 자리로 가면 안 될까?",
+            "en": "I get cold easily—could we sit further inside away from the vent?",
+            "ja": "私、すごく寒がりなんだけど、風が来ない奥の席に行ってもいい？"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "바람이 좀 셀 것 같긴 한데, 네가 시원한 게 좋으면 일단 여기 앉자",
+            "en": "The breeze might be strong, but if you want the cool air, let's sit here",
+            "ja": "風が少し強そうだけど、涼しいほうがいいならひとまずここに座ろう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "일단 참겠다고 미루지 말고 편한 자리를 바로 제안해 볼까요?",
+            "en": "Instead of holding out for now, could you suggest a comfortable seat right away?",
+            "ja": "ひとまず我慢するより、楽に座れる席をすぐ提案してみませんか？"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "사소한 불편함도 참지 않고 솔직하게 말해도 괜찮아요. 일단 앉겠다고 미루기보다 내 상태와 원하는 자리를 차분하게 전해보세요.",
+        "en": "It's okay to speak up honestly about even small discomforts instead of holding them in. Rather than agreeing to sit there for now, try calmly sharing how you feel and which seat you'd prefer.",
+        "ja": "ちょっとした不快感も我慢せず正直に伝えて大丈夫です。ひとまず座ると先延ばしにするより、自分の状態と座りたい席を落ち着いて伝えてみましょう。"
+      }
+    },
+    {
+      "number": 2,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "steaming_bowl",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "동료에게 어떻게 답하면 좋을까요?",
+        "en": "How would you reply to your coworker?",
+        "ja": "同僚にどのように答えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "동료들이 점심 메뉴를 어제 저녁에 먹은 김치찌개로 통일하자고 해요. 같은 음식을 또 먹기는 내키지 않아요.",
+            "en": "Your coworkers suggest everyone order curry for lunch, which you had for dinner last night. You don't feel like eating the same food again.",
+            "ja": "同僚たちが、昼食のメニューを昨夜食べたカレーに統一しようと言っています。同じものをまた食べる気にはなれません。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "동료",
+            "en": "Coworker",
+            "ja": "同僚"
+          },
+          "text": {
+            "ko": "오늘 다 같이 김치찌개로 통일할까요? 금방 나오잖아요!",
+            "en": "Shall we all get curry today? It comes out fast!",
+            "ja": "今日はみんなでカレーに統一しませんか？すぐ出てきますよ！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "아, 어제 저녁에도 김치찌개 먹었는데 왜 또 똑같은 걸 먹자고 하세요?",
+            "en": "I had curry last night—why are you making us get the exact same thing?",
+            "ja": "あ、昨日の夜もカレーを食べたのに、どうしてまた同じものを食べようと言うんですか？"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "짜증 섞인 말투 대신 다른 메뉴를 원하는 이유만 부드럽게 건네보세요.",
+            "en": "Instead of sounding annoyed, gently share why you'd like a different dish.",
+            "ja": "苛立った言い方ではなく、別のメニューにしたい理由をやわらかく伝えましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "제가 어제 저녁에도 김치찌개를 먹어서요, 오늘 저는 다른 걸로 시켜도 될까요?",
+            "en": "I actually had curry last night—mind if I order something else today?",
+            "ja": "昨日の夜もカレーを食べたので、今日は私だけ別のものを頼んでもいいでしょうか？"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "미안해서 저만 따로 시키기가 좀 그러네요, 오늘은 그냥 같은 걸로 먹을게요",
+            "en": "I feel bad ordering separately, so I'll just get the same thing today",
+            "ja": "申し訳なくて私だけ別には頼みづらいですね、今日はそのまま同じものを食べます"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "미안해하며 맞추지 말고 다른 걸 먹겠다고 가볍게 물어보면 어떨까요?",
+            "en": "Rather than feeling bad and going along, why not lightly ask to order something else?",
+            "ja": "遠慮して合わせず、別のものを頼んでいいか軽く聞いてみませんか？"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "음식을 통일하자는 분위기여도 내 상황을 가볍게 말하고 다르게 골라도 괜찮아요. 미안해하며 억지로 맞추거나 짜증을 내지 않아도 충분히 조율할 수 있어요.",
+        "en": "Even when everyone seems set on ordering the same dish, it's okay to lightly explain your situation and choose something else. You can easily work it out without feeling guilty and forcing yourself to go along, or getting annoyed.",
+        "ja": "同じメニューにしようという雰囲気でも、自分の状況を軽く伝えて別のものを選んで大丈夫です。申し訳なく思って無理に合わせたり、苛立ちをぶつけたりしなくても十分に調整できます。"
+      }
+    },
+    {
+      "number": 3,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "t_shirt",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "내 취향이 아니라는 뜻을 담아 친구에게 할 말을 적어보세요.",
+        "en": "Write what you would say to your friend to let them know it's not your style.",
+        "ja": "自分の好みではないという気持ちを込めて、友達に伝える言葉を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "옷 가게에서 친구가 내 취향이 아닌 화려한 옷을 입어보라고 부추겨요. 갈아입기도 번거롭고 입어보고 싶지 않아요.",
+            "en": "At a clothing store, your friend urges you to try on a flashy outfit that isn't your style. Changing feels like a hassle, and you don't want to try it on.",
+            "ja": "洋服店で、友達が好みではない派手な服を着てみるよう勧めてきます。着替えるのも面倒で、試着したくありません。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "야, 이거 요즘 유행하는 건데 너한테 딱이다! 얼른 들어가서 입어봐!",
+            "en": "Hey, this is super trendy lately and it's so you! Hurry and go try it on!",
+            "ja": "ねえ、これ最近流行ってるし、絶対似合うよ！早く入って試着してみて！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "친구가 권해 준 옷이어도 내 취향에 따라 선택해도 괜찮아요. 입어보고 싶지 않다는 마음을 솔직하고 가볍게 전해보세요.",
+        "en": "Even if a friend recommends an outfit, it's okay to choose based on your own taste. Try honestly and lightly letting them know that you don't feel like trying it on.",
+        "ja": "友達が勧めてくれた服でも、自分の好みに合わせて選んで大丈夫です。試着したくない気持ちを、正直に軽く伝えてみましょう。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline trying on the outfit or express that it is not wanted/not their style. A simple refusal suffices.",
+        "retry_hint": {
+          "ko": "친구에게 맞추지 않고 내 취향이 아니라고 솔직하게 말해도 괜찮아요.",
+          "en": "It's okay to honestly say it isn't your style instead of going along with your friend.",
+          "ja": "友達に合わせず、自分の好みではないと正直に言っても大丈夫です。"
+        }
+      }
+    },
+    {
+      "number": 4,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "beach_with_umbrella",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "지인에게 어떤 말을 건네면 좋을까요?",
+        "en": "What would be good to say to your acquaintance?",
+        "ja": "知り合いに何と伝えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "지인이 자기 차를 타고 가라고 해요. 평소 운전이 거칠어 멀미가 나고 불안해서 지하철로 편하게 가고 싶어요.",
+            "en": "An acquaintance offers you a ride in their car. Their driving is usually rough, which makes you carsick and uneasy, so you'd rather take the subway comfortably.",
+            "ja": "知り合いが自分の車に乗って帰るよう勧めてくれました。普段から運転が荒く、車酔いして不安になるので、地下鉄で気楽に帰りたいです。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "지인",
+            "en": "Acquaintance",
+            "ja": "知り合い"
+          },
+          "text": {
+            "ko": "비도 많이 오는데 제 차 타고 가세요! 가는 길에 데려다드릴게요.",
+            "en": "It's raining hard, so take my car! I'll drop you off on the way.",
+            "ja": "雨も強く降っていますし、私の車に乗って帰ってください！帰り道に送りますよ。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "마음만으로도 정말 감사해요! 오늘은 지하철 타는 게 편해서 바로 갈게요",
+            "en": "Thanks so much for offering! The subway is easier for me today, so I'll head off now",
+            "ja": "お気持ちだけでも本当にありがとうございます！今日は地下鉄のほうが気楽なので、そのまま帰りますね"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "아, 그래도 괜찮으세요? 번거로우실 텐데 그럼 오늘 신세 좀 질게요",
+            "en": "Are you sure? I hate to be a bother, but I'll take a ride today then",
+            "ja": "あ、本当によろしいんですか？お手数をおかけしますが、今日はお言葉に甘えますね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "불안함을 참고 타는 대신 내가 편한 이동 방법을 골라도 괜찮아요.",
+            "en": "It's okay to choose a way home that feels comfortable instead of riding anxiously.",
+            "ja": "不安を我慢して乗るより、自分が安心できる移動方法を選んで大丈夫です。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "갑자기 근처에 들를 곳이 생겨서요, 다음번에 기회 되면 그때 꼭 탈게요",
+            "en": "I suddenly need to stop somewhere nearby, so I'll take a ride next time",
+            "ja": "急に近くで立ち寄る場所ができまして、また次の機会にぜひ乗せていただきますね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "없는 핑계나 다음 기약 없이도 담백하게 마음을 전할 수 있어요.",
+            "en": "You can decline simply without making up an excuse or promising a next time.",
+            "ja": "嘘の言い訳や次回の約束をしなくても、率直に気持ちを伝えられます。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "호의에 고마움을 표하면서도 내가 편한 방법을 선택할 수 있어요. 없는 핑계를 대거나 억지로 차를 타지 않고도 자연스럽게 거절할 수 있어요.",
+        "en": "You can express gratitude for a kind offer while still choosing what feels comfortable for you. You can decline naturally without making up an excuse or forcing yourself to take the ride.",
+        "ja": "厚意に感謝を示しつつ、自分が安心できる方法を選ぶことができます。ない言い訳を作ったり無理に車に乗ったりしなくても、自然に断ることができます。"
+      }
+    },
+    {
+      "number": 5,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "person_getting_massage",
+      "review_point": true,
+      "reward_hay": 30,
+      "mission": {
+        "ko": "이 상황을 어떻게 받아들이면 좋을까요?",
+        "en": "How would it be helpful to view this situation?",
+        "ja": "この状況をどのように受け止めるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "미용실에서 머리만 자르려는데 직원이 비싼 영양 시술을 추가로 권유해요. 갑작스러운 제안이라 선뜻 내키지 않아요.",
+            "en": "At the hair salon, you only planned to get a haircut, but a staff member recommends adding an expensive hair treatment. Since the suggestion is sudden, you feel reluctant.",
+            "ja": "美容室で髪を切るだけのつもりが、スタッフから高額なトリートメントを追加で勧められました。急な提案で気が進みません。"
+          },
+          "slot": false
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "열심히 설명해 준 성의를 봐서라도 오늘 한 번은 결제해야지",
+            "en": "They explained it so thoroughly, so I should pay for it just this once out of courtesy",
+            "ja": "熱心に説明してくれた誠意に免じてでも、今日一度は支払おう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "직원의 권유와 내 선택을 구분하고 원하는 범위부터 떠올려 볼까요?",
+            "en": "Could you separate their pitch from your choice and think of what you actually want?",
+            "ja": "勧めと自分の選択を分けて、希望する範囲から考えてみませんか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "그냥 안 한다고 하면 민망하니까 다음번에 꼭 받겠다고 둘러대야지",
+            "en": "It feels awkward to just say no, so I should make an excuse and promise to get it next time",
+            "ja": "そのまま断るのは気まずいから、次回は必ず受けると言い訳しよう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "민망함을 피하려고 다음을 약속할 필요 없이 오늘 할 시술만 생각해요.",
+            "en": "Instead of promising a next time out of awkwardness, focus only on what you want today.",
+            "ja": "気まずさを避けようと次回を約束せず、今日受ける施術だけ考えましょう。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "권유는 상대 몫이고 선택은 내 몫이니까 오늘은 머리만 자르겠다고 말해야지",
+            "en": "Pitching is their job and choosing is mine, so I'll ask for just a haircut",
+            "ja": "勧めるのは相手の役割で選ぶのは自分だから、今日はカットだけと伝えよう"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "상대가 무언가를 권유했다고 해서 미안해하거나 다음을 기약할 필요는 없어요. 제안은 상대의 몫이고 선택권은 언제나 나에게 있어요.",
+        "en": "You don't need to feel sorry or promise a next time just because someone recommended something. Making an offer is their part, and the choice is always yours.",
+        "ja": "相手が何かを勧めてきたからといって、申し訳なく思ったり次回を約束したりする必要はありません。提案するのは相手の役割であり、選ぶ権利はいつでも自分にあります。"
+      }
+    },
+    {
+      "number": 6,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "person_getting_massage",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "오늘 원하는 시술만 받겠다고 직원에게 할 말을 적어보세요.",
+        "en": "Write what you would say to the staff to get only the service you want today.",
+        "ja": "今日希望する施術だけを受けると、スタッフに伝える言葉を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "미용실 직원이 자꾸 10만 원짜리 두피 관리를 권유해요. 오늘은 머리만 빠르게 자르고 나가고 싶어요.",
+            "en": "At the hair salon, a staff member keeps recommending a $100 scalp treatment. Today, you just want to get a quick haircut and leave.",
+            "ja": "美容室のスタッフが、しきりに1万円の頭皮ケアを勧めてきます。今日は髪だけ手早く切って帰りたいです。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "직원",
+            "en": "Staff",
+            "ja": "スタッフ"
+          },
+          "text": {
+            "ko": "손님, 지금 두피가 많이 건조하신데 오늘 특별 할인가로 두피 관리까지 같이 해드릴까요?",
+            "en": "Your scalp is quite dry right now. Would you like to add a scalp treatment at today's special discount price?",
+            "ja": "お客様、今かなり頭皮が乾燥していらっしゃるのですが、本日の特別割引価格で頭皮ケアもご一緒にいかがですか？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "추가 시술을 권유받아도 내가 원한 것만 선택할 수 있어요. 사정을 길게 설명하거나 다음을 약속하지 않고 원하는 범위만 분명하게 말해보세요.",
+        "en": "Even when an extra service is recommended, you can choose only what you came for. Try clearly stating just what you want without giving a long explanation or promising a next time.",
+        "ja": "追加の施術を勧められても、自分が希望したものだけを選べます。事情を長く説明したり次回を約束したりせず、希望する範囲だけをはっきり伝えてみましょう。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline the added scalp treatment or limit the visit to a haircut. No promise of a future treatment is needed.",
+        "retry_hint": {
+          "ko": "다음을 기약하지 말고 오늘은 머리만 자르겠다고 분명히 말해 봐요.",
+          "en": "Without promising a next time, try clearly saying you only want a haircut today.",
+          "ja": "次回を約束せず、今日はカットだけとはっきり伝えてみましょう。"
+        }
+      }
+    },
+    {
+      "number": 7,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "calendar",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "선배에게 어떻게 답하면 좋을까요?",
+        "en": "How would you reply to your senior coworker?",
+        "ja": "先輩にどのように答えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "복도에서 마주친 선배가 행사 준비를 같이하자고 해요. 당장 분위기에 휩쓸려 대답하면 그대로 떠안게 될 것 같아요.",
+            "en": "A senior coworker you run into in the hallway asks you to help prepare for an event. If you get swept up in the moment and answer right away, you feel like you'll end up stuck with it.",
+            "ja": "廊下で出くわした先輩から、イベントの準備を一緒にやろうと誘われました。その場の雰囲気に流されて返事をすると、そのまま引き受けることになりそうです。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "선배",
+            "en": "Senior",
+            "ja": "先輩"
+          },
+          "text": {
+            "ko": "마침 잘 만났다! 다음 달 행사 준비하는데 네가 같이 좀 해줘야겠어. 괜찮지?",
+            "en": "Great timing! We're preparing for next month's event, and I need you to help out. You're good with that, right?",
+            "ja": "ちょうどよかった！来月のイベント準備、一緒に手伝ってほしいんだ。大丈夫だよね？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "네, 선배가 도와달라고 하시는데 당연히 같이해야죠! 어떤 일 맡으면 될까요?",
+            "en": "Since you're asking, of course I'll help! What part should I take on?",
+            "ja": "はい、先輩が手伝ってとおっしゃるならもちろんご一緒します！何を担当すればいいですか？"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "그 자리에서 바로 수락하지 말고 내 일정을 확인할 시간부터 벌어보세요.",
+            "en": "Instead of agreeing on the spot, ask for some time to check your schedule first.",
+            "ja": "その場ですぐ引き受けず、自分の予定を確認する時間をもらいましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "다음 달 일정을 먼저 확인해 봐야 해서요, 내일 오전까지 말씀드려도 될까요?",
+            "en": "I need to check next month's schedule first—can I let you know tomorrow morning?",
+            "ja": "来月の予定を先に確認してみないといけませんので、明日の午前中までにお返事してもいいですか？"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "많이 바쁘지만 않으면 괜찮을 것 같은데요, 일단 같이하는 걸로 알고 있을게요",
+            "en": "It should be fine unless I get swamped, so count me in for now",
+            "ja": "あまり忙しくなければ大丈夫だと思いますので、ひとまず参加するつもりでいますね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "어정쩡하게 수락해 두면 나중에 무리가 되니 확인 후 답하겠다고 해봐요.",
+            "en": "Half-agreeing now can overload you later, so say you'll reply after checking.",
+            "ja": "曖昧に引き受けると後で無理が出るので、確認して答えると伝えましょう。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "갑작스러운 부탁에 그 자리에서 바로 답하지 않아도 괜찮아요. 어정쩡하게 수락하기보다 일정을 확인할 시간을 먼저 확보해 보세요.",
+        "en": "You don't have to answer a sudden request right on the spot. Rather than half-heartedly agreeing, try giving yourself time to check your schedule first.",
+        "ja": "急なお願いに、その場ですぐ返事をしなくても大丈夫です。曖昧に引き受けるより、まずは予定を確認する時間を確保してみましょう。"
+      }
+    },
+    {
+      "number": 8,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "calendar",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "선배에게 어떤 말을 건네면 좋을까요?",
+        "en": "What would be good to say to your senior coworker?",
+        "ja": "先輩に何と伝えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "어제 선배가 제안했던 다음 달 행사 준비를 아무리 생각해 봐도 지금 맡은 일과 병행하기엔 너무 무리예요.",
+            "en": "No matter how much you think about the event prep your senior coworker suggested yesterday, taking it on alongside your current work is too much.",
+            "ja": "昨日先輩から誘われた来月のイベント準備についていくら考えてみても、今抱えていることと両立するのは無理がありそうです。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "선배",
+            "en": "Senior",
+            "ja": "先輩"
+          },
+          "text": {
+            "ko": "어제 말했던 행사 준비 말이야, 일정 확인해 봤어? 같이하는 거지?",
+            "en": "About the event prep I mentioned yesterday, did you check your schedule? You're doing it with us, right?",
+            "ja": "昨日話したイベント準備の件だけど、予定は確認してみた？一緒にやるよね？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "다음 달 일정을 확인해 봤는데 마감 일이 겹쳐서요, 이번에는 함께하기 어려울 것 같아요",
+            "en": "I checked my schedule and my deadlines overlap, so I can't join this time",
+            "ja": "来月の予定を確認してみたのですが締め切りが重なっていまして、今回はご一緒するのが難しそうです"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "일정이 겹쳐서 다 못 도와드려 죄송한데, 작은 일이라도 제가 조금 맡아볼까요?",
+            "en": "Sorry my schedule is tight, but could I at least take on a small part?",
+            "ja": "予定が重なって全部はお手伝いできず申し訳ないのですが、小さなことでも少し引き受けましょうか？"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "미안하다고 일부를 떠안으면 결국 둘 다 무리가 되지 않을까요?",
+            "en": "If you take on even a part out of guilt, won't both end up being too much?",
+            "ja": "申し訳ないからと一部だけ引き受けても、結局どちらも無理になりませんか？"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "일정이 좀 빠듯하긴 한데, 제가 원래 맡은 일을 뒤로 미뤄서라도 같이해 볼게요",
+            "en": "My schedule is tight, but I'll push back my own work to help out",
+            "ja": "予定が少し詰まってはいるのですが、今抱えている作業を後回しにしてでもご一緒してみます"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "원래 맡은 일까지 미루면서 무리할 필요 없이 바쁜 상황을 말씀드려요.",
+            "en": "No need to push back your own work and overdo it; just explain that you're busy.",
+            "ja": "自分の仕事を後回しにしてまで無理せず、忙しい状況を伝えましょう。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "일정을 확인한 뒤 무리라고 판단되면 정중하게 거절해도 괜찮아요. 미안함 때문에 일부만 떠안거나 내 일을 미루지 말고 분명하게 말해보세요.",
+        "en": "If you check your schedule and realize it's too much, it's okay to politely decline. Instead of taking on a small part out of guilt or putting off your own work, try stating your answer clearly.",
+        "ja": "予定を確認したあとで無理だと判断したら、丁寧に断っても大丈夫です。申し訳なさから一部だけ引き受けたり自分の仕事を後回しにしたりせず、はっきり伝えてみましょう。"
+      }
+    },
+    {
+      "number": 9,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "speech_balloon",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "바로 답하기보다 일정을 먼저 확인하겠다고 모임원에게 할 말을 적어보세요.",
+        "en": "Write what you would say to the group members to let them know you'll check your schedule before answering.",
+        "ja": "すぐ答えるより先に予定を確認すると、メンバーに伝える言葉を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "단체 대화방에서 사람들이 모임 장소를 예약해 달라고 몰아가요. 바로 수락하지 않고 내 상황을 먼저 확인하고 싶어요.",
+            "en": "In a group chat, people are nudging you to book the place for the next gathering. Instead of agreeing right away, you want to check your situation first.",
+            "ja": "グループチャットで、みんなから集まりの場所を予約してほしいと持ちかけられています。すぐには引き受けず、まず自分の状況を確認したいです。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "모임원",
+            "en": "Group member",
+            "ja": "メンバー"
+          },
+          "text": {
+            "ko": "맛집 잘 아시잖아요! 다음 모임 장소 예약 좀 맡아주실래요?",
+            "en": "Since you know all the good restaurants, how about you book the place for our next gathering?",
+            "ja": "おいしいお店に詳しいですよね！次の集まりのお店予約、お願いしてもいいですか？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "사람들이 기대하는 분위기여도 그 자리에서 바로 대답할 필요는 없어요. 먼저 내 일정과 상황을 확인한 뒤 결정해도 늦지 않아요.",
+        "en": "Even when people seem to be counting on you, you don't have to answer right on the spot. It's not too late to check your schedule and situation first before deciding.",
+        "ja": "周りから期待される雰囲気でも、その場ですぐ返事をする必要はありません。まず自分の予定や状況を確認してから決めても遅くありません。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Delay the decision to think or check availability before committing. A promise to answer later counts. No deadline or explicit refusal is required. An immediate yes or a final refusal with no pause does not practice this mission.",
+        "retry_hint": {
+          "ko": "바로 떠맡지 말고 내 일정을 먼저 확인해 보겠다고 답하면 어떨까요?",
+          "en": "Instead of taking it on right away, how about saying you'll check your schedule first?",
+          "ja": "すぐ引き受けず、まず予定を確認してみると答えてみませんか？"
+        }
+      }
+    },
+    {
+      "number": 10,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "briefcase",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "동료에게 어떻게 답하면 좋을까요?",
+        "en": "How would you reply to your coworker?",
+        "ja": "同僚にどのように答えるとよいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "퇴근 10분 전에 동료가 오늘 안 끝내도 되는 문서 작업을 도와달라고 해요. 오늘은 제시간에 퇴근해 쉬고 싶어요.",
+            "en": "With 10 minutes left before you get off work, a coworker asks for help with a document that doesn't need to be finished today. Today, you want to leave on time and rest.",
+            "ja": "退勤10分前に、今日中に終わらせなくてもいい書類作業を手伝ってほしいと同僚から頼まれました。今日は定時に退勤して休みたいです。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "동료",
+            "en": "Coworker",
+            "ja": "同僚"
+          },
+          "text": {
+            "ko": "혹시 지금 시간 괜찮으세요? 이 표 정리만 같이 좀 해주실 수 있을까요?",
+            "en": "Do you happen to have some time right now? Could you help me organize this table?",
+            "ja": "今、少しお時間よろしいですか？この表の整理だけ一緒に手伝っていただけませんか？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "네, 지금 바로 도와드릴게요! 제가 어느 부분부터 정리하면 되는지 알려주실래요?",
+            "en": "Sure, I'll help right now! Which part should I start organizing?",
+            "ja": "はい、今すぐお手伝いしますね！どの部分から整理すればいいか教えていただけますか？"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "그 생각엔 내 퇴근 시간과 휴식을 지키는 마음이 빠져 있어요.",
+            "en": "That reply leaves out protecting your own time to get off work and rest.",
+            "ja": "その返事には、自分の退勤時間と休みを守る気持ちが抜けています。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "오늘은 바로 가봐야 해서 지금은 어렵고, 내일 오전에 같이 봐드려도 괜찮을까요?",
+            "en": "I have to head out on time today—could we look at it tomorrow morning?",
+            "ja": "今日はすぐ帰らないといけなくて今は難しいのですが、明日の午前中に一緒に見るのでも大丈夫ですか？"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "다 해드리긴 힘들어서 죄송한데, 급한 앞부분만이라도 지금 빨리하고 가볼게요",
+            "en": "Sorry I can't do it all, but I'll quickly do the urgent first part before leaving",
+            "ja": "全部お手伝いするのは難しくて申し訳ないのですが、急ぎの最初の部分だけでも今手早くやって帰りますね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "조금만 돕겠다고 타협하기보다 내일 도와주겠다고 제안해 보세요.",
+            "en": "Instead of compromising to help a little now, try offering to help tomorrow.",
+            "ja": "少しだけ手伝うと妥協するより、明日手伝うと提案してみましょう。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "내 퇴근 시간을 지키며 지금은 어렵다고 분명히 말해도 괜찮아요. 미안함 때문에 일부만 하고 가겠다고 타협하기보다 가능한 다른 시간을 제안해 보세요.",
+        "en": "It's okay to protect your time to leave work and clearly say you can't help right now. Rather than compromising out of guilt and doing part of it before leaving, try offering another time that works for you.",
+        "ja": "自分の退勤時間を守り、今は難しいとはっきり伝えて大丈夫です。申し訳なさから一部だけやって帰ると妥協するより、対応できる別の時間を提案してみましょう。"
+      }
+    },
+    {
+      "number": 11,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "telephone_receiver",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "지금 동료에게 어떻게 답하면 좋을까요?",
+        "en": "How would you reply to your coworker right now?",
+        "ja": "今、同僚に何と返事をすればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "토요일 오후에 모처럼 집에서 쉬고 있어요. 다른 부서 동료가 급하지 않은 회의 자료 일로 전화를 걸어왔어요.",
+            "en": "You're finally relaxing at home on Saturday afternoon. A coworker from another department calls about some nonurgent meeting materials.",
+            "ja": "土曜日の午後、せっかく家でゆっくり休んでいたところ、他部署の同僚から急ぎではない会議資料の件で電話がかかってきました。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "동료",
+            "en": "Coworker",
+            "ja": "同僚"
+          },
+          "text": {
+            "ko": "주말에 죄송해요! 다음 주 회의 건 때문에 그러는데 지금 잠깐 통화 가능하세요?",
+            "en": "Sorry to call on the weekend! Can we talk briefly about next week's meeting?",
+            "ja": "週末にすみません！来週の会議の件で、今少しお話しできますか？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "지금은 제가 밖에 나와 있어서 그러는데 나중에 다시 연락드릴게요",
+            "en": "I'm out of the house right now, so I'll call you back a little later",
+            "ja": "今は外出しているところなので、後ほど改めてこちらからご連絡しますね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "외출 중이라고 둘러대지 말고 쉬는 중이니 월요일에 통화하자고 해봐요.",
+            "en": "Instead of saying you're out, try saying you're resting and ask to talk on Monday.",
+            "ja": "外出中とごまかさず、休んでいるので月曜に話そうと伝えてみましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "지금은 쉬는 중이라 업무 이야기는 월요일 오전에 통화하면 좋겠어요",
+            "en": "I'm resting right now, so let's talk about work on Monday morning instead",
+            "ja": "今は休んでいるところなので、仕事の話は月曜の午前中にお電話できればと思います"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "네, 지금 바로 노트북 켜고 회의 자료 보면서 이야기 나눌게요",
+            "en": "Sure, I'll turn on my laptop right now so we can talk over the meeting materials",
+            "ja": "はい、今すぐパソコンを立ち上げて会議の資料を見ながらお話ししますね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "급하지 않은 일인데 주말 휴식까지 반납하며 맞춰 줄 필요가 있을까요?",
+            "en": "Do you really need to give up your weekend rest for something that isn't urgent?",
+            "ja": "急ぎではない用件に、週末の休みまで削って合わせる必要があるでしょうか？"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "쉬는 시간도 소중히 지켜야 할 내 일상이에요. 외출 중이라고 둘러대지 않아도 지금은 쉬는 중이라며 월요일에 통화하자고 말할 수 있어요.",
+        "en": "Your rest time is an important part of your life to protect. You don't have to pretend you're out—you can simply say you're resting now and ask to talk on Monday.",
+        "ja": "休む時間も大切に守るべき自分の日常です。外出中だとごまかさなくても、今は休んでいるから月曜日に話そうと伝えて大丈夫です。"
+      }
+    },
+    {
+      "number": 12,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "sleeping_face",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "일찍 자고 싶은 마음을 담아 오늘 모임을 거절하는 말을 적어보세요.",
+        "en": "Decline tonight's hangout by sharing that you want to go to bed early.",
+        "ja": "早く寝たい気持ちを込めて、今日の集まりを断る言葉を書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "친한 친구들이 동네에서 맥주 한잔하자고 연락했어요. 오늘은 일찍 자고 내일 아침 개운하게 일어나고 싶어요.",
+            "en": "Your close friends reach out to grab a beer in the neighborhood. Today, you want to go to bed early and wake up refreshed tomorrow morning.",
+            "ja": "親しい友達から、近所でビールを一杯飲もうと連絡が来ました。今日は早く寝て、明日の朝すっきりと起きたいと思っています。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "지금 다들 모였는데 너만 오면 돼! 집 앞이니까 잠깐만 나와!",
+            "en": "Everyone's here except you! It's right near your place. Just come out for a bit!",
+            "ja": "今みんな集まってるから、来てくれたら揃うよ！家の近くだし、少しだけ出てきて！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "친구들과 보내는 시간만큼 내가 정한 수면 습관도 소중해요. 집 앞이라 잠깐 보는 자리여도 오늘은 쉬겠다고 말할 수 있어요.",
+        "en": "Your sleep habits matter just as much as time with friends. Even if they're meeting right near your place for a quick drink, you can say you're resting tonight.",
+        "ja": "友達と過ごす時間と同じくらい、自分で決めた睡眠習慣も大切です。家の近くで少し会うだけの集まりでも、今日は休むと伝えて大丈夫です。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline tonight's outing or choose staying home, resting, or sleeping early instead. A simple refusal suffices.",
+        "retry_hint": {
+          "ko": "일찍 자고 쉬고 싶다는 내 계획을 친구에게 솔직하게 이야기해 봐요.",
+          "en": "Tell your friends honestly that you plan to go to bed early and get some rest.",
+          "ja": "早く寝て休みたいという予定を、友達に正直に伝えてみましょう。"
+        }
+      }
+    },
+    {
+      "number": 13,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "house",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "이 상황에서 어떤 생각을 떠올리면 좋을까요?",
+        "en": "What would be a helpful way to think in this situation?",
+        "ja": "この状況で、どんな考え方をすればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "친구가 이번 주말에 전시회를 보러 가자며 일정을 물어봐요. 특별한 약속은 없지만 집에서 혼자 편하게 쉬고 싶어요.",
+            "en": "A friend asks about your schedule to go see an exhibition this weekend. You don't have any special plans, but you want to relax alone at home.",
+            "ja": "友達から今週末に展示会を見に行こうと予定を聞かれました。特別な用事はありませんが、家で一人のんびり休みたいと思っています。"
+          },
+          "slot": false
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "다른 약속이 있는 것도 아니니까 거절하지 말고 그냥 따라가야지",
+            "en": "I don't have any other plans anyway, so I shouldn't turn them down and should just go along",
+            "ja": "ほかに予定があるわけでもないし、断らずにそのままついて行こう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "약속이 비어 있어도 나만의 휴식 시간을 소중한 일정으로 챙겨 주세요.",
+            "en": "Even if your schedule is open, treat your solo rest time as an important plan too.",
+            "ja": "予定が空いていても、一人で休む時間を大切な予定として守りましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "그냥 쉰다고 하면 미안하니까 가족 모임이 있다고 둘러대야지",
+            "en": "I'd feel bad saying I'm just resting, so I should make up a family gathering as an excuse",
+            "ja": "ただ休むだけだと言うのは申し訳ないから、家族の集まりがあるとごまかそう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "거짓 핑계를 만들지 않고도 쉬고 싶은 마음을 있는 그대로 인정해도 돼요.",
+            "en": "You can acknowledge your need to rest as it is without making up an excuse.",
+            "ja": "嘘の言い訳を作らなくても、休みたい気持ちをそのまま認めて大丈夫です。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "혼자 쉬는 시간도 소중한 일정이니 이번 주말엔 충전이 필요하다고 말해야지",
+            "en": "Resting alone is an important plan too, so I'll tell them I need to recharge this weekend",
+            "ja": "一人で休む時間も大切な予定だから、今週末は充電が必要だと伝えよう"
+          },
+          "correct": true,
+          "hint": null
+        }
+      ],
+      "explanation": {
+        "ko": "일정이 비어 있다고 해서 남을 위해 비워 둔 시간은 아니에요. 거짓 핑계를 대지 않고도 혼자 충전하는 시간을 내 소중한 약속으로 지킬 수 있어요.",
+        "en": "Having an open schedule doesn't mean your time is reserved for others. Without making up excuses, you can keep your solo recharge time as an important commitment to yourself.",
+        "ja": "予定が空いているからといって、誰かのために空けてある時間ではありません。嘘の言い訳をしなくても、一人で充電する時間を自分との大切な約束として守っていいのです。"
+      }
+    },
+    {
+      "number": 14,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "house",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "지금 친구에게 어떻게 답하면 좋을까요?",
+        "en": "How would you reply to your friend right now?",
+        "ja": "今、友達に何と返事をすればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "평일 내내 사람들에게 시달려 지쳤는데 친구가 번화가에서 놀자고 해요. 집 밖으로 한 발짝도 나가고 싶지 않아요.",
+            "en": "You're worn out from dealing with people all week, and a friend invites you to hang out in a busy area. You don't want to take a single step outside the house.",
+            "ja": "平日のあいだずっと人に囲まれて疲れ果てているのに、友達から繁華街で遊ぼうと誘われました。家から一歩も外に出たくない気分です。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "이번 주 토요일에 날씨 엄청 좋대! 우리 오랜만에 성수동 나들이 갈래?",
+            "en": "The weather's going to be great Saturday! Want to go check out downtown together?",
+            "ja": "土曜はすごくいい天気だって！久しぶりに表参道に遊びに行かない？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "날씨 좋다니 나들이 가기 딱이겠다, 토요일 몇 시에 어디서 만날까?",
+            "en": "Great weather sounds perfect for going out! When and where should we meet?",
+            "ja": "天気がいいならお出かけにぴったりだね、土曜日は何時にどこで会う？"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "지친 상태를 숨기고 나가면 주말 내내 더 힘들어지지 않을까요?",
+            "en": "Won't you feel even more exhausted all weekend if you hide how tired you are and go out?",
+            "ja": "疲れを隠して出かけたら、週末ずっとさらにしんどくならないでしょうか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "같이 가자고 해줘서 고마운데 이번 주에 많이 지쳐서 주말엔 집에서 푹 쉬고 싶어",
+            "en": "Thanks for asking, but I'm wiped out this week and need to rest at home",
+            "ja": "誘ってくれてありがとう、でも今週はかなり疲れてて週末は家でゆっくり休みたいんだ"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "모처럼 불러줬는데 거절하기 너무 미안하니까 조금 피곤해도 잠깐은 나갈게",
+            "en": "I'd feel bad saying no after you asked, so I'll come out for a bit",
+            "ja": "せっかく誘ってくれたのに断るのは申し訳ないから、少し疲れてるけどちょっとだけ顔を出すね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "미안함에 끌려가 억지로 나가는 대신 지금 필요한 휴식부터 챙겨요.",
+            "en": "Instead of forcing yourself to go out of guilt, take the rest you need right now.",
+            "ja": "申し訳なさから無理に出かけるより、今必要な休みを優先しましょう。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "친구의 제안이 고마워도 내 체력이 바닥났다면 쉬어 가는 게 먼저예요. 미안함 때문에 잠깐이라도 무리해서 나가기보다 지금 상태를 솔직하게 전해 보세요.",
+        "en": "Even when you appreciate a friend's invitation, resting comes first if your energy is drained. Rather than pushing yourself to go out briefly out of guilt, be honest about how you're feeling now.",
+        "ja": "友達の誘いがうれしくても、体力が限界なら休むことが先決です。申し訳なさから無理をして少しだけ顔を出すより、今の状態を正直に伝えてみましょう。"
+      }
+    },
+    {
+      "number": 15,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "calendar",
+      "review_point": true,
+      "reward_hay": 60,
+      "mission": {
+        "ko": "이어서 친구에게 어떤 말을 덧붙이면 좋을까요?",
+        "en": "What would you like to add to your friend next?",
+        "ja": "続けて、友達にどんな言葉を添えればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "체력이 바닥나서 이번 주 토요일 나들이를 거절했어요. 하지만 이 친구와 다음에 꼭 만나고 싶어요.",
+            "en": "Because your energy is drained, you declined this Saturday's outing. Still, you definitely want to meet up with this friend next time.",
+            "ja": "体力が限界で、今週の土曜日のお出かけを断りました。でも、この友達とは今度ぜひ会いたいと思っています。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "이번 주 토요일에 날씨 엄청 좋대! 우리 오랜만에 성수동 나들이 갈래?",
+            "en": "The weather's going to be great Saturday! Want to go check out downtown together?",
+            "ja": "土曜はすごくいい天気だって！久しぶりに表参道に遊びに行かない？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "text": {
+            "ko": "같이 가자고 해줘서 고마운데 이번 주에 많이 지쳐서 주말엔 집에서 푹 쉬고 싶어",
+            "en": "Thanks for asking, but I'm wiped out this week and need to rest at home",
+            "ja": "誘ってくれてありがとう、でも今週はかなり疲れてて週末は家でゆっくり休みたいんだ"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "이번 주에 푹 쉬고 다음 주 토요일에 만나서 맛있는 거 먹으러 갈래?",
+            "en": "After I rest up this week, want to meet next Saturday for some good food?",
+            "ja": "今週しっかり休んで、来週の土曜日に会っておいしいものでも食べに行かない？"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "언제가 될지는 모르겠지만 나중에 여유 생기면 그때 다시 보자",
+            "en": "Not sure when, but let's catch up whenever I get some free time later",
+            "ja": "いつになるかわからないけど、また今度余裕ができたらそのときに会おう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "막연하게 미루면 아쉬움이 남으니 만날 날을 구체적으로 제안해 볼까요?",
+            "en": "Putting it off vaguely can feel disappointing, so how about suggesting a specific day?",
+            "ja": "曖昧に先延ばしにするより、会う日を具体的に提案してみませんか？"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "아니다, 괜히 서운하게 한 것 같으니 쉬는 건 미루고 토요일에 나갈게",
+            "en": "Never mind, I hate letting you down, so I'll rest later and come out Saturday",
+            "ja": "やっぱり、がっかりさせちゃった気がするから、休むのは後回しにして土曜日に行くよ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "친구가 서운할까 봐 내게 꼭 필요한 휴식까지 포기하지 말아요.",
+            "en": "Don't give up the rest you truly need just because you worry your friend might feel hurt.",
+            "ja": "友達をがっかりさせないために、自分に必要な休みまで諦めないでください。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "이번 약속을 거절하는 것과 친구를 아끼는 마음은 함께할 수 있어요. 막연하게 미루거나 거절을 번복하기보다 다음 약속을 구체적으로 제안해 보세요.",
+        "en": "Declining this invitation and caring about your friend can go hand in hand. Rather than putting things off vaguely or taking back your refusal, try suggesting a specific day to meet next.",
+        "ja": "今回の予定を断ることと、友達を大切に思う気持ちは両立します。曖昧に先延ばしにしたり断ったのを撤回したりするより、次の予定を具体的に提案してみましょう。"
+      }
+    },
+    {
+      "number": 16,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "house",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "피곤한 상태를 솔직하게 말하며 먼저 집에 가겠다고 적어보세요.",
+        "en": "Say you're heading home first while being honest about feeling tired.",
+        "ja": "疲れていることを正直に伝えて、先に帰ると書いてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "밤 10시가 넘어 다들 다음 술집으로 자리를 옮기려고 해요. 눈도 감기고 피곤해서 이만 집에 들어가 자고 싶어요.",
+            "en": "It's past 10 p.m. and everyone is about to move to another bar. Your eyes are closing and you're tired, so you want to head home and sleep now.",
+            "ja": "夜10時を過ぎて、みんなは次の店へ移動しようとしています。まぶたが重くて疲れているので、そろそろ家に帰って寝たいと思っています。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "아쉽다, 우리 근처에서 간단하게 맥주 한 잔만 딱 더 하고 가자!",
+            "en": "It's too early to stop! Let's have just one more beer nearby!",
+            "ja": "ここで解散は名残惜しいな。近くでもう一杯だけ飲んでいこうよ！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "즐거운 자리여도 내 체력에 맞춰 먼저 일어날 수 있어요. 모두의 허락을 구하거나 끝까지 남아 있어야만 좋은 친구인 건 아니에요.",
+        "en": "You can head home when your body needs it, even from a fun gathering. You don't have to stay until the end or get everyone's permission to be a good friend.",
+        "ja": "楽しい集まりでも、自分の体力に合わせて先に帰れます。よい友達でいるために、全員の許可をもらったり最後まで残ったりする必要はありません。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline going to the next venue or say they will leave/go home now. Mentioning being tired or needing rest is optional, and no permission from others is needed.",
+        "retry_hint": {
+          "ko": "분위기에 맞춰 남기보다 피곤해서 먼저 들어가겠다고 편하게 말해 보세요.",
+          "en": "Instead of staying just to match the mood, casually say you're tired and heading home.",
+          "ja": "空気に合わせて残るより、疲れたから先に帰ると気軽に伝えてみましょう。"
+        }
+      }
+    },
+    {
+      "number": 17,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "sleeping_face",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "지금 애인에게 어떤 말을 건네면 좋을까요?",
+        "en": "What would you say to your partner right now?",
+        "ja": "今、恋人にどんな言葉をかければいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "애인이 퇴근 후 잠깐 얼굴을 보자고 해요. 좋아하는 마음은 크지만 오늘은 두통이 있어서 혼자 일찍 쉬고 싶어요.",
+            "en": "Your partner asks to see you briefly after work. You care about them a lot, but today you have a headache and want to rest early on your own.",
+            "ja": "恋人が仕事のあとに少しだけ顔を見たいと言っています。好きな気持ちは大きいものの、今日は頭痛があるので一人で早く休みたいと思っています。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "애인",
+            "en": "Partner",
+            "ja": "恋人"
+          },
+          "text": {
+            "ko": "오늘 퇴근하고 너희 집 앞으로 갈까? 잠깐이라도 얼굴 보고 싶어!",
+            "en": "Should I come by your place after work? I'd love to see you, even briefly!",
+            "ja": "仕事のあと家の近くに行こうか？少しでも顔が見たいな！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "모처럼 오겠다는데 거절하기 미안하니까 잠깐이라도 얼굴 보러 나갈게",
+            "en": "I'd feel bad saying no since you offered to come by, so I'll come out briefly",
+            "ja": "せっかく来てくれるって言うのに断るのは申し訳ないから、少しだけでも顔を見に出るね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "미안한 마음 때문에 아픈 몸을 이끌고 무리할 필요는 없어요.",
+            "en": "You don't have to push yourself to go out while in pain just because you feel bad.",
+            "ja": "申し訳ないからといって、体調が悪いのに無理をする必要はありません。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "나도 보고 싶지만 오늘은 머리가 좀 아파서 일찍 쉬고 다른 날 만나자",
+            "en": "I want to see you too, but I have a headache—let's rest tonight and meet another day",
+            "ja": "私も会いたいけど、今日は少し頭が痛いから早く休んでまた別の日に会おう"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "나도 얼른 보고 싶으니까 출발할 때 연락해, 나갈 준비하고 있을게",
+            "en": "I can't wait to see you too! Text me when you leave and I'll get ready",
+            "ja": "私も早く会いたいから出発するときに連絡してね、出る準備をして待ってるよ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "아픈 걸 숨기지 말고 지금 내 몸 상태부터 솔직하게 알려 주세요.",
+            "en": "Instead of hiding that you're in pain, be honest about how you're feeling first.",
+            "ja": "痛いのを隠さず、まずは今の体調を正直に伝えてみましょう。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "상대를 좋아하는 마음과 오늘 혼자 쉬고 싶은 마음은 함께할 수 있어요. 미안함에 억지로 나가기보다 아픈 상태를 솔직히 말하고 다음을 기약해 보세요.",
+        "en": "Caring about your partner and wanting to rest alone today can coexist. Rather than forcing yourself to go out out of guilt, be honest about not feeling well and plan for another day.",
+        "ja": "相手を好きな気持ちと、今日は一人で休みたい気持ちは両立します。申し訳なさから無理に出ていくより、体調が悪いことを正直に伝えて次の機会を約束してみましょう。"
+      }
+    },
+    {
+      "number": 18,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "camping",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "내 취향과 체력을 솔직하게 말하며 애인의 제안을 거절해보세요.",
+        "en": "Decline your partner's suggestion by being honest about your preferences and stamina.",
+        "ja": "自分の好みや体力を正直に伝えて、恋人の提案を断ってみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "애인이 연휴에 1박 2일로 험한 산속 야영을 가자고 해요. 벌레와 체력 소모가 큰 야외 활동은 생각만 해도 지쳐요.",
+            "en": "Your partner suggests an overnight camping trip in the rugged mountains for the holiday. Just thinking about bugs and exhausting outdoor activities wears you out.",
+            "ja": "恋人が連休に1泊2日で険しい山へキャンプに行こうと言っています。虫や体力を消耗する野外活動は、考えるだけでも疲れてしまいます。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "애인",
+            "en": "Partner",
+            "ja": "恋人"
+          },
+          "text": {
+            "ko": "이번 연휴에 산속으로 배낭 메고 야영하러 가자! 장비는 내가 다 빌려 올게!",
+            "en": "Let's pack our backpacks and go camping in the mountains this holiday! I'll borrow all the gear!",
+            "ja": "今度の連休、リュックを背負って山へキャンプしに行こうよ！道具は全部借りてくるから！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "좋아하는 사람과도 편하게 즐길 수 있는 활동은 서로 다를 수 있어요. 상대를 아끼는 마음과 내가 힘든 활동을 거절하는 선택은 별개예요.",
+        "en": "Even with someone you like, the activities you can comfortably enjoy may differ. Caring about your partner is separate from declining an activity that is hard on you.",
+        "ja": "好きな相手とでも、無理なく楽しめる活動は互いに違うことがあります。相手を大切に思う気持ちと、自分にとってつらい活動を断る選択は別です。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline joining the mountain camping trip. Preferences or stamina/energy may be mentioned, but reasons are optional.",
+        "retry_hint": {
+          "ko": "야외 활동이 내게 왜 힘든지 솔직한 마음을 담아 거절해도 괜찮아요.",
+          "en": "It's okay to decline by honestly sharing why outdoor activities are hard for you.",
+          "ja": "野外活動がなぜつらいのか、正直な気持ちを込めて断っても大丈夫です。"
+        }
+      }
+    },
+    {
+      "number": 19,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "memo",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "이 상황을 어떻게 바라보면 좋을까요?",
+        "en": "How should you look at this situation?",
+        "ja": "この状況をどう捉えればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "친한 친구가 외국어를 조금 안다며 이력서와 자기소개서 번역을 부탁해요. 주말 내내 매달려야 할 만큼 분량이 많아요.",
+            "en": "Because you know a bit of a foreign language, a close friend asks you to translate their resume and cover letter. There is so much that it would take your entire weekend.",
+            "ja": "外国語が少しわかるからと、親しい友達から履歴書と自己PR文の翻訳を頼まれました。週末ずっとかかりきりになるほどの量があります。"
+          },
+          "slot": false
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "주말을 다 써서라도 도와주면 친구도 고마워하고 우리 사이가 더 완벽해질 거야",
+            "en": "Giving up my weekend to help will make my friend grateful and our bond stronger",
+            "ja": "週末を全部使ってでも手伝えば、友達も感謝してくれるしもっと完璧な関係になれるはずだ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "일방적인 희생으로만 유지되는 관계가 정말 건강할까요?",
+            "en": "Is a relationship maintained only through one-sided sacrifice truly healthy?",
+            "ja": "一方的な犠牲だけで成り立つ関係は、本当に健全でしょうか？"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "무리해서 떠안으면 쉴 시간도 부족하고 속으로 서운함이 쌓일 수 있으니 내 한계를 말해야 해",
+            "en": "Overextending myself will cost my rest and build resentment, so I'll state my limits",
+            "ja": "無理に引き受けたら休む時間も足りなくなって不満がたまるかもしれないから、自分の限界を伝えないと"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "주말 내내 힘들겠지만 내 외국어 실력도 늘 테니 좋은 연습 기회라고 생각해야지",
+            "en": "It'll take all weekend, but it'll improve my language skills, so it's good practice",
+            "ja": "週末ずっと大変だろうけど、外国語の力も伸びるはずだからいい練習の機会だと思うことにしよう"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "억지로 좋은 점을 찾기 전에 주말 내내 겪을 부담도 함께 봐 주세요.",
+            "en": "Before forcing yourself to find an upside, consider the burden on your whole weekend.",
+            "ja": "無理に良い点を探す前に、週末ずっと抱える負担にも目を向けてみましょう。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "도와주고 싶은 마음과 내가 감당할 수 있는 범위는 다를 수 있어요. 억지로 합리화하며 떠안기보다 원망이 쌓이기 전에 내 한계를 알리는 편이 건강해요.",
+        "en": "Wanting to help and what you can actually handle can be two different things. Rather than rationalizing it and taking on too much, it's healthier to state your limits before resentment builds.",
+        "ja": "助けたい気持ちと、自分が抱えられる範囲は違うことがあります。無理に正当化して引き受けるより、不満がたまる前に自分の限界を伝えるほうが健全です。"
+      }
+    },
+    {
+      "number": 20,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "memo",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "지금 친구에게 어떻게 답하면 좋을까요?",
+        "en": "How would you reply to your friend right now?",
+        "ja": "今、友達に何と返事をすればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "친구가 분량이 많은 영어 번역을 무료로 해 달라고 부탁해요. 주말 내내 매달려야 해서 무척 부담스러워요.",
+            "en": "A friend asks you to translate a long document for free. It feels like a huge burden because it would take your entire weekend.",
+            "ja": "友達から大量の英語の翻訳を無料でしてほしいと頼まれました。週末ずっとかかりきりになるため、とても負担に感じています。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "너 이쪽 분야 잘 알잖아! 이거 주말 동안만 후딱 좀 봐주면 안 돼? 너한테는 금방이잖아!",
+            "en": "You're good at this! Could you quickly handle it this weekend? It'll take you no time!",
+            "ja": "この分野得意でしょ！週末のあいだにさっと見てもらえない？得意ならすぐ終わるでしょ！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "생각보다 시간이 꽤 오래 걸리는 작업이라 이번 주말에는 내가 맡아주기가 어려워",
+            "en": "This actually takes a lot of time, so I can't take it on this weekend",
+            "ja": "思ったよりかなり時間がかかる作業だから、今週末に引き受けるのは難しいな"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "분량이 좀 있어 보이는데 일단 자료 보내주면 주말에 시간 나는지 한번 볼게",
+            "en": "It looks like a lot, but send the files first and I'll see if I have time",
+            "ja": "結構な量がありそうだけど、とりあえず資料を送ってくれたら週末に時間があるか見てみるね"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "자료를 받아 두며 여지를 남기면 거절하기가 더 힘들어질 거예요.",
+            "en": "If you take the files and leave the door open, it'll only get harder to say no later.",
+            "ja": "資料を受け取って余地を残すと、さらに断りにくくなってしまいます。"
+          }
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "분량이 꽤 많긴 하지만 주말에 다른 일 미루고 매달리면 되니까 내가 해줄게",
+            "en": "It's a lot, but I'll push back my weekend plans and get it done for you",
+            "ja": "かなりの量ではあるけど、週末にほかの用事を後回しにして取りかかればできるからやってあげるよ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "내 주말을 통째로 포기하면서까지 무리한 부탁을 들어주지 않아도 돼요.",
+            "en": "You don't have to give up your entire weekend to take on an unreasonable request.",
+            "ja": "週末を丸ごと犠牲にしてまで、無理な頼みを引き受けなくて大丈夫です。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "상대가 쉽다고 말해도 실제로 시간을 쏟아야 하는 사람은 나예요. 애매하게 여지를 남기거나 주말을 포기하기보다 감당하기 어렵다고 분명히 말해 보세요.",
+        "en": "Even if the other person says it's easy, you're the one who actually has to put in the time. Rather than leaving things vague or giving up your weekend, state clearly that it's too much to take on.",
+        "ja": "相手が簡単だと言っても、実際に時間を費やすのは自分自身です。曖昧に余地を残したり週末を犠牲にしたりするより、引き受けるのは難しいとはっきり伝えてみましょう。"
+      }
+    },
+    {
+      "number": 21,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "laptop",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "직접 맡는 대신 친구가 스스로 해결할 다른 방법을 가볍게 알려줘 보세요.",
+        "en": "Instead of taking it on yourself, casually suggest another way your friend can handle it.",
+        "ja": "自分で引き受ける代わりに、友達が自力で解決できる別の方法を軽く伝えてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "친구의 무리한 번역 부탁을 거절했어요. 일을 떠맡지 않으면서 번역기나 전문 업체 같은 다른 방법을 알려주고 싶어요.",
+            "en": "You declined your friend's unreasonable translation request. Without taking on the work, you want to suggest another option like a translation tool or a professional service.",
+            "ja": "友達の無理な翻訳の頼みを断りました。作業を背負い込まずに、翻訳ツールや専門業者といった別の方法を教えてあげたいです。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "아, 그래? 너 아니면 부탁할 데가 없는데 어떡하지…",
+            "en": "Oh, really? I don't have anyone else to ask, what am I gonna do…",
+            "ja": "あ、そう？ほかに頼める人がいないんだけど、どうしよう…"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "도움을 주고 싶다면 일을 다 떠안는 대신 다른 방법을 가볍게 일러줄 수 있어요. 다만 끝까지 해결해 줄 의무는 내게 없어요.",
+        "en": "If you want to help, you can casually point to another way instead of taking it all on yourself. Still, you aren't obligated to see the problem through to the end.",
+        "ja": "助けたいときは、全部背負い込む代わりに別の方法を軽く教えてあげることもできます。ただ、最後まで解決してあげる義務はありません。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Maintain the refusal to do the translation while suggesting another route, tool, service, or person the friend can consult. A specific brand, link, or explicit repeat refusal is not needed; an alternative alone counts if it does not volunteer the work. A refusal with no alternative misses this particular mission.",
+        "retry_hint": {
+          "ko": "일을 직접 맡는 대신 친구가 쓸 수 있는 다른 방법을 가볍게 알려줘요.",
+          "en": "Instead of doing it yourself, casually suggest another way your friend can try.",
+          "ja": "自分で引き受けず、友達が使える別の方法を軽く伝えてみましょう。"
+        }
+      }
+    },
+    {
+      "number": 22,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "money_bag",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "친구들의 제안에 어떻게 답하면 좋을까요?",
+        "en": "How would you respond to your friends' suggestion?",
+        "ja": "友達の提案にどう答えればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "친구들이 모임 통장에 매달 15만 원씩 모으자고 해요. 요즘 저축 목표가 있어 고정 지출을 줄이는 중이라 부담스러워요.",
+            "en": "Your friends want everyone to chip in $150 a month into a shared trip fund. You're cutting fixed expenses to meet a savings goal lately, so it feels like too much.",
+            "ja": "友達が旅行用の積立に毎月1万5千円ずつ出し合おうと言っています。最近は貯金の目標があって固定費を減らしているところなので負担に感じます。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구들",
+            "en": "Friends",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "우리 매달 15만 원씩 모임 통장에 넣어서 연말에 좋은 호텔 가자! 다들 괜찮지?",
+            "en": "Let's each put $150 a month into a trip fund and stay at a nice hotel at the end of the year! Sound good to everyone?",
+            "ja": "毎月1万5千円ずつ積み立てて、年末にいいホテルに行こうよ！みんな大丈夫だよね？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "부담되긴 하지만 다들 모으기로 한 거니까 나도 어떻게든 아껴서 같이 넣어볼게",
+            "en": "It's a stretch, but since everyone's in, I'll cut back somehow and pitch in",
+            "ja": "少し負担だけど、みんなで貯めるなら私もどうにか節約して一緒に入れるよ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "분위기에 맞추느라 무리하지 말고 내 지출 기준을 솔직하게 말해요.",
+            "en": "Don't push yourself just to fit in. Be honest about your spending limits.",
+            "ja": "空気に合わせて無理をせず、自分の出費の基準を正直に伝えましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "다 같이 가는 건 좋지만 요즘 지출을 줄이는 중이라 모임 통장은 참여하기 어려워",
+            "en": "A trip sounds great, but I'm cutting expenses lately, so I can't join the fund",
+            "ja": "みんなで行くのはいいけど、最近は出費を減らしているから積立には参加できないんだ"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "매달 15만 원은 조금 빠듯한데 미안해서 어쩌지… 이번 달 사정 보고 다시 말해줄게",
+            "en": "$150 a month is tight, and I feel bad… Let me see how this month goes first",
+            "ja": "毎月1万5千円は少し厳しいけど申し訳ないな…今月の状況を見てまた伝えるよ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "대답을 뒤로 미루면 마음만 무거워지니 지금 어렵다고 분명히 전해요.",
+            "en": "Putting off your answer only weighs on you. Clearly say you can't join right now.",
+            "ja": "返事を先延ばしにすると気が重くなるので、今難しいとはっきり伝えましょう。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "금전적인 제안이 부담스럽다면 대답을 미루지 말고 지금 참여하기 어렵다고 분명히 말해도 괜찮아요. 내 지출 기준을 지키는 건 자연스러운 일이에요.",
+        "en": "If a financial plan feels like too much, it's okay to clearly say right now that you can't join instead of putting off your answer. Sticking to your own spending limits is completely natural.",
+        "ja": "お金の提案が負担なら、返事を先延ばしにせず、今は参加できないとはっきり伝えて大丈夫です。自分の出費の基準を守るのは自然なことです。"
+      }
+    },
+    {
+      "number": 23,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "house",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "아직 부담스러운 가족 모임 참석을 거절해보세요.",
+        "en": "Decline a family gathering you're not ready for.",
+        "ja": "まだ気が重い家族の集まりを断ってみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "사귄 지 얼마 안 된 애인이 사촌 집들이에 같이 가자고 해요. 아직은 그런 자리가 어색하고 부담스러워 내키지 않아요.",
+            "en": "Your partner, whom you've only recently started dating, asks you to go to their cousin's housewarming together. That kind of gathering still feels awkward and overwhelming, so you're reluctant to go.",
+            "ja": "付き合い始めて間もない恋人から、いとこの新居祝いに一緒に行こうと誘われました。まだそういう場は気まずく負担に感じるので、気が進みません。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "애인",
+            "en": "Partner",
+            "ja": "恋人"
+          },
+          "text": {
+            "ko": "이번 주말에 사촌 집들이 있는데 너도 같이 가자! 편한 자리니까 부담 갖지 마.",
+            "en": "My cousin is having a housewarming this weekend, so let's go together! It's a casual gathering, so don't feel pressured.",
+            "ja": "今週末にいとこの新居祝いがあるんだけど、一緒に行こうよ！気楽な集まりだから、気負わなくて大丈夫だよ。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "관계가 가까워지는 속도는 사람마다 달라요. 아직 준비되지 않았다면 내 마음의 속도를 솔직하게 말해도 괜찮아요.",
+        "en": "People grow closer at different paces. If you're not ready yet, it's okay to be honest about the pace that feels comfortable for you.",
+        "ja": "関係が深まる速さは人それぞれです。まだ準備ができていなければ、自分の心のペースを正直に伝えて大丈夫です。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline this family gathering or say they are not ready for it. No promise of later attendance is needed.",
+        "retry_hint": {
+          "ko": "상대의 속도에 맞추기보다 아직은 어색하고 부담스럽다고 솔직히 털어놓아요.",
+          "en": "Rather than matching their pace, honestly share that it still feels awkward for you.",
+          "ja": "相手のペースに合わせるより、まだ気まずく負担だと正直に伝えましょう。"
+        }
+      }
+    },
+    {
+      "number": 24,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "house",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "가족의 부탁에도 내 일정과 휴식을 지켜보세요.",
+        "en": "Protect your schedule and rest even when family asks for help.",
+        "ja": "家族からのお願いにも、自分の予定と休息を守ってみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "부모님이 주말마다 본가에 와서 집안일을 도와달라고 하세요. 이번 주말엔 밀린 볼일도 있고 집에서 혼자 쉬고 싶어요.",
+            "en": "Your parents ask you to come to their house every weekend to help with chores. This weekend, you have errands to catch up on and want to rest alone at home.",
+            "ja": "両親から、毎週末実家に来て家事を手伝ってほしいと言われています。今週末は溜まった用事もあるし、家で一人で休みたいです。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "가족",
+            "en": "Family",
+            "ja": "家族"
+          },
+          "text": {
+            "ko": "이번 주말에는 꼭 집에 오는 거지? 네가 와서 이것저것 좀 도와줘야 엄마가 편하지.",
+            "en": "You're definitely coming home this weekend, right? It makes things so much easier for me when you come and help out around the house.",
+            "ja": "今週末は必ず帰ってくるよね？来ていろいろ手伝ってくれると、お母さんも楽なんだけど。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "가족을 아끼는 마음과 내 휴식을 지키는 선택은 함께할 수 있어요. 이번 주말에 도와드리지 못한다고 해서 나쁜 자녀가 되는 건 아니에요.",
+        "en": "Caring about your family and choosing to protect your rest can go hand in hand. Not being able to help your parents this weekend doesn't make you a bad child.",
+        "ja": "家族を思う気持ちと、自分の休息を守る選択は両立できます。今週末に手伝えないからといって、悪い子どもになるわけではありません。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline the visit/help this weekend or prioritize their own plans/rest. No detailed reason or future visit is required.",
+        "retry_hint": {
+          "ko": "이번 주말엔 개인 일정과 휴식이 필요하다고 부모님께 차분히 말씀드려요.",
+          "en": "Calmly tell your parents that you need time for your own plans and rest this weekend.",
+          "ja": "今週末は自分の予定と休みが必要だと、両親に落ち着いて伝えましょう。"
+        }
+      }
+    },
+    {
+      "number": 25,
+      "answer_type": "pick",
+      "layout": "chat",
+      "pick_style": "choose",
+      "icon_key": "laptop",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "지인의 부탁에 어떻게 답하면 좋을까요?",
+        "en": "How would you respond to your acquaintance's request?",
+        "ja": "知り合いのお願いにどう答えればいいでしょうか？"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "별로 친하지 않은 지인이 유료 강의 아이디를 빌려달라고 해요. 동시 접속으로 계정이 정지될까 봐 빌려주고 싶지 않아요.",
+            "en": "An acquaintance you aren't very close with asks to borrow your login for a paid course. You don't want to lend it because logging in at the same time could get your account suspended.",
+            "ja": "あまり親しくない知り合いから、有料講座のアカウントを貸してほしいと言われました。同時ログインで利用停止になるかもしれないので貸したくありません。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "지인",
+            "en": "Acquaintance",
+            "ja": "知り合い"
+          },
+          "text": {
+            "ko": "너 그 강의 결제했다며? 나 딱 한 달만 아이디 같이 쓰면 안 돼? 아무한테도 말 안 할게!",
+            "en": "You paid for that course, right? Can I share your account for just a month? I won't tell anyone!",
+            "ja": "あの講座、申し込んだんだよね？1か月だけIDを一緒に使わせてくれない？誰にも言わないから！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [
+        {
+          "id": "a",
+          "text": {
+            "ko": "동시에 접속하면 안 되는데 미안해서 어쩌지… 내가 안 듣는 시간에만 잠깐씩 써볼래?",
+            "en": "Simultaneous logins aren't allowed, but I feel bad… Want to use it when I'm off?",
+            "ja": "同時にログインはできないけど断るのも申し訳ないな…私が受けない時間だけ少し使ってみる？"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "내 시간을 쪼개며 불안해하기보다 계정 공유는 어렵다고 선을 그어보세요.",
+            "en": "Rather than splitting your time and worrying, draw the line on sharing your account.",
+            "ja": "時間を分けて不安になるより、アカウントの共有は難しいと線を引きましょう。"
+          }
+        },
+        {
+          "id": "b",
+          "text": {
+            "ko": "계정 공유는 정지될 위험도 있고 개인정보가 들어 있어서 빌려주기가 어려워",
+            "en": "Account sharing risks suspension and has my personal info, so I can't lend it",
+            "ja": "アカウントの共有は利用停止になる危険もあるし、個人情報も入っているから貸せないんだ"
+          },
+          "correct": true,
+          "hint": null
+        },
+        {
+          "id": "c",
+          "text": {
+            "ko": "다른 사람한테는 절대 말하지 마 지금 아이디랑 비밀번호 바로 보내줄게",
+            "en": "Just don't tell anyone—I'll text you my username and password right now",
+            "ja": "ほかの人には絶対に言わないでね、今からIDとパスワードをすぐに送るよ"
+          },
+          "correct": false,
+          "hint": {
+            "ko": "계정이 정지될 위험을 감수하면서까지 부탁을 들어줄 필요는 없어요.",
+            "en": "You don't need to risk getting your account suspended just to do someone a favor.",
+            "ja": "アカウント停止の危険を冒してまで、頼みを聞く必要はありません。"
+          }
+        }
+      ],
+      "explanation": {
+        "ko": "계정과 개인정보는 내가 마땅히 지켜야 할 영역이에요. 시간을 나눠 쓰며 불안해하기보다 공유하지 않는다는 원칙을 분명히 전해 보세요.",
+        "en": "Your account and personal information are yours to protect. Rather than splitting hours and feeling anxious, clearly state your rule that you don't share accounts.",
+        "ja": "アカウントと個人情報は、当然自分で守るべきものです。時間を分けて使いながら不安になるより、共有しないという原則をはっきり伝えてみましょう。"
+      }
+    },
+    {
+      "number": 26,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "camera",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "내가 아끼는 물건을 빌려달라는 요구를 단호하게 거절해보세요.",
+        "en": "Firmly decline a request to borrow something you treasure.",
+        "ja": "大切な物を貸してほしいという頼みを、きっぱり断ってみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "평소 물건을 험하게 쓰는 친구가 비싼 카메라를 1주일만 빌려달라고 해요. 고장 날까 봐 빌려주고 싶지 않아요.",
+            "en": "A friend who usually handles things roughly asks to borrow your expensive camera for 1 week. You're worried it might break and don't want to lend it.",
+            "ja": "普段から物の扱いが荒い友達が、高価なカメラを1週間だけ貸してほしいと言っています。壊れるかもしれないと思うと貸したくありません。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "나 다음 주에 여행 가는데 네 카메라 1주일만 빌려주라! 아껴서 잘 쓰고 올게!",
+            "en": "I'm going on a trip next week, so let me borrow your camera for 1 week! I'll take really good care of it!",
+            "ja": "来週旅行に行くんだけど、カメラを1週間だけ貸して！大事に使うから！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "소중한 물건을 빌려줄지는 온전히 내가 결정할 수 있어요. 친구의 습관을 지적할 필요 없이 아끼는 물건이라 빌려주지 않는다는 기준만 전하면 돼요.",
+        "en": "Whether to lend a precious item is entirely up to you. Without pointing out your friend's habits, you only need to state your rule that you don't lend out things you treasure.",
+        "ja": "大切な物を貸すかどうかは、すべて自分で決められます。友達の癖を指摘しなくても、大事にしている物だから貸さないという自分の基準だけ伝えれば大丈夫です。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline lending the camera. A terse no counts; no apology, reason, or explanation that it is precious is required. Agreeing to lend it with conditions is contrary.",
+        "retry_hint": {
+          "ko": "조건을 붙여 빌려주면 내내 불안하니 어렵다는 뜻만 분명히 밝히면 돼요.",
+          "en": "Lending it with conditions will still leave you anxious. Just clearly say you can't.",
+          "ja": "条件付きで貸してもずっと不安になるので、貸せないとはっきり伝えましょう。"
+        }
+      }
+    },
+    {
+      "number": 27,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "microphone",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "합의한 범위를 넘는 역할 떠넘기기를 거절해보세요.",
+        "en": "Decline extra work beyond your agreed role.",
+        "ja": "最初に決めた範囲を超える役割の押しつけを断ってみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "조별 과제에서 자료 조사만 맡기로 했어요. 그런데 한 팀원이 발표까지 나에게 미루려고 해요.",
+            "en": "You agreed to only handle research for a group assignment. However, a teammate is trying to push the presentation onto you as well.",
+            "ja": "グループ課題で資料調査だけを担当することになりました。ところが、あるメンバーが発表まで押しつけようとしています。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "팀원",
+            "en": "Teammate",
+            "ja": "チームメンバー"
+          },
+          "text": {
+            "ko": "발표는 아무래도 제일 차분한 네가 맡는 게 우리 조를 위해서 좋을 것 같은데, 네가 해줄래?",
+            "en": "Since you're the calmest speaker, I think it'd be best for our group if you took on the presentation. Could you do it?",
+            "ja": "発表はやっぱり一番落ち着いて話せるし、グループのためにも引き受けてもらえるといいと思うんだけど、やってくれない？"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "잘할 것 같다는 칭찬이 추가 역할을 떠안아야 할 의무가 되지는 않아요. 처음 합의한 범위를 짚어주고 내가 맡을 수 있는 선을 분명하게 말해보세요.",
+        "en": "A compliment that you'd do well doesn't obligate you to take on extra roles. Point back to what you originally agreed on and clearly state what you can handle.",
+        "ja": "上手そうだと褒められても、追加の役割を引き受ける義務にはなりません。最初に決めた範囲を確認して、自分が引き受けられる線をはっきり伝えてみましょう。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline the extra presentation or keep only the originally agreed research role.",
+        "retry_hint": {
+          "ko": "처음 정한 내 역할까지만 맡겠다고 분명하게 의사 표현을 해보면 어떨까요?",
+          "en": "How about clearly stating that you'll only take on the role you originally agreed to?",
+          "ja": "最初に決めた自分の役割だけを担当すると、はっきり伝えてみてはどうでしょうか？"
+        }
+      }
+    },
+    {
+      "number": 28,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "camera",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "원치 않는 사생활 노출 요구를 거절해보세요.",
+        "en": "Say no to unwanted exposure of your private life.",
+        "ja": "望まないプライバシーの公開を断ってみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "친구가 함께 찍은 사진을 자기 계정에 전체 공개로 올리려고 해요. 모르는 사람들에게 내 얼굴이 공개되는 건 정말 싫어요.",
+            "en": "A friend is about to post a photo you took together publicly on their account. You really don't want strangers seeing your face.",
+            "ja": "友達が一緒に撮った写真を自分のアカウントで全体公開しようとしています。知らない人に自分の顔が公開されるのは本当に嫌です。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "오늘 찍은 사진 정말 잘 나왔다! 내 계정에 지금 바로 전체 공개로 올릴게!",
+            "en": "The photo we took today turned out so well! I'm posting it publicly on my account right now!",
+            "ja": "今日撮った写真、すごくよく撮れてる！私のアカウントに今すぐ全体公開で載せるね！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "친구의 계정이라도 내 모습이 공개되는 일에는 내 의사를 분명하게 말할 권리가 있어요.",
+        "en": "Even on a friend's account, you have the right to clearly state your wishes when your image is being shared publicly.",
+        "ja": "友達のアカウントであっても、自分の姿が公開されることには自分の意思をはっきり伝える権利があります。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Decline public posting of the user's face, or request removing/cropping/covering their face. No tagging alone is insufficient because the face is still public. Vague requests to edit the photo without protecting identity are insufficient.",
+        "retry_hint": {
+          "ko": "내 얼굴이 나온 사진은 전체 공개로 올리지 말아 달라고 분명히 요청해요.",
+          "en": "Clearly ask your friend not to publicly post photos that show your face.",
+          "ja": "自分の顔が写っている写真は全体公開しないでほしいと、はっきり頼みましょう。"
+        }
+      }
+    },
+    {
+      "number": 29,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "speech_balloon",
+      "review_point": false,
+      "reward_hay": 0,
+      "mission": {
+        "ko": "계속되는 부탁에도 거절한 뜻을 다시 전해보세요.",
+        "en": "Restate your refusal even when someone keeps asking.",
+        "ja": "何度も頼まれても、断る気持ちを改めて伝えてみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "지인의 무리한 부탁을 이미 한 번 거절했어요. 그런데도 내 말을 무시하고 계속 졸라요.",
+            "en": "You already declined an unreasonable request from an acquaintance once. Even so, they ignore what you said and keep pestering you.",
+            "ja": "知り合いの無理な頼みをすでに一度断りました。それなのに、こちらの言葉を無視してしつこく食い下がってきます。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "지인",
+            "en": "Acquaintance",
+            "ja": "知り合い"
+          },
+          "text": {
+            "ko": "야, 너무 야박하게 그러지 말고 딱 한 번만 도와주라. 네가 안 도와주면 진짜 큰일 나!",
+            "en": "Come on, don't be so cold and just help me this once. I'll be in real trouble if you don't help!",
+            "ja": "ねえ、そんな冷たいこと言わずに一回だけ助けてよ。助けてくれないと本当に大変なことになるんだから！"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "상대가 끈질기게 부탁한다고 해서 새로운 핑계를 찾아야 하는 건 아니에요. 이미 말한 결정을 차분하게 다시 전하는 것만으로도 충분해요.",
+        "en": "Just because someone keeps insisting doesn't mean you need to come up with a new excuse. Calmly restating the decision you already made is more than enough.",
+        "ja": "相手がしつこく頼んでくるからといって、新しい言い訳を探す必要はありません。すでに伝えた決定を落ち着いてもう一度伝えるだけで十分です。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Maintain the already stated refusal despite repeated pressure. No new reason is needed.",
+        "retry_hint": {
+          "ko": "새로운 변명을 찾을 필요 없이 어렵다는 결정을 한 번 더 차분히 전해요.",
+          "en": "No need to find a new excuse. Just calmly repeat your decision that you can't help.",
+          "ja": "新しい言い訳を探す必要はありません。難しいという決定をもう一度落ち着いて伝えましょう。"
+        }
+      }
+    },
+    {
+      "number": 30,
+      "answer_type": "write",
+      "layout": "chat",
+      "pick_style": null,
+      "icon_key": "speech_balloon",
+      "review_point": true,
+      "reward_hay": 150,
+      "mission": {
+        "ko": "상대가 서운해하더라도 내 결정을 지켜보세요.",
+        "en": "Stand by your decision even if the other person feels disappointed.",
+        "ja": "相手が残念がっても、自分の決定を守ってみましょう。"
+      },
+      "lines": [
+        {
+          "speaker": "narration",
+          "text": {
+            "ko": "친구의 무리한 부탁을 정중하게 거절했어요. 그랬더니 친구가 요즘 변했다며 나를 나쁜 사람으로 몰아가요.",
+            "en": "You politely declined a friend's unreasonable request. Now they say you've changed lately and try to make you look like the bad guy.",
+            "ja": "友達の無理な頼みを丁寧に断りました。すると友達は、最近変わったと言ってこちらを悪者にしようとします。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "other",
+          "name": {
+            "ko": "친구",
+            "en": "Friend",
+            "ja": "友達"
+          },
+          "text": {
+            "ko": "솔직히 그 정도는 해줄 수 있는 거 아니야? 너 진짜 섭섭하다.",
+            "en": "Honestly, couldn't you at least do that much for me? I'm really disappointed in you.",
+            "ja": "正直、それくらいしてくれてもよくない？本当にがっかりだよ。"
+          },
+          "slot": false
+        },
+        {
+          "speaker": "me",
+          "slot": true
+        }
+      ],
+      "options": [],
+      "explanation": {
+        "ko": "상대의 서운한 마음을 헤아리는 일과 내 결정을 바꾸는 일은 달라요. 상대가 섭섭해하더라도 감당하기 어려운 일에 선을 긋는 건 잘못이 아니에요.",
+        "en": "Understanding someone's disappointment is different from changing your decision. Even if they feel hurt, drawing the line at something you can't handle isn't wrong.",
+        "ja": "相手の残念な気持ちを汲み取ることと、自分の決定を変えることは別です。相手ががっかりしても、抱えきれないことに線を引くのは間違いではありません。"
+      },
+      "grading": {
+        "topic": "refusal",
+        "criteria": "Maintain the refusal despite guilt or disappointment. Acknowledging the friend's feelings is optional, never a required second element.",
+        "retry_hint": {
+          "ko": "서운한 마음은 달래주되 도와주기 어렵다는 뜻은 흔들림 없이 밝혀요.",
+          "en": "Acknowledge their disappointment, but firmly state that you still can't help.",
+          "ja": "残念がる気持ちには寄り添いつつ、手伝えないことは揺らがずに伝えましょう。"
+        }
+      }
+    }
+  ]
+}

@@ -43,6 +43,21 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate dev deployment target
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$REF_NAME" != "refs/heads/dev" ]] || [[ ! "$EVENT_NAME" =~ ^(push|workflow_dispatch)$ ]]; then
+            echo "DEV_REF_REQUIRED" >&2
+            exit 1
+          fi
+          if [[ ! "$DEPLOY_TAG" =~ ^dev-[0-9a-f]{40}$ ]]; then
+            echo "INVALID_DEV_IMAGE_TAG" >&2
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -78,125 +93,253 @@ jobs:
         run: |
           set -euo pipefail
           image="$ECR_REGISTRY/$IMAGE_NAME:$DEPLOY_TAG"
-          docker pull "$image"
-          docker run --rm --entrypoint sh "$image" -ec '
+          if ! docker pull "$image" >/dev/null 2>&1; then
+            echo "DEV_IMAGE_PULL_FAILED" >&2
+            exit 1
+          fi
+          if ! docker run --rm --entrypoint sh "$image" -ec '
             if [ -f app/services/banner_catalog.py ]; then
               python scripts/validate_banners.py --assets --environment dev
-            else
-              echo "Pre-SDUI rollback image: no banner endpoint"
             fi
-          '
+          ' >/dev/null 2>&1; then
+            echo "DEV_BANNER_VALIDATION_FAILED" >&2
+            exit 1
+          fi
 
       - name: Deploy via SSM (single dev instance)
         run: |
           set -euo pipefail
-
-          echo "==> 배포 태그 존재 확인 (dispatch 오타로 pull 실패하는 사고 방지)"
-          aws ecr describe-images --region "$AWS_REGION" \
+          if ! aws ecr describe-images --region "$AWS_REGION" \
             --repository-name "$IMAGE_NAME" \
-            --image-ids imageTag="$DEPLOY_TAG" >/dev/null
-
-          echo "==> dev 인스턴스 발견 (tag:Role=moly-backend-dev, running만)"
-          IDS="$(aws ec2 describe-instances --region "$AWS_REGION" \
-            --filters "Name=tag:Role,Values=moly-backend-dev" \
-                      "Name=instance-state-name,Values=running" \
-            --query 'Reservations[].Instances[].InstanceId' --output text)"
-          COUNT="$(echo "$IDS" | wc -w | tr -d ' ')"
-          if [ "$COUNT" -eq 0 ]; then
-            echo "ERROR: 실행 중인 dev 인스턴스가 없습니다 — 서버가 꺼져 있으면 켠 뒤 Re-run 하세요." >&2
+            --image-ids imageTag="$DEPLOY_TAG" >/dev/null 2>&1; then
+            echo "DEV_IMAGE_NOT_FOUND" >&2
             exit 1
           fi
-          if [ "$COUNT" -ne 1 ]; then
-            echo "ERROR: dev 인스턴스가 ${COUNT}대 발견됨 (기대: 1) — 태그 중복 확인: $IDS" >&2
+          if ! IDS="$(aws ec2 describe-instances --region "$AWS_REGION" \
+            --filters "Name=tag:Role,Values=moly-backend-dev" \
+                      "Name=instance-state-name,Values=running" \
+            --query 'Reservations[].Instances[].InstanceId' --output text 2>/dev/null)"; then
+            echo "DEV_TARGET_LOOKUP_FAILED" >&2
+            exit 1
+          fi
+          if [[ ! "$IDS" =~ ^i-[0-9a-f]+$ ]]; then
+            echo "DEV_SINGLE_TARGET_REQUIRED" >&2
             exit 1
           fi
           ID="$IDS"
-          echo "    대상: $ID"
 
-          # --- SSM 명령 폴링 — prod deploy.yml의 검증된 poll_ssm()을 그대로 사용 ---
-          #  - SendCommand 직후 InvocationDoesNotExist는 최초 3회(약 30초)까지 정상으로 간주
-          #  - 그 외 조회 실패는 stderr를 드러내고 연속 3회면 즉시 실패 (조용히 위장 금지)
+          # 원격 출력에는 설정/자격 정보가 섞일 수 있어 상태 enum만 노출한다.
           poll_ssm() {
-            local cmd_id="$1" instance_id="$2"
-            local STATUS="Pending" GRACE_POLLS=3 MAX_QUERY_FAILS=3
-            local query_fails=0 finished=0 i err_file err_msg
+            local cmd_id="$1" status="Pending" query_fails=0 finished=0 i err_file response_code reason
+            err_file="$(mktemp)"
             for i in $(seq 1 60); do
               sleep 10
-              err_file="$(mktemp)"
-              if STATUS="$(aws ssm get-command-invocation \
-                    --region "$AWS_REGION" \
-                    --command-id "$cmd_id" \
-                    --instance-id "$instance_id" \
-                    --query "Status" \
-                    --output text 2>"$err_file")"; then
+              if status="$(aws ssm get-command-invocation --region "$AWS_REGION" \
+                --command-id "$cmd_id" --instance-id "$ID" \
+                --query Status --output text 2>"$err_file")"; then
                 query_fails=0
-                echo "  [$i] $instance_id status=$STATUS"
-                case "$STATUS" in
-                  Success|Failed|Cancelled|TimedOut) rm -f "$err_file"; finished=1; break ;;
+                case "$status" in
+                  Success|Failed|Cancelled|TimedOut) finished=1; break ;;
+                  Pending|InProgress|Delayed|Cancelling) ;;
+                  *) rm -f "$err_file"; echo "DEV_SSM_INVALID_STATUS" >&2; return 1 ;;
                 esac
+                echo "DEV_SSM_PENDING"
+              elif [ "$i" -le 3 ] && grep -q InvocationDoesNotExist "$err_file"; then
+                echo "DEV_SSM_PENDING"
               else
-                err_msg="$(cat "$err_file")"
-                if [ "$i" -le "$GRACE_POLLS" ] && printf '%s' "$err_msg" | grep -q "InvocationDoesNotExist"; then
-                  echo "  [$i] status=Pending (invocation 등록 대기 중)"
-                else
-                  query_fails=$((query_fails + 1))
-                  echo "  [$i] get-command-invocation 조회 실패 (${query_fails}/${MAX_QUERY_FAILS}):" >&2
-                  printf '%s\n' "$err_msg" >&2
-                  if [ "$query_fails" -ge "$MAX_QUERY_FAILS" ]; then
-                    rm -f "$err_file"
-                    echo "==> 조회 연속 ${MAX_QUERY_FAILS}회 실패 — 배포 상태 확인 불가, 실패 처리" >&2
-                    return 1
-                  fi
+                query_fails=$((query_fails + 1))
+                if [ "$query_fails" -ge 3 ]; then
+                  rm -f "$err_file"
+                  echo "DEV_SSM_STATUS_UNAVAILABLE" >&2
+                  return 1
                 fi
               fi
-              rm -f "$err_file"
             done
-
-            echo "==> [$instance_id] 배포 표준출력 ----------------------------"
-            aws ssm get-command-invocation --region "$AWS_REGION" \
-              --command-id "$cmd_id" --instance-id "$instance_id" \
-              --query "StandardOutputContent" --output text || true
-            echo "==> [$instance_id] 배포 표준에러 ----------------------------"
-            aws ssm get-command-invocation --region "$AWS_REGION" \
-              --command-id "$cmd_id" --instance-id "$instance_id" \
-              --query "StandardErrorContent" --output text || true
-
+            rm -f "$err_file"
             if [ "$finished" -ne 1 ]; then
-              echo "[$instance_id] 배포 실패: 타임아웃 (마지막 status=$STATUS)" >&2
+              echo "DEV_SSM_TIMEOUT" >&2
               return 1
             fi
-            if [ "$STATUS" != "Success" ]; then
-              echo "[$instance_id] 배포 실패 (status=$STATUS)" >&2
+            if [ "$status" != Success ]; then
+              # 종료코드만 읽고 고정 분류한다. 원격 stdout/stderr는 읽지 않는다.
+              response_code="$(aws ssm get-command-invocation --region "$AWS_REGION" \
+                --command-id "$cmd_id" --instance-id "$ID" \
+                --query ResponseCode --output text 2>/dev/null)" || response_code="unknown"
+              case "$response_code" in
+                41) reason=PRE_HOST_MARKER ;;
+                50) reason=PRE_API_EXEC ;;
+                51) reason=PRE_API_SETTINGS ;;
+                52) reason=PRE_API_ENV ;;
+                55) reason=PRE_API_FINGERPRINT ;;
+                60) reason=PRE_CONSUMER_EXEC ;;
+                61) reason=PRE_CONSUMER_SETTINGS ;;
+                62) reason=PRE_CONSUMER_ENV ;;
+                65) reason=PRE_CONSUMER_FINGERPRINT ;;
+                71) reason=POST_HOST_MARKER ;;
+                74) reason=POST_WORKER_HOST_CHANGED ;;
+                80) reason=POST_API_EXEC ;;
+                81) reason=POST_API_SETTINGS ;;
+                82) reason=POST_API_ENV ;;
+                83) reason=POST_API_CONFIG_CHANGED ;;
+                84) reason=POST_API_SHA ;;
+                85) reason=POST_API_FINGERPRINT ;;
+                90) reason=POST_CONSUMER_EXEC ;;
+                91) reason=POST_CONSUMER_SETTINGS ;;
+                92) reason=POST_CONSUMER_ENV ;;
+                93) reason=POST_CONSUMER_CONFIG_CHANGED ;;
+                94) reason=POST_CONSUMER_SHA ;;
+                95) reason=POST_CONSUMER_FINGERPRINT ;;
+                101) reason=INFRA_DIRECTORY ;;
+                102) reason=INFRA_PULL ;;
+                103) reason=INFRA_DEPLOY ;;
+                104) reason=POST_BANNERS ;;
+                *) reason=UNCLASSIFIED ;;
+              esac
+              echo "DEV_SSM_FAILED:$status:$reason" >&2
               return 1
             fi
+            echo "DEV_SSM_SUCCESS"
           }
 
-          echo "==> [$ID] deploy.sh $DEPLOY_TAG (SSM RunCommand, 중단배포)"
-          # executionTimeout 600 = 폴링 상한(60회×10s)과 일치 — 서버는 도는데 워크플로만
-          # 빨간불인 창을 없앤다 (실측 deploy.sh 2~3분).
-          CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
-            --instance-ids "$ID" \
-            --document-name "AWS-RunShellScript" \
-            --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG} && docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi'\"],executionTimeout=[\"600\"]" \
-            --query 'Command.CommandId' --output text)"
-
-          poll_ssm "$CMD_ID" "$ID"
+          # JSON 인코딩은 고정 스크립트와 검증된 태그만 사용한다.
+          params_file="$(mktemp)"
+          trap 'rm -f "$params_file"' EXIT
+          python - "$params_file" <<'PYTHON'
+          import json
+          import os
+          import re
+          import shlex
+          import sys
+          tag = os.environ["DEPLOY_TAG"]
+          if not re.fullmatch(r"dev-[0-9a-f]{40}", tag):
+              raise SystemExit("INVALID_DEV_IMAGE_TAG")
+          container_probe = """import hashlib
+          import json
+          import sys
+          expected, base = sys.argv[1], int(sys.argv[2])
+          try:
+              from app.config import settings
+              values = {
+                  "database": settings.supabase_db_connection_string,
+                  "environment": settings.environment,
+                  "morning_push_enabled": settings.morning_push_enabled,
+                  "fcm_project_id": settings.fcm_project_id,
+                  "fcm_service_account_file": settings.fcm_service_account_file,
+              }
+              if type(values["morning_push_enabled"]) is not bool or any(
+                  type(value) is not str for key, value in values.items() if key != "morning_push_enabled"
+              ):
+                  raise ValueError()
+              version = settings.git_sha
+              fingerprint = hashlib.sha256(json.dumps(values, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+          except Exception:
+              raise SystemExit(base + 1)
+          if values["environment"] != "development":
+              raise SystemExit(base + 2)
+          if expected and version != expected:
+              raise SystemExit(base + 4)
+          print(fingerprint)
+          """
+          command = f"""set -eu
+          check_dev() {{
+            phase="$1"
+            expected="$2"
+            if [ "$phase" = pre ]; then
+              host_base=40; api_base=50; consumer_base=60
+            else
+              host_base=70; api_base=80; consumer_base=90
+            fi
+            test "$(cat /etc/moly-env 2>/dev/null)" = dev || return "$((host_base + 1))"
+            worker_host=absent
+            if [ -f /etc/moly-worker-host ]; then worker_host=present; fi
+            if [ "$phase" = pre ]; then
+              worker_host_before="$worker_host"
+            else
+              test "$worker_host" = "$worker_host_before" || return 74
+            fi
+            for container in moly-backend moly-consumer; do
+              if [ "$container" = moly-backend ]; then base="$api_base"; else base="$consumer_base"; fi
+              if fingerprint="$(docker exec "$container" python -c {shlex.quote(container_probe)} "$expected" "$base")"; then
+                case "$fingerprint" in
+                  *[!0-9a-f]*|"") return "$((base + 5))" ;;
+                esac
+                test "$(printf %s "$fingerprint" | wc -c)" -eq 64 || return "$((base + 5))"
+                if [ "$phase" = pre ]; then
+                  if [ "$container" = moly-backend ]; then api_before="$fingerprint"; else consumer_before="$fingerprint"; fi
+                else
+                  if [ "$container" = moly-backend ]; then before="$api_before"; else before="$consumer_before"; fi
+                  test "$fingerprint" = "$before" || return "$((base + 3))"
+                fi
+              else
+                result="$?"
+                case "$result" in
+                  "$((base + 1))"|"$((base + 2))"|"$((base + 4))") return "$result" ;;
+                  *) return "$base" ;;
+                esac
+              fi
+            done
+          }}
+          check_dev pre ''
+          cd /root/moly-infra || exit 101
+          git pull --ff-only || exit 102
+          sudo bash deploy.sh {tag} || exit 103
+          check_dev post {tag.removeprefix("dev-")}
+          docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi' || exit 104
+          """
+          with open(sys.argv[1], "w") as out:
+              json.dump({"commands": [command], "executionTimeout": ["600"]}, out)
+          PYTHON
+          if ! CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
+            --instance-ids "$ID" --document-name AWS-RunShellScript \
+            --parameters "file://$params_file" \
+            --query Command.CommandId --output text 2>/dev/null)"; then
+            echo "DEV_SSM_SEND_FAILED" >&2
+            exit 1
+          fi
+          if [[ ! "$CMD_ID" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]; then
+            echo "DEV_SSM_INVALID_COMMAND_ID" >&2
+            exit 1
+          fi
+          poll_ssm "$CMD_ID"
 
       - name: Verify via public endpoint
         run: |
           set -euo pipefail
-          EXPECTED="${DEPLOY_TAG#dev-}"
-          BODY=""
-          for i in $(seq 1 6); do
-            BODY="$(curl -sf --max-time 10 https://dev.moly.asia/health || true)"
-            # version 필드 정확 비교 — 부분 문자열 매칭은 짧은 dispatch 태그가
-            # "status":"ok" 등에 우연 매칭돼 false-green이 될 수 있다
-            ver="$(printf '%s' "$BODY" | sed -n 's/.*\"version\":\"\([^\"]*\)\".*/\1/p')"
-            if [ "$ver" = "$EXPECTED" ]; then
-              echo "OK: dev.moly.asia가 $EXPECTED 서빙 중"
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "ERROR: /health 버전이 기대($EXPECTED)와 다름 — 마지막 응답: $BODY" >&2
-          exit 1
+          python - <<'PYTHON'
+          import json
+          import os
+          import re
+          import time
+          import urllib.request
+          expected = os.environ["DEPLOY_TAG"].removeprefix("dev-")
+          if not re.fullmatch(r"[0-9a-f]{40}", expected):
+              raise SystemExit("INVALID_DEV_IMAGE_TAG")
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          opener = urllib.request.build_opener(NoRedirect)
+          def read(path):
+              with opener.open("https://dev.moly.asia" + path, timeout=10) as response:
+                  body = response.read(8193)
+                  if response.status != 200 or len(body) > 8192:
+                      raise ValueError("invalid response")
+                  result = json.loads(body)
+                  if not isinstance(result, dict):
+                      raise ValueError("invalid response")
+                  return result
+          for attempt in range(6):
+              try:
+                  health = read("/health")
+                  ready = read("/health/ready")
+                  if (health.get("status") == "ok" and health.get("env") == "development"
+                      and health.get("version") == expected and ready.get("status") == "ok"
+                      and ready.get("db") == "ok" and ready.get("version") == expected):
+                      print("DEV_PUBLIC_HEALTH_READY_OK")
+                      break
+              except Exception:
+                  pass
+              if attempt < 5:
+                  time.sleep(5)
+          else:
+              raise SystemExit("DEV_PUBLIC_HEALTH_READY_FAILED")
+          PYTHON

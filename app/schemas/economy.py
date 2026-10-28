@@ -18,6 +18,7 @@ TransactionType = Literal[
     "shop_purchase",
     "refund_revoke",
     "admin_adjustment",
+    "training_reward", "article_reward",
 ]
 
 

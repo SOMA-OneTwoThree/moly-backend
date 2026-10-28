@@ -17,7 +17,8 @@ import logging
 import uuid
 
 from app.core.db import get_sessionmaker
-from app.services import diary_recall_repo
+from app.config import settings
+from app.services import diary_recall_repo, diary_shared_embeddings as shared
 from app.services.jobs import ClaimedJob
 from worker import consumer
 from worker.consumer import JobFatal, JobResult, JobRetry
@@ -45,6 +46,11 @@ async def handle_diary_recall_embed(job: ClaimedJob) -> JobResult:
         # 비공개로 바뀌었거나 삭제됐거나 계정 삭제 차단에 걸린 일기다. 다시 시도해도 같으므로
         # 실패로 두지 않고 정상 종료한다. 본문이 다시 바뀌면 upsert가 새 잡을 등록한다.
         return JobResult(result_code="not_eligible")
+
+    if isinstance(loaded, shared.SharedDiaryRoute):
+        async def _route(session):
+            await shared.ensure_for_diary(session, user_id=uid, diary_id=diary_id)
+        return JobResult(result_code="shared", apply_domain=_route)
 
     search_text, generation, source_hash, embedding_model, index_version = loaded
     try:
@@ -75,3 +81,33 @@ async def handle_diary_recall_embed(job: ClaimedJob) -> JobResult:
 
 
 consumer.register(JOB_DIARY_RECALL_EMBED, handle_diary_recall_embed)
+
+
+async def handle_diary_template_embed(job: ClaimedJob) -> JobResult:
+    if job.user_id is not None:
+        raise JobFatal("shared_job_has_owner")
+    payload = job.payload if isinstance(job.payload, dict) else {}
+    try:
+        shared_id = uuid.UUID(str(payload.get("shared_id")))
+    except (ValueError, TypeError) as exc:
+        raise JobFatal("invalid_shared_id") from exc
+    async with get_sessionmaker()() as session:
+        loaded = await shared.load_shared(session, shared_id)
+    if loaded is None:
+        return JobResult(result_code="already_ready_or_missing")
+    source = dict(loaded)
+    if (source["embedding_model"] != settings.embedder_model
+            or source["dimensions"] != settings.memory_embedding_dimensions
+            or source["index_version"] != diary_recall_repo.INDEX_VERSION):
+        raise JobFatal("unsupported_shared_embedding_version")
+    try:
+        vector = await diary_recall_repo.embed_text(source["search_text"])
+    except Exception as exc:
+        raise JobRetry("embed_failed") from exc
+
+    async def _apply(session):
+        await shared.write_shared(session, source=source, vector=vector)
+    return JobResult(result_code="ok", apply_domain=_apply)
+
+
+consumer.register(shared.JOB_DIARY_TEMPLATE_EMBED, handle_diary_template_embed)

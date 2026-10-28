@@ -50,6 +50,12 @@ baseline 실행을 거부한다. **`schema.sql`은 기존 DB를 갱신하는 스
 운영에 중복 실행하지 않는다. 대상·SHA·적용·검증·복구 순서는
 [운영 문서](../docs/OPERATIONS.md#둘러보기-아티클-db-전환)를 따른다. 구독 게이트 자체는 DB 변경이 없다.
 
+일기 검색 벡터 공유의 기존 환경 차이 SQL은 `changes/diary_shared_embeddings.sql`이다.
+공용 테이블과 nullable 참조만 추가하며 데이터 전환과 설정 변경은 별도다. 승인된 동일 원고의
+실제 같은 벡터만 연결/제거하고, 개인 일기·다른 벡터 변형은 보존한다. 계획 hash에 묶인 전환·
+역복사 도구는 `scripts/diary_shared_embeddings.py`, 순서와 롤백 경계는
+[운영 문서](../docs/OPERATIONS.md#공용-일기-검색-벡터-공유)를 따른다.
+
 ## 구조 변경 절차
 
 1. 관련 커밋과 서비스 사용 경로를 확인한 뒤 `schema.sql`을 수정한다. NULL·기본값·권한 변경도

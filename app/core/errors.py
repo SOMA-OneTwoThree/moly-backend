@@ -148,6 +148,10 @@ def routine_goal_not_met() -> AppError:
     return AppError("ROUTINE_GOAL_NOT_MET", 422, "루틴 2개를 아직 다 완료하지 않았어요.")
 
 
+def mood_not_recorded() -> AppError:
+    return AppError("MOOD_NOT_RECORDED", 422, "오늘의 감정을 아직 기록하지 않았어요.")
+
+
 def ad_limit_reached() -> AppError:
     return AppError("AD_LIMIT_REACHED", 429, "오늘 광고 시청 한도에 도달했어요.")
 

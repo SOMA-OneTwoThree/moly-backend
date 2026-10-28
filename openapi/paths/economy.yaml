@@ -29,6 +29,12 @@
     security:
     - SupabaseBearer: []
     parameters:
+    - name: X-Moly-Capabilities
+      in: header
+      required: false
+      schema:
+        type: string
+      description: 쉼표로 구분한 capability 토큰. 대소문자를 구분하며 각 토큰의 앞뒤 공백만 제거한다. 정확한 wallet-ledger-types-v2 토큰이 있으면 원래 거래 type을 반환한다. 권한과 무관한 표시 호환 옵션이다.
     - name: limit
       in: query
       required: false
@@ -85,7 +91,12 @@
                         - limit
                         type: greater_than_equal
                         msg: Input should be greater than or equal to 1
-    description: id 내림차순 cursor pagination. 다음 page가 실제로 있을 때만 next_cursor를 반환한다.
+    description: >-
+      id 내림차순 cursor pagination. 다음 page가 실제로 있을 때만 next_cursor를 반환한다.
+      X-Moly-Capabilities에 정확한 wallet-ledger-types-v2 토큰이 없으면 mood_reward,
+      training_reward, article_reward는 구버전 앱 호환을 위해 응답 type만 admin_adjustment로 표시한다.
+      해당 토큰이 있으면 원래 type을 반환한다. 기존 나머지 8개 type, id, 금액, 잔액 표시 규칙,
+      시각, 페이지 순서와 cursor는 동일하며 DB 원장과 보상 권한은 변경하지 않는다.
 /charging-station:
   get:
     tags:
@@ -144,7 +155,7 @@
                     details: {}
     security:
     - SupabaseBearer: []
-    description: 사용자 local 00:00 reward date마다 한 번 +20 건초를 원장과 함께 지급한다.
+    description: 사용자 local 00:00 reward date마다 한 번 POST /attendance/check-in과 같은 연속 출석 지급량을 원장과 함께 지급한다.
 /charging-station/routine-reward:
   post:
     tags:
@@ -195,6 +206,122 @@
     security:
     - SupabaseBearer: []
     description: 같은 local reward date에 routine 완료가 2개 이상이면 한 번 +20 건초를 지급한다.
+/charging-station/mood-reward:
+  post:
+    tags:
+    - economy
+    summary: 오늘의 감정일기 기록 보상 수령
+    operationId: claimMoodReward
+    responses:
+      '200':
+        description: 지급량과 지급 후 잔액
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/RewardResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+      '422':
+        description: 같은 reward date의 감정일기가 없음
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              missing:
+                summary: 기록 없음
+                value:
+                  error:
+                    code: MOOD_NOT_RECORDED
+                    message: 오늘의 감정을 아직 기록하지 않았어요.
+                    details: {}
+      '409':
+        description: 같은 reward date에 이미 감정일기 보상을 수령함
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              claimed:
+                summary: 이미 수령
+                value:
+                  error:
+                    code: ALREADY_CLAIMED
+                    message: 이미 수령했어요.
+                    details: {}
+    security:
+    - SupabaseBearer: []
+    description: 같은 local reward date의 감정일기가 있으면 한 번 +20 건초를 지급한다.
+/attendance:
+  get:
+    tags:
+    - economy
+    summary: 연속 출석 조회
+    operationId: getAttendance
+    security:
+    - SupabaseBearer: []
+    description: 날짜는 모두 사용자 local 00:00 reward date다. 출석한 날은 출석 보상을 받은 날이며, 첫 출석 체크 때 어제까지
+      이어진 루틴 연속을 출석한 날로 한 번 옮겨 둔다(아직 체크 전이면 옮길 값을 미리 센다). 오늘 출석 전이면 어제까지의
+      연속이 현재 연속이다. days는 from..to 안의 출석한 날 오름차순이며, from ≤ to이고 기간은 371일 이하여야 한다.
+    parameters:
+    - name: from
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+      description: YYYY-MM-DD 시작 날짜(포함).
+    - name: to
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+      description: YYYY-MM-DD 끝 날짜(포함). from부터 371일 이하.
+    responses:
+      '200':
+        description: 현재·최장 연속과 기간 안의 출석한 날
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/AttendanceResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
+      '422':
+        $ref: ../components/common.yaml#/responses/Validation
+/attendance/check-in:
+  post:
+    tags:
+    - economy
+    summary: 출석 체크
+    operationId: checkInAttendance
+    security:
+    - SupabaseBearer: []
+    description: 앱 진입 출석. 오늘 reward date의 첫 요청이면 출석을 기록하고 오늘까지의 연속 출석 일수에 해당하는 건초(GET
+      /charging-station attendance.streak_rewards, 20, 20, 40, 20, 20, 20, 100을 7일마다 되풀이)를 원장과 함께 지급한다. 이미 출석했으면 아무것도 바꾸지 않고
+      checked_in=false로 현재 연속을 반환한다(멱등). POST /charging-station/attendance와 같은 출석 기록과 지급량을 공유하므로
+      어느 쪽으로 받아도 하루 한 번이다.
+    responses:
+      '200':
+        description: 이번 요청의 출석 여부, 지급량, 잔액과 연속
+        content:
+          application/json:
+            schema:
+              $ref: ../components/economy.yaml#/schemas/AttendanceCheckInResponse
+      '500':
+        $ref: ../components/common.yaml#/responses/Internal
+      '401':
+        $ref: ../components/common.yaml#/responses/Unauthorized
+      '404':
+        $ref: ../components/common.yaml#/responses/ProfileNotFound
 /reward-ad-sessions:
   post:
     tags:

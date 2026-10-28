@@ -48,6 +48,7 @@
       저장한다. 같은 client_request_id로 다시 보내면 처음 판정을 돌려주고 기회를 다시 쓰지 않는다.
       서버 entitlement의 plan이 free이면 6단계 이상 신규 제출은 403이다. 이미 완료된 동일 요청은 구독 만료 후에도
       저장된 판정을 반환하며 재채점하거나 기회·보상을 다시 처리하지 않는다.
+      보관된 과정은 신규 제출을 404로 거절하지만, 완료된 동일 요청의 재조회와 과거 답 조회는 유지한다.
       AI 채점을 기다리므로 클라이언트는 긴 제한 시간(30초)을 쓴다.
     operationId: submitTrainingAnswer
     parameters:
@@ -78,7 +79,9 @@
                     code: TRAINING_SUBSCRIPTION_REQUIRED
                     message: 구독하면 이어서 풀 수 있어요.
                     details: {free_stage_count: 5}
-      '404': {$ref: '#/responses/NotFound'}
+      '404':
+        $ref: '#/responses/NotFound'
+        description: 없는 트레이닝·단계, 보관된 과정의 신규 제출, 또는 보상 지급 시 프로필 없음. 보관된 과정의 완료 요청 재조회는 허용한다.
       '409':
         description: 지금 풀 차례가 아닌 단계, 도전 기회 없음, 계정 삭제 진행 중
         content:

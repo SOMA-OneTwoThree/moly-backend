@@ -12,7 +12,7 @@ from app.core.errors import AppError
 from app.main import app
 from app.schemas.routine import PatchRoutineRequest
 from app.schemas.shop import EquipmentPutRequest, EquipmentPutRequestV2, ShopProduct
-from app.services import economy, hay_ledger, review, routine, shop
+from app.services import attendance, economy, hay_ledger, review, routine, shop
 
 UID = "11111111-1111-1111-1111-111111111111"
 UID_UUID = uuid.UUID(UID)
@@ -114,12 +114,16 @@ async def test_attendance_success(monkeypatch):
         return SimpleNamespace(attendance_claimed_at=None)
 
     async def _apply(session, uid, t, amt, **kw):
-        return SimpleNamespace(id=1, balance_after=660)
+        return SimpleNamespace(id=1, balance_after=640 + amt)
+
+    async def _today_streak(session, profile, today):
+        return 3
 
     monkeypatch.setattr(economy, "_daily", _daily)
     monkeypatch.setattr(hay_ledger, "apply", _apply)
+    monkeypatch.setattr(attendance, "today_streak", _today_streak)
     out = await economy.claim_attendance(FakeSession(), UID)
-    assert out == {"granted": 20, "balance_after": 660}
+    assert out == {"granted": 40, "balance_after": 680}
 
 
 async def test_attendance_already_claimed(monkeypatch):
@@ -144,6 +148,56 @@ async def test_routine_reward_goal_not_met(monkeypatch):
     with pytest.raises(AppError) as e:
         await economy.claim_routine_reward(FakeSession(), UID)
     assert e.value.code == "ROUTINE_GOAL_NOT_MET"
+
+
+async def test_mood_reward_success(monkeypatch):
+    _patch_profile(monkeypatch, economy)
+    stats = SimpleNamespace(mood_reward_claimed_at=None)
+    applied = []
+
+    async def _recorded(session, uid, ad):
+        return True
+
+    async def _daily(session, uid, ad):
+        return stats
+
+    async def _apply(session, uid, t, amt, **kw):
+        applied.append((t, amt))
+        return SimpleNamespace(id=1, balance_after=640 + amt)
+
+    monkeypatch.setattr(economy, "_mood_recorded_today", _recorded)
+    monkeypatch.setattr(economy, "_daily", _daily)
+    monkeypatch.setattr(hay_ledger, "apply", _apply)
+    session = FakeSession()
+    out = await economy.claim_mood_reward(session, UID)
+    assert out == {"granted": 20, "balance_after": 660}
+    assert applied == [("mood_reward", 20)]
+    assert stats.mood_reward_claimed_at is not None and session.committed
+
+
+async def test_mood_reward_requires_todays_entry(monkeypatch):
+    _patch_profile(monkeypatch, economy)
+    session = FakeSession()  # 오늘 날짜 감정일기 조회가 비어 있다
+    with pytest.raises(AppError) as e:
+        await economy.claim_mood_reward(session, UID)
+    assert e.value.code == "MOOD_NOT_RECORDED"
+    assert session.committed is False
+
+
+async def test_mood_reward_already_claimed(monkeypatch):
+    _patch_profile(monkeypatch, economy)
+
+    async def _recorded(session, uid, ad):
+        return True
+
+    async def _daily(session, uid, ad):
+        return SimpleNamespace(mood_reward_claimed_at="2026-07-07T00:00:00Z")
+
+    monkeypatch.setattr(economy, "_mood_recorded_today", _recorded)
+    monkeypatch.setattr(economy, "_daily", _daily)
+    with pytest.raises(AppError) as e:
+        await economy.claim_mood_reward(FakeSession(), UID)
+    assert e.value.code == "ALREADY_CLAIMED"
 
 
 # --- 루틴 통계(streak) ---
@@ -1073,6 +1127,7 @@ async def _dummy_session():
 @pytest.mark.parametrize("method,path", [
     ("get", "/wallet"),
     ("get", "/charging-station"),
+    ("post", "/charging-station/mood-reward"),
     ("get", "/routines"),
     ("get", "/shop/products"),
     ("get", "/v2/shop/products"),
@@ -1129,6 +1184,18 @@ async def test_claim_routine_rejects_tz_regression(monkeypatch):
     session = FakeSession()
     with pytest.raises(AppError) as e:
         await economy.claim_routine_reward(session, UID)
+    assert e.value.code == "ALREADY_CLAIMED"
+    assert session.committed is False
+
+
+async def test_claim_mood_rejects_tz_regression(monkeypatch):
+    _profile(monkeypatch)
+    async def _cursor(session, uid):
+        return date(2999, 1, 1)
+    monkeypatch.setattr(economy, "_reward_cursor", _cursor)
+    session = FakeSession()
+    with pytest.raises(AppError) as e:
+        await economy.claim_mood_reward(session, UID)
     assert e.value.code == "ALREADY_CLAIMED"
     assert session.committed is False
 

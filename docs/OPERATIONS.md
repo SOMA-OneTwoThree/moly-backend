@@ -130,6 +130,7 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 - JSON 로그의 `ts/level/logger/msg`와 요청 상태·단계 소요를 사용한다. health 200 access log는 기본 억제되며 `LOG_ACCESS_HEALTH`로 조절한다. httpx/httpcore DEBUG나 provider 본문·자격 로그를 켜지 않는다.
 - `/health`와 `/health/ready`는 공개 상태 확인, `/health/deep`, `/health/queues`, `/health/synthetic`는 `X-Health-Token` 보호 대상이다. synthetic는 모델 비용·외부 의존성이 있는 별도 검사다.
 - `AI_UNAVAILABLE` 503은 timeout/연결/일시 provider 오류뿐 아니라 잘림·빈 답·locale 필터 후 빈 답에도 사용한다. 실패 답은 대화에 저장·사용자 차감하지 않는다. `Idempotency-Key`를 유지하고 API 실패를 정상 대사로 감추지 않는다. 500은 별도 내부 오류로 조사한다.
+- 첫 도구 판단 호출에서 도구·구조화 응답 없이 일반 텍스트만 `length`로 잘리면, 남은 턴 시간 안에서 도구 없이 짧고 완결된 한 문장 답변으로 한 번 재생성한다(`decide_length_fallback`). 직접 답변·복구 호출은 일반 답변 출력 예산을 쓰고, 복구 실패 시 추가 재생성 없이 기존 503 처리를 따른다. 실패 호출 원가는 AI 원장에 남지만 사용자 차감에는 성공한 복구 호출만 포함한다. 정상 도구 호출의 합산 차감·일일 한도·전체 deadline은 유지한다.
 - 회상 결과 없음과 조회 실패를 구분한다. 빈 결과를 장애로 세지 않고, 실패를 사용자가 알려주지 않은 사실로 바꿔 답하지 않는다.
 - 지속 사건은 `monitoring:alert:<환경>:<신호>` 상태로 신규/변화/악화/재알림/복구를 판단한다. 정상 worker 요약을 매 tick 전송하지 않는다. `daily_status`는 하루 상태 보고용이며 해당 행의 active를 장애라고 해석하지 않는다.
 - 같은 미해결 사건은 6시간, 내용 변화는 1시간, 악화·재발은 5분 간격의 억제를 적용한다. 정상 재관측 때 복구를 알린다. 하루 요약은 KST 13시 이후 첫 전송 성공으로 하루 한 번이며 tick 지연·전송 실패에 따라 늦어질 수 있다. 정확히 13시에 도착한다는 보장은 아니다.
@@ -160,6 +161,76 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 - 계정 삭제는 moly-auth가 소유하며 삭제 fence/RPC와 배치 잔여 정리가 협력한다. API만 고쳐 background 쓰기를 허용하지 않는다. 삭제·취소·락·원장 처리 순서를 성능 최적화 과정에서도 보존한다.
 - 기억 복구 도구·replay는 대상과 예상 영향을 dry-run으로 고정하고 실행한다. 데이터 삭제/모델·차원 변경/보관 이전을 단순 장애 해결에 묶지 않는다.
 
+## 공용 일기 검색 벡터 공유
+
+원본은 `diary_recall_repo.py`, `diary_shared_embeddings.py`, `recall_diaries.py`,
+`worker/diary_recall_jobs.py`, `memory_sweep_jobs.py`다. 개인 일기·대화·장기 기억은 보존한다.
+승인 원고와 제목/본문/검색 입력이 정확히 일치한 캐피·환영 일기만 공유한다. 같은 원고라도
+벡터가 다른 과거 문서는 private로 남긴다. 모델·차원·색인 버전·원고 해시를 섞지 않는다.
+
+- `diary_template_embeddings`: 사용자와 독립된 공용 원고와 벡터. RLS로 클라이언트 직접 접근 차단.
+- `diary_recall_documents.shared_embedding_id`: 본인의 일기 연결을 유지하는 nullable 참조.
+  조회는 본인 일기를 먼저 제한한 뒤 유효한 ready 공용 벡터 또는 기존 private 벡터를 사용한다.
+- canonical은 최초 선정 후 고정한다. 기존 ready 벡터를 덮어쓰거나 공용행을 GC하지 않는다.
+- `app_config.diary_embedding_storage_mode`: `private`(기본), `dual`, `shared` 중 정확한 문자열.
+  값 오류는 실패한다. 조회는 모드와 무관하게 유효한 기존 참조를 읽는다. `private`로 설정하는
+  것은 새 공유 쓰기의 중단이며, 이미 shared-only인 문서의 바이너리 롤백을 대신하지 않는다.
+
+환영·개인·운영 원고 일기 모두 기존 발행 트랜잭션에서 검색 문서/잡을 등록한다. 본문·발행일·
+운영 원고 receipt·개인 일기의 메시지 근거·중복 생성 방지는 바꾸지 않는다. 번역된 본문이 승인
+원고와 다르면 private를 유지한다. 목록/상세와 아침 푸시 대상은 `diaries`를 읽으므로 공용 벡터
+pending/ready가 일기 노출·알림 자격을 바꾸지 않는다. 환영 일기는 기존 행이 있으면 그대로
+반환하고, 새 INSERT 전에 사용자 잠금과 삭제 장벽을 확인해 구독/탈퇴 경로의 잠금 순서를 맞춘다.
+초기 dual에서는 개인/공용 embedding 작업이 동시에 진행돼 외부 호출이 한시적으로 중복될 수 있다.
+실제 LLM 출력/FCM 전달은 SQL·시험 대역 검증과 별도로 구분한다.
+
+### 적용 순서
+
+1. 최신 코드·대상·동시 배포를 확인하고 이전 이미지와 DB 계약을 기록한다. 기존 개발 API/DB에서
+   개인/공용 일기·3언어 검색 전후 동등성·CAS·삭제 경합·역복사·실제 잠금 순서를 먼저 검증한다.
+2. `db/changes/diary_shared_embeddings.sql`의 SHA를 고정해 dry-run 후 적용한다. 이 SQL은
+   새 테이블/인덱스/RLS와 nullable 참조만 추가한다. 데이터와 설정은 바꾸지 않는다. 객체가 이미
+   존재하면 자동 건너뛰지 않고 중단하므로, 부분 적용 여부를 계약으로 확인하고 재실행을 판단한다.
+3. 이전 계약과 새 계약을 모두 확인하고 호환 API/consumer를 전부 배포한다. 모드는 `private`다.
+   아래 도구로 `link` 계획을 만들고 검토 후 연결한다. 기존 private는 유지된다. 이 단계에서
+   가장 큰 동일 벡터 묶음을 canonical로 고정한 뒤 새 공유 쓰기를 켠다. 이미 ready canonical이
+   있으면 이를 존중하므로 예상 공유량이 달라질 수 있다.
+4. `dual`에서 신규 발행과 기존/복구 잡을 확인한다. 개인 일기와 다른 벡터 변형은 유지한다.
+   공용 pending 잡은 `user_id=NULL`이며, 한 계정 탈퇴가 다른 계정의 공용 잡을 취소하지 않는다.
+5. 검색 결과/본문/count/점수/정렬과 소유권, dangling/key mismatch/누락 0, 워커 교체와 private
+   재생성 여부를 확인한 뒤 `shared`로 전환한다. 소량 `prune` 계획을 새로 만들고 검토해 적용한다.
+6. 실제 payload와 재사용 공간·relation 크기·WAL·지연을 별도로 측정한다. NULL 처리만으로
+   디스크 파일/할당 용량/청구액 감소를 보고하지 않는다. `VACUUM FULL`은 기본 절차에 없다.
+
+```bash
+# 기본은 조회만 한다. 환경은 실제 프로젝트 ref로 검증한다.
+uv run python -m db.apply db/changes/diary_shared_embeddings.sql --env dev
+uv run python -m db.apply db/changes/diary_shared_embeddings.sql --env dev --commit --expected-sha256 <SQL-SHA>
+uv run python -m db.verify --env dev
+uv run python scripts/diary_shared_embeddings.py plan --for-action link --env dev --output /private/link.json
+uv run python scripts/diary_shared_embeddings.py link --env dev --plan /private/link.json --expected-plan-sha256 <PLAN-SHA>
+# 검토한 동일 계획을 실행할 때만 --commit을 추가한다. 운영에는 별도 승인과 --allow-prod도 필요하다.
+```
+
+`link`는 private/dual, `prune`은 shared, `restore`는 private/dual에서만 쓴다. 각 작업마다
+`plan --for-action <작업>`으로 별도 계획을 만든다. 파일은 대상 ref·작업·cutoff·승인 원고/벡터
+지문에 묶인다. 기본 배치는 50행·10회이며 재실행은 이미 처리한 행을 건너뛴다. 처리량을 늘리기
+전에 잠금/지연을 확인한다. 실제 연결·제거는 vector 값 동등성과 잠금 후 현재 원고·행 시각·
+세대·삭제 epoch를 다시 확인한다. 계획 hash를 맞추기 위해 파일을 임의로 고치지 않는다.
+
+### 중단·복구
+
+- 초기 dual이라도 private 누락이 없는지 검증한 뒤 이전 읽기/이미지로 되돌린다. 새 객체부터 삭제하지 않는다.
+- shared-only 발행 또는 private 제거 이후에는 새 쓰기를 dual로 전환 → 별도 restore 계획을
+  검토/적용 → 전체 `remaining_shared_only=0`과 `legacy_rollback_ready=true` 확인 → 이전 읽기/이미지
+  순서다. restore는 현재 context 세대와 다른 기존 문서도 원래 세대를 유지해 역복사한다.
+  삭제 중/변경된 문서와 맞지 않는 참조는 건너뛰고 잔여 수를 숨기지 않는다.
+- 공용 ready+private NULL은 정상이다. private 누락과 공용 pending/dangling/mismatch/exhausted를
+  구분한다. `memory_sweep`은 공용 pending을 별도 예산으로 회수하며 오래됐다는 이유로 제외하지 않는다.
+- 단위검사는 실제 SQL/복구 증거를 대신하지 않는다. 개발 통합검사는
+  `MOLY_DIARY_SHARED_TEST_ENV=dev`, 절대 경로 `MOLY_DIARY_SHARED_ENV_FILE` 및 DB ref 검증이 필요하다.
+  운영 DSN으로 시험하거나 새 로컬 Docker/DB로 대체하지 않는다.
+
 ## 주간 운영자 일기 DB 전환
 
 이 절의 앵커는 일기 운영 절차의 진입점이다. 스키마와 생성 정책 원본은 [DB 문서](../db/README.md), [아키텍처](ARCHITECTURE.md), `app/services/diary_generation.py`다.
@@ -175,11 +246,11 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 
 탐색 탭 운영 승격은 **`db/changes/explore_prod.sql` 한 파일을 한 트랜잭션으로 적용**한다.
 생각 연습·제출 receipt·채점 이의·아티클 진행 테이블, main의 `mood_reward`를 보존한 건초
-원장 type 합집합, `articles` 테이블·원고 5편(한국어·영어·일본어)이 모두 포함된다. 구독 게이트는 코드 변경이며
+원장 type 합집합, `articles` 테이블·원고 5편(한국어·영어·일본어)·오늘의 한마디 365개가 모두 포함된다. 구독 게이트는 코드 변경이며
 추가 DB 구조가 없다. 오늘의 한마디 `daily_affirmations`는 main에 있는 기능으로, 기존 행을
-다시 만들거나 dev의 임시 문장을 운영으로 복사하지 않는다.
+보존하면서 검수한 365개만 추가하고 dev DB의 임시 문장을 복사하지 않는다.
 
-- 통합 SQL SHA-256: `4afc65d074258686ccaa2ebfb8042125df7558930fc6fa2de65d24e1ce6f29e1`.
+- 통합 SQL SHA-256: `98262a1dc02a7e02b5f918f012ec1e5802cc6da1833394e99ecaf47beb571368`.
 - 과거 dev 적용용 `explore_training.sql`·`training_submissions.sql`·`training_claim_reasons.sql`·
   `explore_articles.sql`·`hay_transactions_types.sql`·`explore_content.sql`을 운영에 따로 실행하지 않는다.
   통합본과 중복 실행하면 실패한다. 개발 DB는 이미 이 구조가 있어 통합 SQL의 적용 대상이 아니다.
@@ -194,25 +265,72 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 2026-10-28 통합 SQL 검증: 기존 개발 Supabase의 트랜잭션 안에 임시 스키마와 main 기준 원장
 CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·RLS, 원고 5편, 기존 mood_reward
 및 신규 두 보상 type을 확인했다. 의도적인 중간 실패의 전체 롤백도 확인했고, 임시 스키마는
-남기지 않았다. 이는 운영 DB 적용 증거는 아니며 운영에서의 잠금 획득·최종 계약 dry-run은
+남기지 않았다. 최종 운영 후보에서는 제약·인덱스·ACL·RLS까지 대조하고, 읽을거리 3언어 5편과 한마디
+365개·과거 5행 보존·예약 날짜 충돌·날짜 가드·옛 아티클 보상 보존을 같은 SPI 실행 경로로 확인했다.
+모든 임시 구조는 롤백 후 제거했다. 운영 DB는 읽기 전용으로 main 계약 통과와 탐색 8테이블
+미적용을 확인했다. 이는 운영 SQL 적용 증거는 아니며 운영 잠금 획득·최종 계약 dry-run은
 승격 직전에 별도로 필요하다.
 
-### 오늘의 한마디 365개
+### 오늘의 한마디 365개 — 통합 SQL에 포함
 
-`db/changes/daily_affirmations_365.sql`은 문장 데이터만 넣는다(구조 변경 없음). 적용한 날의 한국 날짜
-**다음 날**부터 1번~365번을 하루씩 넣고, 그 날짜에 행이 있으면 새 문장으로 바꾼다. 적용일과 그 이전 행은
-그대로 두므로 이미 보인 문장은 바뀌지 않는다. 같은 파일을 다시 적용하면 다시 그 다음 날부터 채운다.
+별도 `daily_affirmations_365.sql`은 dev 적용 이력이며 운영에서는 실행하지 않는다. 통합 SQL 안의
+검수 문장을 **2026-10-28~2027-10-27**에 날짜당 하나씩 넣는다. 기존 운영 5행(2026-10-21~25)은
+읽기 확인 시 그대로 있었고 미래 예약은 0행이었다. 실행 직전 같은 범위가 비어 있는지 다시 검사한다.
 
-- SQL SHA-256: `a0273031bee4b85e058f7a00bed54e6b606ce045cb9551dfdb80e93a4a38af00`.
-- 2026-10-28 개발 DB 적용: 2026-10-29~2027-10-28 365행. 2026년의 임시 문장 중 10-28 이전 행은 남아 있다.
-- 같은 날 하루가 이미 지난 것처럼 말하는 20문장("오늘 내가 ~한")을 언제 읽어도 맞게 고쳐 다시 적용했다. 위 SHA는 수정 뒤의 값이다.
-- 운영은 앱 업데이트 배포 날 아래 순서로 적용한다. 마지막 날 이후에는 서버가 가장 최근 문장을 계속 내려주므로,
-  그 전에 다음 묶음을 넣는다.
+- 시작 날짜는 파일 안의 `start_day` 한 곳에 고정했다. dry-run과 commit 사이에 자정이 지나도
+  날짜 범위가 달라지지 않는다. 365건이 정확히 삽입되지 않으면 전체 실패다.
+- 2026-10-28 사용자 지시로 **오늘 시작·운영 반영**을 승인했다. `start_day`가 실행 시점의 KST
+  당일과 같아야 통과한다. 자정이 지나면 날짜와 SHA를 다시 검토하고, 별도365 SQL로 우회하지 않는다.
+- 기존 예약 문장이 하나라도 충돌하면 오류로 중단한다. SHARE ROW EXCLUSIVE 잠금으로 다른
+  입력과 경합을 막고 일반 조회는 허용한다. 기존 문장을 덮어쓰거나 날짜를 밀어 붙이지 않는다.
+- 앱 심사/노출 여부와 관계없이 현재 오늘의 한마디 API는 DB를 읽는다. 오늘 시작 지시에 따라
+  적용 직후 KST 사용자는 1번을, 이미 다음 날인 시간대 사용자는 해당 현지 날짜의 문장을 받는다.
 
-  ```bash
-  uv run python -m db.apply db/changes/daily_affirmations_365.sql --env prod --expected-sha256 a0273031bee4b85e058f7a00bed54e6b606ce045cb9551dfdb80e93a4a38af00
-  uv run python -m db.apply db/changes/daily_affirmations_365.sql --env prod --commit --allow-prod --expected-sha256 a0273031bee4b85e058f7a00bed54e6b606ce045cb9551dfdb80e93a4a38af00
-  ```
+### 기회 제한과 테스트 편의 설정 — 운영 후보 확인
+
+- 운영 환경은 정확히 `production`이어야 한다. 기존 배포 preflight와 배포 후 health에서 확인한다.
+  dev의 기회 무제한/실패 차감 생략은 정확히 `development`에서만 작동한다. production은 최대 5회,
+  실패 답마다 1회 차감, 1시간마다 1회 회복이다. 통과 답은 차감하지 않는다.
+- 완료 요청의 동일 ID 재전송은 기회를 다시 차감하지 않는다. 0회이면 정답 제출도 채점 전에 막는다.
+  live 요청은 T1/T2 잠금 뒤 시각을 다시 읽어 대기·채점 중 충전 경계를 반영한다.
+- 종료된 옛 과정은 상세·과거 답·완료 receipt 재조회와 이의 기록은 유지하고 신규 제출/보상은 404로 막는다.
+  공개 목록에는 현재 3개 과정만 나타나며 과정별 새 보상 우회를 허용하지 않는다.
+- AI 10초 초과/공급자 오류/잘못된 JSON 때 `judge=fallback`으로 통과시키는 것은 승인된 운영 정책이다.
+  QA 무조건 통과 설정이 아니다. 기호·반응·복사 답 규칙은 AI fallback보다 먼저 실행하고,
+  fallback 통과의 단계 보상도 원장/receipt로 한 번만 지급한다. 이 정책은 이번 준비에서 변경하지 않는다.
+- `MODEL_TRAINING_GRADE` 기본값은 `gpt-6-luna`, 추론 none/출력 200/전체 10초다. 실제 운영 override와
+  기존 OpenAI 자격이 유효한지 배포 preflight에서 확인한다. 대화 모델·한도는 main의 정책을 유지한다.
+- `/dev`는 production에서 플래그가 잘못 켜져도 등록하지 않는다. QA 서버/채점 평가 스크립트는
+  운영 Docker 이미지의 COPY 대상이 아니다. 테스트 계정 identity override는 운영 앱에 연결하지 않는다.
+- 앱이 탐색 탭을 숨겨도 API 직접 호출은 가능하다. 구독 gate·현재 단계·기회·삭제 장벽·보상 멱등은
+  서버에서 항상 적용한다. 앱 업데이트 전에 미리 배포할 수 있지만 UI 숨김을 보안으로 취급하지 않는다.
+
+### 구버전 지갑 이력 호환
+
+구버전 iOS는 mood/training/article 보상 type을 모르면 페이지 전체 decode가 실패한다.
+`GET /wallet/transactions`는 capability가 없는 요청에 세 신규 type만 `admin_adjustment`로
+표시한다. 원장에는 원래 type을 그대로 보존하며 id·금액·잔액·시간·페이지 커서와 행 수는 바꾸지 않는다.
+옛 앱에서는 해당 보상에 기존 조정/기타 라벨이 보이는 것이 호환상의 제한이다.
+
+새 세 type을 모두 해석할 수 있는 앱만 `X-Moly-Capabilities: wallet-ledger-types-v2`를 보내
+원래 type을 받는다. 서버 권한이나 실제 원가·지급을 바꾸는 헤더가 아니다. 현재 앱에 헤더를
+강제로 추가하거나 원장 행을 숨겨 decode 실패를 우회하지 않는다.
+
+### 최종 후보 검증 기록 (2026-10-28)
+
+- 기준: main `c1817a68` + dev `b54dbfa1`. 운영의 출석 40/100·감정 보상20·가입일 한도1.25배·
+  채팅 잘림 복구·timeout 추적·일기 문구를 유지했다. 운영의 기존 보상·한도·대화 정책을 유지했고, 경제 이력 응답에 구버전 호환 처리만 추가했다.
+- 최종 비통합 테스트 3,753개, Ruff, OpenAPI bundle/계약, 병합된 DB 카탈로그 검증을 통과했다.
+  구버전 지갑 호환 추가 후 CI와 같은 placeholder DSN 환경에서 전체 재검증했고, 실제 옛 iOS enum으로
+  혼합 11행 응답 decode 성공과 canonical 신규 type의 실패 대조를 확인했다.
+  카탈로그는 기존 개발 DB에 main의 추가 구조를 트랜잭션 안에서만 반영해 대조한 뒤 롤백했다.
+  DB에 별도로 존재하는 `subscription_launch_config(uuid)`와 해당 서비스 권한은 기존 backend
+  schema 원본 밖의 추가 객체로 유지했으며 복사·삭제하지 않았다.
+- production 동작을 기존 개발 DB에서 실행해 5→0 차감·0에서 정답 제출 차단·replay 무차감·
+  충전 정각·마지막 기회 병렬4요청 중1회만 접수·채점 중 충전/경합·archived 차단을 확인했다.
+  이는 배포된 dev의 무제한 모드 시험으로 대체한 결과가 아니다. 전용 QA 계정은 정리했다.
+- 준비 단계에서는 운영을 변경하지 않았으며, 2026-10-28 후속 지시로 오늘 시작과 운영 반영을 승인받았다.
+  최종 CI, 실행 시점의 이미지 tag/digest·환경·worker 소유권·SQL 유효 날짜는 머지 직전 확인한다.
 
 ### 운영 승격 때의 실행 순서
 
@@ -224,9 +342,9 @@ CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·
    실패하면 테이블·CHECK·원고 입력을 모두 롤백한다. SQL SHA가 이 문서와 다르면 중단한다.
 
    ```bash
-   uv run python -m db.apply db/changes/explore_prod.sql --env prod --expected-sha256 4afc65d074258686ccaa2ebfb8042125df7558930fc6fa2de65d24e1ce6f29e1
+   uv run python -m db.apply db/changes/explore_prod.sql --env prod --expected-sha256 98262a1dc02a7e02b5f918f012ec1e5802cc6da1833394e99ecaf47beb571368
    # 운영 승격 승인 후, 머지 직전에만 실행한다.
-   uv run python -m db.apply db/changes/explore_prod.sql --env prod --commit --allow-prod --expected-sha256 4afc65d074258686ccaa2ebfb8042125df7558930fc6fa2de65d24e1ce6f29e1
+   uv run python -m db.apply db/changes/explore_prod.sql --env prod --commit --allow-prod --expected-sha256 98262a1dc02a7e02b5f918f012ec1e5802cc6da1833394e99ecaf47beb571368
    uv run python -m db.verify --env prod
    ```
 

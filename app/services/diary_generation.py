@@ -148,6 +148,9 @@ async def _tokens_used(session: AsyncSession, user_id, target_date: date) -> int
 
 
 _USER_LABEL = {"ko": "그 사람", "en": "that person", "ja": "その人"}
+# 캐피 화자 라벨 = 일기 페르소나의 이름과 같은 표기(en "Cappy", ja "キャピー"). 한국어로 고정하면
+# 영어·일본어 일기 모델이 프롬프트의 자기 이름과 대화록의 화자를 다른 인물로 읽을 수 있다.
+_CAPI_LABEL = {"ko": "캐피", "en": "Cappy", "ja": "キャピー"}
 
 
 def _transcript(
@@ -158,8 +161,9 @@ def _transcript(
     저장 본문은 placeholder이므로 LLM 투입 전 현재 이름으로 렌더한다(유창성·추출 품질).
     """
     user_label = nickname or i18n.pick(_USER_LABEL, language)
+    capi_label = i18n.pick(_CAPI_LABEL, language)
     return "\n".join(
-        f"{'캐피' if m.sender == 'moly' else user_label}: {naming.render(m.content, nickname)}"
+        f"{capi_label if m.sender == 'moly' else user_label}: {naming.render(m.content, nickname)}"
         for m in messages
     )
 
@@ -487,7 +491,7 @@ async def generate_for_user(
     profile = SimpleNamespace(**{
         key: getattr(profile, key, None) for key in (
             "id", "timezone", "language", "nickname", "trial_ends_at",
-            "app_trial_started_at", "app_trial_ends_at",
+            "app_trial_started_at", "app_trial_ends_at", "created_at",
         )
     })
     try:

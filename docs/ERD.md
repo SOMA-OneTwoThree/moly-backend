@@ -62,6 +62,7 @@ erDiagram
 | 테이블 | 책임·주요 제약 |
 |---|---|
 | `hay_transactions` | 건초의 원장. 거래 후 잔액과 주문 연결을 보존; 프로필 잔액은 원장과 함께 갱신 |
+| `attendance_streak_seeds` | 연속 출석이 이어받은 루틴 연속. 사용자당 1행, 첫 출석 체크 때 어제까지의 루틴 연속·최장 연속으로 고정 |
 | `user_daily_stats` | 토큰 누적·일일 보상·알림 선점. 사용자/도메인 기준일 유일. `affirmation_acknowledged_at`은 쓰지 않는 컬럼(오늘의 글귀 확인은 앱 기기 저장) |
 | `products` | 서버 상품 카탈로그·에셋 버전·구독 전용 조건. `price_hay=NULL`은 비매품 |
 | `orders`, `order_items`, `payments` | 주문·상품 항목·실결제를 구분하고 공급자 거래 중복 반영 방지 |
@@ -114,6 +115,7 @@ erDiagram
 | `moly_life_ments` | 운영자 원고. 날짜별 기록과 주간 순서 키를 구분 |
 | `diary_gen_claims`, `diary_generation_results` | 생성 선점과 성공/미발행 결과 |
 | `diary_recall_documents`, `diary_claim_sources` | 검색용 일기 파생본과 실제 근거 |
+| `diary_template_embeddings` | 승인된 공용 일기의 검색 벡터. nullable 참조로 연결하며 개인 일기·소유권은 기존 문서에 유지 |
 | `mood_entries` | `(user_id,entry_date)` 유일. 사용자 감정과 메모; 대화의 5종 제한 조회와 별개 |
 | `routines`, `routine_schedules` | 루틴·soft delete·유효일부터의 요일 이력 |
 | `routine_completions`, `routine_skips` | 현지 달력 날짜별 완료/스킵. 동일 날짜 중복 방지 |

@@ -994,3 +994,131 @@ async def test_pending_executable_call_in_final_step_cannot_be_published(monkeyp
         await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
     assert len(fake.calls) == 2
     assert tool.ran == 1
+
+
+async def test_plain_length_recovers_once_with_answer_budget_and_original_context(monkeypatch):
+    monkeypatch.setattr(agent_runtime.settings, "llm_max_tokens", 1024)
+    partial = replace(_text_step("비공개 잘린 답변"), finish_reason="length")
+    partial = replace(partial, usage=replace(partial.usage, billable=900))
+    complete = _text_step("완성된 답변이야.", purpose="chat")
+    fake = _FakeSteps(partial, complete)
+    tool = _FakeTool()
+    turn = await _run(fake, registry=_FakeRegistry(tool), monkeypatch=monkeypatch)
+    assert turn.text == complete.text and turn.skipped == "length"
+    assert turn.calls == [complete.usage]  # Failed output must not consume user quota.
+    assert tool.ran == 0
+    assert [c["max_tokens"] for c in fake.calls] == [192, 1024]
+    assert fake.calls[1]["tools"] is None
+    assert fake.calls[1]["purpose"] == "chat"
+    assert fake.calls[1]["transcript"][:-1] == fake.calls[0]["transcript"]
+    assert "[Length recovery]" in fake.calls[1]["transcript"][-1].text
+    assert fake.calls[1]["foreground_deadline"] == fake.calls[0]["foreground_deadline"]
+
+
+@pytest.mark.parametrize("finish,text,raw", [
+    ("content_filter", "partial", 0), ("", "partial", 0),
+    ("stop", "", 0), ("length", "  ", 0), ("length", None, 0),
+    ("length", "partial", 1),  # Includes a discarded/malformed structured final.
+])
+async def test_recovery_does_not_widen_other_incomplete_response_policy(
+    monkeypatch, finish, text, raw,
+):
+    step = replace(_text_step(text), finish_reason=finish, raw_tool_calls=raw)
+    fake = _FakeSteps(step, _text_step("must not be called"))
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(fake, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
+    assert len(fake.calls) == 1
+
+
+@pytest.mark.parametrize("remaining", [1.49, 1.5, 4.0])
+async def test_length_recovery_respects_existing_deadline_and_minimum(monkeypatch, remaining):
+    clock = _Clock()
+    cfg = _cfg(turn_deadline_s=10)
+    seen = []
+
+    async def generate(system, transcript, **kw):
+        seen.append(kw)
+        if len(seen) == 1:
+            clock.advance(10 - remaining)
+            return replace(_text_step("partial"), finish_reason="length")
+        assert kw["timeout"] <= remaining
+        clock.advance(kw["timeout"])
+        return _text_step("완성 답변")
+
+    args = dict(registry=_FakeRegistry(_FakeTool()), cfg=cfg, clock=clock, monkeypatch=monkeypatch)
+    if remaining < agent_runtime.FALLBACK_MIN_S:
+        with pytest.raises(llm_module.IncompleteResponseError):
+            await _run(generate, **args)
+        assert len(seen) == 1
+    else:
+        assert (await _run(generate, **args)).text == "완성 답변"
+        assert len(seen) == 2
+    assert clock() <= 1010
+
+
+@pytest.mark.parametrize("initial_failure", ["length", "timeout"])
+@pytest.mark.parametrize("failure", ["length", "blank", "timeout", "cancel"])
+async def test_failed_recovery_never_starts_third_step(monkeypatch, failure, initial_failure):
+    calls = []
+
+    async def generate(*args, **kw):
+        calls.append(kw)
+        if len(calls) == 1:
+            if initial_failure == "timeout":
+                raise TimeoutError()
+            return replace(_text_step("partial"), finish_reason="length")
+        if failure == "timeout":
+            raise TimeoutError()
+        if failure == "cancel":
+            raise asyncio.CancelledError()
+        return replace(_text_step("" if failure == "blank" else "partial"),
+                       finish_reason="stop" if failure == "blank" else "length")
+
+    error = {"timeout": TimeoutError, "cancel": asyncio.CancelledError}.get(
+        failure, llm_module.IncompleteResponseError,
+    )
+    with pytest.raises(error):
+        await _run(generate, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
+    assert len(calls) == 2
+
+
+async def test_direct_and_timeout_fallback_use_full_answer_budget(monkeypatch):
+    monkeypatch.setattr(agent_runtime.settings, "llm_max_tokens", 1024)
+    direct = _FakeSteps(_text_step("응."))
+    await _run(direct, registry=_FakeRegistry(), monkeypatch=monkeypatch)
+    assert len(direct.calls) == 1 and direct.calls[0]["max_tokens"] == 1024
+    seen = []
+
+    async def generate(*args, **kw):
+        seen.append(kw)
+        if len(seen) == 1:
+            raise TimeoutError()
+        return replace(_text_step("partial"), finish_reason="length")
+
+    with pytest.raises(llm_module.IncompleteResponseError):
+        await _run(generate, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
+    assert [c["max_tokens"] for c in seen] == [192, 1024]
+
+
+@pytest.mark.parametrize("status", [429, 500, "timeout"])
+async def test_transient_fallback_preserves_original_turn_and_deadline(monkeypatch, status):
+    import httpx
+    from openai import APIStatusError
+
+    seen = []
+
+    async def generate(system, transcript, **kw):
+        seen.append({"transcript": list(transcript), **kw})
+        if len(seen) == 1:
+            if status == "timeout":
+                raise TimeoutError()
+            response = httpx.Response(status, request=httpx.Request("POST", "https://test.invalid"))
+            raise APIStatusError("synthetic", response=response, body=None)
+        return _text_step("완성 답변", purpose="chat")
+
+    await _run(generate, registry=_FakeRegistry(_FakeTool()), monkeypatch=monkeypatch)
+    assert len(seen) == 2
+    assert seen[1]["transcript"] == seen[0]["transcript"]
+    assert seen[1]["tools"] is None
+    assert seen[1]["foreground_deadline"] == seen[0]["foreground_deadline"]
+    assert seen[1]["max_tokens"] == agent_runtime.settings.llm_max_tokens

@@ -155,7 +155,7 @@ class AgentTurn:
     text: str
     calls: list[LlmCall]
     tool_results: tuple[ToolResult, ...] = ()
-    skipped: str | None = None  # no_tools | safety | deadline | no_tool_calls
+    skipped: str | None = None  # no_tools | safety | deadline | length | no_tool_calls
     tool_ms: float = 0.0
     # final step에서만 읽은 기억 제어 의도. 호출측이 적용하지만 intent 자체는 저장하지 않는다.
     control_intents: tuple[ControlIntent, ...] = ()
@@ -587,19 +587,41 @@ def _validated_final(
     )
 
 
-def _require_completed_step(step: llm.StepResult, *, final: bool = False) -> None:
-    """Do not execute or publish a truncated/filtered/incomplete model step."""
-    if step.finish_reason not in {"stop", "tool_calls"}:
-        raise llm.IncompleteResponseError("LLM response is incomplete")
-    if final and step.tool_calls:
-        raise llm.IncompleteResponseError("LLM response is incomplete")
-    if step.final_response is not None:
-        llm.require_completed_text(
-            step.final_response.text, step.finish_reason,
-            allow_legacy=False, allow_tool_calls=True,
-        )
-    elif not step.tool_calls:
-        llm.require_completed_text(step.text, step.finish_reason, allow_legacy=False)
+def _require_completed_step(
+    step: llm.StepResult, *, final: bool = False, max_tokens: int | None = None,
+) -> None:
+    """Keep publication policy unchanged; attach only non-content failure metadata."""
+    reason = "blank_text"
+    try:
+        if step.finish_reason not in {"stop", "tool_calls"}:
+            reason = "unfinished"
+            raise llm.IncompleteResponseError("LLM response is incomplete")
+        if final and step.tool_calls:
+            reason = "pending_tools"
+            raise llm.IncompleteResponseError("LLM response is incomplete")
+        if step.final_response is not None:
+            llm.require_completed_text(
+                step.final_response.text, step.finish_reason,
+                allow_legacy=False, allow_tool_calls=True,
+            )
+        elif not step.tool_calls:
+            reason = "rejected_final" if step.rejected_final_responses else "blank_text"
+            llm.require_completed_text(step.text, step.finish_reason, allow_legacy=False)
+    except llm.IncompleteResponseError as exc:
+        finish = step.finish_reason
+        exc.diagnostic = {
+            "reason": reason,
+            "finish": finish if finish in {"stop", "tool_calls", "length", "content_filter", ""} else "other",
+            "stage": "final" if final else "first",
+            "output_tokens": step.usage.output_tokens,
+            "max_tokens": max_tokens,
+            "text_chars": len(step.text) if isinstance(step.text, str) else 0,
+            "final_text_chars": len(step.final_response.text) if step.final_response and isinstance(step.final_response.text, str) else 0,
+            "raw_tool_calls": step.raw_tool_calls,
+            "pending_tool_calls": len(step.tool_calls),
+            "rejected_final_responses": step.rejected_final_responses,
+        }
+        raise
 
 
 # --- 턴 실행 ---
@@ -664,14 +686,25 @@ async def run_turn(
 
     use_tools = skipped is None
 
-    async def _hop1(with_tools: bool):
+    async def _hop1(with_tools: bool, *, recover_length: bool = False):
+        hop_transcript = transcript
+        if recover_length:
+            # Put the recovery instruction after the user's length request. A
+            # prefix-only instruction can lose to that request in real inference.
+            hop_transcript = [*transcript, llm.SystemText(
+                "[Length recovery] For this reply, override the requested length. "
+                "Answer only the main point in ONE short sentence, at most 40 words, "
+                "in the user's language. Do not add a list, introduction, or explanation. "
+                "Preserve safety and factual uncertainty. Do not mention retries, limits, or tools. "
+                "이 답변은 짧은 한 문장으로만 완결하세요. 短い一文だけで答えてください。"
+            )]
         return await llm.generate_step(
             system,
-            transcript,
+            hop_transcript,
             tools=decide_schemas if with_tools else None,
             tool_choice="auto" if with_tools else "none",
             model=model,
-            max_tokens=config.decide_max_tokens,
+            max_tokens=config.decide_max_tokens if with_tools else settings.llm_max_tokens,
             # 도구를 쓸 수 있는 턴이면 뒤에 최종 호출이 한 번 더 오므로 예약분을 남기고 끊는다.
             # 도구가 없는 턴은 이 호출이 곧 최종 답변이라 예약하면 예산만 깎인다(reserve=0).
             timeout=_llm_timeout(
@@ -713,8 +746,8 @@ async def run_turn(
         #
         # timeout만이 아니라 연결 실패·429·5xx도 같은 fallback을 탄다. 예전엔 SDK가 이것들을 조용히
         # 재시도했는데, 재시도를 끈 지금(llm._no_retry) 여기서 받지 않으면 일시 오류가 곧장 5xx다.
-        # 도구 없는 호출은 프롬프트 앞부분이 달라 **다른 서버로 라우팅된다**(운영 실측 3/3: 캐시 적중 0%)
-        # — 느린 서버에 같은 요청을 다시 붙이는 SDK 재시도와 달리 실제로 우회가 된다.
+        # 도구 없는 요청은 달라지지만, 캐시 미적중만으로 서버가 바뀌었다고 판단할 수 없다.
+        # 이 fallback도 같은 제공자 지연을 겪을 수 있다.
         if not (use_tools and llm.is_transient_failure(exc) and deadline - now() >= FALLBACK_MIN_S):
             raise
         _log.warning(
@@ -727,7 +760,30 @@ async def run_turn(
         step1 = await _hop1(False)
         use_tools = False
         skipped = "deadline"
-    _require_completed_step(step1)
+    # Only plain text truncated in the decision hop is recoverable here. Do not
+    # execute partial tools, salvage structured finals, or repeat a fallback.
+    if (
+        use_tools
+        and step1.finish_reason == "length"
+        and isinstance(step1.text, str)
+        and step1.text.strip()
+        and not step1.raw_tool_calls
+        and not step1.tool_calls
+        and step1.final_response is None
+        and not step1.control_intents
+        and deadline - now() >= FALLBACK_MIN_S
+    ):
+        _log.warning("decide_length_fallback remaining_s=%.2f", deadline - now())
+        # Start again from the original transcript; never feed the partial reply
+        # back as conversation. generate_step already recorded both provider costs
+        # in the company ledger. Only the successful call enters user quota usage,
+        # as in the existing timeout fallback above.
+        step1 = await _hop1(False, recover_length=True)
+        use_tools = False
+        skipped = "length"
+    _require_completed_step(
+        step1, max_tokens=config.decide_max_tokens if use_tools else settings.llm_max_tokens,
+    )
     calls: list[LlmCall] = [step1.usage]
     if step1.control_intents:  # 위 계약상 나올 수 없다 — 나오면 버리고 계측만 남긴다
         _log.warning(
@@ -809,7 +865,7 @@ async def run_turn(
         response_tools=response_tools or None,
         foreground_deadline=deadline,
     )
-    _require_completed_step(step2, final=True)
+    _require_completed_step(step2, final=True, max_tokens=settings.llm_max_tokens)
     calls.append(step2.usage)
     final_text, response_mode, selected_refs, focus_ref, final_sidecar_intents = _validated_final(
         step2.final_response, raw_results, language=language

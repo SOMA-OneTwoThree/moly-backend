@@ -8,6 +8,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 
+from app.core.time_utils import activity_date_for
 from app.services.i18n import resolve as resolve_language
 
 _log = logging.getLogger("moly-backend")
@@ -17,9 +18,9 @@ _warned_launch_values: set[str] = set()
 
 # Daily weighted quota units. Trials receive the same allowance as paid plans.
 _ROLLOUT_LIMITS = {
-    "en": {"free": 40_000, "subscriber": 300_000},
-    "ko": {"free": 50_000, "subscriber": 400_000},
-    "ja": {"free": 60_000, "subscriber": 550_000},
+    "en": {"free": 35_000, "subscriber": 300_000},
+    "ko": {"free": 40_000, "subscriber": 400_000},
+    "ja": {"free": 45_000, "subscriber": 550_000},
 }
 
 
@@ -128,6 +129,15 @@ def derive_entitlement(
         source = "free"
         subscriber_theme_unlocked = False
 
+    # 무료라도 가입한 활동일(04:00 경계) 하루는 무료 한도 1.25배와 개인 일기를 준다.
+    # 첫날은 컨텍스트가 비어 턴이 싸서 1.25배면 평소(~10턴)의 두 배쯤 대화한다.
+    created_at = getattr(profile, "created_at", None)
+    tz_name = getattr(profile, "timezone", None)
+    signup_day = (
+        plan == "free" and created_at is not None
+        and activity_date_for(created_at, tz_name) == activity_date_for(now, tz_name)
+    )
+
     if in_launch:
         # 런칭 전용 한도(구독 한도와 독립). 값 없으면 trial 수준으로 fail-safe.
         ll = config.get("free_launch_token_limit")
@@ -137,12 +147,14 @@ def derive_entitlement(
         # Use persisted profile language, never a per-request locale/header.
         language_limits = _ROLLOUT_LIMITS[resolve_language(getattr(profile, "language", None))]
         limit = language_limits["free" if plan == "free" else "subscriber"]
+        if signup_day:
+            limit = limit * 5 // 4
     tokens_remaining = max(0, limit - tokens_used) if limit is not None else None
     threshold = config.get("diary_llm_min_tokens")
 
     return {
         "entitlement_source": source,
-        "personal_diary_eligible": plan != "free",
+        "personal_diary_eligible": plan != "free" or signup_day,
         "plan": plan,
         "is_subscriber": is_subscriber,
         "trial_ends_at": trial_ends_at,

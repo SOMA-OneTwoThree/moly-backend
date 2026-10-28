@@ -12,6 +12,7 @@ TransactionType = Literal[
     "attendance",
     "ad_reward",
     "routine_reward",
+    "mood_reward",
     "iap_purchase",
     "subscription_grant",
     "shop_purchase",
@@ -49,6 +50,8 @@ class AttendanceStatus(StrictResponse):
     claimable: bool
     claimed: bool
     reward: int = Field(ge=0)
+    streak: int = Field(ge=1)  # 오늘 출석했거나 지금 출석하면 이어지는 연속 일수
+    streak_rewards: list[int] = Field(min_length=1)  # 연속 1일째부터의 지급량, 이 길이마다 되풀이
 
 
 class AdStatus(StrictResponse):
@@ -60,6 +63,13 @@ class AdStatus(StrictResponse):
 class RoutinePairStatus(StrictResponse):
     completed_today: int = Field(ge=0)
     required: int = Field(ge=0)
+    claimable: bool
+    claimed: bool
+    reward: int = Field(ge=0)
+
+
+class MoodRewardStatus(StrictResponse):
+    recorded_today: bool
     claimable: bool
     claimed: bool
     reward: int = Field(ge=0)
@@ -77,6 +87,7 @@ class ChargingStationResponse(StrictResponse):
     attendance: AttendanceStatus
     ad: AdStatus
     routine_pair: RoutinePairStatus
+    mood: MoodRewardStatus
     hay_products: list[HayProduct]
     balance: int = Field(ge=0)
 
@@ -84,3 +95,20 @@ class ChargingStationResponse(StrictResponse):
 class RewardResponse(StrictResponse):
     granted: int = Field(ge=0)
     balance_after: int = Field(ge=0)
+
+
+class AttendanceResponse(StrictResponse):
+    today: date
+    attended_today: bool
+    current_streak: int = Field(ge=0)
+    best_streak: int = Field(ge=0)
+    days: list[date]
+
+
+class AttendanceCheckInResponse(StrictResponse):
+    today: date
+    checked_in: bool  # 이번 요청이 오늘 출석을 처음 기록했는가
+    granted: int = Field(ge=0)
+    balance_after: int = Field(ge=0)
+    current_streak: int = Field(ge=0)
+    best_streak: int = Field(ge=0)

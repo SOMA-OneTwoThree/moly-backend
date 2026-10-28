@@ -29,6 +29,7 @@ from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
 from app.services import (
     alerts,
+    incomplete_diagnostics,
     checkpoint,
     checkpoint_repo,
     config_store,
@@ -1337,7 +1338,7 @@ async def post_message(
         await chat_turns.release(session, user_id=uid, lease=lease)
         await session.commit()
         if llm.is_transient_failure(exc):
-            _log.warning("chat_llm_unavailable error=%s status=%s", type(exc).__name__, getattr(exc, "status_code", None))
+            _log.warning("chat_llm_unavailable error=%s status=%s%s", type(exc).__name__, getattr(exc, "status_code", None), incomplete_diagnostics.suffix(exc))
             raise errors.ai_unavailable() from exc
         raise
     llm_ms = _ms(t_llm0, time.monotonic())

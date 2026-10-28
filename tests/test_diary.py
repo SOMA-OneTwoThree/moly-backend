@@ -45,7 +45,7 @@ class FakeSession:
         self.executed = False
         self.statements = []
 
-    async def execute(self, stmt):
+    async def execute(self, stmt, params=None):
         self.executed = True
         return _Result(self.rows)
 

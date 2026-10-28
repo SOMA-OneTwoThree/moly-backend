@@ -66,13 +66,104 @@ schemas:
         type: integer
         minimum: 0
         title: Reward
-        description: 현재 출석 보상 20.
+        description: 오늘 출석으로 받는(받은) 지급량. streak일째에 해당하는 streak_rewards 값이다.
+      streak:
+        type: integer
+        minimum: 1
+        title: Streak
+        description: 오늘 출석했으면 오늘까지의 연속 출석 일수, 아직이면 지금 출석할 때 이어지는 연속 출석 일수.
+      streak_rewards:
+        type: array
+        items:
+          type: integer
+        minItems: 1
+        title: Streak Rewards
+        description: 연속 출석 1일째부터의 지급량. 연속 n일째는 (n-1) % 길이 번째 값을 받고, 끊기면 1일째로 돌아간다.
     type: object
     required:
     - claimable
     - claimed
     - reward
+    - streak
+    - streak_rewards
     title: AttendanceStatus
+  AttendanceCheckInResponse:
+    properties:
+      today:
+        type: string
+        format: date
+        title: Today
+        description: 사용자 local 00:00 reward date.
+      checked_in:
+        type: boolean
+        title: Checked In
+        description: 이번 요청이 오늘 출석을 처음 기록했으면 true.
+      granted:
+        type: integer
+        minimum: 0
+        title: Granted
+        description: 이번 요청의 지급량. 처음 출석이면 오늘까지의 연속 출석 일수에 해당하는 GET /charging-station attendance.streak_rewards
+          값, 아니면 0.
+      balance_after:
+        type: integer
+        minimum: 0
+        title: Balance After
+        description: 요청 후 hay balance.
+      current_streak:
+        type: integer
+        minimum: 0
+        title: Current Streak
+        description: 오늘까지(오늘 출석 전이면 어제까지) 이어진 연속 출석 일수.
+      best_streak:
+        type: integer
+        minimum: 0
+        title: Best Streak
+        description: 전 기간 최장 연속 출석 일수. 옮겨 둔 루틴 최장 연속보다 작지 않다.
+    type: object
+    required:
+    - today
+    - checked_in
+    - granted
+    - balance_after
+    - current_streak
+    - best_streak
+    title: AttendanceCheckInResponse
+  AttendanceResponse:
+    properties:
+      today:
+        type: string
+        format: date
+        title: Today
+        description: 사용자 local 00:00 reward date.
+      attended_today:
+        type: boolean
+        title: Attended Today
+        description: 오늘 출석했으면 true.
+      current_streak:
+        type: integer
+        minimum: 0
+        title: Current Streak
+        description: 오늘까지(오늘 출석 전이면 어제까지) 이어진 연속 출석 일수.
+      best_streak:
+        type: integer
+        minimum: 0
+        title: Best Streak
+        description: 전 기간 최장 연속 출석 일수. 옮겨 둔 루틴 최장 연속보다 작지 않다.
+      days:
+        items:
+          type: string
+          format: date
+        type: array
+        title: Days
+        description: from..to 안의 출석한 날, 오름차순.
+    type: object
+    required:
+    - today
+    - attended_today
+    - current_streak
+    - best_streak
+    - days
+    title: AttendanceResponse
   ChargingStationResponse:
     properties:
       activity_date:
@@ -89,6 +180,9 @@ schemas:
       routine_pair:
         $ref: ./routines.yaml#/schemas/RoutinePairStatus
         description: routine 2개 보상 상태.
+      mood:
+        $ref: '#/schemas/MoodRewardStatus'
+        description: 오늘의 감정일기 기록 보상 상태.
       hay_products:
         items:
           $ref: '#/schemas/HayProduct'
@@ -106,9 +200,35 @@ schemas:
     - attendance
     - ad
     - routine_pair
+    - mood
     - hay_products
     - balance
     title: ChargingStationResponse
+  MoodRewardStatus:
+    properties:
+      recorded_today:
+        type: boolean
+        title: Recorded Today
+        description: 같은 local reward date의 감정일기가 있는지.
+      claimable:
+        type: boolean
+        title: Claimable
+      claimed:
+        type: boolean
+        title: Claimed
+        description: 같은 reward date에 이미 받았는지. 감정일기를 지워도 true로 남는다.
+      reward:
+        type: integer
+        minimum: 0
+        title: Reward
+        description: 현재 감정일기 보상 20.
+    type: object
+    required:
+    - recorded_today
+    - claimable
+    - claimed
+    - reward
+    title: MoodRewardStatus
   HayProduct:
     properties:
       product_id:
@@ -143,6 +263,7 @@ schemas:
         - attendance
         - ad_reward
         - routine_reward
+        - mood_reward
         - iap_purchase
         - subscription_grant
         - shop_purchase

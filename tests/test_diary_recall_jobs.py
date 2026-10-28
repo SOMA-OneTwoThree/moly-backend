@@ -175,3 +175,169 @@ async def test_stale_write_does_not_raise(monkeypatch):
         _job({"diary_id": str(uuid.uuid4())})
     )
     await result.apply_domain(object())
+
+
+class _SessionScope:
+    def __init__(self, events):
+        self.events = events
+
+    async def __aenter__(self):
+        self.events.append("session_open")
+        return object()
+
+    async def __aexit__(self, *args):
+        self.events.append("session_closed")
+
+
+def _shared_source():
+    return {
+        "id": uuid.uuid4(),
+        "search_text": "approved public copy",
+        "source_hash": "frozen-source-hash",
+        "embedding_model": diary_recall_jobs.settings.embedder_model,
+        "index_version": diary_recall_repo.INDEX_VERSION,
+        "dimensions": diary_recall_jobs.settings.memory_embedding_dimensions,
+    }
+
+
+def test_shared_handler_is_registered_on_the_live_consumer():
+    consumer._register_handlers()
+    assert (
+        consumer._REGISTRY.get(diary_recall_jobs.shared.JOB_DIARY_TEMPLATE_EMBED)
+        is diary_recall_jobs.handle_diary_template_embed
+    )
+
+
+async def test_shared_job_rejects_an_owner_before_loading_any_copy(monkeypatch):
+    from unittest.mock import AsyncMock
+
+    load = AsyncMock()
+    monkeypatch.setattr(diary_recall_jobs.shared, "load_shared", load)
+    with pytest.raises(consumer.JobFatal, match="shared_job_has_owner"):
+        await diary_recall_jobs.handle_diary_template_embed(_job({"shared_id": str(uuid.uuid4())}))
+    load.assert_not_awaited()
+
+
+@pytest.mark.parametrize("payload", [{}, {"shared_id": None}, {"shared_id": "bad"}])
+async def test_shared_job_rejects_invalid_id_before_opening_a_session(monkeypatch, payload):
+    def unexpected():
+        raise AssertionError("bad payload must not touch the database")
+
+    monkeypatch.setattr(diary_recall_jobs, "get_sessionmaker", unexpected)
+    with pytest.raises(consumer.JobFatal, match="invalid_shared_id"):
+        await diary_recall_jobs.handle_diary_template_embed(_job(payload, user_id=None))
+
+
+async def test_already_ready_shared_source_skips_provider_and_write(monkeypatch):
+    from unittest.mock import AsyncMock
+
+    events = []
+    monkeypatch.setattr(diary_recall_jobs, "get_sessionmaker", lambda: lambda: _SessionScope(events))
+    monkeypatch.setattr(diary_recall_jobs.shared, "load_shared", AsyncMock(return_value=None))
+    embed, write = AsyncMock(), AsyncMock()
+    monkeypatch.setattr(diary_recall_repo, "embed_text", embed)
+    monkeypatch.setattr(diary_recall_jobs.shared, "write_shared", write)
+    result = await diary_recall_jobs.handle_diary_template_embed(
+        _job({"shared_id": str(uuid.uuid4())}, user_id=None),
+    )
+    assert result.result_code == "already_ready_or_missing"
+    assert result.apply_domain is None
+    assert events == ["session_open", "session_closed"]
+    embed.assert_not_awaited()
+    write.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [("embedding_model", "unsupported-model"), ("dimensions", 32), ("index_version", "future-index")],
+)
+async def test_shared_job_rejects_unsupported_source_before_provider(monkeypatch, field, value):
+    from unittest.mock import AsyncMock
+
+    source, events = _shared_source(), []
+    source[field] = value
+    monkeypatch.setattr(diary_recall_jobs, "get_sessionmaker", lambda: lambda: _SessionScope(events))
+    monkeypatch.setattr(diary_recall_jobs.shared, "load_shared", AsyncMock(return_value=source))
+    embed = AsyncMock()
+    monkeypatch.setattr(diary_recall_repo, "embed_text", embed)
+    with pytest.raises(consumer.JobFatal, match="unsupported_shared_embedding_version"):
+        await diary_recall_jobs.handle_diary_template_embed(
+            _job({"shared_id": str(source["id"])}, user_id=None),
+        )
+    embed.assert_not_awaited()
+    assert events == ["session_open", "session_closed"]
+
+
+async def test_shared_provider_call_runs_after_session_closed_and_write_is_fenced(monkeypatch):
+    from unittest.mock import AsyncMock
+
+    source, events = _shared_source(), []
+    frozen = dict(source)
+    vector = [0.125, 0.5]
+    monkeypatch.setattr(diary_recall_jobs, "get_sessionmaker", lambda: lambda: _SessionScope(events))
+    load = AsyncMock(return_value=source)
+    monkeypatch.setattr(diary_recall_jobs.shared, "load_shared", load)
+
+    async def embed(value):
+        assert events == ["session_open", "session_closed"]
+        assert value == frozen["search_text"]
+        events.append("provider")
+        # The callback must keep the loaded snapshot, not a mutable result view.
+        source["source_hash"] = "changed-after-load"
+        return vector
+
+    monkeypatch.setattr(diary_recall_repo, "embed_text", embed)
+    write = AsyncMock(return_value=False)  # Another worker already filled it.
+    monkeypatch.setattr(diary_recall_jobs.shared, "write_shared", write)
+    job = _job({"shared_id": str(frozen["id"])}, user_id=None)
+    result = await diary_recall_jobs.handle_diary_template_embed(job)
+    assert result.result_code == "ok"
+    assert events == ["session_open", "session_closed", "provider"]
+    write.assert_not_awaited()
+    apply_session = object()
+    await result.apply_domain(apply_session)
+    write.assert_awaited_once_with(apply_session, source=frozen, vector=vector)
+
+
+async def test_shared_provider_outage_is_retryable_without_a_write(monkeypatch):
+    from unittest.mock import AsyncMock
+
+    source, events = _shared_source(), []
+    monkeypatch.setattr(diary_recall_jobs, "get_sessionmaker", lambda: lambda: _SessionScope(events))
+    monkeypatch.setattr(diary_recall_jobs.shared, "load_shared", AsyncMock(return_value=source))
+
+    async def embed(value):
+        assert events == ["session_open", "session_closed"]
+        raise TimeoutError("provider unavailable")
+
+    monkeypatch.setattr(diary_recall_repo, "embed_text", embed)
+    write = AsyncMock()
+    monkeypatch.setattr(diary_recall_jobs.shared, "write_shared", write)
+    with pytest.raises(consumer.JobRetry, match="embed_failed"):
+        await diary_recall_jobs.handle_diary_template_embed(
+            _job({"shared_id": str(source["id"])}, user_id=None),
+        )
+    write.assert_not_awaited()
+
+
+async def test_old_owned_job_routes_to_shared_only_in_apply_domain(monkeypatch):
+    from unittest.mock import AsyncMock
+
+    events = []
+    uid, did = uuid.uuid4(), uuid.uuid4()
+    monkeypatch.setattr(diary_recall_jobs, "get_sessionmaker", lambda: lambda: _SessionScope(events))
+    route = diary_recall_jobs.shared.SharedDiaryRoute(user_id=uid, diary_id=did)
+    monkeypatch.setattr(diary_recall_repo, "embed_diary_document", AsyncMock(return_value=route))
+    ensure, embed, write = AsyncMock(), AsyncMock(), AsyncMock()
+    monkeypatch.setattr(diary_recall_jobs.shared, "ensure_for_diary", ensure)
+    monkeypatch.setattr(diary_recall_repo, "embed_text", embed)
+    monkeypatch.setattr(diary_recall_repo, "write_diary_embedding", write)
+    result = await diary_recall_jobs.handle_diary_recall_embed(_job({"diary_id": str(did)}, user_id=uid))
+    assert result.result_code == "shared"
+    assert events == ["session_open", "session_closed"]
+    ensure.assert_not_awaited()
+    embed.assert_not_awaited()
+    write.assert_not_awaited()
+    session = object()
+    await result.apply_domain(session)
+    ensure.assert_awaited_once_with(session, user_id=uid, diary_id=did)

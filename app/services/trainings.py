@@ -68,7 +68,11 @@ def _subscription_required() -> errors.AppError:
     )
 
 
-async def _require_access(session: AsyncSession, uid: uuid.UUID, stage: TrainingStage) -> None:
+async def _require_access(
+    session: AsyncSession, uid: uuid.UUID, training: TrainingDefinition, stage: TrainingStage,
+) -> None:
+    if training.archived:
+        raise _not_found()
     if stage.number <= FREE_STAGE_COUNT:
         return
     # 사용자 잠금 뒤의 시각으로 접수 권한을 판단한다. 입구 시각은 잠금 대기 중 만료될 수 있다.
@@ -296,7 +300,6 @@ async def submit(
     elif body.text is None:
         raise errors.validation("답을 적어 주세요.")
     uid = uuid.UUID(user_id)
-    now = now or _now()
     language = await _language(session, user_id, locale)
     if stage.answer_type == "pick":
         return await _submit_pick(session, uid, training, stage, body, language, now)
@@ -363,16 +366,17 @@ async def _replay(
 
 async def _submit_pick(
     session: AsyncSession, uid: uuid.UUID, training: TrainingDefinition, stage: TrainingStage,
-    body: TrainingAnswerRequest, language: str, now: datetime,
+    body: TrainingAnswerRequest, language: str, now: datetime | None,
 ) -> dict[str, Any]:
     await advisory_xact_lock(session, uid)
+    now = now or _now()
     await privacy.ensure_subject_active(session, uid)
     progress = await _load_progress(session, uid, training.id)
     replay = await _replay(session, uid, training, stage, body, progress, now)
     if replay is not None:
         await session.commit()
         return replay
-    await _require_access(session, uid, stage)
+    await _require_access(session, uid, training, stage)
     _require_current(progress, stage)
     tries_row = await _load_tries(session, uid)
     tries = _settled(tries_row, now)
@@ -387,19 +391,20 @@ async def _submit_pick(
 
 async def _submit_write(
     session: AsyncSession, uid: uuid.UUID, training: TrainingDefinition, stage: TrainingStage,
-    body: TrainingAnswerRequest, language: str, now: datetime,
+    body: TrainingAnswerRequest, language: str, now: datetime | None,
 ) -> dict[str, Any]:
     # 트랜잭션 1: 요청을 선점한 뒤 커밋한다. 동시 재시도는 AI를 다시 부르지 않는다.
     await advisory_xact_lock(session, uid)
+    clock = now or _now()
     await privacy.ensure_subject_active(session, uid)
     progress = await _load_progress(session, uid, training.id)
-    replay = await _replay(session, uid, training, stage, body, progress, now)
+    replay = await _replay(session, uid, training, stage, body, progress, clock)
     if replay is not None:
         await session.commit()
         return replay
-    await _require_access(session, uid, stage)
+    await _require_access(session, uid, training, stage)
     _require_current(progress, stage)
-    tries = _settled(await _load_tries(session, uid), now)
+    tries = _settled(await _load_tries(session, uid), clock)
     if tries.left == 0:
         raise _no_tries(tries)
     receipt = await _reserve(session, uid, training, stage, body)
@@ -411,9 +416,11 @@ async def _submit_write(
 
     # 트랜잭션 2: 접수 후 구독 만료는 허용하되 삭제·lease·차례·기회는 다시 확인한다.
     await advisory_xact_lock(session, uid)
+    # 대기·채점 중 충전 정각이 지났을 수 있다. 명시한 테스트 시각만 고정한다.
+    clock = now or _now()
     await privacy.ensure_subject_active(session, uid)
     progress = await _load_progress(session, uid, training.id)
-    replay = await _replay(session, uid, training, stage, body, progress, now)
+    replay = await _replay(session, uid, training, stage, body, progress, clock)
     if replay is not None:
         await session.commit()
         return replay
@@ -422,11 +429,11 @@ async def _submit_write(
         raise _pending()
     _require_current(progress, stage)
     tries_row = await _load_tries(session, uid)
-    tries = _settled(tries_row, now)
+    tries = _settled(tries_row, clock)
     # 그사이 다른 제출이 마지막 기회를 썼으면 불통과는 받지 않는다. 통과는 기회를 쓰지 않아 받는다.
     if not verdict.passed and tries.left == 0:
         raise _no_tries(tries)
-    result = await _record(session, uid, training, stage, body, progress, tries_row, tries, verdict, language, now)
+    result = await _record(session, uid, training, stage, body, progress, tries_row, tries, verdict, language, clock)
     await session.commit()
     return result
 

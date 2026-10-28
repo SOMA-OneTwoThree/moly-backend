@@ -58,6 +58,12 @@ paths:
     $ref: ./paths/economy.yaml#/~1charging-station~1attendance
   /charging-station/routine-reward:
     $ref: ./paths/economy.yaml#/~1charging-station~1routine-reward
+  /charging-station/mood-reward:
+    $ref: ./paths/economy.yaml#/~1charging-station~1mood-reward
+  /attendance:
+    $ref: ./paths/economy.yaml#/~1attendance
+  /attendance/check-in:
+    $ref: ./paths/economy.yaml#/~1attendance~1check-in
   /routines:
     $ref: ./paths/routines.yaml#/~1routines
   /routines/history:
@@ -152,12 +158,18 @@ components:
       $ref: ./components/mood.yaml#/schemas/MoodEntryResponse
     MoodListResponse:
       $ref: ./components/mood.yaml#/schemas/MoodListResponse
+    MoodRewardStatus:
+      $ref: ./components/economy.yaml#/schemas/MoodRewardStatus
     BannerFeed:
       $ref: ./components/banners.yaml#/schemas/BannerFeed
     AdSsvResponse:
       $ref: ./components/economy.yaml#/schemas/AdSsvResponse
     AdStatus:
       $ref: ./components/economy.yaml#/schemas/AdStatus
+    AttendanceCheckInResponse:
+      $ref: ./components/economy.yaml#/schemas/AttendanceCheckInResponse
+    AttendanceResponse:
+      $ref: ./components/economy.yaml#/schemas/AttendanceResponse
     AttendanceStatus:
       $ref: ./components/economy.yaml#/schemas/AttendanceStatus
     Canvas:
@@ -431,7 +443,7 @@ tags:
 - name: memory
   description: 정규화 기억 조회, 의미 검색, 명시적 망각
 - name: economy
-  description: 건초 지갑, 원장, 충전소 보상
+  description: 건초 지갑, 원장, 충전소 보상, 출석
 - name: routine
   description: 요일 기반 루틴 CRUD, 완료, 스킵, 통계, 템플릿
 - name: shop

@@ -181,6 +181,21 @@ def test_subscription_error_carries_the_free_stage_boundary(client, monkeypatch)
     }}
 
 
+def test_archived_submission_uses_the_existing_not_found_contract(client, monkeypatch):
+    async def archived(*args, **kwargs):
+        raise trainings._not_found()
+
+    monkeypatch.setattr(trainings, "submit", archived)
+    response = client.post(
+        "/trainings/positive-circuit-v1/stages/1/answers",
+        json={"client_request_id": str(uuid.uuid4()), "option_id": "a"},
+    )
+    assert response.status_code == 404
+    assert response.json() == {"error": {
+        "code": "TRAINING_NOT_FOUND", "message": "트레이닝을 찾을 수 없어요.", "details": {},
+    }}
+
+
 def test_claim_returns_no_content(client, monkeypatch):
     calls = []
 

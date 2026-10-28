@@ -10,6 +10,8 @@ from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.core.advisory_lock import advisory_xact_lock
+from app.services import diary_shared_embeddings as shared
 from app.services import jobs, memory_embeddings
 
 _log = logging.getLogger("moly-backend")
@@ -57,8 +59,13 @@ ON CONFLICT (user_id,diary_id) DO UPDATE SET
       OR diary_recall_documents.embedding_model IS DISTINCT FROM EXCLUDED.embedding_model
       OR diary_recall_documents.index_version IS DISTINCT FROM EXCLUDED.index_version
     THEN NULL ELSE diary_recall_documents.embedding END,
+  shared_embedding_id=CASE
+    WHEN diary_recall_documents.source_hash IS DISTINCT FROM EXCLUDED.source_hash
+      OR diary_recall_documents.embedding_model IS DISTINCT FROM EXCLUDED.embedding_model
+      OR diary_recall_documents.index_version IS DISTINCT FROM EXCLUDED.index_version
+    THEN NULL ELSE diary_recall_documents.shared_embedding_id END,
   updated_at=now()
-RETURNING source_hash,suppression_generation
+RETURNING source_hash,suppression_generation,shared_embedding_id
 """)
 
 _LOAD_DOCUMENT = text("""
@@ -78,12 +85,20 @@ WHERE rd.user_id=:user_id AND rd.diary_id=:diary_id
 """)
 
 _WRITE_EMBEDDING = text("""
-UPDATE diary_recall_documents
-SET embedding=CAST(:embedding AS vector(1536)),embedding_repair_attempts=0,updated_at=now()
+UPDATE diary_recall_documents rd
+SET embedding=CAST(:embedding AS vector(1536)),shared_embedding_id=NULL,
+    embedding_repair_attempts=0,updated_at=now()
 WHERE user_id=:user_id AND diary_id=:diary_id
   AND source_hash=:source_hash
   AND suppression_generation=:generation
   AND embedding_model=:embedding_model AND index_version=:index_version
+  AND (shared_embedding_id IS NULL OR :dual)
+  AND EXISTS (SELECT 1 FROM diaries d LEFT JOIN chat_contexts c ON c.user_id=d.user_id
+              WHERE d.user_id=rd.user_id AND d.id=rd.diary_id
+                AND d.record_status='published' AND d.deleted_at IS NULL
+                AND rd.suppression_generation=COALESCE(c.memory_generation,0))
+  AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
+                  WHERE b.user_id=rd.user_id AND b.state <> 'active')
 RETURNING diary_id
 """)
 
@@ -118,6 +133,7 @@ async def record_diary_sources(
 async def upsert_diary_recall_document(
     session: AsyncSession, *, user_id: uuid.UUID, diary_id: uuid.UUID
 ) -> None:
+    await advisory_xact_lock(session, user_id)
     row = (
         await session.execute(
             _UPSERT_DOCUMENT,
@@ -138,13 +154,28 @@ async def upsert_diary_recall_document(
             "일기 회상 색인 대상 아님 — 문서를 만들지 못했다(user=%s diary=%s)", user_id, diary_id
         )
         return
+    mode = await shared.storage_mode(session)
+    # The default private path has no shared routing work. An existing reference
+    # still needs the compatible reader/writer even after sharing is disabled.
+    if (mode != "private" or row[2] is not None) and await shared.ensure_for_diary(
+        session, user_id=user_id, diary_id=diary_id, mode=mode,
+    ):
+        return
+    dedup_key = f"{INDEX_VERSION}:{settings.embedder_model}:{diary_id}:{row[0]}:{int(row[1])}"
+    # finalize holds the job row before its user lock. A committed duplicate can
+    # be observed without waiting for that UPDATE; inserting against it while
+    # holding the user lock would invert those two locks. ON CONFLICT remains
+    # the final guard for a concurrent first insert.
+    exists = await session.scalar(text("""
+        SELECT 1 FROM async_jobs WHERE job_type=:job_type AND dedup_key=:dedup_key
+    """), {"job_type": JOB_DIARY_RECALL_EMBED, "dedup_key": dedup_key})
+    if exists:
+        return
     await jobs.enqueue(
         session,
         queue="content",
         job_type=JOB_DIARY_RECALL_EMBED,
-        dedup_key=(
-            f"{INDEX_VERSION}:{settings.embedder_model}:{diary_id}:{row[0]}:{int(row[1])}"
-        ),
+        dedup_key=dedup_key,
         user_id=user_id,
         payload={"schema_version": INDEX_VERSION, "diary_id": str(diary_id)},
     )
@@ -152,13 +183,15 @@ async def upsert_diary_recall_document(
 
 async def embed_diary_document(
     session: AsyncSession, *, user_id: uuid.UUID, diary_id: uuid.UUID
-) -> tuple[str, int, str, str, str] | None:
+) -> tuple[str, int, str, str, str] | shared.SharedDiaryRoute | None:
     """Load an eligible document. The caller embeds after closing this session."""
     row = (
         await session.execute(_LOAD_DOCUMENT, {"user_id": user_id, "diary_id": diary_id})
     ).mappings().first()
     if row is None:
         return None
+    if await shared.should_route(session, user_id=user_id, diary_id=diary_id):
+        return shared.SharedDiaryRoute(user_id=user_id, diary_id=diary_id)
     return (
         str(row["search_text"]),
         int(row["suppression_generation"]),
@@ -179,6 +212,10 @@ async def write_diary_embedding(
     index_version: str,
     vector: Sequence[float],
 ) -> bool:
+    await advisory_xact_lock(session, user_id)
+    if await shared.ensure_for_diary(session, user_id=user_id, diary_id=diary_id):
+        return False
+    mode = await shared.storage_mode(session)
     literal = "[" + ",".join(format(float(value), ".9g") for value in vector) + "]"
     row = (
         await session.execute(
@@ -191,9 +228,12 @@ async def write_diary_embedding(
                 "embedding_model": embedding_model,
                 "index_version": index_version,
                 "embedding": literal,
+                "dual": mode == "dual",
             },
         )
     ).first()
+    if row is not None:
+        await shared.ensure_for_diary(session, user_id=user_id, diary_id=diary_id)
     return row is not None
 
 

@@ -945,3 +945,261 @@ async def test_free_read_and_claim_paths_do_not_resolve_access(store, session):
     ))
     assert len(store.claims) == 1
     assert store.entitlement_calls == []
+
+
+# --- 실제 요청 시계: 각 트랜잭션의 잠금 뒤에 기회를 정산한다. ---
+
+
+async def test_live_first_lock_observes_the_refill_boundary(
+    store, session, monkeypatch, restricted_request,
+):
+    monkeypatch.setattr(trainings.settings, "environment", "production")
+    clock = NOW + timedelta(hours=1, microseconds=-1)
+    store.tries[UID] = TrainingTries(user_id=UID, tries_left=0, refill_from=NOW, updated_at=NOW)
+
+    async def lock(session, uid):
+        nonlocal clock
+        store.events.append("lock")
+        clock = NOW + timedelta(hours=1)
+
+    monkeypatch.setattr(trainings, "_now", lambda: clock)
+    monkeypatch.setattr(trainings, "advisory_xact_lock", lock)
+    result = await _submit(session, 6, restricted_request, now=None)
+    assert result["result"] == "passed"
+    assert result["answer"]["passed_at"] == clock
+    assert result["tries"] == {
+        "left": 1, "max": 5,
+        "next_refill_at": NOW + timedelta(hours=2),
+        "full_at": NOW + timedelta(hours=5),
+    }
+
+
+@pytest.mark.parametrize("during", ["grading", "second_lock"])
+@pytest.mark.parametrize("offset_us", [-1, 0, 1])
+async def test_live_write_rechecks_refill_after_another_request_spends_the_last_try(
+    store, session, monkeypatch, during, offset_us,
+):
+    monkeypatch.setattr(trainings.settings, "environment", "production")
+    await _submit(session, 1, _pick("b"))
+    clock = NOW + timedelta(minutes=59, seconds=59)
+    after_wait = NOW + timedelta(hours=1, microseconds=offset_us)
+    store.tries[UID] = TrainingTries(user_id=UID, tries_left=1, refill_from=NOW, updated_at=NOW)
+    store.ai_replies.append('{"pass": false, "hint": "다른 이유를 생각해 볼까요?"}')
+    locks = 0
+
+    async def lock(session, uid):
+        nonlocal clock, locks
+        store.events.append("lock")
+        locks += 1
+        if locks == 2 and during == "second_lock":
+            clock = after_wait
+
+    def another_request():
+        nonlocal clock
+        store.tries[UID].tries_left = 0
+        if during == "grading":
+            clock = after_wait
+
+    monkeypatch.setattr(trainings, "_now", lambda: clock)
+    monkeypatch.setattr(trainings, "advisory_xact_lock", lock)
+    store.during_ai = another_request
+    request = _write("내 손재주가 없어서")
+    if offset_us < 0:
+        with pytest.raises(AppError) as blocked:
+            await _submit(session, 2, request, now=None)
+        assert blocked.value.code == "TRAINING_NO_TRIES"
+        assert store.tries[UID].refill_from == NOW
+        assert store.submissions[UID, TID, request.client_request_id].result is None
+    else:
+        result = await _submit(session, 2, request, now=None)
+        assert result["result"] == "retry"
+        assert result["tries"] == {
+            "left": 0, "max": 5,
+            "next_refill_at": NOW + timedelta(hours=2),
+            "full_at": NOW + timedelta(hours=6),
+        }
+        assert store.tries[UID].refill_from == NOW + timedelta(hours=1)
+        assert store.tries[UID].updated_at == after_wait
+    assert store.tries[UID].tries_left == 0
+    assert store.progress[UID, TID].next_stage == 2
+    assert (UID, TID, 2) not in store.answers
+
+
+@pytest.mark.parametrize("fixed_now", [False, True])
+async def test_first_spend_starts_refill_at_recording_unless_time_was_injected(
+    store, session, monkeypatch, fixed_now,
+):
+    monkeypatch.setattr(trainings.settings, "environment", "production")
+    await _submit(session, 1, _pick("b"))
+    clock = NOW
+    finished = NOW + timedelta(seconds=10)
+    store.ai_replies.append('{"pass": false, "hint": "다른 이유를 생각해 볼까요?"}')
+
+    def grading_finishes():
+        nonlocal clock
+        clock = finished
+
+    monkeypatch.setattr(trainings, "_now", lambda: clock)
+    store.during_ai = grading_finishes
+    result = await _submit(session, 2, _write("내 손재주가 없어서"), now=NOW if fixed_now else None)
+    expected = NOW if fixed_now else finished
+    assert result["tries"]["left"] == 4
+    assert store.tries[UID].refill_from == expected
+    assert store.tries[UID].updated_at == expected
+    assert result["tries"]["next_refill_at"] == expected + timedelta(hours=1)
+    assert result["tries"]["full_at"] == expected + timedelta(hours=1)
+
+
+async def test_production_spends_five_replays_without_charge_and_refills(store, session, monkeypatch):
+    monkeypatch.setattr(trainings.settings, "environment", "production")
+    clock = NOW
+    monkeypatch.setattr(trainings, "_now", lambda: clock)
+    for left in range(4, -1, -1):
+        request = _pick("a")
+        result = await _submit(session, 1, request, now=None)
+        assert result["result"] == "retry" and result["tries"]["left"] == left
+        assert result["tries"]["next_refill_at"] == NOW + timedelta(hours=1)
+        assert result["tries"]["full_at"] == NOW + timedelta(hours=5 - left)
+        before = _stored_state(store)
+        assert await _submit(session, 1, request, now=None) == result
+        assert _stored_state(store) == before
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, 1, _pick("b"), now=None)
+    assert blocked.value.code == "TRAINING_NO_TRIES"
+    assert len(store.submissions) == 5 and store.answers == {}
+    clock = NOW + timedelta(hours=1)
+    result = await _submit(session, 1, _pick("b"), now=None)
+    assert result["result"] == "passed" and result["tries"]["left"] == 1
+    assert result["tries"]["next_refill_at"] == NOW + timedelta(hours=2)
+    assert result["tries"]["full_at"] == NOW + timedelta(hours=5)
+
+
+async def test_live_competing_answers_do_not_spend_the_last_try_twice(store, session, monkeypatch):
+    import asyncio
+
+    monkeypatch.setattr(trainings.settings, "environment", "production")
+    await _submit(session, 1, _pick("b"))
+    store.tries[UID] = TrainingTries(user_id=UID, tries_left=1, refill_from=NOW, updated_at=NOW)
+    entered, finish = asyncio.Event(), asyncio.Event()
+    calls = 0
+
+    async def grade(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            entered.set()
+        await finish.wait()
+        return llm.LLMResult(text='{"pass": false, "hint": "다른 이유는요?"}', input_tokens=1, output_tokens=1)
+
+    monkeypatch.setattr(llm, "generate", grade)
+    requests = [_write("내가 못해서"), _write("내 실력 때문이야")]
+    tasks = [asyncio.create_task(_submit(FakeSession(store), 2, body, now=None)) for body in requests]
+    try:
+        await asyncio.wait_for(entered.wait(), 1)
+    finally:
+        finish.set()
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+    assert calls == 2  # 서로 다른 요청 ID의 기존 채점 정책은 바꾸지 않는다.
+    assert sum(isinstance(result, dict) and result["result"] == "retry" for result in results) == 1
+    failures = [result for result in results if isinstance(result, AppError)]
+    assert len(failures) == 1 and failures[0].code == "TRAINING_NO_TRIES"
+    assert store.tries[UID].tries_left == 0
+    assert store.tries[UID].refill_from == NOW
+    assert sum(row.result is not None for row in store.submissions.values() if row.stage == 2) == 1
+    assert (UID, TID, 2) not in store.answers
+    assert store.ledger == []
+
+
+# --- 보관된 과정은 과거 결과만 유지하고 새 답을 받지 않는다. ---
+
+
+def _archive_current_course(monkeypatch):
+    course = training_catalog.current().get(TID).model_copy(update={"archived": True})
+    catalog = TrainingCatalog((course,), {course.id: course})
+    monkeypatch.setattr(training_catalog, "current", lambda: catalog)
+
+
+async def test_archived_course_rejects_new_answers_before_access_or_grading(
+    store, session, monkeypatch, restricted_request,
+):
+    _archive_current_course(monkeypatch)
+    before = _stored_state(store)
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, 6, restricted_request)
+    assert (blocked.value.code, blocked.value.http_status) == ("TRAINING_NOT_FOUND", 404)
+    assert _stored_state(store) == before
+    assert store.entitlement_calls == []
+    assert store.events == ["lock", "ensure"]
+
+
+@pytest.mark.parametrize("tid", ["no-self-blame", "positive-circuit-v1", "self-acceptance-v1"])
+async def test_archived_catalog_ids_cannot_be_started_by_new_accounts(store, session, monkeypatch, tid):
+    catalog = TrainingCatalog.load()
+    monkeypatch.setattr(training_catalog, "current", lambda: catalog)
+    stage = catalog.get(tid).stage(1)
+    body = _pick(next(option.id for option in stage.options if option.correct))
+    store.entitlement = {"plan": "free"}
+    before = _stored_state(store)
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, 1, body, training_id=tid)
+    assert (blocked.value.code, blocked.value.http_status) == ("TRAINING_NOT_FOUND", 404)
+    assert _stored_state(store) == before
+    assert store.entitlement_calls == []
+
+
+@pytest.mark.parametrize("passed", [True, False])
+@pytest.mark.parametrize("legacy", [False, True])
+async def test_archived_completed_results_still_replay(
+    store, session, monkeypatch, restricted_request, passed, legacy,
+):
+    if not passed:
+        restricted_request = (_pick("a", restricted_request.client_request_id)
+                              if restricted_request.option_id else restricted_request)
+        store.ai_replies.append('{"pass": false, "hint": "다른 이유를 생각해 볼까요?"}')
+    first = await _submit(session, 6, restricted_request)
+    assert first["result"] == ("passed" if passed else "retry")
+    if legacy:
+        store.submissions.clear()
+    _archive_current_course(monkeypatch)
+    store.entitlement = {"plan": "free"}
+    store.entitlement_calls.clear()
+    store.events.clear()
+    before = _stored_state(store)
+    assert await _submit(session, 6, restricted_request) == first
+    assert _stored_state(store) == before
+    assert store.entitlement_calls == []
+    assert store.events == ["lock", "ensure", "commit"]
+
+
+async def test_archived_unfinished_receipt_cannot_reserve_another_grade(store, session, monkeypatch):
+    await _pass_up_to(session, 5)
+    body = _write("끝까지 해낸 내가 고맙다")
+    receipt = await trainings._reserve(session, UID, CATALOG.get(TID), CATALOG.get(TID).stage(6), body)
+    receipt.lease_until = NOW - timedelta(seconds=1)
+    _archive_current_course(monkeypatch)
+    store.events.clear()
+    before = _stored_state(store)
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, 6, body)
+    assert blocked.value.code == "TRAINING_NOT_FOUND"
+    assert _stored_state(store) == before
+    assert store.entitlement_calls == []
+    assert "ai" not in store.events
+
+
+async def test_archived_details_answers_and_claims_remain_available(
+    store, session, monkeypatch, restricted_request,
+):
+    result = await _submit(session, 6, restricted_request)
+    _archive_current_course(monkeypatch)
+    store.entitlement = {"plan": "free"}
+    store.entitlement_calls.clear()
+    assert (await trainings.list_trainings(session, USER, locale="ko"))["trainings"] == []
+    detail = await trainings.get_training(session, USER, TID, locale="ko", now=NOW)
+    assert detail["progress"] == result["progress"]
+    assert detail["answers"] == [result["answer"]]
+    await trainings.claim(session, USER, TID, 6, TrainingClaimRequest(
+        reason="should_fail", answer_text="합성 답변", verdict="passed",
+    ))
+    assert len(store.claims) == 1
+    assert store.entitlement_calls == []

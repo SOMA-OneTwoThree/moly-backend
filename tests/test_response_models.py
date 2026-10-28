@@ -92,7 +92,10 @@ ROUTINE = {
             ChargingStationResponse,
             {
                 "activity_date": "2026-07-16",
-                "attendance": {"claimable": True, "claimed": False, "reward": 20},
+                "attendance": {
+                    "claimable": True, "claimed": False, "reward": 60,
+                    "streak": 3, "streak_rewards": [20, 20, 60, 20, 20, 20, 120],
+                },
                 "ad": {"views_used": 0, "views_limit": 5, "reward_per_view": 20},
                 "routine_pair": {
                     "completed_today": 0,
@@ -100,6 +103,9 @@ ROUTINE = {
                     "claimable": False,
                     "claimed": False,
                     "reward": 20,
+                },
+                "mood": {
+                    "recorded_today": True, "claimable": True, "claimed": False, "reward": 20,
                 },
                 "hay_products": [
                     {"product_id": "com.geniusjun.moly.hay.300",
@@ -281,7 +287,10 @@ def test_response_models_reject_unknown_fields_and_invalid_enums():
         ChargingStationResponse.model_validate(
             {
                 "activity_date": "2026-07-16",
-                "attendance": {"claimable": True, "claimed": False, "reward": 20},
+                "attendance": {
+                    "claimable": True, "claimed": False, "reward": 60,
+                    "streak": 3, "streak_rewards": [20, 20, 60, 20, 20, 20, 120],
+                },
                 "ad": {"views_used": 0, "views_limit": 5, "reward_per_view": 20},
                 "routine_pair": {
                     "completed_today": 0,
@@ -289,6 +298,9 @@ def test_response_models_reject_unknown_fields_and_invalid_enums():
                     "claimable": False,
                     "claimed": False,
                     "reward": 20,
+                },
+                "mood": {
+                    "recorded_today": True, "claimable": True, "claimed": False, "reward": 20,
                 },
                 "hay_products": [{"product_id": None, "amount": None}],
                 "balance": 100,

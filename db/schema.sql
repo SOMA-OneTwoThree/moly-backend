@@ -302,6 +302,17 @@ CREATE TABLE public.async_jobs (
     CONSTRAINT async_jobs_state_check CHECK ((state = ANY (ARRAY['ready'::text, 'running'::text, 'succeeded'::text, 'dead'::text, 'cancelled'::text])))
 );
 
+-- TABLE: public.attendance_streak_seeds
+CREATE TABLE public.attendance_streak_seeds (
+    user_id uuid NOT NULL,
+    through_date date NOT NULL,
+    streak integer NOT NULL,
+    best_streak integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT attendance_streak_seeds_best_streak_check CHECK ((best_streak >= 0)),
+    CONSTRAINT attendance_streak_seeds_streak_check CHECK ((streak >= 0))
+);
+
 -- TABLE: public.chat_active_turns
 CREATE TABLE public.chat_active_turns (
     user_id uuid NOT NULL,
@@ -507,7 +518,26 @@ CREATE TABLE public.diary_recall_documents (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     embedding_model text DEFAULT 'text-embedding-3-small'::text NOT NULL,
     embedding_repair_attempts smallint DEFAULT 0 NOT NULL,
+    shared_embedding_id uuid,
     CONSTRAINT diary_recall_repair_attempts_ck CHECK (((embedding_repair_attempts >= 0) AND (embedding_repair_attempts <= 3)))
+);
+
+-- TABLE: public.diary_template_embeddings
+CREATE TABLE public.diary_template_embeddings (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    source_hash text NOT NULL,
+    embedding_model text NOT NULL,
+    index_version text NOT NULL,
+    dimensions integer DEFAULT 1536 NOT NULL,
+    search_text text NOT NULL,
+    embedding public.vector(1536),
+    embedding_repair_attempts integer DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT diary_template_embeddings_pkey PRIMARY KEY (id),
+    CONSTRAINT diary_template_embeddings_key_uq UNIQUE (source_hash, embedding_model, index_version, dimensions),
+    CONSTRAINT diary_template_embeddings_dimensions_ck CHECK ((dimensions = 1536)),
+    CONSTRAINT diary_template_embeddings_repair_ck CHECK ((embedding_repair_attempts >= 0))
 );
 
 -- TABLE: public.feedback
@@ -1122,6 +1152,7 @@ CREATE TABLE public.user_daily_stats (
     ad_reward_count smallint DEFAULT 0 NOT NULL,
     attendance_claimed_at timestamp with time zone,
     routine_reward_claimed_at timestamp with time zone,
+    mood_reward_claimed_at timestamp with time zone,
     morning_notified_at timestamp with time zone,
     evening_notified_at timestamp with time zone,
     routine_notified_at timestamp with time zone,
@@ -1283,6 +1314,10 @@ ALTER TABLE ONLY public.async_jobs
 -- CONSTRAINT: public.async_jobs async_jobs_pkey
 ALTER TABLE ONLY public.async_jobs
     ADD CONSTRAINT async_jobs_pkey PRIMARY KEY (id);
+
+-- CONSTRAINT: public.attendance_streak_seeds attendance_streak_seeds_pkey
+ALTER TABLE ONLY public.attendance_streak_seeds
+    ADD CONSTRAINT attendance_streak_seeds_pkey PRIMARY KEY (user_id);
 
 -- CONSTRAINT: public.chat_active_turns chat_active_turns_pkey
 ALTER TABLE ONLY public.chat_active_turns
@@ -1687,6 +1722,12 @@ CREATE UNIQUE INDEX diaries_user_id_id_uq ON public.diaries USING btree (user_id
 -- INDEX: public.diaries_user_published_idx
 CREATE INDEX diaries_user_published_idx ON public.diaries USING btree (user_id, published_at);
 
+-- INDEX: public.diary_recall_shared_embedding_idx
+CREATE INDEX diary_recall_shared_embedding_idx ON public.diary_recall_documents USING btree (shared_embedding_id) WHERE (shared_embedding_id IS NOT NULL);
+
+-- INDEX: public.diary_template_embeddings_pending_idx
+CREATE INDEX diary_template_embeddings_pending_idx ON public.diary_template_embeddings USING btree (updated_at, id) WHERE (embedding IS NULL);
+
 -- INDEX: public.diary_claim_sources_user_msg_idx
 CREATE INDEX diary_claim_sources_user_msg_idx ON public.diary_claim_sources USING btree (user_id, message_id);
 
@@ -1914,6 +1955,10 @@ ALTER TABLE ONLY public.async_jobs
 -- FK CONSTRAINT: public.async_jobs async_jobs_user_id_fkey
 ALTER TABLE ONLY public.async_jobs
     ADD CONSTRAINT async_jobs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- FK CONSTRAINT: public.attendance_streak_seeds attendance_streak_seeds_user_id_fkey
+ALTER TABLE ONLY public.attendance_streak_seeds
+    ADD CONSTRAINT attendance_streak_seeds_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 
 -- FK CONSTRAINT: public.chat_active_turns chat_active_turns_user_id_fkey
 ALTER TABLE ONLY public.chat_active_turns
@@ -2190,6 +2235,9 @@ ALTER TABLE public.app_config ENABLE ROW LEVEL SECURITY;
 -- ROW SECURITY: public.async_jobs
 ALTER TABLE public.async_jobs ENABLE ROW LEVEL SECURITY;
 
+-- ROW SECURITY: public.attendance_streak_seeds
+ALTER TABLE public.attendance_streak_seeds ENABLE ROW LEVEL SECURITY;
+
 -- ROW SECURITY: public.chat_active_turns
 ALTER TABLE public.chat_active_turns ENABLE ROW LEVEL SECURITY;
 
@@ -2225,6 +2273,9 @@ ALTER TABLE public.diary_generation_results ENABLE ROW LEVEL SECURITY;
 
 -- ROW SECURITY: public.diary_recall_documents
 ALTER TABLE public.diary_recall_documents ENABLE ROW LEVEL SECURITY;
+
+-- ROW SECURITY: public.diary_template_embeddings
+ALTER TABLE public.diary_template_embeddings ENABLE ROW LEVEL SECURITY;
 
 -- ROW SECURITY: public.feedback
 ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
@@ -2431,6 +2482,10 @@ GRANT ALL ON TABLE public.async_jobs TO anon;
 GRANT ALL ON TABLE public.async_jobs TO authenticated;
 GRANT ALL ON TABLE public.async_jobs TO service_role;
 
+-- ACL: public.TABLE attendance_streak_seeds
+REVOKE ALL ON TABLE public.attendance_streak_seeds FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.attendance_streak_seeds TO service_role;
+
 -- ACL: public.TABLE chat_active_turns
 REVOKE ALL ON TABLE public.chat_active_turns FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON TABLE public.chat_active_turns TO service_role;
@@ -2482,6 +2537,10 @@ GRANT ALL ON TABLE public.diary_generation_results TO service_role;
 -- ACL: public.TABLE diary_recall_documents
 REVOKE ALL ON TABLE public.diary_recall_documents FROM PUBLIC, anon, authenticated, service_role;
 GRANT ALL ON TABLE public.diary_recall_documents TO service_role;
+
+-- ACL: public.TABLE diary_template_embeddings
+REVOKE ALL ON TABLE public.diary_template_embeddings FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.diary_template_embeddings TO service_role;
 
 -- ACL: public.TABLE feedback
 REVOKE ALL ON TABLE public.feedback FROM PUBLIC, anon, authenticated, service_role;

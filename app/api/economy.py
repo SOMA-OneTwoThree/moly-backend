@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
@@ -31,10 +31,14 @@ async def wallet(
 async def transactions(
     limit: int = Query(30, ge=1, le=100),
     cursor: str | None = Query(None),
+    capabilities: str | None = Header(default=None, alias="X-Moly-Capabilities"),
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
-    return await economy.list_transactions(session, user_id, limit=limit, cursor=cursor)
+    return await economy.list_transactions(
+        session, user_id, limit=limit, cursor=cursor,
+        ledger_types_v2=economy.supports_wallet_ledger_types_v2(capabilities),
+    )
 
 
 @router.get("/charging-station", response_model=ChargingStationResponse)
@@ -59,3 +63,11 @@ async def routine_reward(
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     return await economy.claim_routine_reward(session, user_id)
+
+
+@router.post("/charging-station/mood-reward", response_model=RewardResponse)
+async def mood_reward(
+    user_id: str = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> dict[str, Any]:
+    return await economy.claim_mood_reward(session, user_id)

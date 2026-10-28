@@ -24,20 +24,31 @@ def seeded(name, path):
 
 
 def test_seed_is_identical_for_new_and_existing_databases():
-    assert seeded("articles", "seed.sql") == seeded("articles", "changes/explore_content.sql")
     assert seeded("articles", "seed.sql") == seeded("articles", "changes/explore_prod.sql")
+    # explore_content.sql은 dev에 적용된 첫 한국어 원고의 기록이다. 번역과 인용 수정은 dev에 따로 반영했다.
+    def meta(rows):
+        return [{k: v for k, v in r.items() if k != "content_i18n"} for r in rows]
+    assert meta(seeded("articles", "seed.sql")) == meta(seeded("articles", "changes/explore_content.sql"))
 
 
 def test_article_seed_matches_the_app_manuscript():
     rows = seeded("articles", "seed.sql")
     assert [r["id"] for r in rows] == [f"sample-{i}" for i in range(1, 6)]
     assert [r["sort_order"] for r in rows] == [0, 1, 2, 3, 4]
-    assert all(r["is_active"] and set(r["content_i18n"]) == {"ko"} for r in rows)
+    assert all(r["is_active"] and set(r["content_i18n"]) == {"ko", "en", "ja"} for r in rows)
     assert [(r["cover"], r["read_minutes"], r["preview_block_count"]) for r in rows] == [
         ("mug", 3, None), ("sofa", 4, 1), ("night", 4, 1), ("tasks", 3, 2), ("tea", 5, 1)]
     ko = [r["content_i18n"]["ko"] for r in rows]
+    for lang in ("ko", "en", "ja"):
+        content = [r["content_i18n"][lang] for r in rows]
+        assert [[b["kind"] for b in c["blocks"]] for c in content] == [[b["kind"] for b in c["blocks"]] for c in ko]
+        assert [[len(b["highlights"]) for b in c["blocks"]] for c in content] == [
+            [len(b["highlights"]) for b in c["blocks"]] for c in ko]
+        assert all(h in b["text"] for c in content for b in c["blocks"] for h in b["highlights"])
     assert [len(c["blocks"]) for c in ko] == [31, 31, 31, 31, 30]
     assert sum(len(b["highlights"]) for c in ko for b in c["blocks"]) == 10
+    assert rows[0]["content_i18n"]["en"]["title"] == "Why Are You So Hard on Yourself?"
+    assert rows[0]["content_i18n"]["ja"]["title"] == "自分にばかり厳しくしてしまうあなたへ"
     assert ko[0]["title"] == "나에게만 유독 엄격한 당신에게"
     assert ko[4]["summary"] == "나를 잃지 않으면서도 관계가 편안해지는 거절 연습"
     first = ko[0]["blocks"][0]
@@ -50,6 +61,7 @@ def test_article_seed_matches_the_app_manuscript():
     rendered = ArticleContentList.model_validate(
         {"articles": [articles._render(SimpleNamespace(**r), "ja") for r in rows]})
     assert rendered.articles[1].blocks[0].kind == "paragraph"
+    assert rendered.articles[3].title == "三日坊主でも大丈夫"
 
 
 def article(id, **content_i18n):

@@ -203,14 +203,15 @@ CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·
 **다음 날**부터 1번~365번을 하루씩 넣고, 그 날짜에 행이 있으면 새 문장으로 바꾼다. 적용일과 그 이전 행은
 그대로 두므로 이미 보인 문장은 바뀌지 않는다. 같은 파일을 다시 적용하면 다시 그 다음 날부터 채운다.
 
-- SQL SHA-256: `a5ad649ca4d5647fd1338450ec7702243f0e1684ba674bc3bfe64574edaa6b99`.
+- SQL SHA-256: `a0273031bee4b85e058f7a00bed54e6b606ce045cb9551dfdb80e93a4a38af00`.
 - 2026-10-28 개발 DB 적용: 2026-10-29~2027-10-28 365행. 2026년의 임시 문장 중 10-28 이전 행은 남아 있다.
+- 같은 날 하루가 이미 지난 것처럼 말하는 20문장("오늘 내가 ~한")을 언제 읽어도 맞게 고쳐 다시 적용했다. 위 SHA는 수정 뒤의 값이다.
 - 운영은 앱 업데이트 배포 날 아래 순서로 적용한다. 마지막 날 이후에는 서버가 가장 최근 문장을 계속 내려주므로,
   그 전에 다음 묶음을 넣는다.
 
   ```bash
-  uv run python -m db.apply db/changes/daily_affirmations_365.sql --env prod --expected-sha256 a5ad649ca4d5647fd1338450ec7702243f0e1684ba674bc3bfe64574edaa6b99
-  uv run python -m db.apply db/changes/daily_affirmations_365.sql --env prod --commit --allow-prod --expected-sha256 a5ad649ca4d5647fd1338450ec7702243f0e1684ba674bc3bfe64574edaa6b99
+  uv run python -m db.apply db/changes/daily_affirmations_365.sql --env prod --expected-sha256 a0273031bee4b85e058f7a00bed54e6b606ce045cb9551dfdb80e93a4a38af00
+  uv run python -m db.apply db/changes/daily_affirmations_365.sql --env prod --commit --allow-prod --expected-sha256 a0273031bee4b85e058f7a00bed54e6b606ce045cb9551dfdb80e93a4a38af00
   ```
 
 ### 운영 승격 때의 실행 순서

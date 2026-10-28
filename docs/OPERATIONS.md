@@ -197,6 +197,22 @@ CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·
 남기지 않았다. 이는 운영 DB 적용 증거는 아니며 운영에서의 잠금 획득·최종 계약 dry-run은
 승격 직전에 별도로 필요하다.
 
+### 오늘의 한마디 365개
+
+`db/changes/daily_affirmations_365.sql`은 문장 데이터만 넣는다(구조 변경 없음). 적용한 날의 한국 날짜
+**다음 날**부터 1번~365번을 하루씩 넣고, 그 날짜에 행이 있으면 새 문장으로 바꾼다. 적용일과 그 이전 행은
+그대로 두므로 이미 보인 문장은 바뀌지 않는다. 같은 파일을 다시 적용하면 다시 그 다음 날부터 채운다.
+
+- SQL SHA-256: `a5ad649ca4d5647fd1338450ec7702243f0e1684ba674bc3bfe64574edaa6b99`.
+- 2026-10-28 개발 DB 적용: 2026-10-29~2027-10-28 365행. 2026년의 임시 문장 중 10-28 이전 행은 남아 있다.
+- 운영은 앱 업데이트 배포 날 아래 순서로 적용한다. 마지막 날 이후에는 서버가 가장 최근 문장을 계속 내려주므로,
+  그 전에 다음 묶음을 넣는다.
+
+  ```bash
+  uv run python -m db.apply db/changes/daily_affirmations_365.sql --env prod --expected-sha256 a5ad649ca4d5647fd1338450ec7702243f0e1684ba674bc3bfe64574edaa6b99
+  uv run python -m db.apply db/changes/daily_affirmations_365.sql --env prod --commit --allow-prod --expected-sha256 a5ad649ca4d5647fd1338450ec7702243f0e1684ba674bc3bfe64574edaa6b99
+  ```
+
 ### 운영 승격 때의 실행 순서
 
 1. 최신 main과 승격 후보 SHA를 고정한다. 코드·OpenAPI·DB 계약에 main의 최신 출석·감정 보상 등도

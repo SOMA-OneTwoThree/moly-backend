@@ -27,10 +27,17 @@ WITH params AS (
   -- diaries에 다시 조인해 읽는다.
   SELECT d.id,d.kind,d.display_date,d.published_at,d.first_read_at,
          rd.search_text,
-         CASE WHEN p.embedding IS NULL OR rd.embedding IS NULL THEN NULL
-              ELSE 1-(rd.embedding <=> p.embedding) END AS similarity
+         CASE WHEN p.embedding IS NULL OR COALESCE(se.embedding,rd.embedding) IS NULL THEN NULL
+              ELSE 1-(COALESCE(se.embedding,rd.embedding) <=> p.embedding) END AS similarity
   FROM diaries d
   JOIN diary_recall_documents rd ON rd.user_id=d.user_id AND rd.diary_id=d.id
+  -- A shared vector only supplies the score of this owned diary. It never
+  -- supplies another owner's diary, body, date or search text.
+  LEFT JOIN diary_template_embeddings se
+    ON se.id=rd.shared_embedding_id AND d.kind IN ('welcome','capi_day')
+   AND se.source_hash=rd.source_hash AND se.embedding_model=rd.embedding_model
+   AND se.index_version=rd.index_version AND se.dimensions=1536
+   AND se.search_text=rd.search_text AND se.embedding IS NOT NULL
   CROSS JOIN params p
   WHERE d.user_id=:user_id AND d.record_status='published' AND d.deleted_at IS NULL
     AND d.published_at IS NOT NULL AND d.published_at<=:now

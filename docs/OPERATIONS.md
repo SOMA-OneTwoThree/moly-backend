@@ -161,6 +161,76 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 - 계정 삭제는 moly-auth가 소유하며 삭제 fence/RPC와 배치 잔여 정리가 협력한다. API만 고쳐 background 쓰기를 허용하지 않는다. 삭제·취소·락·원장 처리 순서를 성능 최적화 과정에서도 보존한다.
 - 기억 복구 도구·replay는 대상과 예상 영향을 dry-run으로 고정하고 실행한다. 데이터 삭제/모델·차원 변경/보관 이전을 단순 장애 해결에 묶지 않는다.
 
+## 공용 일기 검색 벡터 공유
+
+원본은 `diary_recall_repo.py`, `diary_shared_embeddings.py`, `recall_diaries.py`,
+`worker/diary_recall_jobs.py`, `memory_sweep_jobs.py`다. 개인 일기·대화·장기 기억은 보존한다.
+승인 원고와 제목/본문/검색 입력이 정확히 일치한 캐피·환영 일기만 공유한다. 같은 원고라도
+벡터가 다른 과거 문서는 private로 남긴다. 모델·차원·색인 버전·원고 해시를 섞지 않는다.
+
+- `diary_template_embeddings`: 사용자와 독립된 공용 원고와 벡터. RLS로 클라이언트 직접 접근 차단.
+- `diary_recall_documents.shared_embedding_id`: 본인의 일기 연결을 유지하는 nullable 참조.
+  조회는 본인 일기를 먼저 제한한 뒤 유효한 ready 공용 벡터 또는 기존 private 벡터를 사용한다.
+- canonical은 최초 선정 후 고정한다. 기존 ready 벡터를 덮어쓰거나 공용행을 GC하지 않는다.
+- `app_config.diary_embedding_storage_mode`: `private`(기본), `dual`, `shared` 중 정확한 문자열.
+  값 오류는 실패한다. 조회는 모드와 무관하게 유효한 기존 참조를 읽는다. `private`로 설정하는
+  것은 새 공유 쓰기의 중단이며, 이미 shared-only인 문서의 바이너리 롤백을 대신하지 않는다.
+
+환영·개인·운영 원고 일기 모두 기존 발행 트랜잭션에서 검색 문서/잡을 등록한다. 본문·발행일·
+운영 원고 receipt·개인 일기의 메시지 근거·중복 생성 방지는 바꾸지 않는다. 번역된 본문이 승인
+원고와 다르면 private를 유지한다. 목록/상세와 아침 푸시 대상은 `diaries`를 읽으므로 공용 벡터
+pending/ready가 일기 노출·알림 자격을 바꾸지 않는다. 환영 일기는 기존 행이 있으면 그대로
+반환하고, 새 INSERT 전에 사용자 잠금과 삭제 장벽을 확인해 구독/탈퇴 경로의 잠금 순서를 맞춘다.
+초기 dual에서는 개인/공용 embedding 작업이 동시에 진행돼 외부 호출이 한시적으로 중복될 수 있다.
+실제 LLM 출력/FCM 전달은 SQL·시험 대역 검증과 별도로 구분한다.
+
+### 적용 순서
+
+1. 최신 코드·대상·동시 배포를 확인하고 이전 이미지와 DB 계약을 기록한다. 기존 개발 API/DB에서
+   개인/공용 일기·3언어 검색 전후 동등성·CAS·삭제 경합·역복사·실제 잠금 순서를 먼저 검증한다.
+2. `db/changes/diary_shared_embeddings.sql`의 SHA를 고정해 dry-run 후 적용한다. 이 SQL은
+   새 테이블/인덱스/RLS와 nullable 참조만 추가한다. 데이터와 설정은 바꾸지 않는다. 객체가 이미
+   존재하면 자동 건너뛰지 않고 중단하므로, 부분 적용 여부를 계약으로 확인하고 재실행을 판단한다.
+3. 이전 계약과 새 계약을 모두 확인하고 호환 API/consumer를 전부 배포한다. 모드는 `private`다.
+   아래 도구로 `link` 계획을 만들고 검토 후 연결한다. 기존 private는 유지된다. 이 단계에서
+   가장 큰 동일 벡터 묶음을 canonical로 고정한 뒤 새 공유 쓰기를 켠다. 이미 ready canonical이
+   있으면 이를 존중하므로 예상 공유량이 달라질 수 있다.
+4. `dual`에서 신규 발행과 기존/복구 잡을 확인한다. 개인 일기와 다른 벡터 변형은 유지한다.
+   공용 pending 잡은 `user_id=NULL`이며, 한 계정 탈퇴가 다른 계정의 공용 잡을 취소하지 않는다.
+5. 검색 결과/본문/count/점수/정렬과 소유권, dangling/key mismatch/누락 0, 워커 교체와 private
+   재생성 여부를 확인한 뒤 `shared`로 전환한다. 소량 `prune` 계획을 새로 만들고 검토해 적용한다.
+6. 실제 payload와 재사용 공간·relation 크기·WAL·지연을 별도로 측정한다. NULL 처리만으로
+   디스크 파일/할당 용량/청구액 감소를 보고하지 않는다. `VACUUM FULL`은 기본 절차에 없다.
+
+```bash
+# 기본은 조회만 한다. 환경은 실제 프로젝트 ref로 검증한다.
+uv run python -m db.apply db/changes/diary_shared_embeddings.sql --env dev
+uv run python -m db.apply db/changes/diary_shared_embeddings.sql --env dev --commit --expected-sha256 <SQL-SHA>
+uv run python -m db.verify --env dev
+uv run python scripts/diary_shared_embeddings.py plan --for-action link --env dev --output /private/link.json
+uv run python scripts/diary_shared_embeddings.py link --env dev --plan /private/link.json --expected-plan-sha256 <PLAN-SHA>
+# 검토한 동일 계획을 실행할 때만 --commit을 추가한다. 운영에는 별도 승인과 --allow-prod도 필요하다.
+```
+
+`link`는 private/dual, `prune`은 shared, `restore`는 private/dual에서만 쓴다. 각 작업마다
+`plan --for-action <작업>`으로 별도 계획을 만든다. 파일은 대상 ref·작업·cutoff·승인 원고/벡터
+지문에 묶인다. 기본 배치는 50행·10회이며 재실행은 이미 처리한 행을 건너뛴다. 처리량을 늘리기
+전에 잠금/지연을 확인한다. 실제 연결·제거는 vector 값 동등성과 잠금 후 현재 원고·행 시각·
+세대·삭제 epoch를 다시 확인한다. 계획 hash를 맞추기 위해 파일을 임의로 고치지 않는다.
+
+### 중단·복구
+
+- 초기 dual이라도 private 누락이 없는지 검증한 뒤 이전 읽기/이미지로 되돌린다. 새 객체부터 삭제하지 않는다.
+- shared-only 발행 또는 private 제거 이후에는 새 쓰기를 dual로 전환 → 별도 restore 계획을
+  검토/적용 → 전체 `remaining_shared_only=0`과 `legacy_rollback_ready=true` 확인 → 이전 읽기/이미지
+  순서다. restore는 현재 context 세대와 다른 기존 문서도 원래 세대를 유지해 역복사한다.
+  삭제 중/변경된 문서와 맞지 않는 참조는 건너뛰고 잔여 수를 숨기지 않는다.
+- 공용 ready+private NULL은 정상이다. private 누락과 공용 pending/dangling/mismatch/exhausted를
+  구분한다. `memory_sweep`은 공용 pending을 별도 예산으로 회수하며 오래됐다는 이유로 제외하지 않는다.
+- 단위검사는 실제 SQL/복구 증거를 대신하지 않는다. 개발 통합검사는
+  `MOLY_DIARY_SHARED_TEST_ENV=dev`, 절대 경로 `MOLY_DIARY_SHARED_ENV_FILE` 및 DB ref 검증이 필요하다.
+  운영 DSN으로 시험하거나 새 로컬 Docker/DB로 대체하지 않는다.
+
 ## 주간 운영자 일기 DB 전환
 
 이 절의 앵커는 일기 운영 절차의 진입점이다. 스키마와 생성 정책 원본은 [DB 문서](../db/README.md), [아키텍처](ARCHITECTURE.md), `app/services/diary_generation.py`다.

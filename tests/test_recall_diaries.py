@@ -201,3 +201,41 @@ async def test_unmatched_row_gets_no_body_even_when_another_matched() -> None:
     assert miss["content_match"] is False
     assert miss["body"] is None and miss["excerpt"] is None, "안 맞은 일기 본문이 나갔다"
     assert miss["display_date"] and miss["title"]  # 날짜·제목은 준다
+
+
+def test_shared_vector_is_joined_only_to_an_owned_document() -> None:
+    sql = _sql()
+    assert "JOIN diary_recall_documents rd ON rd.user_id=d.user_id AND rd.diary_id=d.id" in sql
+    assert "LEFT JOIN diary_template_embeddings se" in sql
+    assert "se.id=rd.shared_embedding_id" in sql
+    assert "d.kind IN ('welcome','capi_day')" in sql
+    assert "d.user_id=:user_id" in sql
+    assert "d.record_status='published' AND d.deleted_at IS NULL" in sql
+    assert "d.published_at<=:now" in sql
+    assert "JOIN diaries d ON d.user_id=:user_id AND d.id=t.id" in sql
+
+
+def test_shared_vector_requires_all_identity_fields_and_falls_back_to_private() -> None:
+    sql = _sql()
+    for field in ("source_hash", "embedding_model", "index_version", "search_text"):
+        assert f"se.{field}=rd.{field}" in sql
+    assert "se.dimensions=1536" in sql
+    assert "se.embedding IS NOT NULL" in sql
+    assert "COALESCE(se.embedding,rd.embedding) <=> p.embedding" in sql
+    # Storage mode must not make already shared-only documents unreadable.
+    assert "app_config" not in sql
+    # Adding a generation filter here changes pre-existing recall visibility.
+    assert "memory_generation" not in sql and "suppression_generation" not in sql
+
+
+async def test_shared_recall_still_returns_owned_identity_and_body() -> None:
+    result = await recall_diaries.recall(
+        _Session(), uuid.UUID("11111111-1111-1111-1111-111111111111"),
+        query=None, need="full", focus_id=uuid.UUID("22222222-2222-2222-2222-222222222222"),
+    )
+    item = result["items"][0]
+    assert item["id"] == "22222222-2222-2222-2222-222222222222"
+    assert item["ref"] == {"type": "diary", "id": item["id"]}
+    assert item["display_date"] == "2026-08-04"
+    assert item["body"] == "오늘 승민과 처음 대화를 나눴다."
+    assert "shared_embedding_id" not in item

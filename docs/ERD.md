@@ -115,6 +115,7 @@ erDiagram
 | `moly_life_ments` | 운영자 원고. 날짜별 기록과 주간 순서 키를 구분 |
 | `diary_gen_claims`, `diary_generation_results` | 생성 선점과 성공/미발행 결과 |
 | `diary_recall_documents`, `diary_claim_sources` | 검색용 일기 파생본과 실제 근거 |
+| `diary_template_embeddings` | 승인된 공용 일기의 검색 벡터. nullable 참조로 연결하며 개인 일기·소유권은 기존 문서에 유지 |
 | `mood_entries` | `(user_id,entry_date)` 유일. 사용자 감정과 메모; 대화의 5종 제한 조회와 별개 |
 | `routines`, `routine_schedules` | 루틴·soft delete·유효일부터의 요일 이력 |
 | `routine_completions`, `routine_skips` | 현지 달력 날짜별 완료/스킵. 동일 날짜 중복 방지 |

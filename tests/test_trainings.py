@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import uuid
+from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -23,7 +24,7 @@ from app.models.training import (
     TrainingSubmission,
 )
 from app.schemas.trainings import TrainingAnswerRequest, TrainingClaimRequest
-from app.services import hay_ledger, llm, privacy, training_catalog, trainings
+from app.services import entitlement, gating, hay_ledger, llm, privacy, training_catalog, trainings
 from app.services.training_catalog import TrainingCatalog
 
 CATALOG = TrainingCatalog.load(Path(__file__).parent / "fixtures/trainings/catalog.json")
@@ -48,6 +49,9 @@ class Store:
         self.ai_replies: list[str] = []
         self.during_ai = None  # AI 채점 중에 실행할 끼어들기
         self.language = "ja-JP"
+        # 기존 흐름 검사는 유효한 구독 계정으로 실행하고, 권한 검사는 각 테스트에서 바꾼다.
+        self.entitlement = {"plan": "monthly"}
+        self.entitlement_calls: list[tuple[str, datetime]] = []
 
 
 class FakeSession:
@@ -113,6 +117,10 @@ def store(monkeypatch) -> Store:
     async def account_language(session, uid):
         return s.language
 
+    async def resolve_entitlement(session, user_id, now):
+        s.entitlement_calls.append((user_id, now))
+        return s.entitlement
+
     async def apply(session, uid, tx_type, amount, **kwargs):
         s.balance += amount
         s.ledger.append((uid, tx_type, amount))
@@ -136,6 +144,8 @@ def store(monkeypatch) -> Store:
     monkeypatch.setattr(trainings, "advisory_xact_lock", lock)
     monkeypatch.setattr(privacy, "ensure_subject_active", ensure)
     monkeypatch.setattr(trainings, "_account_language", account_language)
+    monkeypatch.setattr(trainings, "_now", lambda: NOW)
+    monkeypatch.setattr(gating, "resolve_entitlement", resolve_entitlement)
     monkeypatch.setattr(hay_ledger, "apply", apply)
     monkeypatch.setattr(llm, "generate", generate)
     return s
@@ -650,3 +660,288 @@ async def test_acceptance_14_both_reasons_is_correct_after_retry(store, session,
     assert right['result'] == 'passed'
     assert store.answers[(UID, tid, 14)].option_id == 'c'
     assert 'ai' not in store.events
+
+
+# --- 구독 권한: 완료 replay는 보존하고 새 실행만 제한한다. ---
+
+
+def _stored_state(store):
+    tables = {}
+    for name in ("submissions", "progress", "answers", "tries", "rewards"):
+        tables[name] = {
+            key: {column.key: getattr(row, column.key) for column in row.__table__.columns}
+            for key, row in getattr(store, name).items()
+        }
+    return deepcopy((tables, store.balance, store.ledger))
+
+
+@pytest.fixture(params=["pick", "write"])
+def restricted_request(request, store, monkeypatch):
+    course = CATALOG.get(TID)
+    stage = course.stage(3 if request.param == "pick" else 6).model_copy(update={"number": 6})
+    course = course.model_copy(update={"stages": (*course.stages[:5], stage)})
+    catalog = TrainingCatalog((course,), {course.id: course})
+    monkeypatch.setattr(training_catalog, "current", lambda: catalog)
+    progress = trainings._new_progress(UID, TID, NOW)
+    progress.next_stage = 6
+    store.progress[UID, TID] = progress
+    return _pick("c") if request.param == "pick" else _write("끝까지 해낸 내가 고맙다")
+
+
+@pytest.mark.parametrize("environment", ["production", "development"])
+async def test_free_restricted_submission_has_no_side_effects(
+    store, session, monkeypatch, restricted_request, environment,
+):
+    monkeypatch.setattr(trainings.settings, "environment", environment)
+    store.entitlement = {"plan": "free"}
+    store.tries[UID] = TrainingTries(user_id=UID, tries_left=2, refill_from=NOW, updated_at=NOW)
+    before = _stored_state(store)
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, 6, restricted_request)
+    assert (blocked.value.http_status, blocked.value.code, blocked.value.details) == (
+        403, "TRAINING_SUBSCRIPTION_REQUIRED", {"free_stage_count": 5},
+    )
+    assert _stored_state(store) == before
+    assert store.events == ["lock", "ensure"]
+    assert store.entitlement_calls == [(USER, NOW)]
+
+
+async def test_access_precedes_stage_and_tries_checks(store, session, restricted_request):
+    store.entitlement = {"plan": "free"}
+    store.progress.clear()
+    store.tries[UID] = TrainingTries(user_id=UID, tries_left=0, refill_from=NOW, updated_at=NOW)
+    before = _stored_state(store)
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, 6, restricted_request)
+    assert blocked.value.code == "TRAINING_SUBSCRIPTION_REQUIRED"
+    assert _stored_state(store) == before
+    assert "ai" not in store.events
+
+
+@pytest.mark.parametrize("tid", ["positive-circuit-v2", "self-acceptance-v2", "refusal-practice-v1"])
+@pytest.mark.parametrize("number", [6, 15, 30])
+async def test_all_courses_apply_the_same_free_boundary(store, session, monkeypatch, tid, number):
+    catalog = TrainingCatalog.load()
+    monkeypatch.setattr(training_catalog, "current", lambda: catalog)
+    stage = catalog.get(tid).stage(number)
+    body = _pick(stage.options[0].id) if stage.answer_type == "pick" else _write("合成テストの回答です")
+    store.entitlement = {"plan": "free"}
+    store.progress[UID, tid] = TrainingProgress(user_id=UID, training_id=tid, next_stage=number)
+    before = _stored_state(store)
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, number, body, training_id=tid)
+    assert blocked.value.code == "TRAINING_SUBSCRIPTION_REQUIRED"
+    assert _stored_state(store) == before
+    assert "ai" not in store.events
+
+
+@pytest.mark.parametrize("tid", ["positive-circuit-v2", "self-acceptance-v2", "refusal-practice-v1"])
+async def test_free_first_five_stages_keep_their_reward(store, session, monkeypatch, tid):
+    catalog = TrainingCatalog.load()
+    monkeypatch.setattr(training_catalog, "current", lambda: catalog)
+    store.entitlement = {"plan": "free"}
+    for stage in catalog.get(tid).stages[:5]:
+        body = (_pick(next(option.id for option in stage.options if option.correct))
+                if stage.answer_type == "pick" else _write("이 단계의 합성 테스트 답변"))
+        result = await _submit(session, stage.number, body, training_id=tid)
+        assert result["result"] == "passed"
+    assert result["reward"] == {"granted": 30, "balance_after": 130}
+    assert await _submit(session, 5, body, training_id=tid) == result
+    assert len(store.ledger) == 1
+    assert store.entitlement_calls == []
+
+
+@pytest.mark.parametrize("plan,source,is_subscriber", [
+    ("monthly", "subscription", True), ("yearly", "subscription", True),
+    ("monthly", "store_trial", True), ("trial", "launch", False),
+    ("trial", "signup_trial", False),
+])
+async def test_non_free_access_ignores_subscriber_flag_and_chat_quota(
+    store, session, restricted_request, plan, source, is_subscriber,
+):
+    store.entitlement = {
+        "plan": plan, "entitlement_source": source, "is_subscriber": is_subscriber,
+        "tokens_remaining": 0,
+    }
+    result = await _submit(session, 6, restricted_request)
+    assert result["result"] == "passed"
+    assert store.entitlement_calls == [(USER, NOW)]
+
+
+@pytest.mark.parametrize("passed", [True, False])
+@pytest.mark.parametrize("legacy", [False, True])
+async def test_completed_paid_request_replays_after_expiry(
+    store, session, restricted_request, passed, legacy,
+):
+    if not passed:
+        restricted_request = (_pick("a", restricted_request.client_request_id)
+                              if restricted_request.option_id else restricted_request)
+        store.ai_replies.append('{"pass": false, "hint": "다른 이유를 생각해 볼까요?"}')
+    first = await _submit(session, 6, restricted_request)
+    assert first["result"] == ("passed" if passed else "retry")
+    if legacy:
+        store.submissions.clear()
+    store.entitlement = {"plan": "free"}
+    store.entitlement_calls.clear()
+    store.events.clear()
+    before = _stored_state(store)
+    replay = await _submit(session, 6, restricted_request)
+    assert replay == first
+    assert _stored_state(store) == before
+    assert store.entitlement_calls == []
+    assert store.events == ["lock", "ensure", "commit"]
+
+
+async def test_changed_completed_request_is_not_hidden_by_subscription_error(
+    store, session, restricted_request,
+):
+    await _submit(session, 6, restricted_request)
+    store.entitlement = {"plan": "free"}
+    store.entitlement_calls.clear()
+    changed = (_pick("a", restricted_request.client_request_id) if restricted_request.option_id
+               else _write("내용을 바꾼 합성 답변", restricted_request.client_request_id))
+    before = _stored_state(store)
+    for stage, body in [(6, changed), (1, _pick("b", restricted_request.client_request_id))]:
+        with pytest.raises(AppError) as blocked:
+            await _submit(session, stage, body)
+        assert blocked.value.http_status == 422
+    assert _stored_state(store) == before
+    assert store.entitlement_calls == []
+
+
+@pytest.mark.parametrize("lease_expired", [False, True])
+async def test_unfinished_request_needs_current_access(store, session, lease_expired):
+    await _pass_up_to(session, 5)
+    body = _write("끝까지 해낸 내가 고맙다")
+    receipt = await trainings._reserve(session, UID, CATALOG.get(TID), CATALOG.get(TID).stage(6), body)
+    if lease_expired:
+        receipt.lease_until = NOW - timedelta(seconds=1)
+    store.entitlement = {"plan": "free"}
+    store.events.clear()
+    before = _stored_state(store)
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, 6, body)
+    assert blocked.value.code == "TRAINING_SUBSCRIPTION_REQUIRED"
+    assert _stored_state(store) == before
+    assert "ai" not in store.events
+
+
+async def test_paid_unfinished_request_keeps_pending_without_another_grade(store, session):
+    await _pass_up_to(session, 5)
+    body = _write("끝까지 해낸 내가 고맙다")
+    await trainings._reserve(session, UID, CATALOG.get(TID), CATALOG.get(TID).stage(6), body)
+    store.events.clear()
+    before = _stored_state(store)
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, 6, body)
+    assert (blocked.value.code, blocked.value.http_status) == ("TRAINING_SUBMISSION_PENDING", 503)
+    assert _stored_state(store) == before
+    assert store.entitlement_calls == [(USER, NOW)]
+    assert "ai" not in store.events
+
+
+async def test_other_user_cannot_replay_a_paid_request(store, session, restricted_request):
+    await _submit(session, 6, restricted_request)
+    store.entitlement = {"plan": "free"}
+    store.entitlement_calls.clear()
+    before = _stored_state(store)
+    with pytest.raises(AppError) as blocked:
+        await trainings.submit(session, str(OTHER), TID, 6, restricted_request, locale="ko", now=NOW)
+    assert blocked.value.code == "TRAINING_SUBSCRIPTION_REQUIRED"
+    assert _stored_state(store) == before
+    assert store.entitlement_calls == [(str(OTHER), NOW)]
+
+
+@pytest.mark.parametrize("offset_us", [-1, 0, 1])
+async def test_access_uses_clock_after_lock_not_submit_time(
+    store, session, monkeypatch, restricted_request, offset_us,
+):
+    clock = NOW - timedelta(seconds=1)
+    profile = SimpleNamespace(trial_ends_at=NOW, language="ko")
+
+    async def lock(session, uid):
+        nonlocal clock
+        store.events.append("lock")
+        clock = NOW + timedelta(microseconds=offset_us)
+
+    async def resolve(session, user_id, now):
+        store.entitlement_calls.append((user_id, now))
+        return entitlement.derive_entitlement(profile, None, 0, {}, now)
+
+    monkeypatch.setattr(trainings, "advisory_xact_lock", lock)
+    monkeypatch.setattr(trainings, "_now", lambda: clock)
+    monkeypatch.setattr(gating, "resolve_entitlement", resolve)
+    if offset_us < 0:
+        assert (await _submit(session, 6, restricted_request, now=NOW - timedelta(days=1)))["result"] == "passed"
+    else:
+        before = _stored_state(store)
+        with pytest.raises(AppError) as blocked:
+            await _submit(session, 6, restricted_request, now=NOW - timedelta(days=1))
+        assert blocked.value.code == "TRAINING_SUBSCRIPTION_REQUIRED"
+        assert _stored_state(store) == before
+        assert "ai" not in store.events
+    assert store.entitlement_calls == [(USER, NOW + timedelta(microseconds=offset_us))]
+
+
+async def test_admitted_grading_can_finish_after_expiry_with_current_balance(store, session):
+    await _pass_up_to(session, 5)
+    before_balance = store.balance
+
+    def expiry_and_reward():
+        store.entitlement = {"plan": "free"}
+        store.balance += 50
+
+    store.during_ai = expiry_and_reward
+    result = await _submit(session, 6, _write("끝까지 해낸 내가 고맙다"))
+    assert result["reward"] == {"granted": 40, "balance_after": before_balance + 50 + 40}
+    assert store.entitlement_calls == [(USER, NOW)]
+
+
+async def test_deletion_during_admitted_grading_still_blocks_recording(store, session, monkeypatch):
+    await _pass_up_to(session, 5)
+    before = _stored_state(store)
+
+    async def deleted(session, uid):
+        raise AppError("ACCOUNT_DELETING", 409, "계정 삭제를 처리하고 있어요.")
+
+    def deleting():
+        store.entitlement = {"plan": "free"}
+        monkeypatch.setattr(privacy, "ensure_subject_active", deleted)
+
+    store.during_ai = deleting
+    with pytest.raises(AppError) as blocked:
+        await _submit(session, 6, _write("끝까지 해낸 내가 고맙다"))
+    assert blocked.value.code == "ACCOUNT_DELETING"
+    assert len(store.submissions) == len(before[0]["submissions"]) + 1  # T1의 미완료 선점만 남는다.
+    after = _stored_state(store)
+    after[0]["submissions"] = before[0]["submissions"]
+    assert after == before
+
+
+@pytest.mark.parametrize("error", [
+    AppError("NOT_FOUND", 404, "프로필을 찾을 수 없어요."), RuntimeError("lookup unavailable"),
+])
+async def test_access_lookup_failure_does_not_grade_or_mutate(
+    store, session, monkeypatch, restricted_request, error,
+):
+    async def failed(*args, **kwargs):
+        raise error
+
+    monkeypatch.setattr(gating, "resolve_entitlement", failed)
+    before = _stored_state(store)
+    with pytest.raises(type(error)) as raised:
+        await _submit(session, 6, restricted_request)
+    assert raised.value is error
+    assert _stored_state(store) == before
+    assert store.events == ["lock", "ensure"]
+
+
+async def test_free_read_and_claim_paths_do_not_resolve_access(store, session):
+    store.entitlement = {"plan": "free"}
+    await trainings.list_trainings(session, USER, locale="ko")
+    await trainings.get_training(session, USER, TID, locale="ko", now=NOW)
+    await trainings.claim(session, USER, TID, 6, TrainingClaimRequest(
+        reason="should_pass", answer_text="합성 답변", verdict="retry",
+    ))
+    assert len(store.claims) == 1
+    assert store.entitlement_calls == []

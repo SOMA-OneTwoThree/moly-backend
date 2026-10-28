@@ -164,6 +164,23 @@ def test_no_tries_error_carries_the_refill_times(client, monkeypatch):
     }
 
 
+def test_subscription_error_carries_the_free_stage_boundary(client, monkeypatch):
+    async def blocked(*args, **kwargs):
+        raise trainings._subscription_required()
+
+    monkeypatch.setattr(trainings, "submit", blocked)
+    response = client.post(
+        "/trainings/practice-basics/stages/6/answers",
+        json={"client_request_id": str(uuid.uuid4()), "text": "합성 테스트 답변"},
+    )
+    assert response.status_code == 403
+    assert response.json() == {"error": {
+        "code": "TRAINING_SUBSCRIPTION_REQUIRED",
+        "message": "구독하면 이어서 풀 수 있어요.",
+        "details": {"free_stage_count": 5},
+    }}
+
+
 def test_claim_returns_no_content(client, monkeypatch):
     calls = []
 

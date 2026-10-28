@@ -987,6 +987,13 @@ paths:
       security:
       - SupabaseBearer: []
       parameters:
+      - name: X-Moly-Capabilities
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 쉼표로 구분한 capability 토큰. 대소문자를 구분하며 각 토큰의 앞뒤 공백만 제거한다. 정확한 wallet-ledger-types-v2 토큰이
+          있으면 원래 거래 type을 반환한다. 권한과 무관한 표시 호환 옵션이다.
       - name: limit
         in: query
         required: false
@@ -1043,7 +1050,10 @@ paths:
                           - limit
                           type: greater_than_equal
                           msg: Input should be greater than or equal to 1
-      description: id 내림차순 cursor pagination. 다음 page가 실제로 있을 때만 next_cursor를 반환한다.
+      description: id 내림차순 cursor pagination. 다음 page가 실제로 있을 때만 next_cursor를 반환한다. X-Moly-Capabilities에
+        정확한 wallet-ledger-types-v2 토큰이 없으면 mood_reward, training_reward, article_reward는 구버전 앱 호환을 위해
+        응답 type만 admin_adjustment로 표시한다. 해당 토큰이 있으면 원래 type을 반환한다. 기존 나머지 8개 type, id, 금액, 잔액 표시 규칙, 시각,
+        페이지 순서와 cursor는 동일하며 DB 원장과 보상 권한은 변경하지 않는다.
   /charging-station:
     get:
       tags:

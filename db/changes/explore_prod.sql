@@ -691,18 +691,17 @@ $articles$)
 ON CONFLICT (id) DO NOTHING;
 
 -- ===== Reviewed daily affirmations, included in this one-time production cutover.
--- Fixed first day: update the reviewed literal + SHA before applying after this date.
+-- User-approved first day is today in KST; review date + SHA if this application is delayed.
 -- Never overwrite an existing scheduled line, including a concurrent writer's line.
 LOCK TABLE public.daily_affirmations IN SHARE ROW EXCLUSIVE MODE;
 DO $explore_affirmations$
 DECLARE
-  start_day constant date := DATE '2026-10-30';
+  start_day constant date := DATE '2026-10-28';
   written integer;
 BEGIN
-  -- UTC+14 is already tomorrow in some regions; preserve every user's current day.
-  IF (start_day::timestamp AT TIME ZONE 'Pacific/Kiritimati')
-      <= clock_timestamp() + interval '2 minutes' THEN
-    RAISE EXCEPTION 'affirmation start date is no longer safely in the future; review SQL date and hash';
+  -- The user explicitly requested today's rollout, including immediate local-date visibility.
+  IF start_day <> (clock_timestamp() AT TIME ZONE 'Asia/Seoul')::date THEN
+    RAISE EXCEPTION 'affirmation start date must equal the approved KST application day; review SQL date and hash';
   END IF;
   IF EXISTS (SELECT 1 FROM public.daily_affirmations
       WHERE local_date BETWEEN start_day AND start_day + 364) THEN

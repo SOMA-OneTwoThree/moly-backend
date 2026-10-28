@@ -28,6 +28,14 @@ HAY_MOOD_REWARD = 20
 HAY_AD = 20
 AD_DAILY_LIMIT = 5
 ROUTINE_PAIR_REQUIRED = 2
+_V2_TRANSACTION_TYPES = frozenset({"mood_reward", "training_reward", "article_reward"})
+
+
+def supports_wallet_ledger_types_v2(capabilities: str | None) -> bool:
+    """Presentation capability only; match the existing comma-separated token format."""
+    return "wallet-ledger-types-v2" in {
+        token.strip() for token in (capabilities or "").split(",")
+    }
 
 
 def _iso(dt: datetime | None) -> str | None:
@@ -41,7 +49,8 @@ async def get_wallet(session: AsyncSession, user_id: str) -> dict[str, int]:
 
 
 async def list_transactions(
-    session: AsyncSession, user_id: str, *, limit: int = 30, cursor: str | None = None
+    session: AsyncSession, user_id: str, *, limit: int = 30, cursor: str | None = None,
+    ledger_types_v2: bool = False,
 ) -> dict[str, Any]:
     uid = _uid(user_id)
     limit = max(1, min(limit, 100))
@@ -58,7 +67,13 @@ async def list_transactions(
     rows = rows[:limit]
     data = [
         {
-            "id": str(t.id), "type": t.type, "amount": t.amount,
+            "id": str(t.id),
+            # Keep canonical ledger rows intact; old app enums cannot decode these types.
+            "type": (
+                "admin_adjustment"
+                if not ledger_types_v2 and t.type in _V2_TRANSACTION_TYPES else t.type
+            ),
+            "amount": t.amount,
             "balance_after": max(0, t.balance_after), "created_at": _iso(t.created_at),
         }
         for t in rows

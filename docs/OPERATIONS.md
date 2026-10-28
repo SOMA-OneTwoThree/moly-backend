@@ -180,7 +180,7 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 추가 DB 구조가 없다. 오늘의 한마디 `daily_affirmations`는 main에 있는 기능으로, 기존 행을
 보존하면서 검수한 365개만 추가하고 dev DB의 임시 문장을 복사하지 않는다.
 
-- 통합 SQL SHA-256: `f1778bd53d935a3607451bc831272b1d8bd435c558a9332641ea7a9d95559222`.
+- 통합 SQL SHA-256: `98262a1dc02a7e02b5f918f012ec1e5802cc6da1833394e99ecaf47beb571368`.
 - 과거 dev 적용용 `explore_training.sql`·`training_submissions.sql`·`training_claim_reasons.sql`·
   `explore_articles.sql`·`hay_transactions_types.sql`·`explore_content.sql`을 운영에 따로 실행하지 않는다.
   통합본과 중복 실행하면 실패한다. 개발 DB는 이미 이 구조가 있어 통합 SQL의 적용 대상이 아니다.
@@ -204,18 +204,17 @@ CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·
 ### 오늘의 한마디 365개 — 통합 SQL에 포함
 
 별도 `daily_affirmations_365.sql`은 dev 적용 이력이며 운영에서는 실행하지 않는다. 통합 SQL 안의
-검수 문장을 **2026-10-30~2027-10-29**에 날짜당 하나씩 넣는다. 기존 운영 5행(2026-10-21~25)은
+검수 문장을 **2026-10-28~2027-10-27**에 날짜당 하나씩 넣는다. 기존 운영 5행(2026-10-21~25)은
 읽기 확인 시 그대로 있었고 미래 예약은 0행이었다. 실행 직전 같은 범위가 비어 있는지 다시 검사한다.
 
 - 시작 날짜는 파일 안의 `start_day` 한 곳에 고정했다. dry-run과 commit 사이에 자정이 지나도
   날짜 범위가 달라지지 않는다. 365건이 정확히 삽입되지 않으면 전체 실패다.
-- UTC+14 사용자에게 이미 시작일이 되지 않도록 `clock_timestamp()`와 2분 여유를 검사한다.
-  현 파일 적용 한계는 **2026-10-29 18:58 KST 이전**이다. 그 이후에는 날짜와 SHA를 다시 검토해야 한다.
-  가드를 제거하거나 별도 365 SQL로 우회하지 않는다.
+- 2026-10-28 사용자 지시로 **오늘 시작·운영 반영**을 승인했다. `start_day`가 실행 시점의 KST
+  당일과 같아야 통과한다. 자정이 지나면 날짜와 SHA를 다시 검토하고, 별도365 SQL로 우회하지 않는다.
 - 기존 예약 문장이 하나라도 충돌하면 오류로 중단한다. SHARE ROW EXCLUSIVE 잠금으로 다른
   입력과 경합을 막고 일반 조회는 허용한다. 기존 문장을 덮어쓰거나 날짜를 밀어 붙이지 않는다.
-- 앱 심사/노출 여부와 관계없이 현재 오늘의 한마디 API는 DB를 읽는다. 위 미래 날짜 가드는
-  데이터 적용 직후 어느 시간대의 당일 문장도 교체하지 않기 위한 것이다.
+- 앱 심사/노출 여부와 관계없이 현재 오늘의 한마디 API는 DB를 읽는다. 오늘 시작 지시에 따라
+  적용 직후 KST 사용자는 1번을, 이미 다음 날인 시간대 사용자는 해당 현지 날짜의 문장을 받는다.
 
 ### 기회 제한과 테스트 편의 설정 — 운영 후보 확인
 
@@ -236,18 +235,31 @@ CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·
 - 앱이 탐색 탭을 숨겨도 API 직접 호출은 가능하다. 구독 gate·현재 단계·기회·삭제 장벽·보상 멱등은
   서버에서 항상 적용한다. 앱 업데이트 전에 미리 배포할 수 있지만 UI 숨김을 보안으로 취급하지 않는다.
 
+### 구버전 지갑 이력 호환
+
+구버전 iOS는 mood/training/article 보상 type을 모르면 페이지 전체 decode가 실패한다.
+`GET /wallet/transactions`는 capability가 없는 요청에 세 신규 type만 `admin_adjustment`로
+표시한다. 원장에는 원래 type을 그대로 보존하며 id·금액·잔액·시간·페이지 커서와 행 수는 바꾸지 않는다.
+옛 앱에서는 해당 보상에 기존 조정/기타 라벨이 보이는 것이 호환상의 제한이다.
+
+새 세 type을 모두 해석할 수 있는 앱만 `X-Moly-Capabilities: wallet-ledger-types-v2`를 보내
+원래 type을 받는다. 서버 권한이나 실제 원가·지급을 바꾸는 헤더가 아니다. 현재 앱에 헤더를
+강제로 추가하거나 원장 행을 숨겨 decode 실패를 우회하지 않는다.
+
 ### 최종 후보 검증 기록 (2026-10-28)
 
 - 기준: main `c1817a68` + dev `b54dbfa1`. 운영의 출석 40/100·감정 보상20·가입일 한도1.25배·
-  채팅 잘림 복구·timeout 추적·일기 문구를 유지했다. main의 핵심 실행 14파일은 원문과 일치한다.
-- 전체 비통합 테스트 3,741개, Ruff, OpenAPI bundle/계약, 병합된 DB 카탈로그 검증을 통과했다.
+  채팅 잘림 복구·timeout 추적·일기 문구를 유지했다. 운영의 기존 보상·한도·대화 정책을 유지했고, 경제 이력 응답에 구버전 호환 처리만 추가했다.
+- 최종 비통합 테스트 3,753개, Ruff, OpenAPI bundle/계약, 병합된 DB 카탈로그 검증을 통과했다.
+  구버전 지갑 호환 추가 후 CI와 같은 placeholder DSN 환경에서 전체 재검증했고, 실제 옛 iOS enum으로
+  혼합 11행 응답 decode 성공과 canonical 신규 type의 실패 대조를 확인했다.
   카탈로그는 기존 개발 DB에 main의 추가 구조를 트랜잭션 안에서만 반영해 대조한 뒤 롤백했다.
   DB에 별도로 존재하는 `subscription_launch_config(uuid)`와 해당 서비스 권한은 기존 backend
   schema 원본 밖의 추가 객체로 유지했으며 복사·삭제하지 않았다.
 - production 동작을 기존 개발 DB에서 실행해 5→0 차감·0에서 정답 제출 차단·replay 무차감·
   충전 정각·마지막 기회 병렬4요청 중1회만 접수·채점 중 충전/경합·archived 차단을 확인했다.
   이는 배포된 dev의 무제한 모드 시험으로 대체한 결과가 아니다. 전용 QA 계정은 정리했다.
-- 운영 DB 변경·운영 배포·운영 대상 PR은 이 준비 과정에서 수행하지 않는다.
+- 준비 단계에서는 운영을 변경하지 않았으며, 2026-10-28 후속 지시로 오늘 시작과 운영 반영을 승인받았다.
   최종 CI, 실행 시점의 이미지 tag/digest·환경·worker 소유권·SQL 유효 날짜는 머지 직전 확인한다.
 
 ### 운영 승격 때의 실행 순서
@@ -260,9 +272,9 @@ CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·
    실패하면 테이블·CHECK·원고 입력을 모두 롤백한다. SQL SHA가 이 문서와 다르면 중단한다.
 
    ```bash
-   uv run python -m db.apply db/changes/explore_prod.sql --env prod --expected-sha256 f1778bd53d935a3607451bc831272b1d8bd435c558a9332641ea7a9d95559222
+   uv run python -m db.apply db/changes/explore_prod.sql --env prod --expected-sha256 98262a1dc02a7e02b5f918f012ec1e5802cc6da1833394e99ecaf47beb571368
    # 운영 승격 승인 후, 머지 직전에만 실행한다.
-   uv run python -m db.apply db/changes/explore_prod.sql --env prod --commit --allow-prod --expected-sha256 f1778bd53d935a3607451bc831272b1d8bd435c558a9332641ea7a9d95559222
+   uv run python -m db.apply db/changes/explore_prod.sql --env prod --commit --allow-prod --expected-sha256 98262a1dc02a7e02b5f918f012ec1e5802cc6da1833394e99ecaf47beb571368
    uv run python -m db.verify --env prod
    ```
 

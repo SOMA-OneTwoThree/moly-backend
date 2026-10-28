@@ -125,3 +125,9 @@ OpenAPI 분할 원본과 Pydantic 응답을 함께 갱신하고 bundle을 재생
 ### 트레이닝 제출 재시도 보강 (2026-10-21)
 
 동일 client_request_id는 중간에 다른 제출이 있어도 최초 판정을 재사용한다. 같은 id의 다른 단계/답은422로 거부한다. 채점 중 동일 요청은503 `TRAINING_SUBMISSION_PENDING`이며 입력과 id를 유지해 재시도한다. 30초 lease 만료 후 중단된 채점을 다시 시작할 수 있다. 목록에는 새 두 과정만 노출하고 archived 원고는 기존 id 상세 조회를 유지한다. 일반 객관식은 inline slot이 없을 수도 있다.
+
+### 지갑 이력 타입 호환
+
+`GET /wallet/transactions`의 기본 응답은 `mood_reward`·`training_reward`·`article_reward`를
+`admin_adjustment`로 표시해 구버전 decoder와 호환한다. 해당 세 type을 모두 지원하는 앱은
+`X-Moly-Capabilities: wallet-ledger-types-v2`로 원래 type을 받는다. 원장 및 id·금액·잔액·시간·커서는 유지한다.

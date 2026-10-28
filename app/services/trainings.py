@@ -32,12 +32,13 @@ from app.models.training import (
     TrainingSubmission,
 )
 from app.schemas.trainings import TrainingAnswerRequest, TrainingClaimRequest
-from app.services import hay_ledger, i18n, privacy, training_catalog, training_grading, training_tries
+from app.services import gating, hay_ledger, i18n, privacy, training_catalog, training_grading, training_tries
 from app.services.training_catalog import TrainingDefinition, TrainingStage
 from app.services.training_grading import Verdict
 from app.services.training_tries import Tries
 
 REWARD_TYPE = "training_reward"
+FREE_STAGE_COUNT = 5
 # AI deadline is 10s; expired workers are fenced by lease_token.
 SUBMISSION_LEASE = timedelta(seconds=30)
 
@@ -58,6 +59,22 @@ def _no_tries(tries: Tries) -> errors.AppError:
     return errors.AppError(
         "TRAINING_NO_TRIES", 409, "도전 기회를 모두 썼어요.", {"tries": _tries_wire(tries)}
     )
+
+
+def _subscription_required() -> errors.AppError:
+    return errors.AppError(
+        "TRAINING_SUBSCRIPTION_REQUIRED", 403, "구독하면 이어서 풀 수 있어요.",
+        {"free_stage_count": FREE_STAGE_COUNT},
+    )
+
+
+async def _require_access(session: AsyncSession, uid: uuid.UUID, stage: TrainingStage) -> None:
+    if stage.number <= FREE_STAGE_COUNT:
+        return
+    # 사용자 잠금 뒤의 시각으로 접수 권한을 판단한다. 입구 시각은 잠금 대기 중 만료될 수 있다.
+    entitlement = await gating.resolve_entitlement(session, str(uid), _now())
+    if entitlement["plan"] == "free":
+        raise _subscription_required()
 
 
 def _training(training_id: str) -> TrainingDefinition:
@@ -355,6 +372,7 @@ async def _submit_pick(
     if replay is not None:
         await session.commit()
         return replay
+    await _require_access(session, uid, stage)
     _require_current(progress, stage)
     tries_row = await _load_tries(session, uid)
     tries = _settled(tries_row, now)
@@ -379,6 +397,7 @@ async def _submit_write(
     if replay is not None:
         await session.commit()
         return replay
+    await _require_access(session, uid, stage)
     _require_current(progress, stage)
     tries = _settled(await _load_tries(session, uid), now)
     if tries.left == 0:
@@ -390,7 +409,7 @@ async def _submit_write(
 
     verdict = await training_grading.grade_write(stage, body.text, language, user_id=uid)
 
-    # 트랜잭션 2: 그사이 바뀐 것을 잠금 아래 다시 확인하고 쓴다.
+    # 트랜잭션 2: 접수 후 구독 만료는 허용하되 삭제·lease·차례·기회는 다시 확인한다.
     await advisory_xact_lock(session, uid)
     await privacy.ensure_subject_active(session, uid)
     progress = await _load_progress(session, uid, training.id)

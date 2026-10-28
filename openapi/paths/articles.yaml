@@ -5,7 +5,8 @@
     summary: 활성 아티클 목록과 본문
     operationId: listArticles
     description: sort_order 순서의 활성 아티클 전체. 본문은 요청 언어가 없으면 한국어 원고를 반환한다.
-      preview_block_count가 null이면 모두에게 전체 공개, 숫자면 비구독 회원에게 그 수만큼의 블록만 보여 준다(구독 판정은 앱).
+      preview_block_count가 null이면 공개 글이고, 숫자(0 포함)면 구독 전용 글이다.
+      이 응답은 전체 본문을 반환하며 미리보기 표시는 앱이 처리한다. 서버의 구독 검사는 전용 글의 신규 보상 지급에 적용한다.
     parameters:
     - name: X-App-Locale
       in: header
@@ -62,7 +63,7 @@
       '422':
         $ref: ../components/common.yaml#/responses/Validation
       '404':
-        description: 아티클 없음 또는 계정 삭제 중
+        description: 아티클 없음 또는 비활성
         content:
           application/json:
             schema:
@@ -71,14 +72,14 @@
               error:
                 value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
       '409':
-        description: 아티클 없음 또는 계정 삭제 중
+        description: 계정 삭제 진행 중
         content:
           application/json:
             schema:
               $ref: ../components/common.yaml#/schemas/ErrorEnvelope
             examples:
               error:
-                value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
     parameters:
     - name: article_id
       in: path
@@ -110,7 +111,7 @@
       '422':
         $ref: ../components/common.yaml#/responses/Validation
       '404':
-        description: 아티클 없음 또는 계정 삭제 중
+        description: 아티클 없음 또는 비활성
         content:
           application/json:
             schema:
@@ -118,6 +119,15 @@
             examples:
               error:
                 value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
+      '409':
+        description: 계정 삭제 진행 중
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              error:
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
     parameters:
     - name: article_id
       in: path
@@ -141,10 +151,19 @@
               $ref: ../components/articles.yaml#/schemas/ArticleActivity
       '401':
         $ref: ../components/common.yaml#/responses/Unauthorized
+      '403':
+        description: 무료 계정의 구독 전용 글 최초 보상 요청. 읽음·평가·보상·잔액은 변경하지 않는다.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/common.yaml#/schemas/ErrorEnvelope
+            examples:
+              subscriptionRequired:
+                value: {error: {code: ARTICLE_SUBSCRIPTION_REQUIRED, message: 이 글의 보상은 구독 중에 받을 수 있어요., details: {}}}
       '422':
         $ref: ../components/common.yaml#/responses/Validation
       '404':
-        description: 아티클 없음 또는 계정 삭제 중
+        description: 아티클 없음 또는 비활성, 프로필 없음
         content:
           application/json:
             schema:
@@ -153,14 +172,14 @@
               error:
                 value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
       '409':
-        description: 아티클 없음 또는 계정 삭제 중
+        description: 계정 삭제 진행 중
         content:
           application/json:
             schema:
               $ref: ../components/common.yaml#/schemas/ErrorEnvelope
             examples:
               error:
-                value: {error: {code: NOT_FOUND, message: 아티클을 찾을 수 없어요., details: {}}}
+                value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
     parameters:
     - name: article_id
       in: path
@@ -168,4 +187,5 @@
       schema:
         type: string
     description: 인증 계정과 아티클별 최초 1회 20개. 재요청은 granted=0 및 현재 잔액을 반환하며 중복 지급하지 않는다.
-      평가는 선택 사항이다.
+      preview_block_count가 null이 아닌 글(0 포함)의 최초 보상은 서버 entitlement의 plan이 free이면 403이다.
+      이미 받은 보상의 재조회는 구독 만료 후에도 허용한다. 평가는 선택 사항이며 저장·취소에는 구독 제한이 없다.

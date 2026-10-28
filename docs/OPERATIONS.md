@@ -173,39 +173,88 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 
 ## 둘러보기 아티클 DB 전환
 
-`db/changes/explore_content.sql`(검토 SHA-256 `75db677a6b21859b745f5deec594eb2f8a0556272f93c3fcf83289fd0a52debb`)은 아티클을 코드 원고에서 DB 데이터로 옮긴다. 개발 DB에는 2026-10-28 적용·검증했다. 오늘의 한마디는 main 계열의 `GET /daily-affirmation`(`public.daily_affirmations`)을 쓴다.
+탐색 탭 운영 승격은 **`db/changes/explore_prod.sql` 한 파일을 한 트랜잭션으로 적용**한다.
+생각 연습·제출 receipt·채점 이의·아티클 진행 테이블, main의 `mood_reward`를 보존한 건초
+원장 type 합집합, `articles` 테이블·원고 5편이 모두 포함된다. 구독 게이트는 코드 변경이며
+추가 DB 구조가 없다. 오늘의 한마디 `daily_affirmations`는 main에 있는 기능으로, 기존 행을
+다시 만들거나 dev의 임시 문장을 운영으로 복사하지 않는다.
 
-- 내용: `article_progress_article_id_check`(sample-1~7 고정 id) 제거, `public.articles` 생성(RLS, `service_role`만 권한), 아티클 5행(sample-1~5) 입력. 기존 진행·보상 행은 바꾸지 않는다.
-- prod 반영 순서(위에서 아래로 그대로 실행, 각 SQL은 dry-run → `--commit --allow-prod --expected-sha256` → 다음 단계):
+- 통합 SQL SHA-256: `1dc1bbfc42384031949aeaffb5c9c361f4cf67d93603bf80cd31b17428438b9c`.
+- 과거 dev 적용용 `explore_training.sql`·`training_submissions.sql`·`training_claim_reasons.sql`·
+  `explore_articles.sql`·`hay_transactions_types.sql`·`explore_content.sql`을 운영에 따로 실행하지 않는다.
+  통합본과 중복 실행하면 실패한다. 개발 DB는 이미 이 구조가 있어 통합 SQL의 적용 대상이 아니다.
+- 적용 대상: 탐색 기능 테이블이 아직 없는 최신 main DB. `article_progress`만 과거에 존재한다면
+  기존 행은 보존하고 기존 sample-id CHECK만 제거한다. 이미 일부 적용했거나 계약이 다르면 중단해
+  차이를 먼저 대조한다. `IF NOT EXISTS`로 부분 적용을 숨기거나 기존 데이터를 지우지 않는다.
 
-  | 순서 | 실행 | 검토 SHA-256 |
-  |---|---|---|
-  | 0 | origin/main 체크아웃에서 `db.verify --env prod`. 실패하면 중단한다. 통과는 `daily_affirmations`·`mood_reward` 등 main 변경이 이미 반영됐다는 뜻이다 | - |
-  | 1 | `explore_prod.sql`: 생각 연습·아티클 진행 테이블 | `9f60bf9072e76658f814bfc829062361a15e8ceb00321ff94870cae856147469` |
-  | 2 | `hay_transactions_types.sql`: 원장 type 목록 = main 목록 + `training_reward`·`article_reward` | `d92d09205302d3b10f81e2fd9c87f286fa3057c7bb4bd4da99cb4f1078daf178` |
-  | 3 | `explore_content.sql`: 아티클 테이블·5행 | 위 SHA |
-  | 4 | 승격(dev → main) 머지 커밋 체크아웃에서 `db.verify --env prod` | - |
+2026-10-28 통합 SQL 검증: 기존 개발 Supabase의 트랜잭션 안에 임시 스키마와 main 기준 원장
+CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·RLS, 원고 5편, 기존 mood_reward
+및 신규 두 보상 type을 확인했다. 의도적인 중간 실패의 전체 롤백도 확인했고, 임시 스키마는
+남기지 않았다. 이는 운영 DB 적용 증거는 아니며 운영에서의 잠금 획득·최종 계약 dry-run은
+승격 직전에 별도로 필요하다.
 
-  `explore_prod.sql`은 dev에 적용한 `explore_training.sql`·`training_submissions.sql`·`training_claim_reasons.sql`·`explore_articles.sql`을 순서대로 합치고 원장 type CHECK 문만 뺀 것이다. 원본 네 파일은 dev의 main `mood_reward`가 없는 목록을 넣으므로 prod에 실행하지 않는다. 2026-10-28 origin/main의 `schema.sql`·`seed.sql`로 만든 로컬 PostgreSQL 17에 `mood_reward` 원장 행을 넣고 0~3을 실행해 통과했고, dev 계약 기본 검증도 통과했다. `--strict`는 main에만 있는 `attendance_streak_seeds`와 `user_daily_stats.mood_reward_claimed_at`만 추가 객체로 보고하며, 승격 머지 계약에는 둘 다 들어간다. 개발 DB에는 `hay_transactions_types.sql`을 2026-10-28 적용했다. 2번은 목록을 넓히기만 해 실행 중인 구버전 코드에는 영향이 없다. 다만 배포 preflight는 CHECK 정의 차이를 거부하므로, 2번 이후에는 main의 이전 이미지 재배포·`workflow_dispatch` 복구가 `changed constraints: public.hay_transactions.hay_transactions_type_check`로 멈춘다(시뮬레이션에서 확인). 그래서 1~3은 승격 머지 직전에 실행한다. 승격 전 이미지로 복구해야 하면 `training_reward`·`article_reward` 원장 행이 0건일 때만 main `schema.sql`의 type 목록으로 CHECK를 되돌린 뒤 복구한다.
-- 순서: **SQL 적용 → `db.verify` → main 머지·배포.** 새 코드는 `articles`가 없으면 아티클 조회가 실패한다. 이전 이미지는 새 테이블을 쓰지 않고 CHECK 제거는 제약 완화라, SQL 적용 후 롤링 중 구/신 혼합도 안전하다. `db.verify`는 이 릴리스 커밋에서 실행한다.
-- 실행: [배포 순서](#리뷰-후-머지-직전)의 명령에 `RELEASE_SQL`과 표의 SHA를 넣는다. `article_progress`·`hay_transactions`에 짧은 ACCESS EXCLUSIVE lock이 걸린다(2번은 기존 원장 행을 다시 검사한다). 기본 lock 2초 제한에 걸리면 rollback 후 한가한 시점에 재시도한다. `explore_content.sql` 재실행은 첫 `DROP CONSTRAINT`부터 실패하고 rollback되므로 이미 적용된 DB에 다시 실행하지 않는다.
-- 사후 확인(인증 필요): `GET /articles`가 5개, `GET /article-progress`가 같은 id 5개를 반환한다. 미인증은 401이다.
-- 되돌리기: 코드는 이전 이미지로 되돌리면 되고 테이블은 남겨도 된다. DB까지 되돌릴 때만 `DROP TABLE public.articles;`를 실행한다. CHECK는 `SELECT count(*) FROM public.article_progress WHERE article_id NOT IN ('sample-1','sample-2','sample-3','sample-4','sample-5','sample-6','sample-7')`가 0일 때만 `explore_articles.sql`의 정의로 다시 추가한다. 새 id의 진행·보상 기록이 있으면 지우지 않는다.
-- 내용 변경은 검토한 SQL을 같은 `db.apply` 절차로 실행한다. 원고는 한국어가 원본이고 번역이 없는 언어는 한국어로 보인다.
+### 운영 승격 때의 실행 순서
+
+1. 최신 main과 승격 후보 SHA를 고정한다. 코드·OpenAPI·DB 계약에 main의 최신 출석·감정 보상 등도
+   포함됐는지 확인한다. 당시 운영 이미지 tag/digest와 이전 DB 계약을 보관하고 진행 중 배포가 없음을 확인한다.
+2. **main checkout에서** `db.verify --env prod`가 통과해야 한다. 운영의 `daily_affirmations`와
+   `mood_reward`도 확인한다. 지금 dev 계약을 운영 DB에 그대로 대조하지 않는다.
+3. **승격 후보 checkout에서** 아래 단일 파일을 dry-run 후 적용한다. `db.apply`가 트랜잭션을 소유하여
+   실패하면 테이블·CHECK·원고 입력을 모두 롤백한다. SQL SHA가 이 문서와 다르면 중단한다.
+
+   ```bash
+   uv run python -m db.apply db/changes/explore_prod.sql --env prod --expected-sha256 1dc1bbfc42384031949aeaffb5c9c361f4cf67d93603bf80cd31b17428438b9c
+   # 운영 승격 승인 후, 머지 직전에만 실행한다.
+   uv run python -m db.apply db/changes/explore_prod.sql --env prod --commit --allow-prod --expected-sha256 1dc1bbfc42384031949aeaffb5c9c361f4cf67d93603bf80cd31b17428438b9c
+   uv run python -m db.verify --env prod
+   ```
+
+4. 검증은 **승격 머지 후보 계약**을 사용한다. main의 추가 객체를 덮거나 dev의 과거 계약으로
+   재생성하지 않는다. 최종 CI·리뷰와 SQL 적용 결과를 확인한 뒤 main에 머지해 자동 배포한다.
+5. 사후 확인: 미인증 401, 인증된 목록·상세 정상, 아티클 5편과 진행 id 일치, 무료 현재 6단계와
+   구독 전용 글 첫 보상은 전용 403, 기회·원장 변경 0. 비무료 계정은 허용하며 완료 요청/기지급 보상
+   재요청은 중복 차감·지급이 없어야 한다. API·consumer SHA·worker 한 대·큐도 기존 배포 절차대로 확인한다.
+
+SQL은 기본 lock 2초·statement 60초로 제한한다. `hay_transactions` CHECK 재검사 및 기존
+`article_progress`가 있으면 CHECK 변경에 짧은 ACCESS EXCLUSIVE lock이 필요하다. 잠금을
+얻지 못하면 전체 롤백 후 시점을 바꿔 재시도한다. **성공한 SQL은 재실행하지 않는다.**
+
+### 복구와 보존
+
+- 원고·진행·답·보상·원장·제출 receipt를 지우지 않는다. 이 변경은 기존 보상을 소급 회수하지 않는다.
+- 통합 SQL은 실행 중인 이전 코드와 호환되지만, 바뀐 원장 type CHECK는 이전 이미지의 배포
+  preflight에서 `changed constraints`로 거부될 수 있다. SQL을 적용한 뒤 예전 이미지를 즉시
+  재배포할 수 있다고 가정하지 않는다.
+- 새 보상 원장 행이 없을 때만 main의 이전 CHECK로 되돌리고 이전 이미지 복구를 검토한다.
+  `training_reward`·`article_reward`가 하나라도 있으면 CHECK를 축소하지 않는다. 새 DB를 읽는
+  호환 이미지로 전진 복구한다. 무료 권한 게이트 이전 dev 코드로 돌아가면 API 우회가 다시 열린다.
+- 운영에 적용하기 전 단일 SQL의 실행·실패 롤백·권한·스키마 계약 검증 증거를 최종 후보 SHA와
+  함께 남긴다. 과거 분리 SQL 검증을 이번 통합 SQL의 실행 증거로 사용하지 않는다.
+
+### 구독 게이트 계약
+
+- 서버 `plan == "free"`만 신규 6단계 이상 제출·전용 글 신규 보상을 막는다. 구독·스토어 체험·
+  유효한 기존 런칭/가입 체험은 서버 entitlement를 따른다. 새 체험 기간을 부여하지 않는다.
+- 채점 전 승인한 작업은 도중 자연 만료돼도 같은 lease일 때 완료한다. 완료 receipt 재조회는
+  만료 후에도 유지하지만, 미완료 요청을 다시 실행하려면 현재 권한을 확인한다.
+- 글의 전용 여부는 `preview_block_count IS NOT NULL`이다(0 포함). 평가는 무료 계정도 허용하고,
+  기지급 보상은 `granted=0`과 현재 잔액으로 응답한다. 서버 거절은 읽음/진행 행을 새로 만들지 않는다.
+- 무료 계정도 `GET /articles`에서 전체 본문을 받는다. 이번 작업은 신규 제출·보상 제한이며
+  본문 보호는 포함하지 않는다. 앱은 두 전용 403 코드를 처리하고 보상 권한을 blur 여부와 분리해야 한다.
+- 개발 환경의 기회 무제한 특례는 유지하지만 권한 게이트는 모든 환경에서 작동한다.
+
+### 원고 편집
+
+원고는 한국어가 원본이고 번역이 없는 언어는 한국어로 표시된다. 내용 변경은 검토 SQL을 같은
+`db.apply` 절차로 적용한다. 새 글은 새 id를 사용하고 사용자별 기존 보상 이력을 유지한다.
 
 ```sql
--- 번역 추가·수정: 언어 키 하나를 통째로 바꾼다({"title", "summary", "blocks": [...]})
 UPDATE public.articles SET content_i18n = content_i18n || jsonb_build_object('en', '<검토한 JSON>'::jsonb) WHERE id = 'sample-1';
--- 숨김. 새 글은 새 id로 INSERT한다. 보상이 사용자·id당 한 번이라 다른 글에 기존 id를 재사용하지 않는다.
 UPDATE public.articles SET is_active = false WHERE id = 'sample-3';
 ```
 
-오늘의 한마디(`GET /daily-affirmation`)는 `public.daily_affirmations`의 현지 날짜 이하 가장 최근 행을 보여 준다. 문장을 날짜별로 추가하며 이미 지난 날짜의 행은 바꾸지 않는다. 개발 DB의 2026년 행은 임시 문장이다.
-
-```sql
-INSERT INTO public.daily_affirmations (local_date, text_ko, text_en, text_ja)
-VALUES ('2027-01-01', '<검토한 한국어>', '<검토한 영어>', '<검토한 일본어>');
-```
+오늘의 한마디는 현지 날짜 이하의 최신 행을 사용한다. dev의 2026년 행은 임시 문장이므로 운영에
+일괄 복사하지 않는다. 날짜별 검수한 문장만 추가하고 지난 날짜의 행은 임의로 바꾸지 않는다.
 
 ## 변경 시 확인할 원본
 

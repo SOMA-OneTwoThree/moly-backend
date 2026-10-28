@@ -25,6 +25,7 @@ def seeded(name, path):
 
 def test_seed_is_identical_for_new_and_existing_databases():
     assert seeded("articles", "seed.sql") == seeded("articles", "changes/explore_content.sql")
+    assert seeded("articles", "seed.sql") == seeded("articles", "changes/explore_prod.sql")
 
 
 def test_article_seed_matches_the_app_manuscript():
@@ -91,11 +92,13 @@ async def test_activity_lists_active_table_ids_in_order():
 @pytest.mark.parametrize("call", [{}, {"feedback": "helpful"}, {"clear_feedback": True}])
 async def test_unknown_or_inactive_article_is_not_found_before_any_write(call):
     session = AsyncMock()
-    session.scalar.return_value = None
+    result = MagicMock()
+    result.one_or_none.return_value = None
+    session.execute.return_value = result
     with pytest.raises(AppError) as error:
         await articles.record(session, "00000000-0000-4000-8000-000000000001", "sample-6", **call)
     assert (error.value.code, error.value.http_status) == ("NOT_FOUND", 404)
-    assert "articles.is_active IS true" in str(session.scalar.call_args.args[0])
+    assert "articles.is_active IS true" in str(session.execute.call_args.args[0])
     session.get.assert_not_called()
     session.commit.assert_not_called()
 
@@ -122,3 +125,14 @@ def test_articles_pass_locale(signed_in, monkeypatch):
     monkeypatch.setattr(articles, "list_articles", list_articles)
     assert signed_in.get("/articles", headers={"X-App-Locale": "en"}).json() == {"articles": []}
     assert calls == ["en"]
+
+
+def test_production_cutover_preserves_all_ledger_types_and_is_one_transaction():
+    cutover = (DB / "changes/explore_prod.sql").read_text()
+    baseline = (DB / "schema.sql").read_text()
+    pattern = r"hay_transactions_type_check CHECK.*?ARRAY\[(.*?)\]"
+    expected = set(re.findall(r"'([^']+)'::text", re.search(pattern, baseline, re.S).group(1)))
+    actual = set(re.findall(r"'([^']+)'::text", re.search(pattern, cutover, re.S).group(1)))
+    assert actual == expected
+    assert {"mood_reward", "training_reward", "article_reward"} <= actual
+    assert not re.search(r"^\s*(?:BEGIN|COMMIT);", cutover, re.M | re.I)

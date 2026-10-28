@@ -45,9 +45,10 @@ baseline 실행을 거부한다. **`schema.sql`은 기존 DB를 갱신하는 스
 자동 적용하지 않으며 운영 머지 전에 `docs/OPERATIONS.md`의 주간 일기 전환 절차를 따른다.
 이는 이번 릴리스의 검토·인계 산출물이며 과거 마이그레이션 원장을 다시 만드는 것이 아니다.
 
-둘러보기 아티클 릴리스의 차이 SQL은 `changes/explore_content.sql`이다. 같은 방식으로 운영 머지 전에
-`docs/OPERATIONS.md`의 둘러보기 아티클 DB 전환 절차를 따른다. prod는 dev 이력 파일 대신
-`changes/explore_prod.sql`·`changes/hay_transactions_types.sql`을 그 표 순서대로 적용한다.
+탐색 탭 운영 승격 SQL은 `changes/explore_prod.sql` 한 파일이다. 생각 연습·제출/보상·아티클
+진행·원장 type 합집합·아티클 테이블과 원고를 한 트랜잭션으로 적용한다. 기존 dev용 분리 SQL을
+운영에 중복 실행하지 않는다. 대상·SHA·적용·검증·복구 순서는
+[운영 문서](../docs/OPERATIONS.md#둘러보기-아티클-db-전환)를 따른다. 구독 게이트 자체는 DB 변경이 없다.
 
 ## 구조 변경 절차
 

@@ -8,7 +8,7 @@ from app.core import errors
 from app.core.advisory_lock import advisory_xact_lock
 from app.models.article import Article, ArticleProgress
 from app.models.profile import Profile
-from app.services import hay_ledger
+from app.services import gating, hay_ledger, privacy
 from app.services.i18n import resolve
 
 REWARD_HAY = 20
@@ -41,13 +41,24 @@ async def list_activity(session: AsyncSession, user_id: str):
     return {"articles": [_view(id, by_id.get(id), like_count=counts.get(id, 0)) for id in ids]}
 
 async def record(session: AsyncSession, user_id: str, article_id: str, *, feedback: str | None = None, clear_feedback: bool = False):
-    if await session.scalar(select(Article.id).where(Article.id == article_id, Article.is_active.is_(True))) is None:
-        raise errors.AppError("NOT_FOUND", 404, "아티클을 찾을 수 없어요.")
     uid = uuid.UUID(user_id)
-    # Shared with the other wallet operations. Covers missing-row creation too.
+    # Shared with wallet operations. Read current article access after waiting for the lock.
     await advisory_xact_lock(session, uid)
+    article = (await session.execute(select(Article.id, Article.preview_block_count).where(
+        Article.id == article_id, Article.is_active.is_(True)))).one_or_none()
+    if article is None:
+        raise errors.AppError("NOT_FOUND", 404, "아티클을 찾을 수 없어요.")
+    await privacy.ensure_subject_active(session, uid)
     row = await session.get(ArticleProgress, (uid, article_id))
     now = datetime.now(timezone.utc)
+    # Check only a new reward, before adding a read row that could autoflush.
+    # A zero preview is still premium; existing reward receipts survive expiry.
+    if (not clear_feedback and feedback is None
+            and (row is None or row.rewarded_at is None)
+            and article.preview_block_count is not None):
+        entitlement = await gating.resolve_entitlement(session, str(uid), now)
+        if entitlement["plan"] == "free":
+            raise errors.AppError("ARTICLE_SUBSCRIPTION_REQUIRED", 403, "이 글의 보상은 구독 중에 받을 수 있어요.")
     if row is None:
         row = ArticleProgress(user_id=uid, article_id=article_id, read_at=now)
         session.add(row)

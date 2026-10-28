@@ -175,17 +175,21 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 
 탐색 탭 운영 승격은 **`db/changes/explore_prod.sql` 한 파일을 한 트랜잭션으로 적용**한다.
 생각 연습·제출 receipt·채점 이의·아티클 진행 테이블, main의 `mood_reward`를 보존한 건초
-원장 type 합집합, `articles` 테이블·원고 5편이 모두 포함된다. 구독 게이트는 코드 변경이며
+원장 type 합집합, `articles` 테이블·원고 5편(한국어·영어·일본어)이 모두 포함된다. 구독 게이트는 코드 변경이며
 추가 DB 구조가 없다. 오늘의 한마디 `daily_affirmations`는 main에 있는 기능으로, 기존 행을
 다시 만들거나 dev의 임시 문장을 운영으로 복사하지 않는다.
 
-- 통합 SQL SHA-256: `1dc1bbfc42384031949aeaffb5c9c361f4cf67d93603bf80cd31b17428438b9c`.
+- 통합 SQL SHA-256: `4afc65d074258686ccaa2ebfb8042125df7558930fc6fa2de65d24e1ce6f29e1`.
 - 과거 dev 적용용 `explore_training.sql`·`training_submissions.sql`·`training_claim_reasons.sql`·
   `explore_articles.sql`·`hay_transactions_types.sql`·`explore_content.sql`을 운영에 따로 실행하지 않는다.
   통합본과 중복 실행하면 실패한다. 개발 DB는 이미 이 구조가 있어 통합 SQL의 적용 대상이 아니다.
 - 적용 대상: 탐색 기능 테이블이 아직 없는 최신 main DB. `article_progress`만 과거에 존재한다면
   기존 행은 보존하고 기존 sample-id CHECK만 제거한다. 이미 일부 적용했거나 계약이 다르면 중단해
   차이를 먼저 대조한다. `IF NOT EXISTS`로 부분 적용을 숨기거나 기존 데이터를 지우지 않는다.
+
+2026-10-28 원고 갱신: 원고 5편에 영어·일본어를 더하고 한국어의 연구 인용 4곳(2·3·4·5편)을 실제 연구에 맞게
+고쳤다. 블록 수·종류·강조 구절 수는 세 언어가 같다. 개발 DB에는 같은 `content_i18n`을 행별 UPDATE로 반영했고,
+`explore_content.sql`은 처음 적용한 한국어 원고 기록으로 그대로 둔다. 위 SHA는 이 갱신 뒤의 값이다.
 
 2026-10-28 통합 SQL 검증: 기존 개발 Supabase의 트랜잭션 안에 임시 스키마와 main 기준 원장
 CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·RLS, 원고 5편, 기존 mood_reward
@@ -203,9 +207,9 @@ CHECK를 만들고 단일 SQL을 실행했다. 테이블 8개의 컬럼 계약·
    실패하면 테이블·CHECK·원고 입력을 모두 롤백한다. SQL SHA가 이 문서와 다르면 중단한다.
 
    ```bash
-   uv run python -m db.apply db/changes/explore_prod.sql --env prod --expected-sha256 1dc1bbfc42384031949aeaffb5c9c361f4cf67d93603bf80cd31b17428438b9c
+   uv run python -m db.apply db/changes/explore_prod.sql --env prod --expected-sha256 4afc65d074258686ccaa2ebfb8042125df7558930fc6fa2de65d24e1ce6f29e1
    # 운영 승격 승인 후, 머지 직전에만 실행한다.
-   uv run python -m db.apply db/changes/explore_prod.sql --env prod --commit --allow-prod --expected-sha256 1dc1bbfc42384031949aeaffb5c9c361f4cf67d93603bf80cd31b17428438b9c
+   uv run python -m db.apply db/changes/explore_prod.sql --env prod --commit --allow-prod --expected-sha256 4afc65d074258686ccaa2ebfb8042125df7558930fc6fa2de65d24e1ce6f29e1
    uv run python -m db.verify --env prod
    ```
 

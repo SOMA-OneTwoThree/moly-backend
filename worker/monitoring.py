@@ -11,6 +11,9 @@ from sqlalchemy import text
 from app.config import settings
 from app.core.db import get_sessionmaker
 from app.services import monitoring_state, config_store, jobs
+from app.services.limits import effective_token_config
+from app.services.entitlement import _parse_dt
+from worker import daily_report
 
 _log = logging.getLogger(__name__)
 _KST = ZoneInfo("Asia/Seoul")
@@ -84,101 +87,116 @@ def cost_line(row: dict, now: datetime) -> str:
 
 
 async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = None) -> str:
-    lines = []
-    attention = False
-    unavailable = False
-    previous_signals = {"worker_diary": "일기", "worker_memory": "기억", "worker_timeout": "시간 초과",
-                        "rc_processor": "RC 처리기", "worker_push": "푸시"}
+    signals = {"worker_diary": "일기 처리", "worker_memory": "기억 처리", "worker_timeout": "정기 작업 시간",
+               "rc_processor": "구독 처리", "worker_push": "알림 전송"}
+    retention = [config_store.RETENTION_LAST_SUCCESS_PREFIX + name for name in (
+        "retention_idempotency_gc", "usage_ledger_rollup", "retention_jobs_gc", "mem0_candidate_gc",
+    )]
+    keys = [config_store.WORKER_LAST_SUCCESS_KEY, config_store.WORKER_TZ_UNRESOLVABLE_KEY,
+            daily_report.TOTALS_KEY, "diary_min_user_chars", "free_launch_until", *retention,
+            *(monitoring_state.key_for(signal) for signal in signals)]
+    live = {"notes": [], "worker": "정기 실행: 확인 필요", "retention": "데이터 정리: 확인 필요"}
+    values = {}
     try:
         async with get_sessionmaker()() as session:
-            values = await config_store.get_config_values(session, [config_store.WORKER_LAST_SUCCESS_KEY,
-                *(monitoring_state.key_for(signal) for signal in previous_signals)])
-        value = values.get(config_store.WORKER_LAST_SUCCESS_KEY)
-        stamp = datetime.fromisoformat(value) if isinstance(value, str) else None
-        age = max(0, int((now - stamp).total_seconds() / 60)) if stamp else None
-        lines.append(f"마지막 tick 완료: {age}분 전 (개별 작업 성공 보증 아님)"
-                     if age is not None else "마지막 tick 완료: 관측 불가")
-        unavailable |= age is None
-        attention |= age is not None and age > 120  # 기존 /health/deep의 2시간 stale 기준.
-        pending = []
-        for signal, label in previous_signals.items():
-            state = values.get(monitoring_state.key_for(signal))
-            if isinstance(state, dict) and state.get("active"):
-                pending.append(label)
-            elif state is not None and not isinstance(state, dict):
-                unavailable = True
-        if pending:
-            attention = True
-            lines.append("이전 실패 후 정상 실행 미확인: " + ", ".join(pending))
-    except Exception as exc:  # noqa: BLE001
-        _log.warning("일일 heartbeat 관측 불가: %s", type(exc).__name__)
-        lines.append("마지막 tick 완료: 관측 불가")
-        unavailable = True
+            values = await config_store.get_config_values(session, keys)
+        stamp = values.get(config_store.WORKER_LAST_SUCCESS_KEY)
+        last = datetime.fromisoformat(stamp) if isinstance(stamp, str) else None
+        if last is not None and last.tzinfo is not None:
+            age = (now-last).total_seconds()
+            normal = -60 <= age <= 45*60
+            live["worker"] = f"정기 실행: {'정상' if normal else '확인 필요'} · 마지막 완료 {last.astimezone(_KST):%H:%M}"
+            if not normal:
+                live["notes"].append("정기 실행 시각 확인 필요")
+        else:
+            live["notes"].append("정기 실행 완료 시각 확인 필요")
+        for signal, label in signals.items():
+            value = values.get(monitoring_state.key_for(signal))
+            if isinstance(value, dict) and value.get("active"):
+                live["notes"].append(label + " 확인 필요")
+            elif value is not None and not isinstance(value, dict):
+                live["notes"].append(label + " 상태 확인 필요")
+        completed = 0
+        for key in retention:
+            value = values.get(key)
+            stamp = datetime.fromisoformat(value) if isinstance(value, str) else None
+            completed += int(stamp is not None and stamp.tzinfo is not None
+                             and timedelta(0) <= now-stamp <= timedelta(hours=26))
+        live["retention"] = f"데이터 정리: {completed}/4 완료"
+        if completed != 4:
+            live["notes"].append(f"데이터 정리 {4-completed}개 확인 필요")
+        if values.get(config_store.WORKER_TZ_UNRESOLVABLE_KEY):
+            live["notes"].append("일부 사용자 현지 시각 확인 필요")
+    except Exception:
+        live["notes"].append("정기 작업 상태 조회 확인 필요")
     try:
         async with get_sessionmaker()() as session:
             queues = await jobs.queue_stats(session)
-        totals = {state: sum(item[state] for item in queues.values())
-                  for state in ("ready", "running", "dead")}
-        lines.append(f"큐: ready {totals['ready']} / running {totals['running']}"
-                     f" / actionable dead {totals['dead']} (성공 replay 조상 제외)")
-        ages = [item["oldest_dead_age_s"] for item in queues.values()
-                if item.get("oldest_dead_age_s") is not None]
-        if ages:
-            lines.append(f"가장 오래된 미해결 dead: {int(max(ages) / 3600)}시간 경과")
-        attention |= totals["dead"] > 0
-    except Exception as exc:  # noqa: BLE001
-        _log.warning("일일 큐 관측 불가: %s", type(exc).__name__)
-        lines.append("큐: 관측 불가")
-        unavailable = True
+            dead = sum(item["dead"] for item in queues.values())
+            if dead:
+                live["notes"].append(f"완료되지 못한 비동기 작업 {dead:,}건")
+            pending = (await session.execute(text("""
+                SELECT count(*) FILTER(WHERE state='ready' AND available_at<:now-interval '30 minutes') late,
+                       count(*) FILTER(WHERE state='running' AND lease_until<:now) expired
+                FROM async_jobs WHERE state IN ('ready','running')
+            """), {"now": now})).mappings().one()
+            retention_pending = set((await session.execute(text("""
+                SELECT DISTINCT job_type FROM async_jobs
+                WHERE job_type=ANY(CAST(:kinds AS text[])) AND state IN ('ready','running')
+                AND (state='running' OR available_at<=:now)
+            """), {"kinds": [key.removeprefix(config_store.RETENTION_LAST_SUCCESS_PREFIX) for key in retention],
+                     "now": now})).scalars())
+        if pending["late"]:
+            live["notes"].append(f"30분 이상 대기 중인 작업 {pending['late']:,}건")
+        if pending["expired"]:
+            live["notes"].append(f"실행 상태 확인이 필요한 작업 {pending['expired']:,}건")
+        if retention_pending:
+            live["retention"] = f"데이터 정리: {len(retention_pending)}개 처리 중"
+    except Exception:
+        live["notes"].append("비동기 작업 상태 조회 확인 필요")
     if rc is None:
-        lines.append("RC 미해결: 관측 불가")
-        unavailable = True
+        live["notes"].append("구독 처리 현황 조회 확인 필요")
     else:
-        lines.extend(rc_line(env, data, now) for env, data in rc.items())
-        attention |= any(data["failed"] + data["pending"] + data.get("provider_unavailable", 0)
-                         for data in rc.values())
-    if counts is None:
-        lines.append("RC 처리기(이번 tick): 관측 불가")
-        unavailable = True
-    else:
-        failures = counts.get("rc_exception", 0) + counts.get("rc_processor_error", 0)
-        handled = counts.get("rc_processed", 0) + counts.get("rc_failed", 0) + counts.get("rc_pending", 0)
-        lines.append(f"RC 처리기(이번 tick): 결과 {handled}건 / 예외 {failures}건"
-                     + (" (처리 대상 없음, provider 정상 검증 아님)" if not handled and not failures else ""))
-        attention |= failures > 0
-    if counts is not None:
-        lines.append(
-            f"작업(이번 tick): 일기 {counts.get('diaries', 0)} / 실패 {counts.get('diary_failed', 0)}"
-            f" / 시간 초과 {counts.get('timed_out', 0)} / 다음 tick 인계 {counts.get('deadline_skipped', 0)}"
-            f" / 해석 불가 timezone {counts.get('tz_unresolvable', 0)}종"
-        )
-        lines.append(
-            f"푸시(이번 tick): 수락 {counts.get('push_sent', 0)}"
-            f" / 무효 토큰 {counts.get('push_invalid_token', 0)}"
-            f" / 비활성 {counts.get('push_invalidated', 0)}"
-            f" / 설정 {counts.get('push_setup_error', 0)}"
-            f" / 일시 {counts.get('push_transient', 0)}"
-            f" / payload {counts.get('push_payload_error', 0)}"
-        )
+        for environment, label in (("PRODUCTION", "구독"), ("UNKNOWN", "환경 미확인 구독")):
+            item = rc[environment]
+            pending = item["failed"]+item["pending"]
+            if pending:
+                live["notes"].append(f"{label} 처리 확인 {pending:,}건")
+        sandbox = rc["SANDBOX"]["failed"]+rc["SANDBOX"]["pending"]
+        if sandbox:
+            live["info"] = [f"테스트 결제 처리 확인 {sandbox:,}건"]
+        if any(item.get("provider_unavailable", 0) for item in rc.values()):
+            live["notes"].append("스토어 구독 정보 확인 대기")
+    if counts and (counts.get("rc_exception") or counts.get("rc_processor_error")):
+        live["notes"].append("구독 처리 확인 필요")
+    cfg = await effective_token_config(None, raw=values)
+    data = await daily_report.business(now, {
+        "diary_min_user_chars": cfg["diary_min_user_chars"],
+        "launch_until": _parse_dt(cfg["free_launch_until"]),
+    })
+    change = None
+    if data["subscriptions"] is not None:
+        try:
+            change = await daily_report.subscription_change(now, data["subscriptions"])
+        except Exception:
+            pass
+    cost = None
     try:
         start, end = cost_window(now)
         async with get_sessionmaker()() as session:
-            row = (await session.execute(_COST_SQL, {"start": start, "end": end})).mappings().one()
-        lines.append(cost_line(dict(row), now))
-        unavailable |= row["unknown"] > 0
-    except Exception as exc:  # noqa: BLE001
-        _log.warning("일일 원가 관측 불가: %s", type(exc).__name__)
-        lines.append("AI 원장 추정 비용: 관측 불가")
-        unavailable = True
-    status = "확인 필요" if attention else "관측한 항목에 미해결 없음"
-    if unavailable:
-        status = status + " / 일부 관측 불가" if attention else "일부 관측 불가"
-    return "\n".join([f"운영점검 — {status} — {now.astimezone(_KST):%Y-%m-%d %H:%M KST}", *lines])
+            cost = dict((await session.execute(_COST_SQL, {"start": start, "end": end})).mappings().one())
+    except Exception:
+        pass
+    return daily_report.render(now, data, live, values.get(daily_report.TOTALS_KEY), cost, change)
 
 
 async def emit(now: datetime, counts: dict) -> None:
     """관측·전송 전체를 제한한다. 미통지 사건은 다음 tick에 다시 관측한다."""
     async with asyncio.timeout(_MONITORING_BUDGET_S):
+        try:
+            await daily_report.record_tick(now, counts)
+        except Exception:
+            _log.warning("일일 집계 갱신 확인 필요")
         await _emit(now, counts)
 
 

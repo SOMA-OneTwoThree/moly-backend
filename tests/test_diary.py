@@ -92,10 +92,12 @@ def test_welcome_content_is_placeholder_and_renders_with_josa():
     tpl = diary_service._WELCOME_CONTENT
     assert naming.TOKEN in tpl and "승민" not in tpl  # 저장은 토큰만
     seungmin = naming.render(tpl, "승민")
-    assert seungmin.startswith("승민을 만난 날\n\n")
-    assert "그런데 오늘은 승민이 찾아와" in seungmin
-    assert "그런데 오늘은 지호가 찾아와" in naming.render(tpl, "지호")
-    assert naming.render(tpl, "지호").startswith("지호를 만난 날")
+    assert seungmin.startswith("승민, 처음 만난 날\n\n")
+    assert "그런데 오늘은 승민의 방문에" in seungmin
+    # 비한글 이름은 조사가 생략되므로 템플릿은 받침 무관 표현만 쓴다.
+    moly = naming.render(tpl, "Moly")
+    assert moly.startswith("Moly, 처음 만난 날\n\n")
+    assert "그런데 오늘은 Moly의 방문에" in moly
     assert "사용자" not in seungmin  # 화자 라벨 누출 없음
 
 
@@ -182,13 +184,13 @@ async def test_first_list_returns_signup_welcome_and_repeat_keeps_original_date(
     first = await diary_service.list_diaries(session, UID)
     item = first["data"][0]
     assert len(first["data"]) == 1
-    assert item["title"] == "승민을 만난 날"
+    assert item["title"] == "승민, 처음 만난 날"
     assert item["published_at"] == PAST.isoformat()
     assert item["read"] is False
     assert session.committed is True
     detail = await diary_service.get_diary(session, UID, item["id"])
     assert detail["conversation_ref"] is None
-    assert "그런데 오늘은 승민이 찾아와" in detail["body"]
+    assert "그런데 오늘은 승민의 방문에" in detail["body"]
 
     profile.timezone = "America/Los_Angeles"
     profile.language = "ja"
@@ -198,7 +200,7 @@ async def test_first_list_returns_signup_welcome_and_repeat_keeps_original_date(
     assert len(session.rows) == 1
     assert repeated["data"][0]["id"] == item["id"]
     assert repeated["data"][0]["diary_date"] == item["diary_date"]
-    assert repeated["data"][0]["title"] == "지호를 만난 날"
+    assert repeated["data"][0]["title"] == "지호, 처음 만난 날"
     assert session.committed is False
     document.assert_awaited_once()
 

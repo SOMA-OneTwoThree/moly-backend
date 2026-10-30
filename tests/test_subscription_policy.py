@@ -136,14 +136,14 @@ async def test_previous_day_keeps_original_policy_without_subscription_lookup():
     session.execute.assert_not_awaited()
 
 
-async def test_delayed_worker_uses_completed_day_not_wall_clock():
+async def test_delayed_worker_uses_completed_day_not_wall_clock(monkeypatch):
     p = SimpleNamespace(**vars(PROFILE), trial_ends_at=T + timedelta(hours=48))
     session = AsyncMock()
-    session.execute.return_value = SimpleNamespace(scalars=lambda: SimpleNamespace(first=lambda: None))
+    lookup = AsyncMock(return_value=None)
+    monkeypatch.setattr(dg.subscription_periods, "subscription_at", lookup)
     assert await dg._personal_diary_eligible(session, p, date(2026, 10, 1), CONFIG)
     assert not await dg._personal_diary_eligible(session, p, date(2026, 10, 3), CONFIG)
-    query = str(session.execute.call_args.args[0])
-    assert "subscriptions.purchased_at <=" in query and "subscriptions.expires_at >" in query
+    assert lookup.call_args.args[2] == datetime(2026, 10, 3, 18, 59, 59, 999999, timezone.utc)
 
 
 # 2026-10-03 10:00 KST 가입 → 가입 활동일은 10/04 04:00 KST 직전까지.
@@ -163,7 +163,7 @@ def test_free_signup_day_gets_one_and_a_quarter_quota_and_personal_diary(languag
 async def test_signup_day_diary_is_personal_only_for_that_day(monkeypatch):
     p = SimpleNamespace(**vars(PROFILE), trial_ends_at=None, created_at=SIGNED_UP)
     session = AsyncMock()
-    session.execute.return_value = SimpleNamespace(scalars=lambda: SimpleNamespace(first=lambda: None))
+    monkeypatch.setattr(dg.subscription_periods, "subscription_at", AsyncMock(return_value=None))
     assert await dg._personal_diary_eligible(session, p, date(2026, 10, 3), CONFIG)
     assert not await dg._personal_diary_eligible(session, p, date(2026, 10, 4), CONFIG)
 

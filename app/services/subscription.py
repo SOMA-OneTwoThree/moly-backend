@@ -33,7 +33,7 @@ from app.models.profile import Profile
 from app.models.revenuecat_event import RevenuecatEvent
 from app.models.subscription import Subscription
 from app.models.subscription_hay_grant import SubscriptionHayGrant
-from app.services import hay_ledger, i18n, payment, revenuecat
+from app.services import hay_ledger, i18n, payment, revenuecat, subscription_periods
 from app.services.account import _load_profile
 from app.services.config_store import get_config_values
 from app.services.entitlement import derive_entitlement
@@ -519,6 +519,8 @@ async def _reconcile_subscription(
     sub.latest_transaction_id = latest
     sub.plan = plan
     sub.expires_at = expires
+    sub.purchased_at = (subscription_periods.period_time(snapshot.get("current_period_starts_at"))
+                        or subscription_periods.period_time(latest_tx.get("purchased_at")))
     sub.status = ("grace_period" if snapshot.get("status") == "in_grace_period" else "active") if gives_access else "expired"
     sub.auto_renew_enabled = snapshot.get("auto_renewal_status") in ("will_renew", "will_change_product", "has_already_renewed")
     free_period = snapshot.get("status") == "trialing"
@@ -724,7 +726,8 @@ async def _handle_active(
     elif sub is None:
         sub = await _create_or_get_subscription(session, uid, plan, original_tx, latest_tx, expires, event, event_ts)
     else:
-        _apply_active_state(sub, etype, plan, expires, latest_tx, event_ts, event.get("period_type"), _free_subscription_period(event))
+        _apply_active_state(sub, etype, plan, expires, latest_tx, event_ts, event.get("period_type"), _free_subscription_period(event),
+                            purchased_at=_ms_to_dt(event.get("purchased_at_ms")))
 
     # 재무는 상태와 분리(옛 이벤트여도 멱등 처리) — 결제 기록·증정은 INITIAL_PURCHASE/RENEWAL만(새 과금).
     if etype in ("INITIAL_PURCHASE", "RENEWAL"):
@@ -790,6 +793,7 @@ def _apply_active_state(
     sub: Subscription, etype: str, plan: str, expires: datetime | None,
     latest_tx: str | None, event_ts: datetime | None, period_type: str | None = None,
     in_free_period: bool | None = None,
+    *, purchased_at: datetime | None = None,
 ) -> None:
     """상태 단조 + 단조 연장 예외로 status/plan/expires/auto_renew 적용. PRODUCT_CHANGE는 상태·plan 미변경."""
     applies = _state_applies(sub, event_ts)
@@ -802,6 +806,7 @@ def _apply_active_state(
     )
     if not (applies or extend):
         return  # 옛 상태 이벤트 — no-op(재무는 호출측이 별도 멱등 처리)
+    same_period = (latest_tx is None or latest_tx == getattr(sub, "latest_transaction_id", None)) and expires == sub.expires_at
     if latest_tx:
         sub.latest_transaction_id = latest_tx
     if etype == "PRODUCT_CHANGE":
@@ -811,6 +816,8 @@ def _apply_active_state(
     sub.plan = plan
     sub.status = "active"
     sub.expires_at = expires
+    if purchased_at is not None or (etype in ("INITIAL_PURCHASE", "RENEWAL") and not same_period):
+        sub.purchased_at = purchased_at
     free_period = period_type == "TRIAL" if in_free_period is None else in_free_period
     if period_type is not None and (applies or (extend and not free_period)):
         sub.store_trial_ends_at = expires if free_period else None
@@ -827,6 +834,7 @@ async def _create_or_get_subscription(
         id=uuid.uuid4(), user_id=uid, plan=plan, status="active",
         original_transaction_id=original_tx, latest_transaction_id=latest_tx,
         expires_at=expires, auto_renew_enabled=True,
+        purchased_at=_ms_to_dt(event.get("purchased_at_ms")),
         store_trial_ends_at=expires if _free_subscription_period(event) else None,
         environment=_capped(event.get("environment"), _ENV_CAP), last_event_at=event_ts,
     )
@@ -844,7 +852,8 @@ async def _create_or_get_subscription(
         # 기존행 의미 재검증(§6) — 동시 생성 충돌 후 소유자 불일치면 멱등 수렴이 아니라 실오류.
         if existing.user_id != uid:
             raise _permanent(f"다른 계정 소유 구독 {original_tx}")
-        _apply_active_state(existing, event.get("type"), plan, expires, latest_tx, event_ts, event.get("period_type"), _free_subscription_period(event))
+        _apply_active_state(existing, event.get("type"), plan, expires, latest_tx, event_ts, event.get("period_type"), _free_subscription_period(event),
+                            purchased_at=_ms_to_dt(event.get("purchased_at_ms")))
         return existing
 
 

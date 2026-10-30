@@ -7,12 +7,25 @@
 import uuid
 
 import pytest
+from unittest.mock import AsyncMock
 
 from app.services import (
     chat_references,
     chat_turns,
     privacy,
 )
+
+
+@pytest.fixture(autouse=True)
+def _daily_report_defaults(monkeypatch, request):
+    if "integration" in request.node.path.parts:
+        return
+    from worker import daily_report
+    monkeypatch.setattr(daily_report, "record_tick", AsyncMock())
+    monkeypatch.setattr(daily_report, "business", AsyncMock(return_value={
+        "activity": None, "subscriptions": None, "diaries": None,
+    }))
+    monkeypatch.setattr(daily_report, "subscription_change", AsyncMock(return_value=None))
 
 
 @pytest.fixture(autouse=True)

@@ -27,6 +27,7 @@ class Subscription(Base):
     status: Mapped[str] = mapped_column(String)  # active | grace_period | expired | revoked
     original_transaction_id: Mapped[str] = mapped_column(String, unique=True)
     latest_transaction_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    # Start of the store period represented by expires_at.
     purchased_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     # RC store trial is a real subscription, distinct from the app's own 48h trial.

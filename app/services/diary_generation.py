@@ -24,11 +24,10 @@ from app.core.time_utils import DAY_BOUNDARY_HOUR, safe_zone
 from app.models.diary import Diary
 from app.models.message import Message
 from app.models.profile import Profile
-from app.models.subscription import Subscription
 from app.models.moly_life_ment import MolyLifeMent
 from app.models.user_daily_stats import UserDailyStats
 from app.services import diary_recall_repo, i18n, llm, naming, text_clean, usage_ledger
-from app.services import config_store, diary_prompts, privacy
+from app.services import config_store, diary_prompts, privacy, subscription_periods
 from app.services.entitlement import derive_entitlement, launch_ended
 from app.services.diary_prompts import diary_prompt, parse, self_check_prompt
 
@@ -473,14 +472,7 @@ async def _personal_diary_eligible(session, profile, target_date, cfg) -> bool:
     ).astimezone(timezone.utc) - timedelta(microseconds=1)
     if not launch_ended(cfg, boundary):
         return True
-    sub = (await session.execute(
-        select(Subscription).where(
-            Subscription.user_id == profile.id,
-            Subscription.status.in_(("active", "grace_period", "expired")),
-            Subscription.purchased_at <= boundary,
-            Subscription.expires_at > boundary,
-        ).order_by(Subscription.expires_at.desc()).limit(1)
-    )).scalars().first()
+    sub = await subscription_periods.subscription_at(session, profile.id, boundary)
     return derive_entitlement(profile, sub, 0, cfg, boundary)["personal_diary_eligible"]
 
 

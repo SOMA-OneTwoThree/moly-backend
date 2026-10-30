@@ -17,6 +17,7 @@ def observe(monkeypatch):
     async def session():
         yield SimpleNamespace()
     monkeypatch.setattr(monitoring, "get_sessionmaker", lambda: session)
+    monkeypatch.setattr(monitoring.daily_report, "record_tick", AsyncMock())
     rc = {env: {"failed": 0, "pending": 0, "fingerprint": "empty", "oldest": None}
           for env in ("PRODUCTION", "SANDBOX", "UNKNOWN")}
     monkeypatch.setattr(monitoring, "rc_snapshot", AsyncMock(return_value=rc))
@@ -111,9 +112,9 @@ async def test_snapshot_reads_canonical_queue_stats_and_marks_unknown(observe, m
     monkeypatch.setattr(monitoring.jobs, "queue_stats", queues)
     message = await monitoring._daily_message(NOW, rc)
     queues.assert_awaited_once()
-    assert "actionable dead 0" in message and "성공 replay 조상 제외" in message
-    assert "마지막 tick 완료: 관측 불가" in message and "AI 원장 추정 비용: 관측 불가" in message
-    assert "전체 정상" not in message
+    assert "actionable" not in message and "RC PRODUCTION" not in message
+    assert "정기 실행 완료 시각 확인 필요" in message and "어제 AI 사용 비용: 집계 확인 필요" in message
+    assert "🟢" not in message
 
 
 async def test_daily_snapshot_keeps_idle_failure_visible_and_uses_existing_age(observe, monkeypatch):
@@ -126,9 +127,9 @@ async def test_daily_snapshot_keeps_idle_failure_visible_and_uses_existing_age(o
         "memory": {"ready": 1, "running": 0, "dead": 1, "oldest_dead_age_s": 7200},
     }))
     message = await monitoring._daily_message(NOW, rc, {})
-    assert message.startswith("운영점검 — 확인 필요")
-    assert "이전 실패 후 정상 실행 미확인: 일기" in message and "2시간 경과" in message
-    assert "처리 대상 없음, provider 정상 검증 아님" in message
+    assert "🟡 확인할 사항 있음" in message
+    assert "일기 처리 확인 필요" in message and "완료되지 못한 비동기 작업 1건" in message
+    assert "provider" not in message
     assert reader.await_count == 1
 
 

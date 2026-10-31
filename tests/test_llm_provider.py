@@ -196,7 +196,7 @@ def test_billable_anthropic_weights_preserved():
     assert c._billable(cold) == 25 + 5 * 90 + round(1.25 * 3000)
 
 
-# --- 프로덕션 키 가드: 활성 모델(chat·diary·utility) 전부 검사(부분 롤백 안전) ---
+# --- 프로덕션 키 가드: 활성 모델 전부 검사(부분 롤백 안전) ---
 def _prod(**over):
     base = dict(
         environment="production", revenuecat_webhook_auth="rc",
@@ -224,9 +224,20 @@ def test_prod_guard_requires_anthropic_when_any_model_claude():
     s = _prod(
         model_chat="claude-sonnet-5", model_diary="claude-sonnet-5",
         model_utility="claude-haiku-4-5-20251001", model_training_grade="claude-haiku-4-5-20251001",
+        model_daily_practice="claude-haiku-4-5-20251001",
         openai_api_key="", anthropic_api_key="",
     )
     with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
+        s.require_production_ready()
+
+
+def test_prod_guard_counts_the_daily_practice_model():
+    s = _prod(
+        model_chat="claude-sonnet-5", model_diary="claude-sonnet-5",
+        model_utility="claude-haiku-4-5-20251001", model_training_grade="claude-haiku-4-5-20251001",
+        model_daily_practice="gpt-6-luna", anthropic_api_key="sk-a", openai_api_key="",
+    )
+    with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
         s.require_production_ready()
 
 

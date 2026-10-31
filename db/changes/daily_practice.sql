@@ -9,9 +9,9 @@ SET LOCAL lock_timeout = '2s';
 SET LOCAL statement_timeout = '60s';
 CREATE TABLE public.daily_practice_templates (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  title_ko text NOT NULL UNIQUE CHECK (char_length(title_ko) BETWEEN 1 AND 60),
-  title_en text NOT NULL CHECK (char_length(title_en) BETWEEN 1 AND 60),
-  title_ja text NOT NULL CHECK (char_length(title_ja) BETWEEN 1 AND 60),
+  title_ko text NOT NULL UNIQUE CHECK (char_length(title_ko) BETWEEN 1 AND 50),
+  title_en text NOT NULL CHECK (char_length(title_en) BETWEEN 1 AND 50),
+  title_ja text NOT NULL CHECK (char_length(title_ja) BETWEEN 1 AND 50),
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now()
 );

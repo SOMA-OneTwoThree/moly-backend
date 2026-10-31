@@ -7553,21 +7553,21 @@
       "public.daily_practice_templates.daily_practice_templates_title_en_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK (((char_length(title_en) >= 1) AND (char_length(title_en) <= 60)))",
+        "definition": "CHECK (((char_length(title_en) >= 1) AND (char_length(title_en) <= 50)))",
         "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_practice_templates.daily_practice_templates_title_ja_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK (((char_length(title_ja) >= 1) AND (char_length(title_ja) <= 60)))",
+        "definition": "CHECK (((char_length(title_ja) >= 1) AND (char_length(title_ja) <= 50)))",
         "enforcement_triggers": [],
         "validated": true
       },
       "public.daily_practice_templates.daily_practice_templates_title_ko_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK (((char_length(title_ko) >= 1) AND (char_length(title_ko) <= 60)))",
+        "definition": "CHECK (((char_length(title_ko) >= 1) AND (char_length(title_ko) <= 50)))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -16811,5 +16811,5 @@
       }
     }
   },
-  "schema_sha256": "3d919269f8765199076dc68ebd586978e8378331bc95357a38d3b7a7f672730f"
+  "schema_sha256": "4f7be7843ebed85b34ff4be939fd53eae8fe3ea1f129a17d713ddcf535da2999"
 }

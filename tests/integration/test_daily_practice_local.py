@@ -17,8 +17,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
+from app.core.app_day import AppDay
 from app.core.errors import AppError
-from app.services import daily_practice, privacy
+from app.schemas.daily_practice import DailyPracticeRoutineResponse
+from app.schemas.routine import RoutineListResponse
+from app.services import daily_practice, privacy, routine
 from db.schema_contract import require_scratch
 
 REAL_ENSURE_ACTIVE = privacy.ensure_subject_active
@@ -176,13 +179,30 @@ async def test_database_refuses_the_same_template_twice_on_a_local_date(engine):
             """), {"u": uuid.UUID(user)})
 
 
-@pytest.mark.parametrize("title", ["", "가" * 61])
-async def test_database_refuses_titles_outside_the_length_limit(engine, title):
+@pytest.mark.parametrize("column", ["title_ko", "title_en", "title_ja"])
+@pytest.mark.parametrize("title", ["", "가" * 51])
+async def test_database_refuses_titles_outside_the_length_limit(engine, column, title):
+    values = {"title_ko": "K", "title_en": "E", "title_ja": "J", column: title}
     with pytest.raises(IntegrityError):
         async with engine.begin() as conn:
             await conn.execute(text("""
-                INSERT INTO daily_practice_templates (title_ko, title_en, title_ja) VALUES (:t, 'E', 'J')
-            """), {"t": title})
+                INSERT INTO daily_practice_templates (title_ko, title_en, title_ja)
+                VALUES (:title_ko, :title_en, :title_ja)
+            """), values)
+
+
+async def test_longest_title_becomes_a_routine_that_still_lists(engine):
+    longest = "가" * 50
+    async with engine.begin() as conn:
+        await conn.execute(text("""
+            INSERT INTO daily_practice_templates (title_ko, title_en, title_ja) VALUES (:t, :t, :t)
+        """), {"t": longest})
+    user = await signup(engine)
+    practice_id = await completed(engine, user)
+    added = await call(engine, daily_practice.add_routine, user, practice_id, **common())
+    assert DailyPracticeRoutineResponse.model_validate(added).routine.name == longest
+    listed = await call(engine, routine.list_routines, user, day=AppDay.at(NOW, SEOUL))
+    assert RoutineListResponse.model_validate(listed).routines[0].name == longest
 
 
 async def test_database_refuses_a_duplicate_korean_title(engine):

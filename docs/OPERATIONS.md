@@ -414,15 +414,15 @@ uv run python -m db.verify --env dev
 `DROP TABLE public.daily_practice_offers, public.daily_practice_templates;`다. 사용자 행도 함께 사라진다.
 
 템플릿은 마이그레이션에 들어 있지 않다. 운영자가 직접 넣으며 모든 사용자가 함께 쓴다. 활성 템플릿이 없으면 API는
-오류 없이 `options: []`를 낸다. 3개보다 적으면 그만큼만 낸다. 문구는 언어별 1~60자이고 `title_ko`는 유일하다.
+오류 없이 `options: []`를 낸다. 3개보다 적으면 그만큼만 낸다. 문구는 언어별 1~50자(루틴 이름 한도와 같다)이고 `title_ko`는 유일하다.
 
 ```sql
 INSERT INTO public.daily_practice_templates (title_ko, title_en, title_ja)
 VALUES ('물 한 잔 마시기', 'Drink a glass of water', 'お水を一杯飲む');
 ```
 
-내릴 때는 지우지 말고 끈다. 사용자 행이 참조하므로 `DELETE`는 실패한다. 끈 템플릿은 새 제안에 나오지 않지만 이미 받은
-제안과 진행 중인 실천에는 그대로 보인다.
+내릴 때는 끈다. 한 번이라도 사용자에게 보인 템플릿은 사용자 행이 참조하므로 `DELETE`가 실패하고, 보인 적 없는 템플릿만
+지울 수 있다. 끈 템플릿은 새 제안에 나오지 않지만 이미 받은 제안과 진행 중인 실천에는 그대로 보인다.
 
 ```sql
 UPDATE public.daily_practice_templates SET is_active = false WHERE title_ko = '물 한 잔 마시기';

@@ -1818,6 +1818,198 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.daily_practice_actions.category": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.daily_practice_actions.icon": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.daily_practice_actions.model": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.prompt_version": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.slots": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text[]"
+      },
+      "public.daily_practice_actions.source": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.speech_en": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.speech_ja": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.speech_ko": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.status": {
+        "collation": "\"default\"",
+        "default": "'active'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.title_en": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.title_ja": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_actions.title_ko": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_offers.action_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.daily_practice_offers.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.daily_practice_offers.expires_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.daily_practice_offers.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.daily_practice_offers.local_date": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "date"
+      },
+      "public.daily_practice_offers.routine_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "uuid"
+      },
+      "public.daily_practice_offers.status": {
+        "collation": "\"default\"",
+        "default": "'offered'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.daily_practice_offers.updated_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.daily_practice_offers.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
       "public.diaries.about_tags": {
         "collation": "\"default\"",
         "default": "'{}'::text[]",
@@ -7343,6 +7535,161 @@
         ],
         "validated": true
       },
+      "public.daily_practice_actions.daily_practice_actions_category_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((category = ANY (ARRAY['rest'::text, 'body'::text, 'calm'::text, 'mind'::text, 'self_kindness'::text, 'connect'::text, 'order'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_icon_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((icon ~ '^[a-z0-9_]{1,64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_slots_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((cardinality(slots) >= 1) AND (slots <@ ARRAY['morning'::text, 'day'::text, 'evening'::text, 'night'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_source_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((source = ANY (ARRAY['seed'::text, 'top_up'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_speech_en_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((char_length(speech_en) >= 1) AND (char_length(speech_en) <= 100)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_speech_ja_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((char_length(speech_ja) >= 1) AND (char_length(speech_ja) <= 50)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_speech_ko_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((char_length(speech_ko) >= 1) AND (char_length(speech_ko) <= 40)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_status_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((status = ANY (ARRAY['active'::text, 'retired'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_title_en_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((char_length(title_en) >= 1) AND (char_length(title_en) <= 32)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_title_ja_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((char_length(title_ja) >= 1) AND (char_length(title_ja) <= 18)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_title_ko_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((char_length(title_ko) >= 1) AND (char_length(title_ko) <= 18)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_actions.daily_practice_actions_title_ko_key": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "UNIQUE (title_ko)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_offers.daily_practice_offers_action_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (action_id) REFERENCES public.daily_practice_actions(id)",
+        "enforcement_triggers": [
+          "public.daily_practice_actions:17:O",
+          "public.daily_practice_actions:9:O",
+          "public.daily_practice_offers:17:O",
+          "public.daily_practice_offers:5:O"
+        ],
+        "validated": true
+      },
+      "public.daily_practice_offers.daily_practice_offers_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_offers.daily_practice_offers_routine_completed": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((routine_id IS NULL) OR (status = 'completed'::text)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_offers.daily_practice_offers_routine_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (routine_id) REFERENCES public.routines(id) ON DELETE SET NULL",
+        "enforcement_triggers": [
+          "public.daily_practice_offers:17:O",
+          "public.daily_practice_offers:5:O",
+          "public.routines:17:O",
+          "public.routines:9:O"
+        ],
+        "validated": true
+      },
+      "public.daily_practice_offers.daily_practice_offers_status_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((status = ANY (ARRAY['offered'::text, 'skipped'::text, 'accepted'::text, 'completed'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_offers.daily_practice_offers_user_id_action_id_local_date_key": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "UNIQUE (user_id, action_id, local_date)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.daily_practice_offers.daily_practice_offers_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.daily_practice_offers:17:O",
+          "public.daily_practice_offers:5:O",
+          "public.profiles:17:O",
+          "public.profiles:9:O"
+        ],
+        "validated": true
+      },
       "public.diaries.diaries_author_ck": {
         "deferrable": false,
         "deferred": false,
@@ -10310,6 +10657,69 @@
         "unique": true,
         "valid": true
       },
+      "public.daily_practice_actions_pkey": {
+        "definition": "CREATE UNIQUE INDEX daily_practice_actions_pkey ON public.daily_practice_actions USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.daily_practice_actions",
+        "unique": true,
+        "valid": true
+      },
+      "public.daily_practice_actions_title_ko_key": {
+        "definition": "CREATE UNIQUE INDEX daily_practice_actions_title_ko_key ON public.daily_practice_actions USING btree (title_ko)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.daily_practice_actions",
+        "unique": true,
+        "valid": true
+      },
+      "public.daily_practice_offers_one_live_uq": {
+        "definition": "CREATE UNIQUE INDEX daily_practice_offers_one_live_uq ON public.daily_practice_offers USING btree (user_id, local_date) WHERE (status <> 'skipped'::text)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.daily_practice_offers",
+        "unique": true,
+        "valid": true
+      },
+      "public.daily_practice_offers_pkey": {
+        "definition": "CREATE UNIQUE INDEX daily_practice_offers_pkey ON public.daily_practice_offers USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.daily_practice_offers",
+        "unique": true,
+        "valid": true
+      },
+      "public.daily_practice_offers_routine_idx": {
+        "definition": "CREATE INDEX daily_practice_offers_routine_idx ON public.daily_practice_offers USING btree (routine_id) WHERE (routine_id IS NOT NULL)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.daily_practice_offers",
+        "unique": false,
+        "valid": true
+      },
+      "public.daily_practice_offers_user_date_idx": {
+        "definition": "CREATE INDEX daily_practice_offers_user_date_idx ON public.daily_practice_offers USING btree (user_id, local_date)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.daily_practice_offers",
+        "unique": false,
+        "valid": true
+      },
+      "public.daily_practice_offers_user_id_action_id_local_date_key": {
+        "definition": "CREATE UNIQUE INDEX daily_practice_offers_user_id_action_id_local_date_key ON public.daily_practice_offers USING btree (user_id, action_id, local_date)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.daily_practice_offers",
+        "unique": true,
+        "valid": true
+      },
       "public.diaries_one_daily_uq": {
         "definition": "CREATE UNIQUE INDEX diaries_one_daily_uq ON public.diaries USING btree (user_id, activity_date) WHERE ((kind = ANY (ARRAY['shared_day'::text, 'capi_day'::text])) AND (deleted_at IS NULL))",
         "exclusion": false,
@@ -12516,6 +12926,54 @@
         "grantable": false
       },
       "public.daily_fortunes:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.daily_practice_actions:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.daily_practice_actions:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.daily_practice_actions:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.daily_practice_actions:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.daily_practice_actions:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.daily_practice_actions:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.daily_practice_actions:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.daily_practice_actions:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.daily_practice_offers:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.daily_practice_offers:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.daily_practice_offers:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.daily_practice_offers:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.daily_practice_offers:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.daily_practice_offers:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.daily_practice_offers:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.daily_practice_offers:service_role:UPDATE": {
         "grantable": false
       },
       "public.diaries:anon:DELETE": {
@@ -15978,6 +16436,20 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.daily_practice_actions": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.daily_practice_offers": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.diaries": {
         "options": [],
         "owner": "postgres",
@@ -16451,5 +16923,5 @@
       }
     }
   },
-  "schema_sha256": "bf3bc3c56a19ba0c3726b9fd7f40ac5eff2dcd0c1fa8a63dd89e44f158d68d23"
+  "schema_sha256": "de8852fc3d9d7992692fae3eedaef99905bcb13f013673b9c3ef4d8da058ac21"
 }

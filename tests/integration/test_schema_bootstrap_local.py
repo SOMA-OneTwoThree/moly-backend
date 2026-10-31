@@ -158,17 +158,12 @@ async def test_account_delete_preserves_rpc_and_cascade_contract(connection):
         'INSERT INTO public.training_tries(user_id,tries_left,refill_from) VALUES($1,4,now())',
         "INSERT INTO public.training_claims(user_id,training_id,stage,reason,answer_text,verdict)"
         " VALUES($1,'t',1,'should_pass','a','retry')",
-        "INSERT INTO public.daily_practice_actions(id,category,slots,icon,title_ko,title_en,title_ja,"
-        "speech_ko,speech_en,speech_ja,source,prompt_version,model) VALUES('00000000-0000-0000-0000-00000000d9a1',"
-        "'rest',ARRAY['night'],'bed','이불 펴기','Make the bed','布団を敷く','펼까?','Now?','敷く?','seed','v','m')"
-        " ON CONFLICT DO NOTHING",
-        "INSERT INTO public.daily_practice_offers(user_id,action_id,local_date,expires_at) "
-        "VALUES($1,'00000000-0000-0000-0000-00000000d9a1','2026-11-01',now())",
+        "WITH t AS (INSERT INTO public.daily_practice_templates(title_ko,title_en,title_ja) "
+        "VALUES('이불 펴기','Make the bed','布団を敷く') RETURNING id) "
+        "INSERT INTO public.daily_practice_offers(user_id,template_id,local_date,options_expire_at) "
+        "SELECT $1::uuid,id,'2026-11-01'::date,now() FROM t",
     ]:
-        if '$1' in sql:
-            await connection.execute(sql, uid)
-        else:
-            await connection.execute(sql)
+        await connection.execute(sql, uid)
     await connection.execute('DELETE FROM auth.users WHERE id=$1', uid)
     for table in ['profiles', 'user_items', 'routines', 'training_progress', 'training_answers',
                   'training_rewards', 'training_tries', 'training_claims', 'training_submissions',

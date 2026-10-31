@@ -7,7 +7,6 @@ import random
 import uuid
 from datetime import date, datetime, timedelta, timezone
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -598,6 +597,26 @@ def test_account_being_deleted_is_409(client, monkeypatch, pool, tables, verb):
     assert tables[DailyPracticeOffer] == []
 
 
+@pytest.mark.parametrize("verb", ["offer", *VERBS])
+def test_writes_take_the_lock_before_checking_the_deletion_barrier(client, monkeypatch, pool, verb):
+    calls = []
+
+    async def lock(_session, _uid):
+        calls.append("lock")
+
+    async def barrier(_session, _uid):
+        calls.append("barrier")
+
+    practice_id = offer(client)["options"][0]["id"]
+    monkeypatch.setattr(daily_practice, "advisory_xact_lock", lock)
+    monkeypatch.setattr(privacy, "ensure_subject_active", barrier)
+    if verb == "offer":
+        offer(client)
+    else:
+        act(client, verb, practice_id)
+    assert calls == ["lock", "barrier"]
+
+
 def test_oversized_locale_header_is_422(client, pool):
     response = client.get(TODAY_PATH, headers={**HEADERS, "X-App-Locale": "x" * 65})
     assert code(response) == (422, "VALIDATION")
@@ -707,7 +726,6 @@ def concurrent(monkeypatch, tables, clock):
 
     monkeypatch.setattr(daily_practice, "advisory_xact_lock", lock)
     monkeypatch.setattr(daily_practice, "_clock", lambda _now=None: clock.now)
-    monkeypatch.setattr(privacy, "ensure_subject_active", AsyncMock(return_value=None))
 
     async def run(call):
         session = _LockingSession(tables)

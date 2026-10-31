@@ -18,15 +18,17 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from app.core.errors import AppError
-from app.services import daily_practice
+from app.services import daily_practice, privacy
 from db.schema_contract import require_scratch
 
+REAL_ENSURE_ACTIVE = privacy.ensure_subject_active
 SEOUL = "Asia/Seoul"
 NOW = datetime(2026, 11, 1, 3, 0, tzinfo=timezone.utc)  # 12:00 in Seoul
 
 
 @pytest_asyncio.fixture
-async def engine():
+async def engine(monkeypatch):
+    monkeypatch.setattr(privacy, "ensure_subject_active", REAL_ENSURE_ACTIVE)
     dsn = os.environ.get("MOLY_SCHEMA_TEST_DSN")
     if not dsn:
         pytest.skip("MOLY_SCHEMA_TEST_DSN required")

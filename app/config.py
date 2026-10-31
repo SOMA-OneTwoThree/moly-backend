@@ -38,8 +38,6 @@ class Settings(BaseSettings):
     model_utility: str = "gpt-6-luna"
     # 트레이닝 주관식 채점. 짧은 JSON 판정이라 가벼운 모델로 시작하고 MODEL_TRAINING_GRADE로 바꾼다.
     model_training_grade: str = "gpt-6-luna"
-    # 오늘의 작은 실천 풀 보충·시드 생성(백그라운드 전용). MODEL_DAILY_PRACTICE로 바꾼다.
-    model_daily_practice: str = "gpt-6-luna"
     # dormant(Anthropic 복귀·재사용용) — model_* 를 claude-* 로 되돌리면 prefix 라우팅이
     # _generate_anthropic 경로로 자동 복귀한다(코드 변경 없이 config만으로 왕복). SSM 오버라이드 가능.
     anthropic_api_key: str = ""
@@ -379,11 +377,10 @@ class Settings(BaseSettings):
             raise RuntimeError(
                 "프로덕션 결제 설정 누락(fail-closed): REVENUECAT_WEBHOOK_AUTH"
             )
-        # 활성 모델(chat·diary·utility·트레이닝 채점·실천 풀 보충) 중 하나라도 그 provider면 키를 강제 — 부분 롤백
+        # 활성 모델(chat·diary·utility·트레이닝 채점) 중 하나라도 그 provider면 키를 강제 — 부분 롤백
         # (예: chat만 claude, diary는 gpt 유지) 시 04:00 일기 배치가 빈 키로 죽는 걸 막는다.
         active_models = (
             self.model_chat, self.model_diary, self.model_utility, self.model_training_grade,
-            self.model_daily_practice,
         )
         if any(m.startswith("gpt-") for m in active_models) and not self.openai_api_key:
             raise RuntimeError(

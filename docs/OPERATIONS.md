@@ -399,36 +399,34 @@ UPDATE public.articles SET is_active = false WHERE id = 'sample-3';
 오늘의 한마디는 현지 날짜 이하의 최신 행을 사용한다. dev의 2026년 행은 임시 문장이므로 운영에
 일괄 복사하지 않는다. 날짜별 검수한 문장만 추가하고 지난 날짜의 행은 임의로 바꾸지 않는다.
 
-## 오늘의 작은 실천 DB·시드
+## 오늘의 작은 실천 DB·템플릿
 
-대상 SQL은 둘이고 이 순서로 적용한다. 자동 배포는 DB를 바꾸지 않는다.
-
-1. `db/changes/daily_practice.sql`: 새 테이블 둘. 기존 행은 바꾸지 않으며 이전 서버와 함께 돌아도 문제가 없다.
-   이미지 배포 전에 적용한다. 스키마 사전 검사가 새 계약을 보므로 순서를 바꾸면 배포가 실패한다.
-2. `db/changes/daily_practice_seed.sql`: 공용 풀 시드. 멱등이라 다시 실행해도 된다. 이미 있는 제목은 건드리지
-   않으므로 `retired`로 내린 행은 되살아나지 않는다.
+자동 배포는 DB를 바꾸지 않는다. `db/changes/daily_practice.sql`은 새 테이블 둘만 만들고 기존 행은 바꾸지 않으므로
+이전 서버와 함께 돌아도 문제가 없다. 이미지 배포 전에 적용한다. 스키마 사전 검사가 새 계약을 보므로 순서를 바꾸면
+배포가 실패한다.
 
 ```bash
 uv run python -m db.apply db/changes/daily_practice.sql --env dev --commit --expected-sha256 <검토한-SHA256>
-uv run python -m db.apply db/changes/daily_practice_seed.sql --env dev --commit --expected-sha256 <검토한-SHA256>
 uv run python -m db.verify --env dev
 ```
 
 운영도 같은 절차에 `--env prod --commit --allow-prod`를 쓴다. 되돌리기는 기능 없는 이미지로 내린 뒤
-`DROP TABLE public.daily_practice_offers, public.daily_practice_actions;`다. 사용자 행도 함께 사라진다.
+`DROP TABLE public.daily_practice_offers, public.daily_practice_templates;`다. 사용자 행도 함께 사라진다.
 
-시드를 만들 때는 `OPENAI_API_KEY`만 넣고 DB 연결 없이 돌린다. 원고는 `content/daily_practice/seed.json`이 원본이다.
+템플릿은 마이그레이션에 들어 있지 않다. 운영자가 직접 넣으며 모든 사용자가 함께 쓴다. 활성 템플릿이 없으면 API는
+오류 없이 `options: []`를 낸다. 3개보다 적으면 그만큼만 낸다. 문구는 언어별 1~60자이고 `title_ko`는 유일하다.
 
-```bash
-uv run python scripts/daily_practice_seed.py generate        # 카테고리별 30개까지, 다시 돌리면 이어서 채운다
-uv run python scripts/daily_practice_seed.py reject <reviews.json>  # 사람이 읽고 버린 원고를 사유와 함께 뺀다
-uv run python scripts/daily_practice_seed.py sql             # db/changes/daily_practice_seed.sql 렌더링
+```sql
+INSERT INTO public.daily_practice_templates (title_ko, title_en, title_ja)
+VALUES ('물 한 잔 마시기', 'Drink a glass of water', 'お水を一杯飲む');
 ```
 
-풀이 비어 있으면 API는 오류 없이 `practice: null`을 내고 보충 잡을 건다. `MODEL_DAILY_PRACTICE` 기본값은
-`gpt-6-luna`이고 보충은 카테고리당 하루 한 번, 실행당 5개까지다(`daily_practice_top_up`, maintenance 큐).
-실패는 재시도 없이 로그만 남기므로 풀이 줄지 않는데 늘지도 않으면 `daily_practice_top_up_failed` 로그를 본다.
-행동을 내릴 때는 지우지 말고 `status='retired'`로 바꾼다. 사용자 행이 참조한다.
+내릴 때는 지우지 말고 끈다. 사용자 행이 참조하므로 `DELETE`는 실패한다. 끈 템플릿은 새 제안에 나오지 않지만 이미 받은
+제안과 진행 중인 실천에는 그대로 보인다.
+
+```sql
+UPDATE public.daily_practice_templates SET is_active = false WHERE title_ko = '물 한 잔 마시기';
+```
 
 ## 변경 시 확인할 원본
 

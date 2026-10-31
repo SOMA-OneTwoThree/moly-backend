@@ -202,7 +202,7 @@ async def test_longest_title_becomes_a_routine_that_still_lists(engine):
     added = await call(engine, daily_practice.add_routine, user, practice_id, **common())
     assert DailyPracticeRoutineResponse.model_validate(added).routine.name == longest
     listed = await call(engine, routine.list_routines, user, day=AppDay.at(NOW, SEOUL))
-    assert RoutineListResponse.model_validate(listed).routines[0].name == longest
+    assert RoutineListResponse.model_validate(listed).data[0].name == longest
 
 
 async def test_database_refuses_a_duplicate_korean_title(engine):

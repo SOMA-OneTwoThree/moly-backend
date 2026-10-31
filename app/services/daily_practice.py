@@ -1,58 +1,66 @@
-"""오늘의 작은 실천 — 공용 풀에서 하루 하나를 제안하고 수락·완료·루틴 추가를 처리한다.
+"""오늘의 작은 실천 — 공용 템플릿에서 하루 3개를 제안하고 선택, 완료, 루틴 추가를 처리한다.
 
-요청 경로는 LLM을 부르지 않는다. 앱이 보내는 `focus`는 선택에만 쓰고 저장하지 않는다.
 사용자 행은 프로필 CASCADE로 사라진다. 변경 경로는 `begin_subject_deletion`과 같은 advisory lock을
 잡은 뒤 삭제 장벽을 확인하므로 장벽이 선 뒤에는 행이 새로 생기지 않는다.
 """
 from __future__ import annotations
 
-import contextlib
-import logging
 import random
 import uuid
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable, Mapping, Sequence
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.advisory_lock import advisory_xact_lock
 from app.core.app_day import AppDay, validate_app_timezone
 from app.core.errors import AppError
-from app.core.time_utils import safe_zone
-from app.models.daily_practice import DailyPracticeAction, DailyPracticeOffer
-from app.models.mood import MoodEntry
+from app.models.daily_practice import DailyPracticeOffer, DailyPracticeTemplate
 from app.models.routine import Routine, RoutineCompletion, RoutineSkip
-from app.services import daily_practice_selection as selection
-from app.services import jobs, privacy, routine
+from app.services import privacy, routine
 from app.services.account import _load_profile, _uid
 from app.services.i18n import resolve
 
-_log = logging.getLogger("moly-backend")
+OPTIONS_PER_DAY = 3
+AVOID_DAYS = 30
+DEADLINE = timedelta(hours=24)
 
-JOB_TOP_UP = "daily_practice_top_up"
-
-OFFERS_PER_DAY = 3
-HISTORY_DAYS = 60
-MOOD_DAYS = 3
-
-OFFERED, SKIPPED, ACCEPTED, COMPLETED = "offered", "skipped", "accepted", "completed"
+OFFERED, ACCEPTED, COMPLETED = "offered", "accepted", "completed"
 
 ALL_DAYS = [1, 2, 3, 4, 5, 6, 7]
-ROUTINE_COLORS = {
-    "rest": "lavender",
-    "body": "green",
-    "calm": "blue",
-    "mind": "mint",
-    "self_kindness": "pink",
-    "connect": "peach",
-    "order": "yellow",
-}
+ROUTINE_ICON = "seedling"
+ROUTINE_COLOR = "peach"
+
+
+def pick_options(
+    template_ids: Sequence[uuid.UUID], last_shown: Mapping[uuid.UUID, date], rng: random.Random
+) -> list[uuid.UUID]:
+    """최근에 안 보인 것에서 무작위로 고르고, 모자라면 가장 오래전에 보인 순으로 채운다."""
+    fresh = [t for t in template_ids if t not in last_shown]
+    recent = [t for t in template_ids if t in last_shown]
+    picked = rng.sample(fresh, min(OPTIONS_PER_DAY, len(fresh)))
+    rng.shuffle(recent)
+    recent.sort(key=last_shown.__getitem__)
+    return picked + recent[:OPTIONS_PER_DAY - len(picked)]
+
+
+@dataclass(frozen=True)
+class _Today:
+    live: DailyPracticeOffer | None
+    practice: DailyPracticeOffer | None
+    can_choose: bool
+    options: list[DailyPracticeOffer]
 
 
 def _invalid_state() -> AppError:
     return AppError("DAILY_PRACTICE_INVALID_STATE", 409, "지금은 할 수 없는 동작이에요.")
+
+
+def _expired() -> AppError:
+    return AppError("DAILY_PRACTICE_EXPIRED", 409, "오늘의 작은 실천이 이미 끝났어요.")
 
 
 def _clock(now_utc: datetime | None) -> datetime:
@@ -61,144 +69,97 @@ def _clock(now_utc: datetime | None) -> datetime:
 
 async def _day(
     session: AsyncSession, user_id: str, timezone_name: str | None, now: datetime
-) -> tuple[AppDay, int]:
+) -> AppDay:
     if timezone_name is None:
         timezone_name = (await _load_profile(session, user_id)).timezone
-    return AppDay.at(now, timezone_name), now.astimezone(safe_zone(timezone_name)).hour
+    return AppDay.at(now, timezone_name)
 
 
-async def _current(
-    session: AsyncSession, uid: uuid.UUID, now: datetime
-) -> DailyPracticeOffer | None:
-    return (await session.execute(
-        select(DailyPracticeOffer)
-        .where(
-            DailyPracticeOffer.user_id == uid,
-            DailyPracticeOffer.status != SKIPPED,
-            DailyPracticeOffer.expires_at > now,
-        )
-        .order_by(DailyPracticeOffer.created_at.desc())
-        .limit(1)
-    )).scalars().first()
-
-
-async def _rows_on(
-    session: AsyncSession, uid: uuid.UUID, local_date: date
-) -> list[DailyPracticeOffer]:
-    return list((await session.execute(
+async def _load_today(
+    session: AsyncSession, uid: uuid.UUID, day: AppDay, now: datetime
+) -> _Today:
+    rows = (await session.execute(
         select(DailyPracticeOffer).where(
-            DailyPracticeOffer.user_id == uid, DailyPracticeOffer.local_date == local_date
+            DailyPracticeOffer.user_id == uid,
+            or_(
+                DailyPracticeOffer.local_date == day.local_date,
+                DailyPracticeOffer.completed_local_date == day.local_date,
+                and_(DailyPracticeOffer.status == ACCEPTED, DailyPracticeOffer.deadline > now),
+            ),
         )
-    )).scalars().all())
+    )).scalars().all()
+    live = next((r for r in rows if r.status == ACCEPTED and r.deadline > now), None)
+    chosen_today = any(r.status != OFFERED and r.local_date == day.local_date for r in rows)
+    can_choose = live is None and not chosen_today
+    completed = [
+        r for r in rows if r.status == COMPLETED and r.completed_local_date == day.local_date
+    ]
+    options = [
+        r for r in rows
+        if r.status == OFFERED and r.local_date == day.local_date and r.options_expire_at > now
+    ]
+    return _Today(
+        live=live,
+        practice=live or max(completed, key=lambda r: r.local_date, default=None),
+        can_choose=can_choose,
+        options=sorted(options, key=lambda r: r.id) if can_choose else [],
+    )
+
+
+async def _linked_routine(session: AsyncSession, row: DailyPracticeOffer) -> Routine | None:
+    if row.routine_id is None:
+        return None
+    linked = await session.get(Routine, row.routine_id)
+    return linked if linked is not None and linked.deleted_at is None else None
 
 
 async def _practice(
     session: AsyncSession, row: DailyPracticeOffer, language: str
 ) -> dict[str, Any]:
-    action = await session.get(DailyPracticeAction, row.action_id)
+    template = await session.get(DailyPracticeTemplate, row.template_id)
     return {
         "id": row.id,
         "status": row.status,
-        "category": action.category,
-        "title": getattr(action, f"title_{language}"),
-        "speech": getattr(action, f"speech_{language}"),
-        "icon": action.icon,
-        "routine_added": row.routine_id is not None,
+        "title": getattr(template, f"title_{language}"),
+        "routine_added": await _linked_routine(session, row) is not None,
+        "deadline": row.deadline,
     }
 
 
-async def _today(
-    session: AsyncSession, uid: uuid.UUID, day: AppDay, language: str, now: datetime
+async def _response(
+    session: AsyncSession, today: _Today, day: AppDay, language: str
 ) -> dict[str, Any]:
-    current = await _current(session, uid, now)
-    rows = await _rows_on(session, uid, current.local_date if current else day.local_date)
-    if current is None:
-        # 시간대가 바뀌면 만료된 행과 같은 현지 날짜일 수 있다. 그날은 더 제안하지 않는다.
-        expired_today = any(row.status != SKIPPED for row in rows)
-        remaining = 0 if expired_today else OFFERS_PER_DAY - 1 - len(rows)
-    elif current.status == OFFERED:
-        remaining = OFFERS_PER_DAY - len(rows)
-    else:
-        remaining = 0
     return {
-        "local_date": current.local_date if current else day.local_date,
-        "expires_at": current.expires_at if current else day.ends_at,
+        "local_date": day.local_date,
+        "expires_at": today.live.deadline if today.live else day.ends_at,
         "locale": language,
-        "practice": await _practice(session, current, language) if current else None,
-        "offers_remaining": max(0, remaining),
+        "can_choose": today.can_choose,
+        "options": [await _practice(session, row, language) for row in today.options],
+        "practice": await _practice(session, today.practice, language) if today.practice else None,
     }
 
 
-async def _make_offer(
-    session: AsyncSession,
-    uid: uuid.UUID,
-    day: AppDay,
-    hour: int,
-    focus: list[str],
-    rng: random.Random | None,
-) -> tuple[str, tuple[str, ...]]:
-    """오늘 제안이 비어 있으면 하나 만든다. 반환은 (시간대, 보충을 요청할 카테고리)."""
-    slot = selection.slot_of(hour)
-    today_rows = await _rows_on(session, uid, day.local_date)
-    if len(today_rows) >= OFFERS_PER_DAY or any(row.status != SKIPPED for row in today_rows):
-        return slot, ()
-    actions = (await session.execute(select(DailyPracticeAction))).scalars().all()
-    by_id = {action.id: action for action in actions}
-    rows = (await session.execute(
+async def _create_options(
+    session: AsyncSession, uid: uuid.UUID, day: AppDay, rng: random.Random
+) -> None:
+    templates = (await session.execute(select(DailyPracticeTemplate))).scalars().all()
+    shown = (await session.execute(
         select(DailyPracticeOffer).where(
             DailyPracticeOffer.user_id == uid,
-            DailyPracticeOffer.local_date >= day.local_date - timedelta(days=HISTORY_DAYS),
+            DailyPracticeOffer.local_date >= day.local_date - timedelta(days=AVOID_DAYS),
         )
     )).scalars().all()
-    moods = (await session.execute(
-        select(MoodEntry.kind).where(
-            MoodEntry.user_id == uid,
-            MoodEntry.entry_date > day.local_date - timedelta(days=MOOD_DAYS),
-            MoodEntry.entry_date <= day.local_date,
-        )
-    )).scalars().all()
-    picked = selection.choose(
-        [action for action in actions if action.status == "active"],
-        slot=slot,
-        today=day.local_date,
-        history=[
-            selection.Shown(row.action_id, by_id[row.action_id].category, row.status, row.local_date)
-            for row in rows
-        ],
-        focus=focus,
-        moods=moods,
-        rng=rng or random.Random(),
-    )
-    if picked.action is not None:
+    last_shown: dict[uuid.UUID, date] = {}
+    for row in shown:
+        last_shown[row.template_id] = max(row.local_date, last_shown.get(row.template_id, row.local_date))
+    shown_today = {row.template_id for row in shown if row.local_date == day.local_date}
+    candidates = [t.id for t in templates if t.is_active and t.id not in shown_today]
+    for template_id in pick_options(candidates, last_shown, rng):
         session.add(DailyPracticeOffer(
-            id=uuid.uuid4(), user_id=uid, action_id=picked.action.id, local_date=day.local_date,
-            expires_at=day.ends_at, status=OFFERED,
+            id=uuid.uuid4(), user_id=uid, template_id=template_id, local_date=day.local_date,
+            status=OFFERED, options_expire_at=day.ends_at,
         ))
-        await session.flush()
-    return slot, picked.short_categories
-
-
-async def _request_top_up(
-    session: AsyncSession, categories: tuple[str, ...], slot: str, now: datetime
-) -> None:
-    """응답을 확정한 뒤 부른다. 실패해도 사용자 요청에는 아무 영향이 없다."""
-    if not categories:
-        return
-    utc_date = now.astimezone(timezone.utc).date().isoformat()
-    try:
-        for category in categories:
-            await jobs.enqueue(
-                session,
-                queue=jobs.QUEUE_MAINTENANCE,
-                job_type=JOB_TOP_UP,
-                dedup_key=f"{JOB_TOP_UP}:{category}:{utc_date}",
-                payload={"category": category, "slot": slot},
-            )
-        await session.commit()
-    except Exception as exc:  # noqa: BLE001 — 보충은 부가 작업이다
-        _log.warning("daily_practice_top_up_enqueue_failed %s", type(exc).__name__)
-        with contextlib.suppress(Exception):
-            await session.rollback()
+    await session.flush()
 
 
 async def _enter(session: AsyncSession, user_id: str, timezone_name: str | None) -> uuid.UUID:
@@ -226,11 +187,6 @@ async def _owned(session: AsyncSession, uid: uuid.UUID, practice_id: str) -> Dai
     return row
 
 
-def _require_live(row: DailyPracticeOffer, now: datetime) -> None:
-    if row.expires_at <= now:
-        raise AppError("DAILY_PRACTICE_EXPIRED", 409, "오늘의 작은 실천이 이미 끝났어요.")
-
-
 async def status(
     session: AsyncSession,
     user_id: str,
@@ -243,15 +199,14 @@ async def status(
     await privacy.ensure_subject_active(session, uid)
     validate_app_timezone(timezone_name)
     now = _clock(now_utc)
-    day, _ = await _day(session, user_id, timezone_name, now)
-    return await _today(session, uid, day, resolve(locale), now)
+    day = await _day(session, user_id, timezone_name, now)
+    return await _response(session, await _load_today(session, uid, day, now), day, resolve(locale))
 
 
 async def offer(
     session: AsyncSession,
     user_id: str,
     *,
-    focus: list[str],
     locale: str | None,
     timezone_name: str | None,
     now_utc: datetime | None = None,
@@ -259,50 +214,24 @@ async def offer(
 ) -> dict[str, Any]:
     uid = await _enter(session, user_id, timezone_name)
     now = _clock(now_utc)
-    day, hour = await _day(session, user_id, timezone_name, now)
-    slot, short = selection.slot_of(hour), ()
-    if await _current(session, uid, now) is None:
-        slot, short = await _make_offer(session, uid, day, hour, focus, rng)
-    result = await _today(session, uid, day, resolve(locale), now)
+    day = await _day(session, user_id, timezone_name, now)
+    today = await _load_today(session, uid, day, now)
+    if today.can_choose and not today.options:
+        await _create_options(session, uid, day, rng or random.Random())
+        today = await _load_today(session, uid, day, now)
+    result = await _response(session, today, day, resolve(locale))
     await session.commit()
-    await _request_top_up(session, short, slot, now)
     return result
 
 
-async def skip(
-    session: AsyncSession,
-    user_id: str,
-    practice_id: str,
-    *,
-    focus: list[str],
-    locale: str | None,
-    timezone_name: str | None,
-    now_utc: datetime | None = None,
-    rng: random.Random | None = None,
-) -> dict[str, Any]:
-    uid = await _enter(session, user_id, timezone_name)
-    now = _clock(now_utc)
-    row = await _owned(session, uid, practice_id)
-    _require_live(row, now)
-    if row.status != OFFERED:
-        raise _invalid_state()
-    if len(await _rows_on(session, uid, row.local_date)) >= OFFERS_PER_DAY:
-        raise AppError("DAILY_PRACTICE_OFFER_LIMIT", 409, "오늘은 더 바꿀 수 없어요.")
-    day, hour = await _day(session, user_id, timezone_name, now)
-    row.status, row.updated_at = SKIPPED, now
-    await session.flush()
-    slot, short = await _make_offer(session, uid, day, hour, focus, rng)
-    result = await _today(session, uid, day, resolve(locale), now)
-    await session.commit()
-    await _request_top_up(session, short, slot, now)
-    return result
+Apply = Callable[[AsyncSession, DailyPracticeOffer, AppDay, datetime], Awaitable[None]]
 
 
 async def _transition(
     session: AsyncSession,
     user_id: str,
     practice_id: str,
-    apply: Callable[[DailyPracticeOffer], None],
+    apply: Apply,
     *,
     locale: str | None,
     timezone_name: str | None,
@@ -310,35 +239,61 @@ async def _transition(
 ) -> dict[str, Any]:
     uid = await _enter(session, user_id, timezone_name)
     now = _clock(now_utc)
+    day = await _day(session, user_id, timezone_name, now)
     row = await _owned(session, uid, practice_id)
-    _require_live(row, now)
-    day, _ = await _day(session, user_id, timezone_name, now)
-    before = row.status
-    apply(row)
-    if row.status != before:
-        row.updated_at = now
+    await apply(session, row, day, now)
     await session.flush()
-    result = await _today(session, uid, day, resolve(locale), now)
+    result = await _response(session, await _load_today(session, uid, day, now), day, resolve(locale))
     await session.commit()
     return result
 
 
-def _accept(row: DailyPracticeOffer) -> None:
-    if row.status not in {OFFERED, ACCEPTED}:
+async def _accept(
+    session: AsyncSession, row: DailyPracticeOffer, day: AppDay, now: datetime
+) -> None:
+    if row.status == ACCEPTED and row.deadline > now:
+        return
+    today = await _load_today(session, row.user_id, day, now)
+    if row not in today.options:
         raise _invalid_state()
-    row.status = ACCEPTED
+    row.status, row.deadline, row.updated_at = ACCEPTED, now + DEADLINE, now
 
 
-def _complete(row: DailyPracticeOffer) -> None:
-    if row.status not in {ACCEPTED, COMPLETED}:
+async def _complete(
+    session: AsyncSession, row: DailyPracticeOffer, day: AppDay, now: datetime
+) -> None:
+    if row.status == COMPLETED:
+        return
+    if row.status != ACCEPTED:
         raise _invalid_state()
-    row.status = COMPLETED
+    if row.deadline <= now:
+        raise _expired()
+    row.status, row.completed_local_date, row.updated_at = COMPLETED, day.local_date, now
 
 
-def _uncomplete(row: DailyPracticeOffer) -> None:
-    if row.status not in {COMPLETED, ACCEPTED} or row.routine_id is not None:
+async def _chosen_since(session: AsyncSession, row: DailyPracticeOffer) -> bool:
+    return (await session.execute(
+        select(DailyPracticeOffer.id).where(
+            DailyPracticeOffer.user_id == row.user_id,
+            DailyPracticeOffer.status != OFFERED,
+            DailyPracticeOffer.deadline > row.deadline,
+        ).limit(1)
+    )).scalars().first() is not None
+
+
+async def _uncomplete(
+    session: AsyncSession, row: DailyPracticeOffer, day: AppDay, now: datetime
+) -> None:
+    if row.status == OFFERED:
         raise _invalid_state()
-    row.status = ACCEPTED
+    if row.status == COMPLETED and (
+        await _linked_routine(session, row) is not None or await _chosen_since(session, row)
+    ):
+        raise _invalid_state()
+    if row.deadline <= now:
+        raise _expired()
+    if row.status == COMPLETED:
+        row.status, row.completed_local_date, row.routine_id, row.updated_at = ACCEPTED, None, None, now
 
 
 async def accept(session: AsyncSession, user_id: str, practice_id: str, **kwargs: Any) -> dict[str, Any]:
@@ -365,26 +320,25 @@ async def add_routine(
     uid = await _enter(session, user_id, timezone_name)
     now = _clock(now_utc)
     language = resolve(locale)
+    day = await _day(session, user_id, timezone_name, now)
     row = await _owned(session, uid, practice_id)
-    _require_live(row, now)
     if row.status != COMPLETED:
         raise _invalid_state()
-    day, _ = await _day(session, user_id, timezone_name, now)
-    if row.routine_id is not None:
-        added = await session.get(Routine, row.routine_id)
+    linked = await _linked_routine(session, row)
+    if linked is not None:
         routine_dto = routine._dto(
-            added,
-            await _recorded_today(session, RoutineCompletion, uid, added.id, day.local_date),
+            linked,
+            await _recorded_today(session, RoutineCompletion, uid, linked.id, day.local_date),
             language,
-            await _recorded_today(session, RoutineSkip, uid, added.id, day.local_date),
+            await _recorded_today(session, RoutineSkip, uid, linked.id, day.local_date),
         )
     else:
-        action = await session.get(DailyPracticeAction, row.action_id)
+        template = await session.get(DailyPracticeTemplate, row.template_id)
         added = Routine(
             id=uuid.uuid4(), user_id=uid,
-            name=getattr(action, f"title_{language}"),
-            name_i18n={"ko": action.title_ko, "en": action.title_en, "ja": action.title_ja},
-            icon=action.icon, color=ROUTINE_COLORS[action.category],
+            name=getattr(template, f"title_{language}"),
+            name_i18n={"ko": template.title_ko, "en": template.title_en, "ja": template.title_ja},
+            icon=ROUTINE_ICON, color=ROUTINE_COLOR,
             frequency_per_week=len(ALL_DAYS), days_of_week=ALL_DAYS,
             reminder_enabled=False, reminder_time=None,
         )
@@ -392,7 +346,8 @@ async def add_routine(
         row.routine_id, row.updated_at = added.id, now
         await session.flush()
         routine_dto = routine._dto(added, False, language)
-    result = {"today": await _today(session, uid, day, language, now), "routine": routine_dto}
+    today = await _load_today(session, uid, day, now)
+    result = {"today": await _response(session, today, day, language), "routine": routine_dto}
     await session.commit()
     return result
 

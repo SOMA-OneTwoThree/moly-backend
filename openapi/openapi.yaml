@@ -124,8 +124,6 @@ paths:
     $ref: ./paths/daily_practice.yaml#/~1daily-practice
   /daily-practice/offer:
     $ref: ./paths/daily_practice.yaml#/~1daily-practice~1offer
-  /daily-practice/{id}/skip:
-    $ref: ./paths/daily_practice.yaml#/~1daily-practice~1{id}~1skip
   /daily-practice/{id}/accept:
     $ref: ./paths/daily_practice.yaml#/~1daily-practice~1{id}~1accept
   /daily-practice/{id}/complete:
@@ -200,10 +198,6 @@ components:
       $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationResponse
     DailyPractice:
       $ref: ./components/daily_practice.yaml#/schemas/DailyPractice
-    DailyPracticeCategory:
-      $ref: ./components/daily_practice.yaml#/schemas/DailyPracticeCategory
-    DailyPracticeOfferRequest:
-      $ref: ./components/daily_practice.yaml#/schemas/DailyPracticeOfferRequest
     DailyPracticeRoutineResponse:
       $ref: ./components/daily_practice.yaml#/schemas/DailyPracticeRoutineResponse
     DailyPracticeStatus:
@@ -485,7 +479,7 @@ tags:
 - name: affirmation
   description: 오늘의 글귀 조회
 - name: daily-practice
-  description: 오늘의 작은 실천 제안, 수락, 완료, 루틴 추가
+  description: 오늘의 작은 실천 제안, 선택, 완료, 루틴 추가
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution

@@ -3,16 +3,12 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Body, Depends, Header
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
 from app.core.security import get_current_user
-from app.schemas.daily_practice import (
-    DailyPracticeOfferRequest,
-    DailyPracticeRoutineResponse,
-    DailyPracticeToday,
-)
+from app.schemas.daily_practice import DailyPracticeRoutineResponse, DailyPracticeToday
 from app.services import daily_practice
 
 router = APIRouter(prefix="/daily-practice", tags=["daily-practice"])
@@ -31,7 +27,6 @@ Timezone = Annotated[
     str | None,
     Header(description="현재 기기의 IANA 시간대. 생략 시 저장 시간대. 잘못된 값은 APP_TIMEZONE_INVALID."),
 ]
-OfferBody = Annotated[DailyPracticeOfferRequest, Body()]
 
 
 @router.get("", response_model=DailyPracticeToday, operation_id="getDailyPractice")
@@ -48,29 +43,13 @@ async def get_daily_practice(
 
 @router.post("/offer", response_model=DailyPracticeToday, operation_id="offerDailyPractice")
 async def offer_daily_practice(
-    body: OfferBody = DailyPracticeOfferRequest(),
     x_app_locale: Locale = None,
     x_app_timezone: Timezone = None,
     user_id: str = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> dict[str, Any]:
     return await daily_practice.offer(
-        session, user_id, focus=body.focus, locale=x_app_locale, timezone_name=x_app_timezone
-    )
-
-
-@router.post("/{id}/skip", response_model=DailyPracticeToday, operation_id="skipDailyPractice")
-async def skip_daily_practice(
-    id: str,
-    body: OfferBody = DailyPracticeOfferRequest(),
-    x_app_locale: Locale = None,
-    x_app_timezone: Timezone = None,
-    user_id: str = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
-) -> dict[str, Any]:
-    return await daily_practice.skip(
-        session, user_id, id,
-        focus=body.focus, locale=x_app_locale, timezone_name=x_app_timezone,
+        session, user_id, locale=x_app_locale, timezone_name=x_app_timezone
     )
 
 

@@ -13,6 +13,7 @@ from app.api.attribution import router as attribution_router
 from app.api.banners import router as banners_router
 from app.api.bgm import router as bgm_router
 from app.api.chat import router as chat_router
+from app.api.daily_practice import router as daily_practice_router
 from app.api.diary import router as diary_router
 from app.api.economy import router as economy_router
 from app.api.feedback import router as feedback_router
@@ -84,8 +85,9 @@ def create_app() -> FastAPI:
         # 인증 dependency와 DB 대기까지 포함한 절대 HTTP 예산의 시작점.
         request.state.started_monotonic = time.monotonic()
         response = await call_next(request)
-        if request.url.path in {'/banners', '/banners/resolve', '/chat/topic-entries',
-                                '/daily-affirmation'}:
+        if (request.url.path in {'/banners', '/banners/resolve', '/chat/topic-entries',
+                                 '/daily-affirmation', '/daily-practice'}
+                or request.url.path.startswith('/daily-practice/')):
             response.headers['Cache-Control'] = 'private, no-store'
         return response
     # 공개(인증 불필요): 헬스체크와 설치 귀속 복호화.
@@ -111,6 +113,7 @@ def create_app() -> FastAPI:
     app.include_router(trainings_router)
     app.include_router(articles.router)
     app.include_router(affirmation_router)
+    app.include_router(daily_practice_router)
     app.include_router(subscription_router)
     app.include_router(ads_router)
     # 로컬/격리 개발 서버 전용: 워커·회상·모델 평가를 Swagger에서 손으로 검증한다.

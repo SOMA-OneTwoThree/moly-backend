@@ -158,11 +158,16 @@ async def test_account_delete_preserves_rpc_and_cascade_contract(connection):
         'INSERT INTO public.training_tries(user_id,tries_left,refill_from) VALUES($1,4,now())',
         "INSERT INTO public.training_claims(user_id,training_id,stage,reason,answer_text,verdict)"
         " VALUES($1,'t',1,'should_pass','a','retry')",
+        "WITH t AS (INSERT INTO public.daily_practice_templates(title_ko,title_en,title_ja) "
+        "VALUES('이불 펴기','Make the bed','布団を敷く') RETURNING id) "
+        "INSERT INTO public.daily_practice_offers(user_id,template_id,local_date,options_expire_at) "
+        "SELECT $1::uuid,id,'2026-11-01'::date,now() FROM t",
     ]:
         await connection.execute(sql, uid)
     await connection.execute('DELETE FROM auth.users WHERE id=$1', uid)
     for table in ['profiles', 'user_items', 'routines', 'training_progress', 'training_answers',
-                  'training_rewards', 'training_tries', 'training_claims', 'training_submissions']:
+                  'training_rewards', 'training_tries', 'training_claims', 'training_submissions',
+                  'daily_practice_offers']:
         column = 'id' if table == 'profiles' else 'user_id'
         assert await connection.fetchval(
             f'SELECT count(*) FROM public.{table} WHERE {column}=$1', uid,

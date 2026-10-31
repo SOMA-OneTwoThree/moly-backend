@@ -94,13 +94,10 @@ async def _load_today(
     completed = [
         r for r in rows if r.status == COMPLETED and r.completed_local_date == day.local_date
     ]
-    options = [
-        r for r in rows
-        if r.status == OFFERED and r.local_date == day.local_date and r.options_expire_at > now
-    ]
+    options = [r for r in rows if r.status == OFFERED and r.local_date == day.local_date]
     return _Today(
         live=live,
-        practice=live or max(completed, key=lambda r: r.local_date, default=None),
+        practice=live or max(completed, key=lambda r: r.deadline, default=None),
         can_choose=can_choose,
         options=sorted(options, key=lambda r: r.id) if can_choose else [],
     )
@@ -152,8 +149,7 @@ async def _create_options(
     last_shown: dict[uuid.UUID, date] = {}
     for row in shown:
         last_shown[row.template_id] = max(row.local_date, last_shown.get(row.template_id, row.local_date))
-    shown_today = {row.template_id for row in shown if row.local_date == day.local_date}
-    candidates = [t.id for t in templates if t.is_active and t.id not in shown_today]
+    candidates = [t.id for t in templates if t.is_active]
     for template_id in pick_options(candidates, last_shown, rng):
         session.add(DailyPracticeOffer(
             id=uuid.uuid4(), user_id=uid, template_id=template_id, local_date=day.local_date,

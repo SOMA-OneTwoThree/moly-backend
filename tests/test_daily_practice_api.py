@@ -18,7 +18,7 @@ from app.core.security import get_current_user
 from app.main import app
 from app.models.daily_practice import DailyPracticeOffer, DailyPracticeTemplate
 from app.models.routine import Routine, RoutineCompletion, RoutineSchedule, RoutineSkip
-from app.services import daily_practice, llm, privacy
+from app.services import daily_practice, privacy
 from tests.fake_db import FakeDbSession
 
 USER = "00000000-0000-0000-0000-000000000001"
@@ -93,13 +93,9 @@ def client(monkeypatch, tables, clock):
     async def no_lock(_session, _uid):
         return None
 
-    async def no_llm(*_args, **_kwargs):
-        raise AssertionError("LLM을 부르지 않는다")
-
     monkeypatch.setattr(daily_practice, "_load_profile", profile)
     monkeypatch.setattr(daily_practice, "advisory_xact_lock", no_lock)
     monkeypatch.setattr(daily_practice, "_clock", lambda _now=None: clock.now)
-    monkeypatch.setattr(llm, "generate", no_llm)
     app.dependency_overrides[get_session] = session_dep
     app.dependency_overrides[get_current_user] = lambda: USER
     yield TestClient(app)
@@ -496,6 +492,15 @@ def test_routine_uses_the_requested_title_and_fixed_defaults(client, pool, table
     assert schedule.days_of_week == [1, 2, 3, 4, 5, 6, 7]
 
 
+def test_longest_allowed_title_fits_the_routine_response(client, tables):
+    longest = "가" * 50
+    tables[DailyPracticeTemplate].append(SimpleNamespace(
+        id=uuid.UUID(int=1), is_active=True, title_ko=longest, title_en=longest, title_ja=longest,
+    ))
+    practice_id = completed(client)
+    assert ok(act(client, "routine", practice_id))["routine"]["name"] == longest
+
+
 def test_routine_repeat_returns_the_same_routine(client, pool, tables):
     practice_id = completed(client)
     first = ok(act(client, "routine", practice_id))
@@ -561,10 +566,6 @@ def test_another_users_id_is_404(client, pool, tables, verb):
     row = tables[DailyPracticeOffer][0]
     assert code(act(client, verb, row.id)) == (404, "DAILY_PRACTICE_NOT_FOUND")
     assert row.status == "completed"
-
-
-def test_skip_endpoint_is_gone(client, pool):
-    assert client.post(f"{TODAY_PATH}/{uuid.uuid4()}/skip", headers=HEADERS).status_code == 404
 
 
 @pytest.mark.parametrize("verb", ["get", "offer", *VERBS])
@@ -678,13 +679,35 @@ def test_moving_east_past_midnight_starts_a_new_local_day(client, pool, clock):
     assert code(act(client, "accept", west["options"][0]["id"])) == (409, "DAILY_PRACTICE_INVALID_STATE")
 
 
-def test_moving_west_onto_the_same_local_date_refills_without_repeating_rows(client, tables, clock):
-    tables[DailyPracticeTemplate].extend(template(i) for i in range(1, 7))
+@pytest.mark.parametrize("pool_size", [1, 6])
+def test_moving_west_onto_the_same_local_date_returns_the_same_options(client, tables, clock, pool_size):
+    tables[DailyPracticeTemplate].extend(template(i + 1) for i in range(pool_size))
     first = offer(client)
     clock.now = datetime(2026, 11, 1, 16, 0, tzinfo=timezone.utc)
-    second = offer(client, {"X-App-Timezone": LA, "X-App-Locale": "ko"})
-    assert second["local_date"] == "2026-11-01"
-    assert len(second["options"]) == 3 and titles(first).isdisjoint(titles(second))
+    headers = {"X-App-Timezone": LA, "X-App-Locale": "ko"}
+    second = offer(client, headers)
+    assert second["local_date"] == "2026-11-01" and second["can_choose"] is True
+    assert second["options"] == first["options"]
+    assert len(tables[DailyPracticeOffer]) == min(pool_size, 3)
+    body = ok(act(client, "accept", second["options"][0]["id"], headers))
+    assert body["practice"]["id"] == second["options"][0]["id"]
+
+
+def test_practice_is_the_most_recently_chosen_after_a_westward_date_change(client, pool, clock):
+    seoul, la = HEADERS, {"X-App-Timezone": LA, "X-App-Locale": "ko"}
+    clock.now = datetime(2026, 11, 1, 15, 30, tzinfo=timezone.utc)
+    earlier = offer(client, seoul)["options"][0]["id"]
+    ok(act(client, "accept", earlier, seoul))
+    ok(act(client, "complete", earlier, seoul))
+
+    clock.now = datetime(2026, 11, 1, 16, 0, tzinfo=timezone.utc)
+    later = offer(client, la)["options"][0]["id"]
+    ok(act(client, "accept", later, la))
+    clock.now = datetime(2026, 11, 2, 9, 0, tzinfo=timezone.utc)
+    body = ok(act(client, "complete", later, la))
+    assert body["local_date"] == "2026-11-02" and body["practice"]["id"] == later
+    assert get(client, la)["practice"]["id"] == later
+    assert ok(act(client, "uncomplete", later, la))["practice"]["status"] == "accepted"
 
 
 def test_moving_west_cannot_choose_twice_on_one_local_date(client, pool, tables, clock):

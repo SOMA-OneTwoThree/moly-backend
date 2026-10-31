@@ -3399,6 +3399,848 @@ paths:
                       details: {}
       security:
       - SupabaseBearer: []
+  /daily-practice:
+    get:
+      tags:
+      - daily-practice
+      summary: 오늘의 작은 실천 조회
+      operationId: getDailyPractice
+      description: 읽기 전용이다. 제안을 만들지 않는다.
+      parameters:
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '글귀 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 최대 64자로 받는다. 미설정·미지원
+          언어는 en으로 폴백하며 응답의 locale은 ko, en, ja 중 하나다.'
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대 1..64자. 생략 시 profiles.timezone, 잘못된 값은 422 APP_TIMEZONE_INVALID.
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      responses:
+        '200':
+          description: 오늘의 상태
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPracticeToday'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 시간대 헤더가 없을 때의 프로필 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          description: 요청 형식 또는 시간대 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - header
+                          - x-app-locale
+                          type: string_too_long
+                          msg: String should have at most 64 characters
+                appTimezoneInvalid:
+                  summary: 시간대 형식 오류
+                  value:
+                    error:
+                      code: APP_TIMEZONE_INVALID
+                      message: 시간대 형식이 올바르지 않습니다.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+  /daily-practice/offer:
+    post:
+      tags:
+      - daily-practice
+      summary: 오늘의 제안 받기
+      operationId: offerDailyPractice
+      description: 상태와 무관하게 현재 행을 반환하고, 오늘 제안이 없을 때만 첫 제안을 만든다. 풀이 비어 있으면 오류 없이 200과 practice null을 반환한다.
+        LLM을 부르지 않는다.
+      parameters:
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '글귀 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 최대 64자로 받는다. 미설정·미지원
+          언어는 en으로 폴백하며 응답의 locale은 ko, en, ja 중 하나다.'
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대 1..64자. 생략 시 profiles.timezone, 잘못된 값은 422 APP_TIMEZONE_INVALID.
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyPracticeOfferRequest'
+      responses:
+        '200':
+          description: 오늘의 상태
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPracticeToday'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 시간대 헤더가 없을 때의 프로필 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 진행 중
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+        '422':
+          description: 요청 형식 또는 시간대 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - header
+                          - x-app-locale
+                          type: string_too_long
+                          msg: String should have at most 64 characters
+                appTimezoneInvalid:
+                  summary: 시간대 형식 오류
+                  value:
+                    error:
+                      code: APP_TIMEZONE_INVALID
+                      message: 시간대 형식이 올바르지 않습니다.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+  /daily-practice/{id}/skip:
+    post:
+      tags:
+      - daily-practice
+      summary: 건너뛰고 다음 제안 받기
+      operationId: skipDailyPractice
+      description: offered에서만 가능하다. 건너뛴 것을 기록하고 다음 제안을 반환한다. 후보가 없으면 practice는 null이다. offers_remaining이
+        0이면 409 DAILY_PRACTICE_OFFER_LIMIT.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: DailyPractice.id
+        schema:
+          type: string
+          format: uuid
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '글귀 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 최대 64자로 받는다. 미설정·미지원
+          언어는 en으로 폴백하며 응답의 locale은 ko, en, ja 중 하나다.'
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대 1..64자. 생략 시 profiles.timezone, 잘못된 값은 422 APP_TIMEZONE_INVALID.
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyPracticeOfferRequest'
+      responses:
+        '200':
+          description: 오늘의 상태
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPracticeToday'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 없는 id이거나 다른 사용자의 id, 또는 시간대 헤더가 없을 때의 프로필 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                dailyPracticeNotFound:
+                  summary: 없는 실천
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_NOT_FOUND
+                      message: 오늘의 작은 실천을 찾을 수 없어요.
+                      details: {}
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 중이거나 만료된 행, 허용되지 않은 전이, 또는 건너뛰기 한도 초과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+                expired:
+                  summary: expires_at이 지난 행
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_EXPIRED
+                      message: 오늘의 작은 실천이 이미 끝났어요.
+                      details: {}
+                invalidState:
+                  summary: 허용되지 않은 전이
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_INVALID_STATE
+                      message: 지금은 할 수 없는 동작이에요.
+                      details: {}
+                offerLimit:
+                  summary: 건너뛰기 한도 초과
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_OFFER_LIMIT
+                      message: 오늘은 더 바꿀 수 없어요.
+                      details: {}
+        '422':
+          description: 요청 형식 또는 시간대 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - header
+                          - x-app-locale
+                          type: string_too_long
+                          msg: String should have at most 64 characters
+                appTimezoneInvalid:
+                  summary: 시간대 형식 오류
+                  value:
+                    error:
+                      code: APP_TIMEZONE_INVALID
+                      message: 시간대 형식이 올바르지 않습니다.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+  /daily-practice/{id}/accept:
+    post:
+      tags:
+      - daily-practice
+      summary: 제안 수락
+      operationId: acceptDailyPractice
+      description: offered를 accepted로 바꾼다. 이미 accepted면 그대로 반환한다.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: DailyPractice.id
+        schema:
+          type: string
+          format: uuid
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '글귀 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 최대 64자로 받는다. 미설정·미지원
+          언어는 en으로 폴백하며 응답의 locale은 ko, en, ja 중 하나다.'
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대 1..64자. 생략 시 profiles.timezone, 잘못된 값은 422 APP_TIMEZONE_INVALID.
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      responses:
+        '200':
+          description: 오늘의 상태
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPracticeToday'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 없는 id이거나 다른 사용자의 id, 또는 시간대 헤더가 없을 때의 프로필 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                dailyPracticeNotFound:
+                  summary: 없는 실천
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_NOT_FOUND
+                      message: 오늘의 작은 실천을 찾을 수 없어요.
+                      details: {}
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 중이거나 만료된 행, 또는 허용되지 않은 전이
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+                expired:
+                  summary: expires_at이 지난 행
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_EXPIRED
+                      message: 오늘의 작은 실천이 이미 끝났어요.
+                      details: {}
+                invalidState:
+                  summary: 허용되지 않은 전이
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_INVALID_STATE
+                      message: 지금은 할 수 없는 동작이에요.
+                      details: {}
+        '422':
+          description: 요청 형식 또는 시간대 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - header
+                          - x-app-locale
+                          type: string_too_long
+                          msg: String should have at most 64 characters
+                appTimezoneInvalid:
+                  summary: 시간대 형식 오류
+                  value:
+                    error:
+                      code: APP_TIMEZONE_INVALID
+                      message: 시간대 형식이 올바르지 않습니다.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+  /daily-practice/{id}/complete:
+    post:
+      tags:
+      - daily-practice
+      summary: 실천 완료
+      operationId: completeDailyPractice
+      description: accepted를 completed로 바꾼다. 이미 completed면 그대로 반환한다.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: DailyPractice.id
+        schema:
+          type: string
+          format: uuid
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '글귀 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 최대 64자로 받는다. 미설정·미지원
+          언어는 en으로 폴백하며 응답의 locale은 ko, en, ja 중 하나다.'
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대 1..64자. 생략 시 profiles.timezone, 잘못된 값은 422 APP_TIMEZONE_INVALID.
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      responses:
+        '200':
+          description: 오늘의 상태
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPracticeToday'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 없는 id이거나 다른 사용자의 id, 또는 시간대 헤더가 없을 때의 프로필 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                dailyPracticeNotFound:
+                  summary: 없는 실천
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_NOT_FOUND
+                      message: 오늘의 작은 실천을 찾을 수 없어요.
+                      details: {}
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 중이거나 만료된 행, 또는 허용되지 않은 전이
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+                expired:
+                  summary: expires_at이 지난 행
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_EXPIRED
+                      message: 오늘의 작은 실천이 이미 끝났어요.
+                      details: {}
+                invalidState:
+                  summary: 허용되지 않은 전이
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_INVALID_STATE
+                      message: 지금은 할 수 없는 동작이에요.
+                      details: {}
+        '422':
+          description: 요청 형식 또는 시간대 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - header
+                          - x-app-locale
+                          type: string_too_long
+                          msg: String should have at most 64 characters
+                appTimezoneInvalid:
+                  summary: 시간대 형식 오류
+                  value:
+                    error:
+                      code: APP_TIMEZONE_INVALID
+                      message: 시간대 형식이 올바르지 않습니다.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+  /daily-practice/{id}/uncomplete:
+    post:
+      tags:
+      - daily-practice
+      summary: 완료 취소
+      operationId: uncompleteDailyPractice
+      description: 잘못 누른 완료를 되돌린다. completed를 accepted로 바꾸고 이미 accepted면 그대로 반환한다. routine_added면 409
+        DAILY_PRACTICE_INVALID_STATE.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: DailyPractice.id
+        schema:
+          type: string
+          format: uuid
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '글귀 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 최대 64자로 받는다. 미설정·미지원
+          언어는 en으로 폴백하며 응답의 locale은 ko, en, ja 중 하나다.'
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대 1..64자. 생략 시 profiles.timezone, 잘못된 값은 422 APP_TIMEZONE_INVALID.
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      responses:
+        '200':
+          description: 오늘의 상태
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPracticeToday'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 없는 id이거나 다른 사용자의 id, 또는 시간대 헤더가 없을 때의 프로필 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                dailyPracticeNotFound:
+                  summary: 없는 실천
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_NOT_FOUND
+                      message: 오늘의 작은 실천을 찾을 수 없어요.
+                      details: {}
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 중이거나 만료된 행, 또는 허용되지 않은 전이
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+                expired:
+                  summary: expires_at이 지난 행
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_EXPIRED
+                      message: 오늘의 작은 실천이 이미 끝났어요.
+                      details: {}
+                invalidState:
+                  summary: 허용되지 않은 전이
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_INVALID_STATE
+                      message: 지금은 할 수 없는 동작이에요.
+                      details: {}
+        '422':
+          description: 요청 형식 또는 시간대 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - header
+                          - x-app-locale
+                          type: string_too_long
+                          msg: String should have at most 64 characters
+                appTimezoneInvalid:
+                  summary: 시간대 형식 오류
+                  value:
+                    error:
+                      code: APP_TIMEZONE_INVALID
+                      message: 시간대 형식이 올바르지 않습니다.
+                      details: {}
+      security:
+      - SupabaseBearer: []
+  /daily-practice/{id}/routine:
+    post:
+      tags:
+      - daily-practice
+      summary: 루틴으로 추가
+      operationId: addDailyPracticeRoutine
+      description: completed에서만 가능하다. 한 트랜잭션에서 루틴을 만들고 routine_added를 켠다. 이름은 요청 언어의 title, name_i18n은
+        세 언어, 아이콘은 행동의 icon, 색은 카테고리별, 요일은 매일, 알림은 없음. 다시 호출하면 같은 루틴을 반환하고 아무것도 만들지 않는다.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: DailyPractice.id
+        schema:
+          type: string
+          format: uuid
+      - name: X-App-Locale
+        in: header
+        required: false
+        description: '글귀 언어. ko, en, ja 또는 해당 언어의 지역 태그(예: ko-KR, en-US, ja-JP)를 최대 64자로 받는다. 미설정·미지원
+          언어는 en으로 폴백하며 응답의 locale은 ko, en, ja 중 하나다.'
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 64
+          - type: 'null'
+      - name: X-App-Timezone
+        in: header
+        required: false
+        description: 현재 기기의 IANA 시간대 1..64자. 생략 시 profiles.timezone, 잘못된 값은 422 APP_TIMEZONE_INVALID.
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+      responses:
+        '200':
+          description: 오늘의 상태와 만든 루틴
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPracticeRoutineResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: 없는 id이거나 다른 사용자의 id, 또는 시간대 헤더가 없을 때의 프로필 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                dailyPracticeNotFound:
+                  summary: 없는 실천
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_NOT_FOUND
+                      message: 오늘의 작은 실천을 찾을 수 없어요.
+                      details: {}
+                profileNotFound:
+                  summary: 프로필 없음
+                  value:
+                    error:
+                      code: NOT_FOUND
+                      message: 프로필을 찾을 수 없어요.
+                      details: {}
+        '409':
+          description: 계정 삭제 중이거나 만료된 행, 또는 허용되지 않은 전이
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                accountDeleting:
+                  summary: 계정 삭제 진행 중
+                  value:
+                    error:
+                      code: ACCOUNT_DELETING
+                      message: 계정 삭제를 처리하고 있어요.
+                      details: {}
+                expired:
+                  summary: expires_at이 지난 행
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_EXPIRED
+                      message: 오늘의 작은 실천이 이미 끝났어요.
+                      details: {}
+                invalidState:
+                  summary: 허용되지 않은 전이
+                  value:
+                    error:
+                      code: DAILY_PRACTICE_INVALID_STATE
+                      message: 지금은 할 수 없는 동작이에요.
+                      details: {}
+        '422':
+          description: 요청 형식 또는 시간대 검증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              examples:
+                validation:
+                  summary: 요청 검증
+                  value:
+                    error:
+                      code: VALIDATION
+                      message: 요청 형식이 올바르지 않습니다.
+                      details:
+                        errors:
+                        - loc:
+                          - header
+                          - x-app-locale
+                          type: string_too_long
+                          msg: String should have at most 64 characters
+                appTimezoneInvalid:
+                  summary: 시간대 형식 오류
+                  value:
+                    error:
+                      code: APP_TIMEZONE_INVALID
+                      message: 시간대 형식이 올바르지 않습니다.
+                      details: {}
+      security:
+      - SupabaseBearer: []
   /attribution/meta-referrer/decrypt:
     post:
       tags:
@@ -4679,6 +5521,112 @@ components:
         text:
           type: string
           description: 오늘 이하 가장 최근 날짜에 저장된 문장을 요청 언어로 반환한다.
+    DailyPractice:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - status
+      - category
+      - title
+      - speech
+      - icon
+      - routine_added
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 이 제안의 사용자 행 id. 풀 행동의 id가 아니다.
+        status:
+          $ref: '#/components/schemas/DailyPracticeStatus'
+        category:
+          $ref: '#/components/schemas/DailyPracticeCategory'
+        title:
+          type: string
+          description: 요청 언어의 체크할 행동. 루틴 이름으로도 쓰인다.
+        speech:
+          type: string
+          description: 제안할 때 캐피가 하는 말. 요청 언어.
+        icon:
+          type: string
+          description: 루틴 아이콘 카탈로그의 키. routines.icon에 그대로 쓸 수 있다.
+        routine_added:
+          type: boolean
+    DailyPracticeCategory:
+      type: string
+      enum:
+      - rest
+      - body
+      - calm
+      - mind
+      - self_kindness
+      - connect
+      - order
+      description: rest 잠과 쉬기, body 몸 움직이기, calm 스트레스와 불안, mind 생각 정리, self_kindness 나에게 다정하기, connect
+        누군가에게 연락하기, order 하루나 공간을 조금 정리하기.
+    DailyPracticeOfferRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        focus:
+          type: array
+          maxItems: 3
+          default: []
+          items:
+            $ref: '#/components/schemas/DailyPracticeCategory'
+          description: 중요한 순서의 관심 카테고리. 선택에만 쓰고 저장하지 않는다.
+    DailyPracticeRoutineResponse:
+      type: object
+      additionalProperties: false
+      required:
+      - today
+      - routine
+      properties:
+        today:
+          $ref: '#/components/schemas/DailyPracticeToday'
+        routine:
+          $ref: '#/components/schemas/RoutineResponse'
+    DailyPracticeStatus:
+      type: string
+      enum:
+      - offered
+      - accepted
+      - completed
+    DailyPracticeToday:
+      type: object
+      additionalProperties: false
+      required:
+      - local_date
+      - expires_at
+      - locale
+      - practice
+      - offers_remaining
+      properties:
+        local_date:
+          type: string
+          format: date
+          description: 현재 행이 있으면 그 행을 만들 때 정한 현지 날짜, 없으면 요청 시간대의 오늘.
+        expires_at:
+          type: string
+          format: date-time
+          description: 다음 현지 자정의 시각. 현재 행이 있으면 그 행을 만들 때 정한 값이다.
+        locale:
+          type: string
+          enum:
+          - ko
+          - en
+          - ja
+          description: 문구에 적용한 언어. 미설정·미지원 언어는 en이다.
+        practice:
+          anyOf:
+          - $ref: '#/components/schemas/DailyPractice'
+          - type: 'null'
+          description: 현재 행. 아직 제안이 없거나 풀이 비어 있으면 null이다.
+        offers_remaining:
+          type: integer
+          minimum: 0
+          maximum: 2
+          description: 오늘 더 건너뛸 수 있는 횟수(2, 1, 0). 수락한 뒤에는 0이다.
     DailyFortuneContextRef:
       type: object
       additionalProperties: false
@@ -8230,6 +9178,8 @@ tags:
   description: 운세 프로필, 당일 결과, 공개용 광고 세션
 - name: affirmation
   description: 오늘의 글귀 조회
+- name: daily-practice
+  description: 오늘의 작은 실천 제안, 수락, 완료, 루틴 추가
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution

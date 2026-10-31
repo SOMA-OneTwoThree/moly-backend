@@ -167,20 +167,25 @@ async def list_routines(session: AsyncSession, user_id: str, day: AppDay | None 
 
 
 async def create_routine(session: AsyncSession, user_id: str, req, day: AppDay) -> dict[str, Any]:
-    uid = _uid(user_id)
     r = Routine(
-        id=uuid.uuid4(), user_id=uid, name=req.name, icon=req.icon, color=req.color,
+        id=uuid.uuid4(), user_id=_uid(user_id), name=req.name, icon=req.icon, color=req.color,
         frequency_per_week=len(req.days_of_week), days_of_week=req.days_of_week,
         reminder_enabled=req.reminder_enabled, reminder_time=req.reminder_time,
     )
-    session.add(r)
-    await session.flush()
-    session.add(RoutineSchedule(
-        routine_id=r.id, user_id=uid, effective_from=day.local_date, days_of_week=req.days_of_week,
-    ))
+    await add_with_schedule(session, r, day.local_date)
     await session.commit()
     await session.refresh(r)
     return _dto(r, completed_today=False)
+
+
+async def add_with_schedule(session: AsyncSession, r: Routine, effective_from: date) -> None:
+    """루틴과 첫 요일 이력을 넣는다. 커밋은 호출측 소유."""
+    session.add(r)
+    await session.flush()
+    session.add(RoutineSchedule(
+        routine_id=r.id, user_id=r.user_id, effective_from=effective_from, days_of_week=r.days_of_week,
+    ))
+    await session.flush()
 
 
 async def history(

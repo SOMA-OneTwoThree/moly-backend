@@ -120,6 +120,20 @@ paths:
     $ref: ./paths/fortune.yaml#/~1daily-fortune~1ad-sessions
   /daily-affirmation:
     $ref: ./paths/affirmation.yaml#/~1daily-affirmation
+  /daily-practice:
+    $ref: ./paths/daily_practice.yaml#/~1daily-practice
+  /daily-practice/offer:
+    $ref: ./paths/daily_practice.yaml#/~1daily-practice~1offer
+  /daily-practice/{id}/skip:
+    $ref: ./paths/daily_practice.yaml#/~1daily-practice~1{id}~1skip
+  /daily-practice/{id}/accept:
+    $ref: ./paths/daily_practice.yaml#/~1daily-practice~1{id}~1accept
+  /daily-practice/{id}/complete:
+    $ref: ./paths/daily_practice.yaml#/~1daily-practice~1{id}~1complete
+  /daily-practice/{id}/uncomplete:
+    $ref: ./paths/daily_practice.yaml#/~1daily-practice~1{id}~1uncomplete
+  /daily-practice/{id}/routine:
+    $ref: ./paths/daily_practice.yaml#/~1daily-practice~1{id}~1routine
   /attribution/meta-referrer/decrypt:
     $ref: ./paths/attribution.yaml#/~1attribution~1meta-referrer~1decrypt
   /banners/resolve:
@@ -184,6 +198,18 @@ components:
       $ref: ./components/conversations.yaml#/schemas/ChatStateResponse
     DailyAffirmationResponse:
       $ref: ./components/affirmation.yaml#/schemas/DailyAffirmationResponse
+    DailyPractice:
+      $ref: ./components/daily_practice.yaml#/schemas/DailyPractice
+    DailyPracticeCategory:
+      $ref: ./components/daily_practice.yaml#/schemas/DailyPracticeCategory
+    DailyPracticeOfferRequest:
+      $ref: ./components/daily_practice.yaml#/schemas/DailyPracticeOfferRequest
+    DailyPracticeRoutineResponse:
+      $ref: ./components/daily_practice.yaml#/schemas/DailyPracticeRoutineResponse
+    DailyPracticeStatus:
+      $ref: ./components/daily_practice.yaml#/schemas/DailyPracticeStatus
+    DailyPracticeToday:
+      $ref: ./components/daily_practice.yaml#/schemas/DailyPracticeToday
     DailyFortuneContextRef:
       $ref: ./components/fortune.yaml#/schemas/DailyFortuneContextRef
     DailyFortuneRevealResponse:
@@ -458,6 +484,8 @@ tags:
   description: 운세 프로필, 당일 결과, 공개용 광고 세션
 - name: affirmation
   description: 오늘의 글귀 조회
+- name: daily-practice
+  description: 오늘의 작은 실천 제안, 수락, 완료, 루틴 추가
 - name: ads
   description: 리워드 광고 session과 AdMob SSV
 - name: attribution

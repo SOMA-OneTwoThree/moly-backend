@@ -13,6 +13,9 @@ erDiagram
     profiles ||--o{ diaries : diary
     profiles ||--o{ mood_entries : mood
     profiles ||--o{ routines : routine
+    profiles ||--o{ daily_practice_offers : practice
+    daily_practice_actions ||--o{ daily_practice_offers : shown
+    routines |o--o{ daily_practice_offers : added
     routines ||--o{ routine_completions : completion
     routines ||--o{ routine_schedules : schedule
     routines ||--o{ routine_skips : skip
@@ -123,6 +126,8 @@ erDiagram
 | `fortune_profiles`, `daily_fortunes` | 입력 revision과 사용자별 현재 날짜 snapshot·별도 해금 상태 |
 | `fortune_ad_sessions` | 당일 운세 SSV 세션·검증 거래 |
 | `daily_affirmations` | 날짜별 오늘의 글귀(ko/en/ja). 운영자가 직접 넣고, 오늘 이하 가장 최근 날짜의 문장을 낸다 |
+| `daily_practice_actions` | 오늘의 작은 실천 공용 풀(ko/en/ja 제목·말, 카테고리, 시간대, 아이콘). 사용자 정보 없음. `title_ko` 유일, 내릴 때는 `retired` |
+| `daily_practice_offers` | 사용자별 하루 제안. `(user_id,local_date)`당 건너뛰지 않은 행 하나, 하루 세 번까지. `focus`는 저장하지 않으며 프로필 CASCADE로 삭제 |
 | `bgm_tracks` | 원격 음원 카탈로그·노출/권한 정보 |
 
 감정 메모를 캐피 일기나 장기기억으로 자동 간주하지 않는다. 운세 문구 버전 변경만으로 유효한 당일

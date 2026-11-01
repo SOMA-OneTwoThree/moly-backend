@@ -43,10 +43,8 @@ async def check(environment: str, expected_sha: str, *, show: bool = False) -> N
             "집계 확인 필요", "집계 시간 초과", "집계 조회 실패", "상태 조회 확인 필요",
         )):
             raise ValueError("report query unavailable")
-        configured = bool(settings.meta_ads_account_id or settings.meta_ads_access_token.get_secret_value())
         print(json.dumps({"daily_report": "ok", "environment": environment, "version": expected_sha,
                           "read_only": True, "slack_sent": False,
-                          "meta_ads": "ok" if configured else "not_configured",
                           "elapsed_ms": int((monotonic()-started)*1000)}))
         if show:
             print(message)

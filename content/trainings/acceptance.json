@@ -480,9 +480,9 @@
         {
           "id": "c",
           "text": {
-            "ko": "기념일은 무사히 넘겼잖아, 더 못 해드린 아쉬움은 생각하지 말고 잊어버릴래",
-            "en": "The anniversary is over anyway, so I'll just forget about wishing I did more",
-            "ja": "記念日は無事に過ぎたんだから、もっとしてあげたかった気持ちは忘れてしまおう"
+            "ko": "기념일은 무사히 넘겼잖아. 아쉬운 마음 같은 건 처음부터 없었던 걸로 칠래",
+            "en": "The anniversary went fine, so I'll act like I never wished I'd done more",
+            "ja": "記念日は無事に過ぎたんだから、残念な気持ちなんて最初からなかったことにしよう"
           },
           "correct": false,
           "hint": {
@@ -805,7 +805,7 @@
         {
           "id": "a",
           "text": {
-            "ko": "심사위원 취향까지는 어쩔 수 없지, 우리가 끝까지 최선을 다한 걸로 충분해",
+            "ko": "심사위원 취향까지는 어쩔 수 없지. 우리가 끝까지 최선을 다한 걸로 충분해",
             "en": "We can't control the judges' taste, so doing our best until the end is enough",
             "ja": "審査員の好みまではどうしようもないし、最後まで最善を尽くしただけで十分だ"
           },
@@ -880,7 +880,7 @@
         {
           "id": "b",
           "text": {
-            "ko": "처음 가보는 길이라 긴장할 만했어, 마지막 구간까지 잘 몰았으니 다음엔 붙을 거야",
+            "ko": "처음 가보는 길이라 긴장할 만했어. 마지막 구간까지 잘 몰았으니 다음엔 붙을 거야",
             "en": "Anyone would be nervous on a new road; I drove well up to the last part, so I'll pass next time",
             "ja": "初めての道だから緊張するのも無理はないし、最後の区間までうまく運転できたから次は受かるよ"
           },
@@ -1582,9 +1582,9 @@
         {
           "id": "b",
           "text": {
-            "ko": "어색했던 자리는 별일 아닌 걸로 치고 씁쓸한 기분도 그냥 잊고 신경 쓰지 말아야지",
-            "en": "The awkward date was no big deal, so I'll just forget this bitter feeling",
-            "ja": "気まずかった時間は大したことないと思って、苦い気持ちも忘れて気にしないでおこう"
+            "ko": "어색했던 자리는 아예 없던 일로 치고, 사실 씁쓸하지도 않았다고 생각할래",
+            "en": "I'll treat the date as if it never happened; I wasn't really bitter anyway",
+            "ja": "気まずかった時間はなかったことにして、実は苦い気持ちにもならなかったと思うことにしよう"
           },
           "correct": false,
           "hint": {
@@ -1596,9 +1596,9 @@
         {
           "id": "c",
           "text": {
-            "ko": "나는 대화를 이어가려고 예의를 다했고 자리에서 매너를 안 지킨 건 상대 문제야",
-            "en": "I politely tried to keep the conversation going; their rude manners are on them",
-            "ja": "自分は礼儀をもって会話を続けようとしたし、その場でマナーを守らなかったのは相手の問題だ"
+            "ko": "씁쓸하긴 해도 나는 대화를 이어가려고 예의를 다했고, 매너를 안 지킨 건 상대 쪽이야",
+            "en": "It's bitter, but I was polite and kept trying; the poor manners were on their side",
+            "ja": "苦い気持ちはあるけれど、自分は礼儀をもって会話を続けようとしたし、マナーを守らなかったのは相手のほうだ"
           },
           "correct": true,
           "hint": null
@@ -1643,9 +1643,9 @@
         {
           "id": "a",
           "text": {
-            "ko": "반찬이 이게 뭐야, 이렇게 허술하게 싸 올 거면 도시락은 그냥 포기하는 게 낫겠어",
+            "ko": "반찬이 이게 뭐야. 이렇게 허술하게 싸 올 거면 도시락은 그냥 포기하는 게 낫겠어",
             "en": "What kind of lunch is this? If it's this sloppy, I might as well give up",
-            "ja": "こんなおかずじゃあんまりだ、こんなに適当に詰めるくらいならお弁当は諦めた方がいい"
+            "ja": "こんなおかずじゃあんまりだ。こんなに適当に詰めるくらいならお弁当は諦めた方がいい"
           },
           "correct": false,
           "hint": {

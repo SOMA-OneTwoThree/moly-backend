@@ -49,7 +49,7 @@
             {
               "id": "a",
               "text": {
-                "ko": "조금만 더 서둘러 나올걸, 결국 내 게으름 때문에 눈앞에서 놓친 거야",
+                "ko": "조금만 더 서둘러 나올걸. 결국 내 게으름 때문에 눈앞에서 놓친 거야",
                 "en": "I should've left earlier; I missed it right in front of me because I was lazy",
                 "ja": "もう少し急いで出ればよかったのに、結局自分の怠け癖のせいで目の前で逃してしまった"
               },
@@ -73,22 +73,22 @@
             {
               "id": "c",
               "text": {
-                "ko": "밀가루랑 버터를 줄여야 했는데 눈앞에서 품절된 덕분에 저절로 식단 관리를 했네",
-                "en": "I needed to cut back on flour and butter anyway, so this kept my diet on track",
-                "ja": "小麦粉とバターを控えるべきだったし、目の前で売り切れたおかげで自然と食事管理ができた"
+                "ko": "유명한 집이어도 소금빵 맛은 다 비슷할 테니, 사실 그렇게 먹고 싶었던 것도 아니야",
+                "en": "Salt bread tastes about the same anywhere, so I didn't really want it that much",
+                "ja": "有名な店でも塩パンの味はだいたい同じだろうし、実はそこまで食べたかったわけでもない"
               },
               "correct": false,
               "hint": {
-                "ko": "그 생각엔 빵을 먹고 싶었던 진짜 마음이 빠져 있어요.",
-                "en": "That thought leaves out how much you really wanted the bread.",
-                "ja": "その考えには、パンを食べたかった本当の気持ちが抜けていますよ。"
+                "ko": "기대했던 마음까지 없던 일로 돌릴 필요는 없어요.",
+                "en": "You don't have to pretend you weren't looking forward to it.",
+                "ja": "楽しみにしていた気持ちまでなかったことにしなくて大丈夫ですよ。"
               }
             }
           ],
           "explanation": {
-            "ko": "식단 관리 핑계로 먹고 싶던 마음을 외면하는 건 포장된 회피예요. 새로 발견한 즐거움에 초점을 두는 게 건강한 긍정 회로예요.",
-            "en": "Brushing aside your desire for the bread under the excuse of dieting is just avoidance in disguise. Focusing on a new pleasure you discovered is a healthier positive perspective.",
-            "ja": "食事管理を言い訳にして食べたかった気持ちから目をそらすのは、形を変えた回避です。新しく見つけた楽しさに目を向けるのが、健やかな前向きさです。"
+            "ko": "빵 맛이 다 비슷할 거라며 먹고 싶던 마음을 외면하는 건 포장된 회피예요. 새로 발견한 즐거움에 초점을 두는 게 건강한 긍정 회로예요.",
+            "en": "Telling yourself all salt bread tastes the same and ignoring how much you wanted it is just avoidance in disguise. Focusing on a new pleasure you discovered is a healthier positive perspective.",
+            "ja": "塩パンの味はどこも同じだと言い聞かせて食べたかった気持ちから目をそらすのは、形を変えた回避です。新しく見つけた楽しさに目を向けるのが、健やかな前向きさです。"
           }
         },
         {
@@ -143,9 +143,9 @@
             {
               "id": "b",
               "text": {
-                "ko": "운동은 덜 갔지만 새로 산 운동복이 마음에 들어서 좋았던",
-                "en": "I went less, but my new gym clothes made me feel good",
-                "ja": "運動に行く回数は減ったけれど、新しく買ったウェアが気に入ってよかった"
+                "ko": "헬스장은 덜 갔어도 새 운동복을 샀으니 운동한 셈 쳐도 되는",
+                "en": "I went less, but buying new gym clothes counted as working out",
+                "ja": "ジムにはあまり行けなくても、新しいウェアを買ったから運動したことにしていい"
               },
               "correct": false,
               "hint": {
@@ -475,15 +475,15 @@
             {
               "id": "b",
               "text": {
-                "ko": "고층에 사는 사람들은 훨씬 더 힘들었을 텐데 나는 5층이라 이 정도면 양반이네",
-                "en": "People on higher floors have it worse; the 5th floor isn't bad at all",
-                "ja": "高層階の人はもっと大変だったはずだし、5階の自分なんかまだマシなほうだな"
+                "ko": "나보다 높은 층 사는 사람들은 더 힘들었을 테니, 그 생각을 하면 좀 위안이 되네",
+                "en": "People on higher floors must've had it harder, and that's a bit comforting",
+                "ja": "自分より上の階の人はもっと大変だったはずだし、そう思うと少し慰められるな"
               },
               "correct": false,
               "hint": {
-                "ko": "남과 비교해 위안 삼기보다 내가 직접 얻은 좋은 점을 찾아볼까요?",
-                "en": "Instead of comforting yourself by comparing with others, what benefit did you gain?",
-                "ja": "人と比べて慰めるより、自分が得られたよい点を探してみましょうか？"
+                "ko": "남이 더 힘들었을 거란 생각에서 위안을 찾기보다, 내가 직접 얻은 좋은 점을 찾아볼까요?",
+                "en": "Instead of finding comfort in others having it harder, what benefit did you gain yourself?",
+                "ja": "他の人のほうが大変だったはずだと考えて慰めを得るより、自分が直接得られたよい点を探してみましょうか？"
               }
             },
             {
@@ -737,9 +737,9 @@
             {
               "id": "c",
               "text": {
-                "ko": "아껴 입느라 신경 쓰였는데 자국이 남은 덕분에 이제 작업복처럼 편하게 입겠네",
-                "en": "Keeping it clean was stressful anyway; now I can just wear it casually",
-                "ja": "大事に着るのに気を使っていたから、跡がついたおかげで作業着みたいに楽に着られるな"
+                "ko": "이미 얼룩이 생겼으니 새 옷도 아니네. 별로 아깝지도 않고 이제 편하게 막 입으면 돼",
+                "en": "It's stained now, so it's not really new. I'll just wear it for anything",
+                "ja": "もうしみがついたから新しい服でもないし、別に惜しくもないから、これからは気楽に着ればいいや"
               },
               "correct": false,
               "hint": {
@@ -802,15 +802,15 @@
             {
               "id": "b",
               "text": {
-                "ko": "교환하는 건 번거롭지만 이번 주문으로 쇼핑몰 적립금이 쌓였으니 그나마 위안이 되네",
-                "en": "Exchanging them is a hassle, but at least I got reward points from this order",
-                "ja": "交換するのは面倒だけど、今回の注文でポイントが貯まったからまだ救われるな"
+                "ko": "교환은 번거롭지만, 사실 마음에 쏙 들던 바지도 아니었으니 안 맞아도 하나도 아쉽지 않아",
+                "en": "The exchange is a hassle, but I never really loved these pants anyway",
+                "ja": "交換は面倒だけど、実はそれほど気に入っていたズボンでもないし、合わなくても全然惜しくないな"
               },
               "correct": false,
               "hint": {
-                "ko": "적립금은 바지와 상관없는 위안이에요. 교환하는 일 자체에서 다행인 점은 없을까요?",
-                "en": "Points don't solve the pants issue. What's fortunate about the exchange itself?",
-                "ja": "ポイントはズボンとは別の話です。交換自体でよかった点はありませんか？"
+                "ko": "바지의 가치를 깎아내려 아쉬움을 덮기보다, 교환하는 일에서 다행인 점을 찾아볼까요?",
+                "en": "Instead of talking the pants down to cover your disappointment, can you find what's fortunate about the exchange?",
+                "ja": "ズボンの価値を下げて残念な気持ちをごまかすより、交換することの中でよかった点を探してみませんか？"
               }
             },
             {
@@ -825,9 +825,9 @@
             }
           ],
           "explanation": {
-            "ko": "적립금 같은 엉뚱한 점으로 위안 삼기보다, 제때 교환할 시간 여유가 있다는 점에 집중하면 번거로운 마음도 한결 가벼워져요.",
-            "en": "Rather than comforting yourself with unrelated things like store points, focusing on having enough time to exchange them makes the hassle feel much lighter.",
-            "ja": "ポイントのような別のことで気を紛らわすより、間に合ううちに交換できる時間の余裕があることに目を向けると、面倒な気持ちもずっと軽くなります。"
+            "ko": "바지가 별로였다며 아쉬움을 덮기보다, 제때 교환할 시간 여유가 있다는 점에 집중하면 번거로운 마음도 한결 가벼워져요.",
+            "en": "Rather than covering your disappointment by saying the pants weren't that great, focusing on having enough time to exchange them makes the hassle feel much lighter.",
+            "ja": "ズボンがいまいちだったと残念な気持ちをごまかすより、間に合ううちに交換できる時間の余裕があることに目を向けると、面倒な気持ちもずっと軽くなります。"
           }
         },
         {
@@ -1174,9 +1174,9 @@
             {
               "id": "b",
               "text": {
-                "ko": "근거 자료는 좀 아쉽다고 하셨지만 발표 슬라이드 디자인이 깔끔해서 보기에는 좋았어",
-                "en": "The data fell short, but at least my slide design looked clean and neat",
-                "ja": "根拠資料は少し足りないと言われたけれど、スライドのデザインがきれいで見た目はよかったな"
+                "ko": "슬라이드 디자인은 깔끔했으니까 근거 얘기는 크게 신경 쓰지 않고 이대로 가도 되겠어",
+                "en": "My slide design was clean, so I won't worry about the data and keep it as is",
+                "ja": "スライドのデザインはきれいだったから、根拠のことはあまり気にせず、このままでよさそうだ"
               },
               "correct": false,
               "hint": {
@@ -2326,9 +2326,9 @@
             {
               "id": "c",
               "text": {
-                "ko": "기념일은 무사히 넘겼잖아, 더 못 해드린 아쉬움은 생각하지 말고 잊어버릴래",
-                "en": "The anniversary is over anyway, so I'll just forget about wishing I did more",
-                "ja": "記念日は無事に過ぎたんだから、もっとしてあげたかった気持ちは忘れてしまおう"
+                "ko": "기념일은 무사히 넘겼잖아. 아쉬운 마음 같은 건 처음부터 없었던 걸로 칠래",
+                "en": "The anniversary went fine, so I'll act like I never wished I'd done more",
+                "ja": "記念日は無事に過ぎたんだから、残念な気持ちなんて最初からなかったことにしよう"
               },
               "correct": false,
               "hint": {
@@ -2651,7 +2651,7 @@
             {
               "id": "a",
               "text": {
-                "ko": "심사위원 취향까지는 어쩔 수 없지, 우리가 끝까지 최선을 다한 걸로 충분해",
+                "ko": "심사위원 취향까지는 어쩔 수 없지. 우리가 끝까지 최선을 다한 걸로 충분해",
                 "en": "We can't control the judges' taste, so doing our best until the end is enough",
                 "ja": "審査員の好みまではどうしようもないし、最後まで最善を尽くしただけで十分だ"
               },
@@ -2726,7 +2726,7 @@
             {
               "id": "b",
               "text": {
-                "ko": "처음 가보는 길이라 긴장할 만했어, 마지막 구간까지 잘 몰았으니 다음엔 붙을 거야",
+                "ko": "처음 가보는 길이라 긴장할 만했어. 마지막 구간까지 잘 몰았으니 다음엔 붙을 거야",
                 "en": "Anyone would be nervous on a new road; I drove well up to the last part, so I'll pass next time",
                 "ja": "初めての道だから緊張するのも無理はないし、最後の区間までうまく運転できたから次は受かるよ"
               },
@@ -3428,9 +3428,9 @@
             {
               "id": "b",
               "text": {
-                "ko": "어색했던 자리는 별일 아닌 걸로 치고 씁쓸한 기분도 그냥 잊고 신경 쓰지 말아야지",
-                "en": "The awkward date was no big deal, so I'll just forget this bitter feeling",
-                "ja": "気まずかった時間は大したことないと思って、苦い気持ちも忘れて気にしないでおこう"
+                "ko": "어색했던 자리는 아예 없던 일로 치고, 사실 씁쓸하지도 않았다고 생각할래",
+                "en": "I'll treat the date as if it never happened; I wasn't really bitter anyway",
+                "ja": "気まずかった時間はなかったことにして、実は苦い気持ちにもならなかったと思うことにしよう"
               },
               "correct": false,
               "hint": {
@@ -3442,9 +3442,9 @@
             {
               "id": "c",
               "text": {
-                "ko": "나는 대화를 이어가려고 예의를 다했고 자리에서 매너를 안 지킨 건 상대 문제야",
-                "en": "I politely tried to keep the conversation going; their rude manners are on them",
-                "ja": "自分は礼儀をもって会話を続けようとしたし、その場でマナーを守らなかったのは相手の問題だ"
+                "ko": "씁쓸하긴 해도 나는 대화를 이어가려고 예의를 다했고, 매너를 안 지킨 건 상대 쪽이야",
+                "en": "It's bitter, but I was polite and kept trying; the poor manners were on their side",
+                "ja": "苦い気持ちはあるけれど、自分は礼儀をもって会話を続けようとしたし、マナーを守らなかったのは相手のほうだ"
               },
               "correct": true,
               "hint": null
@@ -3489,9 +3489,9 @@
             {
               "id": "a",
               "text": {
-                "ko": "반찬이 이게 뭐야, 이렇게 허술하게 싸 올 거면 도시락은 그냥 포기하는 게 낫겠어",
+                "ko": "반찬이 이게 뭐야. 이렇게 허술하게 싸 올 거면 도시락은 그냥 포기하는 게 낫겠어",
                 "en": "What kind of lunch is this? If it's this sloppy, I might as well give up",
-                "ja": "こんなおかずじゃあんまりだ、こんなに適当に詰めるくらいならお弁当は諦めた方がいい"
+                "ja": "こんなおかずじゃあんまりだ。こんなに適当に詰めるくらいならお弁当は諦めた方がいい"
               },
               "correct": false,
               "hint": {
@@ -4016,7 +4016,7 @@
             {
               "id": "b",
               "text": {
-                "ko": "제가 어제 저녁에도 김치찌개를 먹어서요, 오늘 저는 다른 걸로 시켜도 될까요?",
+                "ko": "제가 어제 저녁에도 김치찌개를 먹어서요. 오늘 저는 다른 걸로 시켜도 될까요?",
                 "en": "I actually had curry last night—mind if I order something else today?",
                 "ja": "昨日の夜もカレーを食べたので、今日は私だけ別のものを頼んでもいいでしょうか？"
               },
@@ -4026,9 +4026,9 @@
             {
               "id": "c",
               "text": {
-                "ko": "미안해서 저만 따로 시키기가 좀 그러네요, 오늘은 그냥 같은 걸로 먹을게요",
+                "ko": "미안해서 저만 따로 시키기가 좀 그러네요. 오늘은 그냥 같은 걸로 먹을게요",
                 "en": "I feel bad ordering separately, so I'll just get the same thing today",
-                "ja": "申し訳なくて私だけ別には頼みづらいですね、今日はそのまま同じものを食べます"
+                "ja": "申し訳なくて私だけ別には頼みづらいですね。今日はそのまま同じものを食べます"
               },
               "correct": false,
               "hint": {
@@ -4172,7 +4172,7 @@
             {
               "id": "c",
               "text": {
-                "ko": "갑자기 근처에 들를 곳이 생겨서요, 다음번에 기회 되면 그때 꼭 탈게요",
+                "ko": "갑자기 근처에 들를 곳이 생겨서요. 다음번에 기회 되면 그때 꼭 탈게요",
                 "en": "I suddenly need to stop somewhere nearby, so I'll take a ride next time",
                 "ja": "急に近くで立ち寄る場所ができまして、また次の機会にぜひ乗せていただきますね"
               },
@@ -4378,7 +4378,7 @@
             {
               "id": "b",
               "text": {
-                "ko": "다음 달 일정을 먼저 확인해 봐야 해서요, 내일 오전까지 말씀드려도 될까요?",
+                "ko": "다음 달 일정을 먼저 확인해 봐야 해서요. 내일 오전까지 말씀드려도 될까요?",
                 "en": "I need to check next month's schedule first—can I let you know tomorrow morning?",
                 "ja": "来月の予定を先に確認してみないといけませんので、明日の午前中までにお返事してもいいですか？"
               },
@@ -4388,7 +4388,7 @@
             {
               "id": "c",
               "text": {
-                "ko": "많이 바쁘지만 않으면 괜찮을 것 같은데요, 일단 같이하는 걸로 알고 있을게요",
+                "ko": "많이 바쁘지만 않으면 괜찮을 것 같은데요. 일단 같이하는 걸로 알고 있을게요",
                 "en": "It should be fine unless I get swamped, so count me in for now",
                 "ja": "あまり忙しくなければ大丈夫だと思いますので、ひとまず参加するつもりでいますね"
               },
@@ -4452,7 +4452,7 @@
             {
               "id": "a",
               "text": {
-                "ko": "다음 달 일정을 확인해 봤는데 마감 일이 겹쳐서요, 이번에는 함께하기 어려울 것 같아요",
+                "ko": "다음 달 일정을 확인해 봤는데 마감 일이 겹쳐서요. 이번에는 함께하기 어려울 것 같아요",
                 "en": "I checked my schedule and my deadlines overlap, so I can't join this time",
                 "ja": "来月の予定を確認してみたのですが締め切りが重なっていまして、今回はご一緒するのが難しそうです"
               },
@@ -4462,9 +4462,9 @@
             {
               "id": "b",
               "text": {
-                "ko": "일정이 겹쳐서 다 못 도와드려 죄송한데, 작은 일이라도 제가 조금 맡아볼까요?",
-                "en": "Sorry my schedule is tight, but could I at least take on a small part?",
-                "ja": "予定が重なって全部はお手伝いできず申し訳ないのですが、小さなことでも少し引き受けましょうか？"
+                "ko": "일정이 겹쳐서 어렵지만 거절하기 죄송하니까, 제가 일부라도 어떻게든 맡아볼게요",
+                "en": "My schedule's packed, but I feel bad saying no, so I'll take on part of it somehow",
+                "ja": "予定が重なって難しいのですが、お断りするのは申し訳ないので、一部だけでもどうにか引き受けます"
               },
               "correct": false,
               "hint": {
@@ -4902,9 +4902,9 @@
             {
               "id": "a",
               "text": {
-                "ko": "날씨 좋다니 나들이 가기 딱이겠다, 토요일 몇 시에 어디서 만날까?",
+                "ko": "날씨 좋다니 나들이 가기 딱이겠다. 토요일 몇 시에 어디서 만날까?",
                 "en": "Great weather sounds perfect for going out! When and where should we meet?",
-                "ja": "天気がいいならお出かけにぴったりだね、土曜日は何時にどこで会う？"
+                "ja": "天気がいいならお出かけにぴったりだね。土曜日は何時にどこで会う？"
               },
               "correct": false,
               "hint": {
@@ -5072,7 +5072,7 @@
                 "ja": "友達"
               },
               "text": {
-                "ko": "아쉽다, 우리 근처에서 간단하게 맥주 한 잔만 딱 더 하고 가자!",
+                "ko": "아쉽다. 우리 근처에서 간단하게 맥주 한 잔만 딱 더 하고 가자!",
                 "en": "It's too early to stop! Let's have just one more beer nearby!",
                 "ja": "ここで解散は名残惜しいな。近くでもう一杯だけ飲んでいこうよ！"
               },
@@ -5169,9 +5169,9 @@
             {
               "id": "c",
               "text": {
-                "ko": "나도 얼른 보고 싶으니까 출발할 때 연락해, 나갈 준비하고 있을게",
+                "ko": "나도 얼른 보고 싶으니까 출발할 때 연락해. 나갈 준비하고 있을게",
                 "en": "I can't wait to see you too! Text me when you leave and I'll get ready",
-                "ja": "私も早く会いたいから出発するときに連絡してね、出る準備をして待ってるよ"
+                "ja": "私も早く会いたいから出発するときに連絡してね。出る準備をして待ってるよ"
               },
               "correct": false,
               "hint": {
@@ -5297,9 +5297,9 @@
             {
               "id": "c",
               "text": {
-                "ko": "주말 내내 힘들겠지만 내 외국어 실력도 늘 테니 좋은 연습 기회라고 생각해야지",
-                "en": "It'll take all weekend, but it'll improve my language skills, so it's good practice",
-                "ja": "週末ずっと大変だろうけど、外国語の力も伸びるはずだからいい練習の機会だと思うことにしよう"
+                "ko": "버거운 건 사실이지만 거절하긴 어려우니까 외국어 연습이라고 생각하고 그냥 해야지",
+                "en": "It's a lot, but saying no is hard, so I'll call it language practice and just do it",
+                "ja": "大変なのは確かだけど、断るのは難しいから、外国語の練習だと思ってとにかくやろう"
               },
               "correct": false,
               "hint": {

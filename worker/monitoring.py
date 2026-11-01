@@ -14,7 +14,7 @@ from app.core.db import get_sessionmaker
 from app.services import monitoring_state, config_store, jobs
 from app.services.limits import effective_token_config
 from app.services.entitlement import _parse_dt
-from worker import daily_report, meta_ads
+from worker import daily_report
 
 _log = logging.getLogger(__name__)
 _KST = ZoneInfo("Asia/Seoul")
@@ -183,11 +183,10 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
         live["notes"].append("구독 처리 확인 필요")
     cfg = await effective_token_config(None, raw=values)
     start, end = cost_window(now)
-    data, (cost, _), ads = await asyncio.gather(daily_report.business(now, {
+    data, (cost, _) = await asyncio.gather(daily_report.business(now, {
         "diary_min_user_chars": cfg["diary_min_user_chars"],
         "launch_until": _parse_dt(cfg["free_launch_until"]),
-    }), daily_report.read_metric("cost", _COST_SQL, {"start": start, "end": end, "now": now}),
-        meta_ads.snapshot(now))
+    }), daily_report.read_metric("cost", _COST_SQL, {"start": start, "end": end, "now": now}))
     change = None
     if data["subscriptions"] is not None:
         started = monotonic()
@@ -195,7 +194,7 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
             change = await daily_report.subscription_change(now, data["subscriptions"], persist=persist_snapshot)
         except Exception as exc:
             daily_report.log_failure("subscription_comparison", now, exc, started)
-    return daily_report.render(now, data, live, values.get(daily_report.TOTALS_KEY), cost, change, ads)
+    return daily_report.render(now, data, live, values.get(daily_report.TOTALS_KEY), cost, change)
 
 
 async def emit(now: datetime, counts: dict) -> None:

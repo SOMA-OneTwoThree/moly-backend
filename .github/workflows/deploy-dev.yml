@@ -38,6 +38,7 @@ env:
   ROLE_ARN: arn:aws:iam::676972757138:role/moly-github-actions-dev-role
   # dev- 접두사: prod sha 태그와 네임스페이스를 시각적으로도 구분
   DEPLOY_TAG: ${{ inputs.image_tag || format('dev-{0}', github.sha) }}
+  VERIFY_DAILY_REPORT: ${{ inputs.image_tag == '' && 'true' || 'false' }}
 
 jobs:
   build-and-deploy:
@@ -286,7 +287,9 @@ jobs:
           sudo bash deploy.sh {tag} || exit 103
           check_dev post {tag.removeprefix("dev-")}
           docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi' || exit 104
-          docker exec moly-backend sh -ec 'if [ -f scripts/check_daily_report.py ]; then python scripts/check_daily_report.py --environment development --expected-sha {tag.removeprefix("dev-")}; fi' || exit 105
+          if [ "{os.environ['VERIFY_DAILY_REPORT']}" = true ]; then
+            docker exec moly-backend python scripts/check_daily_report.py --environment development --expected-sha {tag.removeprefix("dev-")} || exit 105
+          fi
           """
           with open(sys.argv[1], "w") as out:
               json.dump({"commands": [command], "executionTimeout": ["600"]}, out)

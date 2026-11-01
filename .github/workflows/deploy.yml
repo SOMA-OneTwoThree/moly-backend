@@ -50,6 +50,7 @@ env:
   EXPECTED_INSTANCES: ${{ inputs.expected_instances || '2' }}
   # 배포 태그: dispatch에서 image_tag를 주면 그 태그(빌드 스킵 = 롤백), 아니면 현재 커밋
   DEPLOY_TAG: ${{ inputs.image_tag || github.sha }}
+  VERIFY_DAILY_REPORT: ${{ inputs.image_tag == '' && 'true' || 'false' }}
   VERIFY_MORNING_PUSH: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.verify_morning_push)) && 'true' || 'false' }}
   DEPLOY_EVENT: ${{ github.event_name }}
   PREVIOUS_SHA: ${{ github.event.before }}
@@ -358,13 +359,15 @@ jobs:
           # 2대 active(진짜 사고)를 1대로 세어 초록불이 되는 false-green이 최악이므로,
           # 상태 확인이 안 되면 세지 않고 즉시 실패한다.
           verify_worker_timers
-          for ID in $INSTANCE_IDS; do
-            CMD_ID="$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$ID" \
-              --document-name AWS-RunShellScript \
-              --parameters "commands=[\"docker exec moly-backend sh -ec 'if [ -f scripts/check_daily_report.py ]; then python scripts/check_daily_report.py --environment production --expected-sha ${DEPLOY_TAG}; fi'\"]" \
-              --query Command.CommandId --output text)"
-            poll_ssm "$CMD_ID" "$ID"
-          done
+          if [ "$VERIFY_DAILY_REPORT" = true ]; then
+            for ID in $INSTANCE_IDS; do
+              CMD_ID="$(aws ssm send-command --region "$AWS_REGION" --instance-ids "$ID" \
+                --document-name AWS-RunShellScript \
+                --parameters "commands=[\"docker exec moly-backend python scripts/check_daily_report.py --environment production --expected-sha ${DEPLOY_TAG}\"]" \
+                --query Command.CommandId --output text)"
+              poll_ssm "$CMD_ID" "$ID"
+            done
+          fi
           echo "==> 배포 성공 (${COUNT}대 롤링 + 정합성 검증 통과)"
 
       # 7. 배포후 헬스 스모크 — 배포 성공 시에만 실행(앞 스텝 실패면 건너뜀).

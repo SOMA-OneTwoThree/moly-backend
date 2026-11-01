@@ -5,6 +5,7 @@ import asyncio
 import logging
 from datetime import datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
+from time import monotonic
 
 from sqlalchemy import text
 
@@ -13,7 +14,7 @@ from app.core.db import get_sessionmaker
 from app.services import monitoring_state, config_store, jobs
 from app.services.limits import effective_token_config
 from app.services.entitlement import _parse_dt
-from worker import daily_report
+from worker import daily_report, meta_ads
 
 _log = logging.getLogger(__name__)
 _KST = ZoneInfo("Asia/Seoul")
@@ -46,9 +47,17 @@ SELECT count(*) AS calls,
        count(*) FILTER (WHERE cost_micro_usd IS NOT NULL AND status='completed') AS priced,
        sum(cost_micro_usd) FILTER (WHERE status='completed') AS cost,
        count(*) FILTER (WHERE cost_micro_usd IS NULL OR status <> 'completed') AS unknown,
+       count(*) FILTER (WHERE status='started') AS pending,
+       count(*) FILTER (WHERE status='unknown_usage' AND error_code='foreground_timeout') AS unknown_timeout,
        count(*) FILTER (WHERE cache_write_estimated) AS cache_estimated,
        count(*) FILTER (WHERE experiment_id IS NOT NULL) AS experiments
 FROM ai_usage_ledger WHERE started_at >= :start AND started_at < :end
+""")
+_PENDING_SQL = text("""
+SELECT count(*) FILTER(WHERE state='ready'
+ AND available_at<CAST(:now AS timestamptz)-interval '30 minutes') late,
+ count(*) FILTER(WHERE state='running' AND lease_until<CAST(:now AS timestamptz)) expired
+FROM async_jobs WHERE state IN ('ready','running')
 """)
 
 
@@ -86,7 +95,8 @@ def cost_line(row: dict, now: datetime) -> str:
             " (미계측 경로 제외, 청구 확정액 아님)")
 
 
-async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = None) -> str:
+async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = None,
+                         *, persist_snapshot: bool = True) -> str:
     signals = {"worker_diary": "일기 처리", "worker_memory": "기억 처리", "worker_timeout": "정기 작업 시간",
                "rc_processor": "구독 처리", "worker_push": "알림 전송"}
     retention = [config_store.RETENTION_LAST_SUCCESS_PREFIX + name for name in (
@@ -97,8 +107,10 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
             *(monitoring_state.key_for(signal) for signal in signals)]
     live = {"notes": [], "worker": "정기 실행: 확인 필요", "retention": "데이터 정리: 확인 필요"}
     values = {}
+    started = monotonic()
     try:
         async with get_sessionmaker()() as session:
+            await session.execute(text("SET LOCAL statement_timeout='2500ms'"))
             values = await config_store.get_config_values(session, keys)
         stamp = values.get(config_store.WORKER_LAST_SUCCESS_KEY)
         last = datetime.fromisoformat(stamp) if isinstance(stamp, str) else None
@@ -127,19 +139,18 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
             live["notes"].append(f"데이터 정리 {4-completed}개 확인 필요")
         if values.get(config_store.WORKER_TZ_UNRESOLVABLE_KEY):
             live["notes"].append("일부 사용자 현지 시각 확인 필요")
-    except Exception:
+    except Exception as exc:
+        daily_report.log_failure("worker_state", now, exc, started)
         live["notes"].append("정기 작업 상태 조회 확인 필요")
+    started = monotonic()
     try:
         async with get_sessionmaker()() as session:
+            await session.execute(text("SET LOCAL statement_timeout='2500ms'"))
             queues = await jobs.queue_stats(session)
             dead = sum(item["dead"] for item in queues.values())
             if dead:
                 live["notes"].append(f"완료되지 못한 비동기 작업 {dead:,}건")
-            pending = (await session.execute(text("""
-                SELECT count(*) FILTER(WHERE state='ready' AND available_at<:now-interval '30 minutes') late,
-                       count(*) FILTER(WHERE state='running' AND lease_until<:now) expired
-                FROM async_jobs WHERE state IN ('ready','running')
-            """), {"now": now})).mappings().one()
+            pending = (await session.execute(_PENDING_SQL, {"now": now})).mappings().one()
             retention_pending = set((await session.execute(text("""
                 SELECT DISTINCT job_type FROM async_jobs
                 WHERE job_type=ANY(CAST(:kinds AS text[])) AND state IN ('ready','running')
@@ -152,7 +163,8 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
             live["notes"].append(f"실행 상태 확인이 필요한 작업 {pending['expired']:,}건")
         if retention_pending:
             live["retention"] = f"데이터 정리: {len(retention_pending)}개 처리 중"
-    except Exception:
+    except Exception as exc:
+        daily_report.log_failure("queue_state", now, exc, started)
         live["notes"].append("비동기 작업 상태 조회 확인 필요")
     if rc is None:
         live["notes"].append("구독 처리 현황 조회 확인 필요")
@@ -170,24 +182,20 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
     if counts and (counts.get("rc_exception") or counts.get("rc_processor_error")):
         live["notes"].append("구독 처리 확인 필요")
     cfg = await effective_token_config(None, raw=values)
-    data = await daily_report.business(now, {
+    start, end = cost_window(now)
+    data, (cost, _), ads = await asyncio.gather(daily_report.business(now, {
         "diary_min_user_chars": cfg["diary_min_user_chars"],
         "launch_until": _parse_dt(cfg["free_launch_until"]),
-    })
+    }), daily_report.read_metric("cost", _COST_SQL, {"start": start, "end": end, "now": now}),
+        meta_ads.snapshot(now))
     change = None
     if data["subscriptions"] is not None:
+        started = monotonic()
         try:
-            change = await daily_report.subscription_change(now, data["subscriptions"])
-        except Exception:
-            pass
-    cost = None
-    try:
-        start, end = cost_window(now)
-        async with get_sessionmaker()() as session:
-            cost = dict((await session.execute(_COST_SQL, {"start": start, "end": end})).mappings().one())
-    except Exception:
-        pass
-    return daily_report.render(now, data, live, values.get(daily_report.TOTALS_KEY), cost, change)
+            change = await daily_report.subscription_change(now, data["subscriptions"], persist=persist_snapshot)
+        except Exception as exc:
+            daily_report.log_failure("subscription_comparison", now, exc, started)
+    return daily_report.render(now, data, live, values.get(daily_report.TOTALS_KEY), cost, change, ads)
 
 
 async def emit(now: datetime, counts: dict) -> None:

@@ -15,7 +15,9 @@ NOW = datetime(2026, 10, 12, 4, tzinfo=timezone.utc)
 def observe(monkeypatch):
     @asynccontextmanager
     async def session():
-        yield SimpleNamespace()
+        result = SimpleNamespace(mappings=lambda: SimpleNamespace(one=lambda: {"late": 0, "expired": 0}),
+                                 scalars=lambda: [])
+        yield SimpleNamespace(execute=AsyncMock(return_value=result))
     monkeypatch.setattr(monitoring, "get_sessionmaker", lambda: session)
     monkeypatch.setattr(monitoring.daily_report, "record_tick", AsyncMock())
     rc = {env: {"failed": 0, "pending": 0, "fingerprint": "empty", "oldest": None}

@@ -23,6 +23,8 @@ Meta는 계정 전체의 광고비·`mobile_app_install`·CPI만 조회한다. �
 배포 workflow는 개발 컨테이너와 운영 두 호스트에서 아래 읽기 전용 검사를 실행한다.
 DB 연결에 읽기 전용을 강제하며 snapshot 저장·Slack 전송 없이 실제 보고를 생성하고
 필수 지표·조회 실패 여부·버전을 검사한다. 운영 검사는 두 호스트 정상 등록 후 실행한다.
+점검 스크립트는 Dockerfile에서 이미지에 포함하며 새 이미지 배포에서는 누락·실행 실패를
+배포 실패로 처리한다. 기존 이미지 태그를 지정하는 복구 배포는 구버전 호환을 위해 이 검사만 제외한다.
 
 ```sh
 python scripts/check_daily_report.py --environment development --expected-sha <40자리 SHA>

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import asyncio
 import uuid
 import json
 from datetime import date, datetime, timedelta, timezone
@@ -51,6 +52,14 @@ async def db(monkeypatch):
         outer = await connection.begin()
         sessions = async_sessionmaker(connection, expire_on_commit=False, join_transaction_mode="create_savepoint")
         monkeypatch.setattr(daily_report, "get_sessionmaker", lambda: sessions)
+        # These rollback fixtures share one physical connection. Production uses
+        # separate pool connections for independent concurrent report reads.
+        read_row = daily_report.read_row
+        lock = asyncio.Lock()
+        async def serialized_read(query, params):
+            async with lock:
+                return await read_row(query, params)
+        monkeypatch.setattr(daily_report, "read_row", serialized_read)
         try:
             yield SimpleNamespace(sessions=sessions, connection=connection)
         finally:
@@ -218,6 +227,56 @@ async def test_daily_counts_and_subscription_comparison(db):
         assert value["days"]["2200-02-02"]["diaries"] == 2
     await daily_report.subscription_change(NOW-timedelta(days=1), {"total": 3})
     assert await daily_report.subscription_change(NOW, {"total": 5}) == 2
+
+
+async def test_activity_deduplicates_sources_and_obeys_kst_boundaries(db):
+    start, end = daily_report.window(NOW)
+    params = dict(start=start, end=end, prior_start=start-timedelta(days=1),
+                  month_start=end-timedelta(days=30))
+    before = await daily_report.read_row(daily_report._ACTIVITY_SQL, params)
+    users = [await account(db) for _ in range(4)]
+    async with db.sessions() as session:
+        # One user seen twice at the first instant of the day and in another
+        # source still counts once. End is exclusive, including local midnight.
+        for uid, stamp in [(users[0], start), (users[0], start),
+                           (users[1], start-timedelta(microseconds=1)),
+                           (users[2], end), (users[3], params["month_start"]-timedelta(microseconds=1))]:
+            await session.execute(text("""INSERT INTO messages(user_id,sender,kind,content,activity_date,created_at)
+                VALUES(:uid,'user','normal','report fixture',:day,:stamp)"""),
+                                  dict(uid=uid, day=start.date(), stamp=stamp))
+        await session.execute(text("""INSERT INTO greetings(user_id,context,content,activity_date,created_at)
+            VALUES(:uid,'home_enter','report fixture',:day,:stamp)"""),
+                              dict(uid=users[0], day=start.date(), stamp=start))
+        # Assistant messages do not add user activity.
+        await session.execute(text("""INSERT INTO messages(user_id,sender,kind,content,activity_date,created_at)
+            VALUES(:uid,'moly','normal','report fixture',:day,:stamp)"""),
+                              dict(uid=users[2], day=start.date(), stamp=start))
+        await session.commit()
+    after = await daily_report.read_row(daily_report._ACTIVITY_SQL, params)
+    assert after == dict(dau=before["dau"]+1, prior_dau=before["prior_dau"]+1, mau=before["mau"]+2)
+
+
+async def test_queue_timestamp_parameter_and_cost_statuses_execute_in_postgres(db):
+    from worker import monitoring
+    start, end = daily_report.window(NOW)
+    async with db.sessions() as session:
+        queue = (await session.execute(monitoring._PENDING_SQL, {"now": NOW})).mappings().one()
+        assert isinstance(queue["late"], int) and isinstance(queue["expired"], int)
+        before = (await session.execute(monitoring._COST_SQL, dict(start=start, end=end))).mappings().one()
+        for status, cost, error in [("completed", 50000, None), ("started", None, None),
+                                    ("unknown_usage", None, "foreground_timeout"),
+                                    ("unknown_usage", None, "stale_started_reconciled")]:
+            await session.execute(text("""INSERT INTO ai_usage_ledger(lane,purpose,provider,model,
+                status,cost_micro_usd,error_code,started_at,price_catalog_version)
+                VALUES('foreground','tool_decide','openai','gpt-6-luna',:status,:cost,:error,:stamp,1)"""),
+                                  dict(status=status, cost=cost, error=error, stamp=start))
+        after = (await session.execute(monitoring._COST_SQL, dict(start=start, end=end))).mappings().one()
+        assert after["calls"] == before["calls"]+4
+        assert after["priced"] == before["priced"]+1
+        assert after["cost"] == (before["cost"] or 0)+50000
+        assert after["pending"] == before["pending"]+1
+        assert after["unknown"] == before["unknown"]+3
+        assert after["unknown_timeout"] == before["unknown_timeout"]+1
 
 
 async def test_period_start_tool_preview_lock_and_apply(db):

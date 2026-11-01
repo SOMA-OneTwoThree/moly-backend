@@ -31,6 +31,7 @@ def test_cost_pending_is_separate_from_service_status():
     assert "사용량 미확인: 2건" in message and "일부 관측 불가" not in message
     assert "전일 보고보다 +1명" in message
     assert "푸시 알림: 일일 집계 중" in message
+    assert "광고 집행" not in message and "연결 설정 필요" not in message
 
 
 def test_missing_diary_is_actionable_without_tick_error():

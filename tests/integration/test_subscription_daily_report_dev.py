@@ -348,3 +348,4 @@ async def test_daily_message_is_rendered_from_database_without_sending(db, monke
     assert "DAU:" in message and "MAU:" in message and "현재 구독 이용자:" in message
     assert "집계 확인 필요" not in message
     assert "RC PRODUCTION" not in message and "provider" not in message
+    assert "Meta" not in message and "연결 설정 필요" not in message

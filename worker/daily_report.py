@@ -289,7 +289,7 @@ def delta(value: int) -> str:
 
 
 def render(now: datetime, data: dict, live: dict, totals: dict | None,
-           cost: dict | None, change: int | None, ads: dict | None = None) -> str:
+           cost: dict | None, change: int | None) -> str:
     start, _ = window(now)
     day = start.astimezone(KST).date().isoformat()
     notes = list(live["notes"])
@@ -345,11 +345,6 @@ def render(now: datetime, data: dict, live: dict, totals: dict | None,
         setup = bucket.get("push_setup_error", 0)
         if setup:
             notes.append(f"어제 알림 발송 준비 실패 {setup:,}건")
-    if ads is not None:
-        from worker.meta_ads import render as render_ads
-        lines.extend(["", *render_ads(ads)])
-        if ads.get("status") == "unavailable":
-            notes.append("Meta 광고 집계 확인 필요")
     if cost is None:
         notes.append("AI 비용 집계 확인 필요")
     if notes:

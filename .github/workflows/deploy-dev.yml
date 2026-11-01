@@ -193,6 +193,7 @@ jobs:
                 102) reason=INFRA_PULL ;;
                 103) reason=INFRA_DEPLOY ;;
                 104) reason=POST_BANNERS ;;
+                105) reason=POST_DAILY_REPORT ;;
                 *) reason=UNCLASSIFIED ;;
               esac
               echo "DEV_SSM_FAILED:$status:$reason" >&2
@@ -285,6 +286,7 @@ jobs:
           sudo bash deploy.sh {tag} || exit 103
           check_dev post {tag.removeprefix("dev-")}
           docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi' || exit 104
+          docker exec moly-backend sh -ec 'if [ -f scripts/check_daily_report.py ]; then python scripts/check_daily_report.py --environment development --expected-sha {tag.removeprefix("dev-")}; fi' || exit 105
           """
           with open(sys.argv[1], "w") as out:
               json.dump({"commands": [command], "executionTimeout": ["600"]}, out)

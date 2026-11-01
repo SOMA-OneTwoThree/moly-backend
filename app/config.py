@@ -1,7 +1,7 @@
 import os
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -239,6 +239,10 @@ class Settings(BaseSettings):
     # 응답한다(클라 재시도 가능) — 광고 귀속만 못 붙을 뿐 설치·로그인은 막지 않으므로
     # require_production_ready()에서 강제하지 않는다(FCM·Slack과 같은 선택 연동 취급).
     meta_install_referrer_decryption_key: str = ""
+    # Optional read-only Marketing API integration. Independent from referrer decryption.
+    meta_ads_account_id: str = ""
+    meta_ads_access_token: SecretStr = SecretStr("")
+    meta_ads_api_version: str = "v26.0"
 
     # --- Slack (운영 알림) — 워커 일일 요약 ---
     # Incoming Webhook URL(/moly/prod/slack-webhook → SLACK_WEBHOOK_URL 환경변수). 비면 no-op.

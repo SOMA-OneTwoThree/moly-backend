@@ -2,6 +2,36 @@
 
 이 문서는 반복해서 사용하는 배포·관측·복구 절차다. 실행 시점의 SHA, 환경 설정, DB 계약과 실제 검사 결과는 해당 PR·배포 기록에 남긴다. 코드 기본값이나 과거 영수증을 현재 운영 상태로 간주하지 않는다.
 
+## 일일 보고
+
+`worker/daily_report.py`와 `worker/monitoring.py`는 가입·활동·구독·일기를 독립 조회한다.
+실패 항목을 0으로 바꾸지 않는다. 활동 조회의 PostgreSQL 시간 초과(57014)는 새 세션에서
+한 번만 재시도하며 전체 모니터링 15초 제한과 취소를 유지한다. 오류 로그는 항목·대상일·
+오류 종류·SQLSTATE·소요 시간·시도 횟수만 기록한다. 푸시는 수락·무효 토큰·전송 오류·
+설정 오류를 구분하고, AI 비용은 확인된 사용량 합계·집계 대기·사용량 미확인을 구분한다.
+
+Meta는 계정 전체의 광고비·`mobile_app_install`·CPI만 조회한다. 가입자 수나 겹치는 설치
+액션을 더하지 않는다. 계정 귀속 설정과 노출일 기준을 사용하고 대상일·계정 시간대를 표시한다.
+설치 0건은 CPI 계산 불가, 조회 실패는 집계 확인 필요, 미설정은 연결 설정 필요다.
+같은 계정에 다른 앱 광고도 있으면 계정을 분리하거나 조회 범위를 합의한 뒤 연결한다.
+환경별 SSM의 `meta-ads-account-id`, `meta-ads-access-token`(`ads_read`, SecureString),
+선택 `meta-ads-api-version`(기본 `v26.0`)을 인프라 `deploy.sh`가 전달한다.
+리퍼러 복호화 키와는 별개다. 토큰을 채팅·로그·Git에 남기지 않는다.
+참조: [Meta Insights 요청 계약](https://github.com/facebook/facebook-python-business-sdk/blob/main/facebook_business/adobjects/adaccount.py),
+[공식 광고 보고 예제](https://github.com/fbsamples/marketing-api-samples/blob/master/samples/samplecode/ads_reporting.py).
+
+배포 workflow는 개발 컨테이너와 운영 두 호스트에서 아래 읽기 전용 검사를 실행한다.
+DB 연결에 읽기 전용을 강제하며 snapshot 저장·Slack 전송 없이 실제 보고를 생성하고
+필수 지표·조회 실패 여부·버전을 검사한다. 운영 검사는 두 호스트 정상 등록 후 실행한다.
+
+```sh
+python scripts/check_daily_report.py --environment development --expected-sha <40자리 SHA>
+python scripts/check_daily_report.py --environment production --expected-sha <40자리 SHA>
+```
+
+이 보고 수정에는 DB 스키마·운영 데이터 변경이 없다. 이전 이미지 태그를 기존 배포 workflow에
+지정해 복구한다. Meta 연결 해제는 해당 환경의 계정·토큰 설정을 함께 제거한 뒤 재배포한다.
+
 ## 실행과 환경 분리
 
 | 프로세스 | 실행·역할 | 확인 기준 |

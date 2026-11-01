@@ -120,7 +120,7 @@
           "text": {
             "ko": "동료들이 점심 메뉴를 어제 저녁에 먹은 김치찌개로 통일하자고 해요. 같은 음식을 또 먹기는 내키지 않아요.",
             "en": "Your coworkers suggest everyone order curry for lunch, which you had for dinner last night. You don't feel like eating the same food again.",
-            "ja": "同僚たちが、昼食のメニューを昨夜食べたカレーに統一しようと言っています。同じものをまた食べる気にはなれません。"
+            "ja": "同僚たちが、昼食をカレーに統一しようと言っています。昨夜も食べたので、同じものをまた食べる気にはなれません。"
           },
           "slot": false
         },
@@ -208,7 +208,7 @@
           "text": {
             "ko": "옷 가게에서 친구가 내 취향이 아닌 화려한 옷을 입어보라고 부추겨요. 갈아입기도 번거롭고 입어보고 싶지 않아요.",
             "en": "At a clothing store, your friend urges you to try on a flashy outfit that isn't your style. Changing feels like a hassle, and you don't want to try it on.",
-            "ja": "洋服店で、友達が好みではない派手な服を着てみるよう勧めてきます。着替えるのも面倒で、試着したくありません。"
+            "ja": "洋服店で、好みではない派手な服を着てみるよう友達が勧めてきます。着替えるのも面倒で、試着したくありません。"
           },
           "slot": false
         },
@@ -365,7 +365,7 @@
           "text": {
             "ko": "열심히 설명해 준 성의를 봐서라도 오늘 한 번은 결제해야지",
             "en": "They explained it so thoroughly, so I should pay for it just this once out of courtesy",
-            "ja": "熱心に説明してくれた誠意に免じてでも、今日一度は支払おう"
+            "ja": "熱心に説明してくれたんだから、今日くらいは追加料金を払おう"
           },
           "correct": false,
           "hint": {
@@ -416,7 +416,7 @@
       "mission": {
         "ko": "오늘 원하는 시술만 받겠다고 직원에게 할 말을 적어보세요.",
         "en": "Write what you would say to the staff to get only the service you want today.",
-        "ja": "今日希望する施術だけを受けると、スタッフに伝える言葉を書いてみましょう。"
+        "ja": "今日は希望する施術だけを受けたいと、スタッフに伝える言葉を書いてみましょう。"
       },
       "lines": [
         {
@@ -927,7 +927,7 @@
         "retry_hint": {
           "ko": "일찍 자고 쉬고 싶다는 내 계획을 친구에게 솔직하게 이야기해 봐요.",
           "en": "Tell your friends honestly that you plan to go to bed early and get some rest.",
-          "ja": "早く寝て休みたいという予定を、友達に正直に伝えてみましょう。"
+          "ja": "早く寝て休むつもりだと、友達に正直に伝えてみましょう。"
         }
       }
     },
@@ -1306,7 +1306,7 @@
           "text": {
             "ko": "나도 보고 싶지만 오늘은 머리가 좀 아파서 일찍 쉬고 다른 날 만나자",
             "en": "I want to see you too, but I have a headache—let's rest tonight and meet another day",
-            "ja": "私も会いたいけど、今日は少し頭が痛いから早く休んでまた別の日に会おう"
+            "ja": "私も会いたいけど、今日は少し頭が痛いから早めに休むね。また別の日に会おう"
           },
           "correct": true,
           "hint": null
@@ -1351,7 +1351,7 @@
           "text": {
             "ko": "애인이 연휴에 1박 2일로 험한 산속 야영을 가자고 해요. 벌레와 체력 소모가 큰 야외 활동은 생각만 해도 지쳐요.",
             "en": "Your partner suggests an overnight camping trip in the rugged mountains for the holiday. Just thinking about bugs and exhausting outdoor activities wears you out.",
-            "ja": "恋人が連休に1泊2日で険しい山へキャンプに行こうと言っています。虫や体力を消耗する野外活動は、考えるだけでも疲れてしまいます。"
+            "ja": "恋人が連休に1泊2日で険しい山へキャンプに行こうと言っています。虫が多く体力も消耗する野外活動は、考えるだけでも疲れてしまいます。"
           },
           "slot": false
         },
@@ -1678,7 +1678,7 @@
           "text": {
             "ko": "매달 15만 원은 조금 빠듯한데 미안해서 어쩌지… 이번 달 사정 보고 다시 말해줄게",
             "en": "$150 a month is tight, and I feel bad… Let me see how this month goes first",
-            "ja": "毎月1万5千円は少し厳しいけど申し訳ないな…今月の状況を見てまた伝えるよ"
+            "ja": "毎月1万5千円は少し厳しくて申し訳ないな…今月の状況を見てまた伝えるよ"
           },
           "correct": false,
           "hint": {
@@ -1785,7 +1785,7 @@
           "text": {
             "ko": "이번 주말에는 꼭 집에 오는 거지? 네가 와서 이것저것 좀 도와줘야 엄마가 편하지.",
             "en": "You're definitely coming home this weekend, right? It makes things so much easier for me when you come and help out around the house.",
-            "ja": "今週末は必ず帰ってくるよね？来ていろいろ手伝ってくれると、お母さんも楽なんだけど。"
+            "ja": "今週末は必ず帰ってくるよね？いろいろ手伝ってくれると、お母さんも楽なんだけど。"
           },
           "slot": false
         },
@@ -1882,7 +1882,7 @@
           "text": {
             "ko": "다른 사람한테는 절대 말하지 마 지금 아이디랑 비밀번호 바로 보내줄게",
             "en": "Just don't tell anyone—I'll text you my username and password right now",
-            "ja": "ほかの人には絶対に言わないでね、今からIDとパスワードをすぐに送るよ"
+            "ja": "ほかの人には絶対に言わないでね。今からIDとパスワードをすぐに送るよ"
           },
           "correct": false,
           "hint": {

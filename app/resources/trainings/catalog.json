@@ -2226,9 +2226,9 @@
               "speaker": "narration",
               "slot": false,
               "text": {
-                "ko": "고민 끝에 산 겨울 코트가 1주 뒤에 깜짝 세일로 3만 원이나 더 싸게 팔리는 걸 봤어요.",
-                "en": "You saw the winter coat you carefully thought over and bought go on a surprise sale 1 week later for $30 less.",
-                "ja": "悩んだ末に買った冬のコートが、1週間後にサプライズセールで3,000円も安く売られているのを見ました。"
+                "ko": "고민 끝에 산 겨울 코트가 1주 뒤에 깜짝 세일로 반값에 팔리는 걸 봤어요.",
+                "en": "You saw the winter coat you carefully thought over and bought go on a surprise sale 1 week later at half price.",
+                "ja": "悩んだ末に買った冬のコートが、1週間後にサプライズセールで半額になっているのを見ました。"
               }
             },
             {
@@ -2255,9 +2255,9 @@
             {
               "id": "b",
               "text": {
-                "ko": "조금 아쉽긴 하지만 살 때는 세일 소식을 미리 알 수 없었어",
-                "en": "It's a bit disappointing, but I couldn't have known about the sale back then",
-                "ja": "少し残念だけれど、買うときにはセールのことを事前に知る由もなかった"
+                "ko": "아쉽긴 하지만 살 때는 세일 소식을 미리 알 수 없었어",
+                "en": "It's disappointing, but I couldn't have known about the sale back then",
+                "ja": "残念だけれど、買うときにはセールのことを事前に知る由もなかった"
               },
               "correct": true,
               "hint": null

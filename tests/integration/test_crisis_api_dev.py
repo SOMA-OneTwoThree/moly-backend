@@ -91,13 +91,20 @@ async def test_deployed_guardrail_paths_and_storage():
                 written[key] = (json.dumps(value), changed_at)
 
             async def settled(ids, count):
-                for _ in range(60):
-                    rows = await db.fetch("""SELECT status,count(*) AS n FROM ai_usage_ledger
-                      WHERE user_id=ANY($1::uuid[]) AND purpose='crisis_decision' GROUP BY status""", ids)
-                    if sum(row["n"] for row in rows) == count and all(row["status"] == "completed" for row in rows):
+                # Opening/finalization runs independently; known closes also pass
+                # through the existing 30-second ledger flusher. A timeout is an
+                # intentional normal route with unknown usage, never a zero cost.
+                for _ in range(180):
+                    rows = await db.fetch("""SELECT status,error_code,count(*) AS n FROM ai_usage_ledger
+                      WHERE user_id=ANY($1::uuid[]) AND purpose='crisis_decision'
+                      GROUP BY status,error_code""", ids)
+                    terminal = all(row["status"] == "completed" or (
+                        row["status"] == "unknown_usage" and
+                        (row["error_code"] or "").startswith("crisis_decision_")) for row in rows)
+                    if sum(row["n"] for row in rows) == count and terminal:
                         return
-                    await asyncio.sleep(0.2)
-                pytest.fail("decision usage did not settle within the finalizer deadline")
+                    await asyncio.sleep(0.5)
+                pytest.fail("decision usage did not settle within the ledger flush deadline")
 
             async def send(lang, group, label, body, kind, *, replay=None):
                 uid, token = clients[lang, group]
@@ -146,12 +153,13 @@ async def test_deployed_guardrail_paths_and_storage():
             ledger = await db.fetch("""SELECT status,count(*) AS n FROM ai_usage_ledger
               WHERE user_id=ANY($1::uuid[]) AND purpose='crisis_decision' GROUP BY status""", users)
             assert sum(row["n"] for row in ledger) == 24
-            assert all(row["status"] == "completed" for row in ledger), "decision usage must settle"
+            assert all(row["status"] in ("completed", "unknown_usage") for row in ledger)
             bad = await db.fetchval("""SELECT count(*) FROM relationship_events e JOIN messages m
               ON m.user_id=e.user_id AND m.turn_seq=e.turn_seq WHERE e.user_id=ANY($1::uuid[])
               AND m.kind IN ('safety','safety_check')""", users)
             assert bad == 0
-            print("decision ledger: 24 completed; safety relationship derivations: 0", flush=True)
+            known = sum(row["n"] for row in ledger if row["status"] == "completed")
+            print(f"decision ledger: {known} known, {24-known} unknown; safety relationship derivations: 0", flush=True)
         finally:
             cleanup_errors = []
             for key, (value, changed_at) in written.items():

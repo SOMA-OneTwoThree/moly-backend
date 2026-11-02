@@ -77,7 +77,7 @@ async def run(args) -> dict:
                         result["skipped"] += 1
                         continue
                     changed = await connection.fetchval(
-                        "UPDATE subscriptions SET purchased_at=$2 WHERE id=$1 AND purchased_at IS NULL RETURNING 1",
+                        "UPDATE subscriptions SET purchased_at=$2 WHERE id=$1 AND purchased_at IS NULL AND access_evidence IS NULL RETURNING 1",
                         row["id"], row["period_start"],
                     )
                     result["updated"] += int(changed == 1)

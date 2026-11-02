@@ -20,6 +20,7 @@ class RevenuecatEvent(Base):
 
     event_id: Mapped[str] = mapped_column(String, primary_key=True)  # RC event.id(전역 유일)
     payload: Mapped[dict] = mapped_column(JSONB)
+    processing_state: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     # pending(미결·재시도 대상) | processed(처리 완료·no-op 포함) | failed(영구 오류·수동 처리)
     status: Mapped[str] = mapped_column(String, server_default=text("'pending'"))
     attempts: Mapped[int] = mapped_column(Integer, server_default=text("0"))

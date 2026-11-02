@@ -450,6 +450,39 @@ VALUES ('물 한 잔 마시기', 'Drink a glass of water', 'お水を一杯飲�
 UPDATE public.daily_practice_templates SET is_active = false WHERE title_ko = '물 한 잔 마시기';
 ```
 
+## 구독 환불 권한 전환
+
+체험·결제 기간은 `subscriptions.access_evidence`, 웹훅의 결제·보상·권한 진행은
+`revenuecat_events.processing_state`로 분리한다. NULL인 기존 고객은 기존 정책을 유지한다.
+새 전환 설정은 기본 꺼짐이며 이미 전환한 고객과 미완료 단계는 꺼도 새 처리기를 유지한다.
+
+1. `db/changes/subscription_refund_access.sql`의 SHA-256을 검토하고 `db.apply`로
+   rollback 검사 후 운영에 적용한다. nullable JSONB 두 컬럼만 추가하며 고객 행은 수정하지 않는다.
+   `db.verify`를 통과한 뒤 main에 구독 변경만 머지하고 정상 배포 완료를 확인한다.
+2. 별도 읽기 전용 조회로 보정 대상의 구독·소유자·결제 번호·상태를 확인하고 대상 checksum과
+   환불/정보 보정/대조군 수를 준비한다. 고객 식별자와 원문은 Git·Actions 입력·로그에 넣지 않는다.
+3. main의 **Production subscription operations** workflow를 `report`로 실행한다.
+   입력은 배포 SHA, 임의 session 이름, 위 checksum·건수다. 보고서 checksum을 받은 뒤 같은 입력과
+   `expected_manifest`로 `repair_refunded` → `repair_metadata` → `verify` 순서로 실행한다.
+4. 보정·최신 RevenueCat 상태·대조군을 모두 확인한 뒤 `activate`로 새 수신 이벤트 전환을 켠다.
+   마지막 `verify`와 읽기 전용 조회로 확인한다. 기존 고객을 일괄 전환하는 작업은 아니다.
+
+workflow는 프로젝트 GitHub OIDC 역할과 SSM만 사용하며 로컬 AWS 계정을 사용하지 않는다.
+API 두 대·consumer·실행 중 worker·다음 worker 이미지의 배포 SHA, 정상 target 두 대와 timer 소유자
+한 대를 확인한다. 배포와 같은 concurrency group으로 직렬화한다. 고정 작업만 허용하며 서버의
+RevenueCat 키를 외부로 출력하지 않는다.
+
+서버 Git 밖 `/var/lib/moly/subscription-ops/<session>`에 보고서·보정 계획·commit 전후 journal을
+소유자 전용 권한으로 보관한다. 대상·소유권·결제·금융 이력·대조군 변화, 새 미처리 이벤트,
+불명확한 commit 결과가 있으면 멈춘다. 환불 권한 보정은 결제·건초를 다시 처리하지 않으며,
+정보 보정은 정상 고객의 권한·만료일·건초를 보존한다. 실패 시 예전 스냅샷을 덮어쓰지 않는다.
+
+문제 시 호환 배포 SHA와 session으로 `deactivate`를 실행해 새 전환을 끈다. 이 작업은 오래된
+보고서·RevenueCat 접속·전체 fleet 정상 여부에 의존하지 않으며 이미 전환한 고객을 되돌리지 않는다.
+JSON 데이터가 저장된 뒤에는 컬럼을 삭제하거나 이 컬럼을 모르는 이미지로 돌아가지 않는다.
+`subscription_refund_access_rollback.sql`은 모든 writer/reader가 정지했고 두 컬럼이 전부 NULL인
+경우에만 사용한다. 그 외에는 호환 이미지로 전진 복구한다.
+
 ## 변경 시 확인할 원본
 
 - DB·권한·반영: [db/README.md](../db/README.md), `db/schema.sql`, `db/schema_contract.json`.

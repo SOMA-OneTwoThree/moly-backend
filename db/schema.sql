@@ -1024,6 +1024,7 @@ CREATE TABLE public.relationship_profile_renders (
 CREATE TABLE public.revenuecat_events (
     event_id text NOT NULL,
     payload jsonb NOT NULL,
+    processing_state jsonb,
     status text DEFAULT 'pending'::text NOT NULL,
     attempts integer DEFAULT 0 NOT NULL,
     received_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -1139,6 +1140,7 @@ CREATE TABLE public.subscriptions (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     last_event_at timestamp with time zone,
+    access_evidence jsonb,
     CONSTRAINT subscriptions_plan_check CHECK ((plan = ANY (ARRAY['monthly'::text, 'yearly'::text]))),
     CONSTRAINT subscriptions_status_check CHECK ((status = ANY (ARRAY['active'::text, 'grace_period'::text, 'expired'::text, 'revoked'::text])))
 );

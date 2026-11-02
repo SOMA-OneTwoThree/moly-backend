@@ -32,6 +32,9 @@ class _Scalars:
     def first(self):
         return self._items[0] if self._items else None
 
+    def __iter__(self):
+        return iter(self._items)
+
 
 class _Result:
     def __init__(self, items):
@@ -738,7 +741,10 @@ async def test_v2_put_equips_hat_and_glasses_together(monkeypatch):
     }
 
 
-_ACTIVE_SUBSCRIPTION = [SimpleNamespace(plan="monthly")]
+_ACTIVE_SUBSCRIPTION = [SimpleNamespace(
+    plan="monthly", user_id=UID_UUID, status="active",
+    expires_at=datetime(2300, 1, 1, tzinfo=timezone.utc),
+)]
 _NO_SUBSCRIPTION: list = []
 
 

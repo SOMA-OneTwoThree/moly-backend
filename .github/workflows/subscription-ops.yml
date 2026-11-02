@@ -1,0 +1,60 @@
+name: Production subscription operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        type: choice
+        required: true
+        options: [report, repair_refunded, repair_metadata, verify, activate, deactivate]
+      expected_sha:
+        description: Deployed compatible production SHA
+        required: true
+      session:
+        description: Opaque operation session name
+        required: true
+      expected_manifest:
+        description: Private manifest checksum from report, required after report
+        required: false
+        default: ''
+      expected_membership:
+        description: Independently reviewed opaque cohort checksum
+        required: false
+        default: ''
+      expected_counts:
+        description: Reviewed refunded,metadata,control counts
+        required: false
+        default: ''
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-moly-backend
+  cancel-in-progress: false
+
+jobs:
+  subscription-operations:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::676972757138:role/moly-github-actions-role
+          aws-region: ap-northeast-2
+      - name: Run fixed subscription operation
+        env:
+          OPERATION: ${{ inputs.action }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+          SESSION: ${{ inputs.session }}
+          EXPECTED_MANIFEST: ${{ inputs.expected_manifest }}
+          EXPECTED_MEMBERSHIP: ${{ inputs.expected_membership }}
+          EXPECTED_COUNTS: ${{ inputs.expected_counts }}
+        run: |
+          python3 scripts/run_subscription_ops.py "$OPERATION" \
+            --expected-sha "$EXPECTED_SHA" --session "$SESSION" \
+            --expected-manifest "$EXPECTED_MANIFEST" \
+            --expected-membership "$EXPECTED_MEMBERSHIP" --expected-counts "$EXPECTED_COUNTS"

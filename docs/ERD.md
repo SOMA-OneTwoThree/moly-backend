@@ -70,9 +70,9 @@ erDiagram
 | `products` | 서버 상품 카탈로그·에셋 버전·구독 전용 조건. `price_hay=NULL`은 비매품 |
 | `orders`, `order_items`, `payments` | 주문·상품 항목·실결제를 구분하고 공급자 거래 중복 반영 방지 |
 | `user_items` | 보유와 슬롯별 장착. 구매/권한 및 아이템 소유자를 검증 |
-| `subscriptions` | 공급자 이벤트에 따른 구독 기간·상태·스토어 체험 |
+| `subscriptions` | 공급자 이벤트에 따른 구독 기간·상태·스토어 체험. `access_evidence`가 있으면 거래·RC 객체·소유권별 검증 기간으로 조회 |
 | `subscription_hay_grants` | 구독 혜택 최초 지급·환수의 중복 방지 |
-| `revenuecat_events` | 웹훅 inbox·처리/보류 상태. 수신과 실제 권한 반영 완료를 구분 |
+| `revenuecat_events` | 웹훅 inbox·처리/보류 상태. `processing_state`가 결제·보너스·환불·접근의 완료 단계를 보존. 수신과 처리 완료를 구분 |
 | `subscription_trial_codes`, `subscription_offer_claims` | 체험/오퍼 발급·소비 기록. 플랫폼·이전 자격 정책 보존 |
 | `reward_ad_sessions` | 건초 광고 SSV 세션·거래 멱등 |
 

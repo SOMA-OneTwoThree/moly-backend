@@ -103,6 +103,24 @@ uv run pytest -q tests/integration/test_schema_bootstrap_local.py
 테스트는 `MOLY_SCHEMA_TEST_DSN`을 사용한다. 모두 같은 폐기용 DB를 지정한다.
 `--check-generated`는 또 다른 빈 DB에 스키마를 생성해 커밋된 계약과 일치하는지 검증한다.
 
+## 구독 변경의 main 계약 보존
+
+개발 DB와 main에는 서로 다른 기능이 있으므로 개발 catalog 전체를 운영 계약에 복사하지 않는다.
+이번 구독 변경은 검토한 main `schema.sql`과 기존 계약을 보존하고, 개발 DB에서 확인한 nullable
+JSONB 두 컬럼만 합친다. 로컬 DB를 새로 만들지 않는 제한된 생성 경로다.
+
+```bash
+uv run python -m db.schema_contract --refresh-subscription-from-dev --env dev \
+  --expected-project-ref <확인한-개발-project-ref> \
+  --reviewed-sql db/changes/subscription_refund_access.sql \
+  --expected-sha256 <검토한-SQL-SHA256> --baseline-schema <변경-전-main-schema.sql>
+```
+
+생성기는 baseline checksum, SQL 경로·checksum, 정확히 두 컬럼만 바뀐 소스, 실제 개발 컬럼의
+타입·NULL·기본값을 확인한다. main의 나머지 테이블·제약·정책·권한은 유지한다. CI는 전체 소스를
+폐기용 CI DB에 재생성해 최종 계약을 독립적으로 확인한다. 운영 적용 순서와 보정·복구는
+[운영 문서](../docs/OPERATIONS.md#구독-환불-권한-전환)를 따른다.
+
 ## 반드시 보존하는 정책
 
 - `products.price_hay=NULL`은 비매품이다. 0은 건초 원장 제약과 충돌하므로 허용하지 않는다

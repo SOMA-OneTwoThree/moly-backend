@@ -314,3 +314,113 @@ def test_null_evidence_keeps_existing_legacy_entitlement_policy():
     assert resolve_access(sub, OBSERVED) is sub
     assert resolve_access(sub, END) is None
     assert resolve_access(sub, OBSERVED, OWNER_B) is None
+
+
+def grace_fixture():
+    snapshot, transactions, events, _ = paid_snapshot()
+    regular_end = BOUNDARY + timedelta(days=30)
+    observed = regular_end + timedelta(hours=1)
+    grace_end = regular_end + timedelta(days=3)
+    snapshot.update({"status": "in_grace_period", "gives_access": True,
+                     "pending_payment": True, "current_period_ends_at": ms(regular_end),
+                     "ends_at": ms(regular_end), "auto_renewal_status": "will_not_renew"})
+    transactions[1]["effective_expiration_date"] = ms(grace_end)
+    return snapshot, transactions, events, observed, regular_end, grace_end
+
+
+def test_current_transaction_effective_expiry_preserves_verified_grace_access():
+    snapshot, transactions, events, observed, _, grace_end = grace_fixture()
+    proof = build_evidence(snapshot, transactions, events, PRODUCTS, now=observed)
+    sub = row(proof)
+    access = resolve_access(sub, observed)
+    assert access is not None and access.status == "grace_period"
+    assert access.expires_at == grace_end and access.store_trial_ends_at is None
+    assert resolve_access(sub, grace_end - timedelta(milliseconds=1)) is not None
+    assert resolve_access(sub, grace_end) is None
+
+
+def test_exact_current_transaction_billing_issue_supplies_verified_grace_deadline():
+    snapshot, transactions, events, observed, regular_end, grace_end = grace_fixture()
+    transactions[1]["effective_expiration_date"] = None
+    events.append({"type": "BILLING_ISSUE", "transaction_id": "store-paid",
+                   "environment": "SANDBOX", "app_user_id": OWNER_A,
+                   "expiration_at_ms": ms(regular_end), "event_timestamp_ms": ms(observed),
+                   "grace_period_expiration_at_ms": ms(grace_end)})
+    proof = build_evidence(snapshot, transactions, events, PRODUCTS, now=observed)
+    access = resolve_access(row(proof), observed)
+    assert access is not None and access.status == "grace_period"
+    assert access.expires_at == grace_end
+    assert resolve_access(row(proof), grace_end) is None
+
+
+@pytest.mark.parametrize("wrong_proof", [None, "wrong_transaction", "wrong_environment"])
+def test_grace_without_matching_current_deadline_never_uses_future_next_period_end(wrong_proof):
+    snapshot, transactions, events, observed, _, grace_end = grace_fixture()
+    transactions[1]["effective_expiration_date"] = None
+    snapshot.update({"auto_renewal_status": "has_already_renewed", "ends_at": ms(END),
+                     "pending_changes": {"store_subscription_identifier": "unverified-next",
+                                         "current_period_starts_at": ms(grace_end),
+                                         "current_period_ends_at": ms(END),
+                                         "gives_access": True, "pending_payment": False}})
+    if wrong_proof:
+        events.append({"type": "BILLING_ISSUE", "transaction_id": "store-paid",
+                       "environment": "SANDBOX", "app_user_id": OWNER_A,
+                       "event_timestamp_ms": ms(observed),
+                       "grace_period_expiration_at_ms": ms(grace_end)})
+        if wrong_proof == "wrong_transaction":
+            events[-1]["transaction_id"] = "store-trial"
+        else:
+            events[-1]["environment"] = "PRODUCTION"
+    with pytest.raises(EvidenceError):
+        build_evidence(snapshot, transactions, events, PRODUCTS, now=observed)
+
+
+def trial_grace_fixture():
+    snapshot, transactions, events = prepaid_fixture()
+    observed = BOUNDARY + timedelta(hours=1)
+    grace_end = BOUNDARY + timedelta(days=3)
+    snapshot.update({"status": "in_grace_period", "pending_changes": None,
+                     "pending_payment": True, "auto_renewal_status": "will_not_renew",
+                     "ends_at": ms(BOUNDARY)})
+    transactions = transactions[:1]
+    transactions[0]["effective_expiration_date"] = ms(grace_end)
+    return snapshot, transactions, events[:1], observed, grace_end
+
+
+def test_free_trial_grace_refresh_preserves_billing_kind_with_and_without_original_event():
+    snapshot, transactions, events, observed, grace_end = trial_grace_fixture()
+    original = build_evidence(snapshot, transactions, events, PRODUCTS, now=observed)
+    refreshed = build_evidence(snapshot, transactions, events, PRODUCTS,
+                               now=observed + timedelta(minutes=1), previous=original)
+    without_original_event = build_evidence(snapshot, transactions, [], PRODUCTS,
+                                            now=observed + timedelta(minutes=2), previous=refreshed)
+    for proof in (original, refreshed, without_original_event):
+        period = next(p for p in proof["periods"] if p["transaction_id"] == "store-trial")
+        assert period["kind"] == "grace" and period["billing_kind"] == "trial"
+        active = resolve_access(row(proof), observed + timedelta(minutes=2))
+        assert active is not None and active.status == "grace_period"
+        assert active.expires_at == grace_end
+
+
+def test_free_trial_grace_can_transition_to_a_new_verified_paid_transaction():
+    snapshot, transactions, events, observed, _ = trial_grace_fixture()
+    previous = build_evidence(snapshot, transactions, events, PRODUCTS, now=observed)
+    paid_start = BOUNDARY + timedelta(days=1)
+    paid_end = paid_start + timedelta(days=365)
+    snapshot.update({"status": "active", "pending_payment": False,
+                     "auto_renewal_status": "will_renew", "store_subscription_identifier": "new-paid",
+                     "current_period_starts_at": ms(paid_start), "current_period_ends_at": ms(paid_end),
+                     "ends_at": ms(paid_end)})
+    transactions.append({"id": "new-paid", "purchased_at": ms(paid_start),
+                         "effective_expiration_date": ms(paid_end), "product_store_identifier": YEARLY,
+                         "revenue_in_local_currency": {"gross": 5500}})
+    paid_event = {"type": "RENEWAL", "transaction_id": "new-paid", "environment": "SANDBOX",
+                  "app_user_id": OWNER_A, "period_type": "NORMAL", "price_in_purchased_currency": 5500,
+                  "purchased_at_ms": ms(paid_start), "expiration_at_ms": ms(paid_end)}
+    proof = build_evidence(snapshot, transactions, [paid_event], PRODUCTS,
+                           now=paid_start + timedelta(minutes=1), previous=previous)
+    active = resolve_access(row(proof), paid_start + timedelta(minutes=1))
+    assert active is not None and active.status == "active" and active.plan == "yearly"
+    assert active.store_trial_ends_at is None and active.expires_at == paid_end
+    kinds = {p["transaction_id"]: p["billing_kind"] for p in proof["periods"]}
+    assert kinds == {"store-trial": "trial", "new-paid": "paid"}

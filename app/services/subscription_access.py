@@ -75,6 +75,8 @@ def validate(evidence: dict) -> dict:
             raise EvidenceError("invalid access period bounds or product")
         if period.get("kind") not in {"trial", "paid", "grace"}:
             raise EvidenceError("invalid access period kind")
+        if period.get("billing_kind") not in {None, "trial", "paid"}:
+            raise EvidenceError("invalid billing period kind")
         if period.get("store") != evidence["store"] or period.get("environment") != evidence["environment"]:
             raise EvidenceError("access period store mismatch")
         for key in ("owner_start", "owner_end"):
@@ -206,8 +208,8 @@ def build_evidence(
     new_periods = []
     for tx_id, tx in txs.items():
         tx_proofs = proofs.get(tx_id, [])
-        previous_kinds = {p["kind"] for p in history if p["transaction_id"] == tx_id
-                          and p["rc_subscription_id"] == rc_id}
+        previous_kinds = {p.get("billing_kind", p["kind"]) for p in history
+                          if p["transaction_id"] == tx_id and p["rc_subscription_id"] == rc_id}
         product = tx.get("product_store_identifier")
         plan = products.get(product)
         if plan not in {"monthly", "yearly"}:
@@ -218,6 +220,21 @@ def build_evidence(
             start = current_start or start
             # Current period end is distinct from next period end.
             end = current_end or end
+            if gives_access and snapshot.get("status") == "in_grace_period":
+                grace_end = instant(tx.get("effective_expiration_date"))
+                if grace_end is None or grace_end <= now:
+                    billing = [e for e in events if e.get("type") == "BILLING_ISSUE"
+                               and e.get("transaction_id") == tx_id
+                               and str(e.get("environment", "")).upper() == environment]
+                    last_billing = max(billing, key=lambda e: e.get("event_timestamp_ms") or 0) if billing else None
+                    grace_end = instant(last_billing.get("grace_period_expiration_at_ms")) if last_billing else None
+                if grace_end is None or grace_end <= now:
+                    verified_grace = [instant(p["end"]) for p in history
+                                      if p["transaction_id"] == tx_id and p["kind"] == "grace"
+                                      and p["owner_id"] == owner and p.get("owner_end") is None]
+                    grace_end = max((e for e in verified_grace if e and e > now), default=None)
+                if grace_end is not None and grace_end > now:
+                    end = grace_end
         if tx_id == next_tx and tx_id != latest:
             if pending.get("gives_access") is not True or pending.get("pending_payment") is not False:
                 continue
@@ -241,7 +258,7 @@ def build_evidence(
         paid = (_positive((tx.get("revenue_in_local_currency") or {}).get("gross"))
                 or any(_positive(p.get("price_in_purchased_currency"))
                        and p.get("period_type") != "TRIAL" for p in tx_proofs)
-                or bool(previous_kinds & {"paid", "grace"}))
+                or "paid" in previous_kinds)
         trial = (tx_id == latest and snapshot.get("status") == "trialing") or any(
             p.get("period_type") == "TRIAL" for p in tx_proofs) or "trial" in previous_kinds
         if paid and trial:
@@ -286,6 +303,7 @@ def build_evidence(
             "owner_start": ownership_since.isoformat() if ownership_since else None,
             "owner_end": None, "start": start.isoformat(), "end": end.isoformat(),
             "plan": plan, "kind": kind, "source": "revenuecat_v2",
+            "billing_kind": "trial" if trial else "paid",
         })
     replaced = {(p["rc_subscription_id"], p["transaction_id"], p["owner_id"]) for p in new_periods}
     # Keep other objects/owners, but replace ALL periods of this object's current

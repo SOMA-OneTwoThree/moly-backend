@@ -10,6 +10,7 @@ from typing import Any, Protocol
 
 from app.core.time_utils import activity_date_for
 from app.services.i18n import resolve as resolve_language
+from app.services.subscription_access import resolve_access
 
 _log = logging.getLogger("moly-backend")
 # 해석 못 한 free_launch_until 값별 경고 기록 — 요청마다 판정하므로 프로세스당 값별 1회만 남긴다.
@@ -83,6 +84,8 @@ def derive_entitlement(
     now: datetime,
 ) -> dict[str, Any]:
     """entitlement 블록 생성. active_sub는 '유효한(active/grace + 미만료)' 구독만 넘어옴(없으면 None)."""
+    if active_sub is not None and getattr(active_sub, "access_evidence", None) is not None:
+        active_sub = resolve_access(active_sub, now)
     # 런칭 무료 기간: 구독 없이 전원 무료(구독급 경험, 단 토큰은 별도 런칭 한도).
     # 실제 구독자(active_sub)는 항상 우선. 앱 체험은 새 앱에서만 시작하므로 시작한 계정은 체험 정책을 따른다.
     launch_until = _parse_dt(config.get("free_launch_until"))

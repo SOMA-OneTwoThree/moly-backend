@@ -7,7 +7,7 @@ import re
 import time
 import asyncio
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime, timezone
 from math import ceil
 from typing import Any
@@ -24,7 +24,8 @@ from app.core.time_utils import reward_date_for, safe_zone
 from app.models.chat_context import ChatContext
 from app.models.greeting import Greeting
 from app.models.idempotency_key import IdempotencyKey
-from app.models.message import Message
+from app.models.message import Message, SUMMARY_EXCLUDED_MESSAGE_KINDS
+from app.models.memory_v2 import Mem0MemoryRegistry
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
 from app.services import (
@@ -34,6 +35,9 @@ from app.services import (
     checkpoint_repo,
     config_store,
     context_safety,
+    context_retention,
+    crisis_guard,
+    crisis_chat,
     gating,
     limits,
     greetings,
@@ -46,6 +50,7 @@ from app.services import (
     turn_context,
     usage_ledger,
     contract_repo,
+    contract_compiler,
     relationship_projector,
     memory_pipeline,
     mood_context,
@@ -290,6 +295,8 @@ async def _context(
     current_at: datetime | None = None,
     tz_name: str = "Asia/Seoul",
     checkpoint_through: int | None = None,
+    compact_crises: bool = True,
+    retention_enabled: bool = False,
 ) -> ContextWindow:
     """Build a bounded window without removing an uncheckpointed head at normal resets.
 
@@ -309,45 +316,78 @@ async def _context(
     ``_build_system``의 서버 소유 system 블록으로만 넣어 저장 데이터가 user 발화 권위를
     얻지 못하게 한다.
     """
-    q = (
-        select(Message)
-        .where(Message.user_id == uid, Message.id >= anchor)
-        .order_by(Message.id.desc())
-        .limit(settings.context_hard_msg_cap + 1)  # sentinel detects an incomplete raw window
-    )
-    rows = list(reversed((await session.execute(q)).scalars().all()))
+    if retention_enabled:
+        # Page rather than treating the row safety limit as a context boundary.
+        raw_anchor = checkpoint_through + 1 if checkpoint_through is not None else 0
+        descending = []
+        before_id = None
+        while True:
+            query = select(Message).where(Message.user_id == uid, Message.id >= raw_anchor)
+            if before_id is not None:
+                query = query.where(Message.id < before_id)
+            page = (await session.execute(query.order_by(Message.id.desc()).limit(120))).scalars().all()
+            if not page:
+                break
+            if before_id is not None and any(m.id >= before_id for m in page):
+                raise errors.ai_unavailable()
+            descending.extend(page)
+            if context_retention.source_tokens(descending) > 16_384:
+                raise errors.ai_unavailable()
+            before_id = min(m.id for m in page)
+            if len(page) < 120:
+                break
+        rows = list(reversed(descending))
+        new_anchor = checkpoint_through + 1 if checkpoint_through is not None and checkpoint_through >= anchor else None
+        checkpoint_keep_from = None
+        incomplete = False
+        sources = [checkpoint.SourceMessage(
+            id=m.id, sender=m.sender, kind=m.kind, content=m.content or "",
+            created_at=getattr(m, "created_at", None),
+        ) for m in rows]
+        if checkpoint.should_checkpoint(sources, retention_enabled=True):
+            tail = checkpoint.keep_tail(sources, retention_enabled=True)
+            if tail:
+                checkpoint_keep_from = tail[0].id
+        # Coverage is the sole permission to exclude old raw messages; no count/char reset.
+    else:
+        q = (
+            select(Message)
+            .where(Message.user_id == uid, Message.id >= anchor)
+            .order_by(Message.id.desc())
+            .limit(settings.context_hard_msg_cap + 1)  # sentinel detects an incomplete raw window
+        )
+        rows = list(reversed((await session.execute(q)).scalars().all()))
 
-    extra_msgs = 1 if current_text is not None else 0
-    extra_chars = len(current_text or "")
-    new_anchor: int | None = None
-    checkpoint_keep_from: int | None = None
-    incomplete = False
-    if settings.context_checkpoint_enabled and checkpoint_through is not None:
-        # The repository supplies only this user's published, current-generation coverage.
-        # Never read behind the saved anchor to recover missing or invalidated context.
-        if checkpoint_through >= anchor:
-            rows = [m for m in rows if m.id > checkpoint_through]
-            new_anchor = checkpoint_through + 1
-    chars = sum(len(m.content or "") for m in rows) + extra_chars
-    over_msgs = len(rows) + extra_msgs >= settings.context_reset_messages
-    over_chars = chars >= settings.context_reset_chars
-    if rows and (over_msgs or over_chars):
-        tail = _bounded_tail(rows)
-        proposed = tail[0].id if tail else rows[-1].id + 1
-        if settings.context_checkpoint_enabled:
-            checkpoint_keep_from = proposed
-            # Normal resets wait for coverage. Pressure fallback stays bounded and does
-            # not turn missing context into evidence that the person never told us.
-            if len(rows) + extra_msgs > settings.context_hard_msg_cap or chars > settings.context_hard_chars:
-                rows = tail
-                new_anchor = proposed
-                incomplete = True
-        else:
-            rows = _keep_window(rows)
-            new_anchor = rows[0].id
-    if settings.context_checkpoint_enabled and anchor > 0:
-        incomplete = incomplete or checkpoint_through is None or checkpoint_through < anchor - 1
-
+        extra_msgs = 1 if current_text is not None else 0
+        extra_chars = len(current_text or "")
+        new_anchor: int | None = None
+        checkpoint_keep_from: int | None = None
+        incomplete = False
+        if settings.context_checkpoint_enabled and checkpoint_through is not None:
+            # The repository supplies only this user's published, current-generation coverage.
+            # Never read behind the saved anchor to recover missing or invalidated context.
+            if checkpoint_through >= anchor:
+                rows = [m for m in rows if m.id > checkpoint_through]
+                new_anchor = checkpoint_through + 1
+        chars = sum(len(m.content or "") for m in rows) + extra_chars
+        over_msgs = len(rows) + extra_msgs >= settings.context_reset_messages
+        over_chars = chars >= settings.context_reset_chars
+        if rows and (over_msgs or over_chars):
+            tail = _bounded_tail(rows)
+            proposed = tail[0].id if tail else rows[-1].id + 1
+            if settings.context_checkpoint_enabled:
+                checkpoint_keep_from = proposed
+                # Normal resets wait for coverage. Pressure fallback stays bounded and does
+                # not turn missing context into evidence that the person never told us.
+                if len(rows) + extra_msgs > settings.context_hard_msg_cap or chars > settings.context_hard_chars:
+                    rows = tail
+                    new_anchor = proposed
+                    incomplete = True
+            else:
+                rows = _keep_window(rows)
+                new_anchor = rows[0].id
+        if settings.context_checkpoint_enabled and anchor > 0:
+            incomplete = incomplete or checkpoint_through is None or checkpoint_through < anchor - 1
     convo = [
         {"role": "assistant" if m.sender == "moly" else "user", "content": m.content}
         for m in rows
@@ -363,18 +403,15 @@ async def _context(
             if m.sender != "moly":
                 convo, kept = [{"role": "user", "content": m.content}], [m]
                 break
-    compacted = context_safety.compact_historical_crises(
-        [
-            context_safety.ContextEntry(
-                role=slot["role"], content=slot["content"], activity_date=m.activity_date,
-                created_at=getattr(m, "created_at", None),
-            )
-            for slot, m in zip(convo, kept, strict=True)
-        ],
-        current_text=current_text,
-        current_date=current_date,
-        language=language,
-    )
+    entries = [
+        context_safety.ContextEntry(
+            role=slot["role"], content=slot["content"], activity_date=m.activity_date,
+            created_at=getattr(m, "created_at", None),
+        ) for slot, m in zip(convo, kept, strict=True)
+    ]
+    compacted = (context_safety.compact_historical_crises(
+        entries, current_text=current_text, current_date=current_date, language=language,
+    ) if compact_crises else context_safety.CompactionResult(tuple(entries)))
     kept = list(compacted.entries)
     if current_text is not None:
         kept.append(context_safety.ContextEntry("user", current_text, current_date, current_at))
@@ -482,6 +519,9 @@ async def _recall_memory_v2(
     today: date | None = None,
     tz_name: str = "Asia/Seoul",
     trace: dict[str, float] | None = None,
+    retention_enabled: bool = False,
+    generation: int = 0,
+    registry_snapshot: list[tuple] | None = None,
 ) -> str:
     """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
 
@@ -507,12 +547,44 @@ async def _recall_memory_v2(
                 trace=trace,
                 availability=availability,
             )
+            if retention_enabled and items:
+                pids = [uuid.UUID(item.provider_memory_id) for item in items
+                        if item.provider_memory_id is not None]
+                verified_rows = (await s2.execute(select(
+                    Mem0MemoryRegistry.id, Mem0MemoryRegistry.provider_memory_id,
+                    Mem0MemoryRegistry.revision, Mem0MemoryRegistry.content_hash,
+                    Mem0MemoryRegistry.canonical_text, Mem0MemoryRegistry.context_priority,
+                ).where(
+                    Mem0MemoryRegistry.user_id == user_id,
+                    Mem0MemoryRegistry.provider_memory_id.in_(pids),
+                    Mem0MemoryRegistry.collection_version == "v2",
+                    Mem0MemoryRegistry.semantic_status == "active",
+                    Mem0MemoryRegistry.provider_delete_state == "kept",
+                    Mem0MemoryRegistry.canonical_text.is_not(None),
+                ))).all()
+                verified = {str(row[1]): row for row in verified_rows}
+                if verified_rows:
+                    await context_retention.load_required_facts(
+                        s2, user_id=user_id, generation=generation,
+                        referenced_ids=tuple(row[0] for row in verified_rows),
+                    )
+                validated_items = []
+                for item in items:
+                    row = verified.get(item.provider_memory_id)
+                    if row is None or row[5] == "required":
+                        continue
+                    validated_items.append(replace(item, text=row[4]))
+                    if registry_snapshot is not None:
+                        registry_snapshot.append((row[0], int(row[2]), row[3]))
+                items = validated_items
         if availability.get("status") == "unavailable":
             return _memory_unavailable_notice(language)
         return mem0_recall.render_block(
             items, language=language, today=today, tz_name=tz_name
         )
     except Exception as error:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
+        if registry_snapshot is not None:
+            registry_snapshot.clear()
         _log.warning("v2 회상 블록 생성 실패 error_type=%s", type(error).__name__)
         return _memory_unavailable_notice(language)
 
@@ -547,6 +619,7 @@ def _build_system(
     contract_text: str = "",
     relationship_v2: str = "",
     historical_lead: list[str] | None = None,
+    crisis_guard_enabled: bool = False,
 ) -> list[str]:
     """system을 [페르소나(불변), 닉네임+선발화+기억+지난 이야기(가변)] 블록으로.
     뒤 블록이 바뀌어도 페르소나 캐시 생존.
@@ -602,7 +675,9 @@ def _build_system(
     # 캐시되는 프리픽스라, 여기 두면 바뀔 때마다 프롬프트 전체가 무효가 된다(실측: 요약이
     # 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰). 요약과 현재 상태는 휘발 컨텍스트다. 실제 주입은 post_message가 convo 끝에서 한다.
     dyn = "\n\n".join(parts)
-    return [system_prompt(language), dyn] if dyn else [system_prompt(language)]
+    persona = (system_prompt(language, crisis_guard_enabled=True)
+               if crisis_guard_enabled else system_prompt(language))
+    return [persona, dyn] if dyn else [persona]
 
 
 # 부호 정제 정규식은 text_clean으로 이관(chat·일기 공용). 여기선 되묻기 물음표 백스톱만.
@@ -822,7 +897,7 @@ async def _record_memory_v2(
 # --- 정규화 기억 소스(W8, Phase 2 트랜잭션 안) ---
 async def _enqueue_checkpoint(
     session: AsyncSession, uid: uuid.UUID, *, anchor: int, keep_from: int,
-    temporal_enabled: bool = False,
+    temporal_enabled: bool = False, retention_enabled: bool = False,
 ) -> None:
     """원문 유지 한계에 가까운 구간의 요약을 요청한다 — 킬스위치 off면 조회하지 않는다.
 
@@ -839,15 +914,31 @@ async def _enqueue_checkpoint(
     쓰기 전에 나는 계약 위반(`CheckpointError`)은
     로그만 남기고 넘기고(요약 배선 버그가 대화를 죽이지 않게), DB 오류는 올려서 턴 전체를 롤백한다.
     """
-    if not settings.context_checkpoint_enabled:
+    if not (settings.context_checkpoint_enabled or retention_enabled):
         return
-    q = (
-        select(Message)
-        .where(Message.user_id == uid, Message.id >= anchor)
-        .order_by(Message.id)
-        .limit(settings.context_hard_msg_cap)  # _context와 같은 안전 상한
-    )
-    rows = (await session.execute(q)).scalars().all()
+    if retention_enabled:
+        rows = []
+        after_id = anchor - 1
+        while True:
+            query = (select(Message).where(Message.user_id == uid, Message.id > after_id)
+                     .order_by(Message.id).limit(120))
+            page = (await session.execute(query)).scalars().all()
+            if not page:
+                break
+            if any(m.id <= after_id for m in page):
+                raise errors.ai_unavailable()
+            rows.extend(page)
+            after_id = max(m.id for m in page)
+            if len(page) < 120 or context_retention.source_tokens(rows) >= 16_384:
+                break
+    else:
+        q = (
+            select(Message)
+            .where(Message.user_id == uid, Message.id >= anchor)
+            .order_by(Message.id)
+            .limit(settings.context_hard_msg_cap)  # _context와 같은 안전 상한
+        )
+        rows = (await session.execute(q)).scalars().all()
     if not rows:
         return
     try:
@@ -861,13 +952,14 @@ async def _enqueue_checkpoint(
                     created_at=getattr(m, "created_at", None),
                 )
                 for m in rows
-                if m.kind not in {"fortune_context_root", "fortune_derived"}
+                if retention_enabled or m.kind not in SUMMARY_EXCLUDED_MESSAGE_KINDS
             ],
             keep_from_message_id=keep_from,
             # `_context`가 필터 전 원본 세그먼트로 이미 리셋을 확정했다. 운세 격리 행을
             # 제거한 뒤 트리거를 다시 계산하면 정상 head가 요약 없이 버려질 수 있다.
             reset_triggered=True,
             temporal_enabled=temporal_enabled,
+            **({"retention_enabled": True} if retention_enabled else {}),
         )
     except checkpoint.CheckpointError as e:  # 쓰기 이전 단계에서만 발생 — 트랜잭션은 멀쩡하다
         _log.info("대화 요약 잡 건너뜀(user=%s): %s", uid, e)
@@ -982,8 +1074,22 @@ async def post_message(
     # app_config 왕복 병합(#11) — 게이팅 키 + 도구 루프 키를 한 SELECT로 읽는다.
     # 반드시 유저 락(808행) **이후**여야 한다 — 동시요청의 한도 우회(TOCTOU) 방지 순서 불변.
     raw_cfg = await config_store.get_config_values(
-        session, [*limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS, checkpoint.TEMPORAL_CONFIG_KEY]
+        session, [*limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS,
+                  *crisis_chat.CONFIG_KEYS, "context_retention_v2_enabled",
+                  "context_retention_ready_users", checkpoint.TEMPORAL_CONFIG_KEY]
     )
+    guard_config = crisis_chat.effective_config(raw_cfg)
+    # A global flag cannot certify old personal projections. Only reviewed users
+    # enter the new reader/guard path; no wildcard bypass is accepted.
+    ready_users = raw_cfg.get("crisis_guard_ready_users", [])
+    guard_config = replace(
+        guard_config,
+        enabled=(guard_config.enabled and isinstance(ready_users, list)
+                 and str(uid) in ready_users),
+    )
+    retention_ready = raw_cfg.get("context_retention_ready_users", [])
+    # Adoption is a reader contract, independent of the switch that stops new work.
+    retention_enabled = isinstance(retention_ready, list) and str(uid) in retention_ready
     g = await gating.resolve(session, user_id, now=now, config_raw=raw_cfg)
     remaining = g.entitlement["tokens_remaining"]
     if remaining is None:
@@ -1007,28 +1113,47 @@ async def post_message(
 
     # 현재 위기·연속 distress가 있으면 운세 참조는 DB 조회 전부터 완전히 무시한다. 안전 응답이
     # 오늘 운세의 표현에 끌리거나 stale 참조 오류로 막혀서는 안 된다.
-    crisis_now = context_safety.is_continuing_distress(req.text, language)
+    crisis_now = (not guard_config.enabled
+                  and context_safety.is_continuing_distress(req.text, language))
+    decision_recent = []
+    if guard_config.enabled:
+        recent_rows = (await session.execute(
+            select(Message).where(Message.user_id == uid)
+            .order_by(Message.id.desc()).limit(guard_config.history_messages)
+        )).scalars().all()
+        decision_recent = [
+            crisis_guard.GuardMessage(
+                "assistant" if m.sender == "moly" else "user",
+                m.content or "", kind=m.kind, message_id=m.id,
+            ) for m in reversed(recent_rows)
+        ]
+    deferred_context_error = None
     topic_snapshot = None
-    if getattr(req, "topic_entry_id", None) is not None:
-        topic_snapshot = await topic_chat.load_snapshot(
-            session, user_id=uid, entry_id=req.topic_entry_id, locale=req.locale,
-            catalog=topic_catalog, now=now, context_revision=lease.base_context_revision,
-            crisis=crisis_now,
-        )
     fortune_snapshot: fortune_chat.FortuneContextSnapshot | None = None
     local_calendar_date = reward_date_for(now, account_timezone)
-    if getattr(req, "context_ref", None) is not None and not crisis_now:
-        if req.context_ref.local_date != local_calendar_date:
-            raise errors.AppError(
-                "FORTUNE_CONTEXT_STALE", 409, "오늘의 운세가 바뀌었어요. 결과 화면에서 다시 시작해 주세요."
+    try:
+        if getattr(req, "topic_entry_id", None) is not None:
+            topic_snapshot = await topic_chat.load_snapshot(
+                session, user_id=uid, entry_id=req.topic_entry_id, locale=req.locale,
+                catalog=topic_catalog, now=now, context_revision=lease.base_context_revision,
+                crisis=crisis_now,
             )
-        fortune_snapshot = await fortune_chat.load_snapshot(
-            session,
-            user_id=uid,
-            local_date=req.context_ref.local_date,
-            locale=req.context_ref.locale,
-            account_timezone=account_timezone,
-        )
+        if getattr(req, "context_ref", None) is not None and not crisis_now:
+            if req.context_ref.local_date != local_calendar_date:
+                raise errors.AppError(
+                    "FORTUNE_CONTEXT_STALE", 409, "오늘의 운세가 바뀌었어요. 결과 화면에서 다시 시작해 주세요."
+                )
+            fortune_snapshot = await fortune_chat.load_snapshot(
+                session,
+                user_id=uid,
+                local_date=req.context_ref.local_date,
+                locale=req.context_ref.locale,
+                account_timezone=account_timezone,
+            )
+    except errors.AppError as exc:
+        if not guard_config.enabled:
+            raise
+        deferred_context_error = exc
 
     # 운세가 장기 기억·관계·일기 계약으로 굳지 않게 시작 턴과 이어지는 두 유저 턴을 기존
     # messages.kind discriminator로 격리한다. 현재 위기는 언제나 normal이 우선한다.
@@ -1070,6 +1195,8 @@ async def post_message(
     ctx = await session.get(ChatContext, uid)  # 대화 앵커·기억 처리 좌표 1회 로드
     anchor = ctx.anchor_message_id if ctx is not None else 0
     memory_generation = (getattr(ctx, "memory_generation", 0) or 0) if ctx is not None else 0
+    retention_enabled = (retention_enabled
+                         or getattr(ctx, "retention_v5_adopted", False) is True)
     # finish_publish stores the last committed turn's request time here; no extra query.
     last_turn_at = getattr(ctx, "last_active_at", None)
     zone = safe_zone(account_timezone)
@@ -1077,21 +1204,46 @@ async def post_message(
 
     # v2 읽기 전환 여부. 여기서는 **한 행만 읽는다**.
     pipeline_state = await memory_pipeline.load(session, uid)
+    correction_pending = False
+    scope_end_pending = (
+        retention_enabled and contract_compiler.conversation_scope_end_candidate(req.text)
+    )
+    if retention_enabled:
+        try:
+            correction_pending = await context_retention.pending_correction(
+                session, user_id=uid, generation=memory_generation, current_text=req.text,
+            )
+        except context_retention.RetentionError:
+            raise errors.ai_unavailable() from None
     # published 계약. 없으면 빈 문자열이라 프롬프트가 지금과 같다.
     # 계약 조회는 대화의 보조다. 여기서 예외가 새면 응답 전체가 실패하므로 마지막 방어선을
     # 하나 더 둔다 — 실제로 jsonb 파싱 실수 하나가 대화를 통째로 죽였다.
-    try:
-        contract_text = await contract_repo.published_text(
-            # 저장할 때와 같은 버킷으로 찾는다(worker/contract_jobs.py). 원본 태그로 찾으면
-            # "ko-KR" 유저가 "ko"로 저장된 제 계약을 영영 못 찾는다.
-            session, user_id=uid, locale=i18n.resolve(language)
-        )
-    except Exception:  # noqa: BLE001
-        _log.warning("계약 조회 실패(빈 계약으로 진행) — user=%s", user_id, exc_info=True)
-        contract_text = ""
+    contract_text = ""
+    if not correction_pending:
+        try:
+            contract_text = await contract_repo.published_text(
+                # 저장할 때와 같은 버킷으로 찾는다(worker/contract_jobs.py). 원본 태그로 찾으면
+                # "ko-KR" 유저가 "ko"로 저장된 제 계약을 영영 못 찾는다.
+                session, user_id=uid, locale=i18n.resolve(language),
+                **({"retention_enabled": True, "generation": memory_generation,
+                    "activity_date": ad, "current_text": req.text} if retention_enabled else {}),
+            )
+        except Exception:  # noqa: BLE001
+            if retention_enabled:
+                raise errors.ai_unavailable() from None
+            _log.warning("계약 조회 실패(빈 계약으로 진행) — user=%s", user_id, exc_info=True)
+            contract_text = ""
+    required_facts = ""
+    if retention_enabled and not correction_pending:
+        try:
+            required_facts = await context_retention.load_required_facts(
+                session, user_id=uid, generation=memory_generation,
+            )
+        except context_retention.RetentionError:
+            raise errors.ai_unavailable() from None
     # v2 관계 render. 읽기만 한다 — 집계는 projector 잡이 하고 챗은 결과만 쓴다.
     relationship_v2 = ""
-    if pipeline_state.serves_v2:
+    if pipeline_state.serves_v2 and not correction_pending:
         relationship_v2 = await relationship_projector.prompt_text(
             session, uid, language=language
         )
@@ -1114,15 +1266,20 @@ async def post_message(
     # 자체 세션을 쓰므로 이 세션의 락과 무관하고, mode가 v2가 아니면 태스크가 즉시 빈
     # 문자열로 끝난다(임베딩·검색 호출 0).
     recall_trace: dict[str, float] = {}
+    recalled_registry_snapshot: list[tuple] = []
     t_recall0 = time.monotonic()
-    recall_task = asyncio.ensure_future(
-        _recall_memory_v2(
+    async def recall_memory():
+        if correction_pending:
+            return ""
+        return await _recall_memory_v2(
             uid, query=req.text, state=pipeline_state, language=language,
-            # 시각·오늘 감정과 같은 사용자 현지 달력 날짜를 쓴다. 계측은 유지한다.
-            today=local_calendar_date, tz_name=account_timezone,
-            trace=recall_trace,
+            today=local_calendar_date, tz_name=account_timezone, trace=recall_trace,
+            **({"retention_enabled": True, "generation": memory_generation,
+                "registry_snapshot": recalled_registry_snapshot} if retention_enabled else {}),
         )
-    )
+
+    recall_task = None if retention_enabled else asyncio.ensure_future(recall_memory())
+
 
     # 정규화 기억의 유일한 기본 주입 경로. 저장된 rendered_text를 그대로 쓰지 않고 repo가
     # active fact/insight와 forget marker를 매번 재대조한다. 재생성 지연 중에도 잊은 내용이
@@ -1132,8 +1289,20 @@ async def post_message(
     # 요약과 아래 대화 배열은 겹치지 않고 이어진다.
     checkpoint_summary = ""
     checkpoint_through = None
-    if settings.context_checkpoint_enabled:
-        latest_checkpoint = await checkpoint_repo.load_latest(session, uid)
+    if settings.context_checkpoint_enabled or retention_enabled:
+        latest_checkpoint = await checkpoint_repo.load_latest(
+            session, uid, **({"retention_enabled": True} if retention_enabled else {}),
+        )
+        if retention_enabled and latest_checkpoint is not None:
+            if not await context_retention.processing_complete(
+                session, user_id=uid, generation=memory_generation,
+                through_id=latest_checkpoint.through_message_id,
+            ):
+                latest_checkpoint = None
+        if retention_enabled:
+            # The old persisted anchor may be ahead of the new verified coverage.
+            # Read from the v5 boundary independently until catch-up has completed.
+            anchor = latest_checkpoint.through_message_id + 1 if latest_checkpoint is not None else 0
         checkpoint_summary = latest_checkpoint.summary if latest_checkpoint is not None else ""
         checkpoint_through = latest_checkpoint.through_message_id if latest_checkpoint is not None else None
 
@@ -1148,9 +1317,9 @@ async def post_message(
     # 안 듣는 상태다. 시작점(요청 수신)은 유지하고 예산만 갈아 끼운다.
     absolute_deadline += agent_cfg.turn_deadline_s - settings.agent_turn_deadline_s
 
-    focus_block = await chat_references.load_focus_block(
-        session, user_id=uid, current_turn_seq=lease.turn_seq
-    )
+    focus_block = (await chat_references.load_focus_block(
+        session, user_id=uid, current_turn_seq=lease.turn_seq,
+    )) if not correction_pending else ""
 
     # 현재 턴 컨텍스트("지금 상황" 블록, W3) — 킬스위치 off면 조회 자체를 안 한다(기존과 완전 동일).
     # Phase 1(락+커넥션 보유) 안에서 끝내야 한다 — 커밋 뒤 LLM 구간엔 DB 커넥션 0(SOMA-374 불변식).
@@ -1180,7 +1349,11 @@ async def post_message(
     context_window = await _context(
         session, uid, anchor, current_text=req.text, current_date=ad, language=language,
         current_at=now, tz_name=account_timezone, checkpoint_through=checkpoint_through,
+        compact_crises=not guard_config.enabled,
+        retention_enabled=retention_enabled,
     )
+    if correction_pending:
+        checkpoint_summary = ""
     convo = context_window.conversation
     new_anchor = context_window.new_anchor
     lead = context_window.lead
@@ -1207,6 +1380,8 @@ async def post_message(
     await session.commit()  # lease만 남기고 락·커넥션 해제 — 이후 LLM 구간엔 점유 0
     t_phase1 = time.monotonic()
     phase1_ms = _ms(t0, t_phase1)
+    if recall_task is None:
+        recall_task = asyncio.ensure_future(recall_memory())
 
     # ===== Phase 사이: 외부 호출(DB 커넥션 없음) — LLM + 백스톱 =====
     # 위에서 띄운 회상을 여기서 거둔다. 이미 끝나 있으면 대기 0이다.
@@ -1236,9 +1411,18 @@ async def post_message(
         [greeting_content] if greeting_content else [],
         # ⚠️ **mode 기준이다.** 회상 결과(bool(memory_v2_block))로 정하면, 검색이 실패하거나
         # 빈 결과일 때 legacy 기억이 되살아나 같은 사용자가 턴마다 v2/legacy 인격을 오간다.
-        contract_text=contract_text,
-        relationship_v2=relationship_v2,
+        contract_text="" if retention_enabled else contract_text,
+        relationship_v2="" if retention_enabled else relationship_v2,
         historical_lead=historical_lead,
+        crisis_guard_enabled=guard_config.enabled,
+    )
+    # Rechecks use the same recent raw context, without fortune/topic/focus enrichment.
+    reask_convo = [dict(c) for c in convo]
+    reask_convo.insert(max(0, len(reask_convo) - 1), {
+        "role": "system", "content": time_block + "\n\n" + crisis_guard.reask_instruction(language),
+    })
+    reask_system = _build_system(
+        language, nick, crisis_guard_enabled=guard_config.enabled,
     )
     # ── 휘발 블록: **최근 원문 뒤·현재 입력 앞**(11장) ────────────────────────
     # 자주 바뀌는 값을 system(캐시 프리픽스)에 두면 바뀔 때마다 프롬프트 전체가 무효가 된다.
@@ -1246,6 +1430,13 @@ async def post_message(
     # 대화가 그대로 캐시되고, 바뀐 이 블록과 현재 입력만 새로 쓴다.
     # role은 system이라 user 발화 권위를 갖지 않는다.
     volatile: list[str] = [time_block, mood_block]
+    if retention_enabled:
+        if contract_text:
+            volatile.append(naming.render(contract_text, nick))
+        if required_facts:
+            volatile.append("[Current verified facts]\n" + naming.render(required_facts, nick))
+        if relationship_v2:
+            volatile.append(naming.render(relationship_v2, nick))
     if context_window.incomplete:
         volatile.append(
             "[Context availability] Earlier conversation may be missing. Do not infer that "
@@ -1258,16 +1449,17 @@ async def post_message(
         # 기존 checkpoint(v1)에 남은 과거 위기 원문도 최근 대화가 명확히 다른 화제로 넘어간
         # 경우에만 문장 단위로 제거한다. 구형 서버 대체 문구도 함께 제거하며, 현재 위기/불명확한
         # 전환이면 위기 원문은 그대로 둔다.
-        checkpoint_summary = context_safety.compact_checkpoint_summary(
-            checkpoint_summary,
-            recent_entries=[
-                context_safety.ContextEntry(c["role"], c["content"])
-                for c in convo[:-1]
-                if c["role"] in ("user", "assistant")
-            ],
-            current_text=req.text,
-            language=language,
-        )
+        if not guard_config.enabled and not retention_enabled:
+            checkpoint_summary = context_safety.compact_checkpoint_summary(
+                checkpoint_summary,
+                recent_entries=[
+                    context_safety.ContextEntry(c["role"], c["content"])
+                    for c in convo[:-1]
+                    if c["role"] in ("user", "assistant")
+                ],
+                current_text=req.text,
+                language=language,
+            )
         if checkpoint_summary:
             volatile.append(
                 "[지난 이야기]\n"
@@ -1305,33 +1497,76 @@ async def post_message(
         turn_seq=lease.turn_seq,
         activity_date=ad,
     )
-    # 도구 루프(W5)는 킬스위치·카나리를 모두 통과했을 때만 탄다. 아니면 아래 단발 호출 그대로다.
+    if retention_enabled:
+        try:
+            tools = (list(agent_runtime._resolve_registry().wire_schemas())
+                     if agent_runtime.should_run(agent_cfg, uid) else ())
+            context_retention.assert_input_budget(system, convo, tools=tools)
+        except context_retention.RetentionError:
+            await chat_turns.release(session, user_id=uid, lease=lease)
+            await session.commit()
+            raise errors.ai_unavailable() from None
+    guard_reply = None
+    guard_extra_calls = []
     try:
         if time.monotonic() >= absolute_deadline:
             raise TimeoutError("chat request deadline exceeded before inference")
-        agent_turn = (
-            await agent_runtime.run_turn(
-                system, convo,
-                config=agent_cfg, user_id=uid, language=language, activity_date=ad,
-                user_text=req.text,
-                deadline=absolute_deadline,
-                local_calendar_date=local_calendar_date,
+
+        async def generate_draft(before_tools=None):
+            if agent_runtime.should_run(agent_cfg, uid):
+                kwargs = dict(
+                    config=agent_cfg, user_id=uid, language=language, activity_date=ad,
+                    user_text=req.text, deadline=absolute_deadline,
+                    local_calendar_date=local_calendar_date,
+                )
+                if before_tools is not None:
+                    kwargs["before_tools"] = before_tools
+                if retention_enabled:
+                    kwargs["retention_enabled"] = True
+                turn = await agent_runtime.run_turn(system, convo, **kwargs)
+                return None, turn
+            draft_result = await llm.generate(
+                system, convo, ledger=ledger_ctx, cache_messages=cache_on,
+                ttl_system=settings.cache_ttl_system, ttl_messages=settings.cache_ttl_messages,
+                timeout=min(settings.llm_timeout_s, absolute_deadline - time.monotonic()),
+                sdk_retries=False, foreground_deadline=absolute_deadline,
             )
-            if agent_runtime.should_run(agent_cfg, uid)
-            else None
-        )
-        if agent_turn is None:
-            result = await llm.generate(
-                system, convo,
-                ledger=ledger_ctx,
-                cache_messages=cache_on,
-                ttl_system=settings.cache_ttl_system,
+            llm.require_completed_text(draft_result.text, draft_result.finish_reason)
+            return draft_result, None
+
+        async def generate_reask():
+            return await llm.generate(
+                reask_system, reask_convo,
+                ledger=usage_ledger.with_purpose(ledger_ctx, "crisis_reask"),
+                cache_messages=cache_on, ttl_system=settings.cache_ttl_system,
                 ttl_messages=settings.cache_ttl_messages,
                 timeout=min(settings.llm_timeout_s, absolute_deadline - time.monotonic()),
-                sdk_retries=False,
-                foreground_deadline=absolute_deadline,
+                sdk_retries=False, foreground_deadline=absolute_deadline,
             )
-            llm.require_completed_text(result.text, result.finish_reason)
+
+        if guard_config.enabled:
+            guard_reply = await crisis_chat.generate(
+                decision=crisis_chat.recorded_decision(
+                    req.text, decision_recent, config=guard_config,
+                    deadline=absolute_deadline, ledger=ledger_ctx,
+                ),
+                draft=generate_draft, reask=generate_reask, language=language,
+                nickname=nick, deadline=absolute_deadline, normal_error=deferred_context_error,
+            )
+            result, agent_turn = guard_reply.result, guard_reply.agent_turn
+            if guard_reply.discarded_result is not None:
+                guard_extra_calls.append(_llm_call(guard_reply.discarded_result, "chat_discarded"))
+            if guard_reply.discarded_agent is not None:
+                guard_extra_calls.extend(guard_reply.discarded_agent.calls)
+            if guard_reply.decision.route != "normal":
+                message_kind = crisis_guard.message_kind(guard_reply.decision.route)
+                crisis_now = True
+                topic_snapshot = None
+                fortune_snapshot = None
+                greeting_gid = None
+                greeting_content = None
+        else:
+            result, agent_turn = await generate_draft()
     except BaseException as exc:
         # 외부 호출 실패는 저장 0인 클린 재시도다. lease도 즉시 회수해 TTL만큼 막히지 않게 한다.
         await session.rollback()
@@ -1362,7 +1597,8 @@ async def post_message(
     repair_ms = 0.0
     # 복원 호출이 붙을 수 있어 차감은 백스톱 뒤에. 도구 턴은 step1·step2가 이미 LlmCall로 온다.
     usage = TurnUsage(
-        list(agent_turn.calls) if agent_turn is not None else [_llm_call(result, "chat")]
+        guard_extra_calls + (list(agent_turn.calls) if agent_turn is not None
+                             else [_llm_call(result, "crisis_reask" if message_kind == "safety_check" else "chat")])
     )
     reply_text = agent_turn.text if agent_turn is not None else result.text
     is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
@@ -1388,7 +1624,17 @@ async def post_message(
             "응답 언어 외 문자 제거(egress) user=%s lang=%s reply_len=%d",
             user_id, language, len(reply_text),
         )
-    reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
+    if message_kind == "safety":
+        # A versioned fixed template is not passed through ordinary reply rewriting.
+        reply_text = crisis_guard.fixed_reply(language, nick)
+        reply_stored = naming.to_placeholder(reply_text, nick)
+    elif message_kind == "safety_check":
+        reply_text = crisis_guard.checked_reask(
+            reply_text, language, method_request=guard_reply.decision.method_request,
+        )
+        reply_stored = naming.to_placeholder(reply_text, nick)
+    else:
+        reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
     try:
         llm.require_completed_text(reply_stored, "")
     except llm.IncompleteResponseError:
@@ -1416,6 +1662,47 @@ async def post_message(
         session, user_id=uid, lease=lease, memory_generation=memory_generation,
     )
     await privacy.ensure_subject_active(session, uid)
+    retention_writes_enabled = False
+    if retention_enabled:
+        retention_writes_enabled = await context_retention.enabled_now(session, lock=True)
+        if not correction_pending:
+            try:
+                current_required = await context_retention.load_required_facts(
+                    session, user_id=uid, generation=memory_generation,
+                )
+                current_contract = await contract_repo.published_text(
+                    session, user_id=uid, locale=i18n.resolve(language),
+                    retention_enabled=True, generation=memory_generation, activity_date=ad,
+                    current_text=req.text,
+                )
+            except (context_retention.RetentionError, ValueError):
+                current_required, current_contract = None, None
+            recall_changed = False
+            if recalled_registry_snapshot:
+                ids = [row[0] for row in recalled_registry_snapshot]
+                current_rows = (await session.execute(select(
+                    Mem0MemoryRegistry.id, Mem0MemoryRegistry.revision, Mem0MemoryRegistry.content_hash,
+                ).where(
+                    Mem0MemoryRegistry.user_id == uid, Mem0MemoryRegistry.id.in_(ids),
+                    Mem0MemoryRegistry.semantic_status == "active",
+                    Mem0MemoryRegistry.provider_delete_state == "kept",
+                ))).all()
+                expected_revisions = {str(row[0]): (int(row[1]), row[2])
+                                      for row in recalled_registry_snapshot}
+                current_revisions = {str(row[0]): (int(row[1]), row[2]) for row in current_rows}
+                recall_changed = expected_revisions != current_revisions
+                if not recall_changed:
+                    try:
+                        await context_retention.load_required_facts(
+                            session, user_id=uid, generation=memory_generation, referenced_ids=ids,
+                        )
+                    except context_retention.RetentionError:
+                        recall_changed = True
+            if (current_required != required_facts or current_contract != contract_text
+                    or recall_changed):
+                await chat_turns.release(session, user_id=uid, lease=lease)
+                await session.commit()
+                raise errors.ai_unavailable() from None
     if fortune_snapshot is not None:
         phase2_now = datetime.now(timezone.utc)
         fresh_account = await session.get(type(g.profile), uid, populate_existing=True)
@@ -1537,11 +1824,12 @@ async def post_message(
     )
     session.add(umsg)
     await session.flush()
-    await topic_chat.publish(
-        session, user_id=uid, snapshot=topic_snapshot, catalog=topic_catalog,
-        user_message_id=umsg.id, greeting_message_id=topic_greeting_message_id,
-        now=now, crisis=crisis_now,
-    )
+    if message_kind not in {"safety", "safety_check"}:
+        await topic_chat.publish(
+            session, user_id=uid, snapshot=topic_snapshot, catalog=topic_catalog,
+            user_message_id=umsg.id, greeting_message_id=topic_greeting_message_id,
+            now=now, crisis=crisis_now,
+        )
 
     # 관계 시작은 첫 성공 대화에서 확정한다. 가입 환영 일기의 생성과는 별개다.
     if getattr(g.profile, "relationship_started_at", None) is None:
@@ -1550,7 +1838,7 @@ async def post_message(
         g.profile.relationship_started_timezone = profile_tz
         g.profile.relationship_display_date = now.astimezone(safe_zone(profile_tz)).date()
 
-    if new_anchor is not None:
+    if new_anchor is not None and (not retention_enabled or retention_writes_enabled):
         await _save_anchor(session, uid, new_anchor)  # 리셋 — phase 2 원자
 
     if not reply_stored.strip():
@@ -1574,6 +1862,12 @@ async def post_message(
     session.add(rmsg)
     await session.flush()
 
+    if (retention_writes_enabled and (correction_pending or scope_end_pending)
+            and message_kind == "normal"):
+        await context_retention.enqueue_contract_processing(
+            session, user_id=uid, generation=memory_generation, through_id=rmsg.id,
+        )
+
     # 기억 v2(15장 5단계) — legacy 사용자는 no-op. shadow/v2만 source 커서와 관계 event를
     # **이 트랜잭션에서** 함께 기록한다. shadow는 기록만 하고 응답에는 쓰지 않는다.
     await _record_memory_v2(
@@ -1589,10 +1883,12 @@ async def post_message(
 
     # Request coverage at the soft threshold, independently of committing an anchor.
     # The producer coalesces pending work; both enqueue and anchor participate in Phase2.
-    if context_window.checkpoint_keep_from is not None:
+    if (context_window.checkpoint_keep_from is not None
+            and (not retention_enabled or retention_writes_enabled)):
         await _enqueue_checkpoint(
             session, uid, anchor=anchor, keep_from=context_window.checkpoint_keep_from,
             temporal_enabled=raw_cfg.get(checkpoint.TEMPORAL_CONFIG_KEY) is True,
+            **({"retention_enabled": True} if retention_enabled else {}),
         )
 
     # 토큰 집계(원가 가중 billable, normal만) — 사후 누적(원자 증분). 증분 후 총량을 응답 기준으로.

@@ -16,6 +16,8 @@ W7 계약 위에서 지키는 것(어기면 조용히 깨진다):
 from __future__ import annotations
 
 import logging
+import hashlib
+import json
 import uuid
 from dataclasses import dataclass
 
@@ -23,10 +25,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.db import get_sessionmaker
-from app.services import checkpoint, checkpoint_repo, usage_ledger
+from app.services import checkpoint, checkpoint_repo, usage_ledger, context_retention, config_store, jobs
+from app.models.message import SUMMARY_EXCLUDED_MESSAGE_KINDS
 from app.services.jobs import ClaimedJob
 from worker import consumer
-from worker.consumer import JobCancelled, JobFatal, JobResult, JobRetry
+from worker.consumer import JobCancelled, JobDeferred, JobFatal, JobResult, JobRetry
 
 _log = logging.getLogger("moly-worker")
 
@@ -147,7 +150,9 @@ async def _still_applicable(
     # previous=None이 되는데, 그 상태가 "첫 요약"과 구분이 안 돼 체인 검사만으로는 통과한다.
     if not await _generation_matches(session, req):
         return False, None
-    previous = await checkpoint_repo.load_latest(session, req.user_id)
+    previous = (await checkpoint_repo.load_latest(session, req.user_id, retention_enabled=True)
+                if req.version == checkpoint.RETENTION_SUMMARIZER_VERSION
+                else await checkpoint_repo.load_latest(session, req.user_id))
     if previous is not None and previous.through_message_id >= req.through_message_id:
         return False, previous
     if not _chain_matches(previous, req):
@@ -176,12 +181,15 @@ async def _load_sources(
     if previous is not None and from_id <= previous.through_message_id:
         # 이전 checkpoint가 이미 덮은 구간과 겹친다 = 같은 대화를 두 번 요약하게 된다.
         return []
+    range_options = ({"include_excluded": True}
+                     if req.version == checkpoint.RETENTION_SUMMARIZER_VERSION else {})
     messages = await checkpoint_repo.load_range(
         session,
         req.user_id,
         after_id=from_id - 1,  # 열린 하한 → `[from_id, through]` 닫힌 구간
         through_id=req.through_message_id,
         max_rows=len(req.source_message_ids) + 1,  # +1 = 초과분(사이에 낀 새 행) 탐지용
+        **range_options,
     )
     if tuple(sorted(m.id for m in messages)) != req.source_message_ids:
         return []
@@ -189,11 +197,21 @@ async def _load_sources(
 
 
 async def handle_checkpoint(job: ClaimedJob) -> JobResult:
-    if not settings.context_checkpoint_enabled:  # 킬스위치 — 쓰기도 LLM 호출도 없다
+    if (job.payload or {}).get("mode") == "reverify":
+        return await _handle_retention_reverify(job)
+    payload_version = (job.payload or {}).get("summarizer_version")
+    if not settings.context_checkpoint_enabled and payload_version != checkpoint.RETENTION_SUMMARIZER_VERSION:
         return JobResult(result_code=RESULT_DISABLED)
     req = _parse(job)
 
     async with get_sessionmaker()() as session:
+        retention = req.version == checkpoint.RETENTION_SUMMARIZER_VERSION
+        if retention:
+            raw = await config_store.get_config_values(session, ["context_retention_v2_enabled"])
+            if raw.get("context_retention_v2_enabled", settings.context_retention_v2_enabled) is not True:
+                return JobResult(result_code=RESULT_DISABLED)
+            if not await context_retention.adopted_user(session, user_id=req.user_id):
+                return JobResult(result_code=RESULT_DISABLED)
         state = await checkpoint_repo.load_user_state(session, req.user_id)
         if state is None:  # 탈퇴 — 처리 의미가 사라졌다(경보 대상 아님)
             raise JobCancelled("user_deleted")
@@ -225,6 +243,15 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             # 같은 id 목록이라도 본문이 바뀌었다 = 이 요약의 전제가 깨졌다.
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
 
+        if retention and not await context_retention.processing_complete(
+            session, user_id=req.user_id, generation=req.memory_generation,
+            through_id=req.through_message_id,
+        ):
+            await context_retention.enqueue_contract_processing(session, user_id=req.user_id,
+                generation=req.memory_generation, through_id=req.through_message_id)
+            await session.commit()
+            raise JobDeferred("checkpoint_source_processing_pending", delay_s=5)
+
         # 잊어줘가 닫은 메시지 검사는 없다 — 대화형 망각이 제거되면서 `memory_recall_suppressions`
         # 자체가 사라졌다(2026-08-06). 닫히는 구간이 없으므로 이 검사는 항상 통과였다.
 
@@ -235,13 +262,14 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         # 아니라 **넘치는 쪽**(superset)을 택했다 — 앵커 이전 이력이 더 들어올 뿐 체인이 갖고 있던
         # 내용을 잃지 않는다. 반대로 "이번 구간 원본만"으로 좁히면 매 N번째마다 그 앞 이야기가
         # 통째로 사라진다(캐피가 10번에 한 번씩 기억을 잃는다).
-        index = await checkpoint_repo.count(session, req.user_id) + 1
+        index = ((await checkpoint_repo.count(session, req.user_id, retention_enabled=True))
+                 if retention else (await checkpoint_repo.count(session, req.user_id))) + 1
         every = max(int(settings.context_checkpoint_reverify_every), 1)
         # 재검증은 **검증할 체인이 있을 때만** 의미가 있다. previous가 없는 첫 요약에서 켜면
         # 원본이 비어 빈 입력으로 요약을 시도하고 잡이 재시도 끝에 dead가 된다
         # (기본값 10에선 index%10==0과 previous=None이 양립 불가라 안 드러나지만,
         #  reverify_every=1로 두는 순간 첫 요약부터 막힌다).
-        reverify = index % every == 0 and previous is not None
+        reverify = index % every == 0 and previous is not None and not retention
         originals: list[checkpoint.SourceMessage] = []
         if reverify:
             cap = int(settings.context_checkpoint_reverify_max_messages)
@@ -259,9 +287,28 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
 
     # ── 여기서부터 DB 커넥션 0 (LLM 구간) ──
     inputs = originals if reverify else messages
+    if retention:
+        inputs = [message for message in inputs if message.kind not in SUMMARY_EXCLUDED_MESSAGE_KINDS]
     previous_summary = None if reverify or previous is None else previous.summary
+    state_json = None
+    call = None
+    continuation = None
     try:
-        summary, call = await checkpoint.summarize(
+        if retention and not inputs:
+            state_json = context_retention.validate_state(previous.state_json if previous else None)
+            summary = context_retention.render_state(state_json)
+        elif retention:
+            summary, state_json, call = await checkpoint.summarize_progress(
+                messages=inputs, previous=previous, language=language, nickname=nickname,
+                continuation_state=(job.payload or {}).get("progress_state"),
+                start_chunk=(job.payload or {}).get("progress_next_chunk", 0),
+                continuation_manifest=(job.payload or {}).get("progress_manifest"),
+                max_batches=1,
+                ledger=usage_ledger.LedgerContext(lane=usage_ledger.LANE_BACKGROUND,
+                    purpose="context_summary", user_id=job.user_id, job_id=job.id, attempt=job.attempt),
+            )
+        else:
+            summary, call = await checkpoint.summarize(
             messages=inputs,
             previous_summary=previous_summary,
             language=language,
@@ -271,7 +318,10 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 lane=usage_ledger.LANE_BACKGROUND, purpose="context_summary",
                 user_id=job.user_id, job_id=job.id, attempt=job.attempt,
             ),
-        )
+            )
+    except checkpoint.ProgressContinuation as pending:
+        continuation = pending
+        state_json, summary = pending.state, ""
     except checkpoint.NameLeakError as e:
         # 마스킹 후에도 실명이 남았다 — 저장하지 않고 재시도(다음 샘플은 통과할 수 있다).
         _log.warning("요약 실명 회귀 검사 실패(재시도) — job_id=%s: %s", job.id, e)
@@ -287,6 +337,10 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         # `checkpoint_repo.insert`가 같은 문장 안에서 하는 세대 검사다 — 읽고 나서 쓰는
         # 사이를 잠금으로 막으려 하면 챗과 락 순서가 반대라 교착이 나고, 그걸 NOWAIT로
         # 피하면 재시도 횟수를 갉아먹어 요약이 영구 유실된다.
+        if retention and not await context_retention.enabled_now(session, lock=True):
+            return
+        if retention and not await context_retention.adopted_user(session, user_id=req.user_id, lock=True):
+            return
         ok, _ = await _still_applicable(session, req)
         if not ok:
             _log.warning(
@@ -294,7 +348,26 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 req.through_message_id,
             )
             return
-        await checkpoint_repo.insert(
+        if retention:
+            fresh_sources = await _load_sources(session, req, previous)
+            if not fresh_sources or checkpoint.source_hash(
+                previous=previous, messages=fresh_sources, version=req.version,
+            ) != req.source_hash:
+                return
+            if not await context_retention.processing_complete(session, user_id=req.user_id,
+                generation=req.memory_generation, through_id=req.through_message_id):
+                return
+        if continuation is not None:
+            await context_retention.validate_progress_sources(session, user_id=req.user_id,
+                state=state_json)
+            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
+                job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
+                dedup_key=f"checkpoint-progress:{req.user_id}:{req.memory_generation}:{req.source_hash}:{continuation.next_chunk}",
+                payload={**job.payload, "progress_state": state_json,
+                         "progress_next_chunk": continuation.next_chunk,
+                         "progress_manifest": continuation.manifest})
+            return
+        inserted_id = await checkpoint_repo.insert(
             session,
             user_id=req.user_id,
             through_message_id=req.through_message_id,
@@ -302,18 +375,156 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             source_hash=req.source_hash,
             expected_generation=req.memory_generation,
             version=req.version,
+            **({"state_json": state_json, "validation_json": {
+                "source_message_ids": list(req.source_message_ids), "processing_complete": True,
+                "policy_excluded_ids": [m.id for m in messages if m.kind in SUMMARY_EXCLUDED_MESSAGE_KINDS],
+            }, "previous_id": previous.id if previous else None,
+                "coverage_from": req.source_message_ids[0]} if retention else {}),
         )
+        if retention and inserted_id is not None and index % every == 0:
+            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
+                job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
+                dedup_key=f"checkpoint-reverify:{req.user_id}:{req.memory_generation}:{inserted_id}:0",
+                payload={"mode": "reverify", "schema_version": checkpoint.SCHEMA_VERSION,
+                    "summarizer_version": checkpoint.RETENTION_SUMMARIZER_VERSION,
+                    "memory_generation": req.memory_generation, "checkpoint_id": str(inserted_id),
+                    "through_message_id": req.through_message_id, "after_message_id": 0,
+                    "manifests": []}, max_attempts=2)
 
     return JobResult(
-        result_code=RESULT_OK,
+        result_code="checkpoint_progress_page" if continuation is not None else RESULT_OK,
         result_detail={
             "messages": len(inputs),
             "chars": len(summary),
             "reverified": reverify,
-            "billable": call.billable,
+            "billable": (continuation.billable if continuation is not None
+                         else call.billable if call is not None else 0),
         },
         apply_domain=_apply,
     )
+
+
+async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
+    """원문을 페이지별로 다시 확인한다. 완료 전 중간 복구 상태는 발행하지 않는다."""
+    payload = job.payload or {}
+    if job.user_id is None:
+        raise JobFatal("missing_user")
+    generation = payload.get("memory_generation")
+    after = payload.get("after_message_id", 0)
+    through = payload.get("through_message_id")
+    if any(type(value) is not int for value in (generation, after, through)) or generation < 0 or after < 0 or through <= after:
+        raise JobFatal("invalid_reverify_payload")
+    async with get_sessionmaker()() as session:
+        raw = await config_store.get_config_values(session, ["context_retention_v2_enabled"])
+        if raw.get("context_retention_v2_enabled", settings.context_retention_v2_enabled) is not True:
+            return JobResult(result_code=RESULT_DISABLED)
+        if not await context_retention.adopted_user(session, user_id=job.user_id):
+            return JobResult(result_code=RESULT_DISABLED)
+        if await checkpoint_repo.read_memory_generation(session, job.user_id) != generation:
+            return JobResult(result_code=RESULT_STALE_GENERATION)
+        current = await checkpoint_repo.load_latest(session, job.user_id, retention_enabled=True)
+        if current is None or str(current.id) != payload.get("checkpoint_id") or current.through_message_id != through:
+            return JobResult(result_code=RESULT_SOURCE_CHANGED)
+        profile = await checkpoint_repo.load_user_state(session, job.user_id)
+        if profile is None:
+            raise JobCancelled("user_deleted")
+        page = await checkpoint_repo.load_range(session, job.user_id, after_id=after,
+            through_id=through, max_rows=120, include_excluded=True)
+    if not page:
+        return JobResult(result_code=RESULT_SOURCE_CHANGED)
+    boundary = page[-1].id
+    completed = boundary == through or len(page) < 120
+    initial = context_retention.validate_state(current.state_json)
+    working = context_retention.validate_state(payload.get("draft_state", current.state_json))
+    allowed = [message for message in page if message.kind not in SUMMARY_EXCLUDED_MESSAGE_KINDS]
+    page_hash = checkpoint.source_hash(previous=None, messages=page,
+                                       version=checkpoint.RETENTION_SUMMARIZER_VERSION)
+    continuation = None
+    if allowed:
+        reviewed = checkpoint.Checkpoint(current.id, current.through_message_id, current.summary,
+            current.version, current.source_hash, working, current.validation_json)
+        try:
+            _, working, _ = await checkpoint.summarize_progress(messages=allowed,
+                previous=reviewed, language=profile[1], nickname=profile[0],
+                continuation_state=payload.get("progress_state"),
+                start_chunk=payload.get("progress_next_chunk", 0),
+                continuation_manifest=payload.get("progress_manifest"), max_batches=1,
+                ledger=usage_ledger.LedgerContext(lane=usage_ledger.LANE_BACKGROUND,
+                    purpose="context_summary", user_id=job.user_id, job_id=job.id, attempt=job.attempt))
+        except checkpoint.ProgressContinuation as pending:
+            continuation, working = pending, pending.state
+        except Exception as exc:
+            raise JobRetry("reverify_invalid") from exc
+        # 검증된 현재 항목은 오래된 원문을 다시 읽었다는 이유로 변경하지 않는다.
+        protected = {item["id"]: item for item in initial["items"]}
+        recovered = [item for item in working["items"] if item["id"] not in protected]
+        # 과거 페이지를 읽었다고 종료/보관한 주제를 되살리지 않는다. 마지막
+        # 게시 이력의 상태와 근거를 확인하고, 현재 작업 목록만 복원한다.
+        async with get_sessionmaker()() as session:
+            current_recovered = []
+            for item in recovered:
+                historical = await context_retention.load_historical_item(session,
+                    user_id=job.user_id, generation=generation, item_id=item["id"])
+                if historical is None or historical["item"]["status"] == "active":
+                    current_recovered.append(item)
+        recovered = current_recovered
+        working["items"] = sorted([*protected.values(), *recovered], key=lambda item: item["id"])
+        context_retention.validate_state(working)
+    manifests = [*(payload.get("manifests") or []), {"after": after, "through": boundary, "hash": page_hash}]
+
+    async def _apply(session) -> None:
+        if not await context_retention.enabled_now(session, lock=True):
+            return
+        if not await context_retention.adopted_user(session, user_id=job.user_id, lock=True):
+            return
+        latest = await checkpoint_repo.load_latest(session, job.user_id, retention_enabled=True)
+        if latest is None or latest.id != current.id:
+            return
+        if await checkpoint_repo.read_memory_generation(session, job.user_id) != generation:
+            return
+        # 직전 페이지와 완료 시 모든 실제 입력 페이지의 현재 지문을 다시 대조한다.
+        checks = manifests if completed else manifests[-1:]
+        for manifest in checks:
+            sources = await checkpoint_repo.load_range(session, job.user_id,
+                after_id=manifest["after"], through_id=manifest["through"], max_rows=121,
+                include_excluded=True)
+            digest = checkpoint.source_hash(previous=None, messages=sources,
+                                             version=checkpoint.RETENTION_SUMMARIZER_VERSION)
+            if digest != manifest["hash"]:
+                return
+        if continuation is not None:
+            await context_retention.validate_progress_sources(session, user_id=job.user_id,
+                state=working)
+            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
+                job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=job.user_id,
+                dedup_key=f"checkpoint-reverify-progress:{job.user_id}:{generation}:{current.id}:{after}:{continuation.next_chunk}",
+                payload={**payload, "progress_state": working,
+                         "progress_next_chunk": continuation.next_chunk,
+                         "progress_manifest": continuation.manifest}, max_attempts=2)
+            return
+        if not completed:
+            next_payload = {key: value for key, value in payload.items()
+                            if key not in {"progress_state", "progress_next_chunk", "progress_manifest"}}
+            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
+                job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=job.user_id,
+                dedup_key=f"checkpoint-reverify:{job.user_id}:{generation}:{current.id}:{boundary}",
+                payload={**next_payload, "after_message_id": boundary, "draft_state": working,
+                         "manifests": manifests}, max_attempts=2)
+            return
+        if not await context_retention.processing_complete(session, user_id=job.user_id,
+            generation=generation, through_id=through):
+            return
+        await context_retention.validate_progress_sources(session, user_id=job.user_id, state=working)
+        digest = hashlib.sha256(json.dumps({"parent": current.source_hash,
+            "manifests": manifests, "state": working}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+        await checkpoint_repo.insert(session, user_id=job.user_id, through_message_id=through,
+            summary=context_retention.render_state(working), source_hash=digest,
+            expected_generation=generation, version=checkpoint.RETENTION_SUMMARIZER_VERSION,
+            state_json=working, validation_json={"processing_complete": True, "reverified": True,
+                "page_manifests": manifests}, previous_id=current.id, coverage_from=1)
+    return JobResult(result_code=("reverify_progress_page" if continuation is not None
+                                 else "reverify_complete" if completed else "reverify_page"),
+        result_detail={"through": boundary, "pages": len(manifests)}, apply_domain=_apply)
 
 
 # import 시 1회 등록(모듈 캐시 = 중복 등록 없음). consumer가 이 모듈을 지역 import 하는 이유는

@@ -403,6 +403,16 @@ async def freeze_job_payload(session: AsyncSession, *, job_id: uuid.UUID, patch:
 # ─────────────────────────────────────────────────────────────
 _FENCE = "WHERE id=:id AND state='running' AND lease_owner=:worker_id AND lease_token=:lease_token"
 
+_DEFER_SQL = text(f"""
+UPDATE async_jobs
+SET state='ready', available_at=:available_at, max_attempts=max_attempts+1,
+    lease_owner=NULL, lease_token=NULL, lease_until=NULL,
+    result_code=:reason, finished_at=NULL
+{_FENCE}
+  AND lease_until>now()
+RETURNING id
+""")
+
 _SUCCESS_SQL = text(f"""
 UPDATE async_jobs
 SET state='succeeded', result_code=:result_code, result_detail=CAST(:result_detail AS jsonb),
@@ -575,6 +585,28 @@ async def finalize_retryable(
     if state == "dead":  # 경보는 commit 이후 — 전송 실패가 상태를 되돌리지 않게(불변식 6)
         await notify_dead(job, error_code=error_code)
     return state
+
+
+async def finalize_deferred(
+    session: AsyncSession, job: ClaimedJob, *, reason: str, delay_s: float = 5.0,
+) -> bool:
+    """모델 호출 전 선행 처리 대기. 실패 예산·payload를 바꾸지 않는다.
+
+    물리 claim 번호·telemetry는 보존하며 max_attempts를 같은 양 늘려 실패
+    재시도 잔여 예산을 유지한다. 모델·도메인 작업을 시작한 뒤 사용 금지.
+    """
+    if job.job_type != "conversation_checkpoint":
+        raise ValueError("defer is only supported before checkpoint model execution")
+    available_at = datetime.now(timezone.utc) + timedelta(seconds=max(1.0, min(delay_s, 60.0)))
+    row = (await session.execute(_DEFER_SQL, {
+        **_fence_params(job), "available_at": available_at, "reason": reason,
+    })).first()
+    if row is None:
+        await session.rollback()
+        _lost_lease(job, "선행 처리 대기")
+        return False
+    await session.commit()
+    return True
 
 
 async def finalize_terminal(

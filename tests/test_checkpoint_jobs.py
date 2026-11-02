@@ -19,6 +19,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.config import settings
+from app.models.message import SUMMARY_EXCLUDED_MESSAGE_KINDS
 from app.services import checkpoint, checkpoint_repo, jobs
 from app.services import llm as llm_module
 from app.services.jobs import QUEUE_CONTENT
@@ -100,7 +101,11 @@ def store(monkeypatch) -> dict:
 
     async def _range(session, user_id, *, after_id, through_id, max_rows=None):
         """messages 테이블 그대로 — `(after_id, through_id]`를 id 순으로, LIMIT까지."""
-        picked = [m for m in state["messages"] if (after_id or 0) < m.id <= through_id]
+        picked = [
+            m for m in state["messages"]
+            if (after_id or 0) < m.id <= through_id
+            and m.kind not in SUMMARY_EXCLUDED_MESSAGE_KINDS
+        ]
         return picked[: max_rows] if max_rows is not None else picked
 
     async def _insert(
@@ -196,6 +201,52 @@ def test_payload_orders_source_ids_without_changing_generation_zero():
     result = checkpoint_jobs._parse(SimpleNamespace(user_id=_UID, payload=payload))
     assert result.source_message_ids == tuple(range(1, 401))
     assert result.memory_generation == 0
+
+
+@pytest.mark.parametrize("kind", ["safety", "safety_check"])
+@pytest.mark.parametrize("sender", ["user", "moly"])
+async def test_safety_source_is_excluded_even_from_full_reverification(
+    db, store, llm_calls, monkeypatch, kind, sender,
+):
+    """주기적 전체 원문 재점검도 정책상 제외된 원문을 되살리지 않는다."""
+    monkeypatch.setattr(settings, "context_checkpoint_reverify_every", 1)
+    safe_source = [_SOURCE[0], _SOURCE[2]]
+    store["messages"] = [
+        *_OLD_HISTORY,
+        safe_source[0],
+        checkpoint.SourceMessage(
+            id=12, sender=sender, kind=kind, content="EXCLUDED_SAFETY_SOURCE",
+        ),
+        safe_source[1],
+    ]
+
+    row = await _run(db, _enqueue_job(db, _payload(messages=safe_source)))
+
+    assert row["result_code"] == checkpoint_jobs.RESULT_OK
+    assert _json(row["result_detail"])["reverified"] is True
+    body = llm_calls[0]["convo"][0]["content"]
+    assert "EXCLUDED_SAFETY_SOURCE" not in body
+    assert "#11" in body and "#13" in body
+
+
+@pytest.mark.parametrize("kind", ["safety", "safety_check"])
+async def test_reclassified_source_invalidates_queued_summary(db, store, llm_calls, kind):
+    """잡 예약 뒤 종류가 제외 대상으로 바뀌면 옛 payload의 본문을 요약하지 않는다."""
+    payload = _payload()
+    store["messages"] = [
+        *_OLD_HISTORY,
+        _SOURCE[0],
+        checkpoint.SourceMessage(
+            id=12, sender="moly", kind=kind, content=_SOURCE[1].content,
+        ),
+        _SOURCE[2],
+    ]
+
+    row = await _run(db, _enqueue_job(db, payload))
+
+    assert row["result_code"] == checkpoint_jobs.RESULT_SOURCE_CHANGED
+    assert llm_calls == []
+    assert store["rows"] == []
 
 
 def test_handler_is_registered():

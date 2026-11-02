@@ -25,6 +25,10 @@ from enum import Enum
 from app.services import i18n
 
 MAX_LITERAL_GRAPHEMES = 64
+ALLOWED_TARGET_TAGS = frozenset({
+    "brief", "detailed", "casual", "formal", "fewer_questions",
+    "no_emotion_assumptions", "listen_first", "nickname",
+})
 
 
 class Kind(str, Enum):
@@ -186,6 +190,8 @@ def validate(d: Directive) -> Directive:
         raise ContractViolation("when_topic_tag는 target_tag가 필요하다")
     if d.target_literal is not None:
         sanitize_literal(d.target_literal)  # 위반이면 여기서 올라간다
+    if d.target_tag is not None and d.target_tag not in ALLOWED_TARGET_TAGS:
+        raise ContractViolation("허용 목록에 없는 target_tag")
     if d.target_tag is None and d.target_literal is None and d.kind not in (
         Kind.RESPONSE_STYLE, Kind.COMFORT
     ):

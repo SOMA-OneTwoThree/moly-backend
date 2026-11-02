@@ -539,7 +539,10 @@ SELECT
 
 
 async def enqueue_day_boundary_jobs(
-    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0
+    session: AsyncSession, user_id: uuid.UUID, *, turn_seq: int, privacy_epoch: int = 0,
+    retention_enabled: bool | None = None, retention_writes_enabled: bool | None = None,
+    generation: int | None = None, through_message_id: int | None = None,
+    contract_paused: bool = False,
 ) -> str | None:
     """하루가 닫혔으면 **직전 활동일**에 대한 뒷정리 잡을 건다. 반환 = 대상 활동일(없으면 None).
 
@@ -574,15 +577,38 @@ async def enqueue_day_boundary_jobs(
         dedup_key=f"relproj:{user_id}:{closed.isoformat()}",
         payload={"privacy_epoch": privacy_epoch},
     )
-    # 계약 추출도 하루 경계에서 한다. 매 턴 돌리면 같은 합의를 반복해서 뽑고 비용만 든다.
-    await jobs.enqueue(
-        session,
-        queue=jobs.QUEUE_CONTENT,
-        job_type=JOB_CONTRACT_COMPILE,
-        user_id=user_id,
-        dedup_key=f"contract:{user_id}:{closed.isoformat()}",
-        payload={"after_message_id": 0, "privacy_epoch": privacy_epoch},
-    )
+    # 한 번 새 보존 경로에 들어간 사용자는 끈 뒤에도 구형 계약 컴파일러로
+    # 돌아가지 않는다. 아직 첫 v5 요약이 없는 첫날의 준비 명단도 포함한다.
+    from app.services import config_store, context_retention
+    config = await config_store.get_config_values(session, ["context_retention_ready_users"])
+    saved = (await session.execute(text("""
+      SELECT cc.memory_generation,
+        EXISTS (SELECT 1 FROM conversation_checkpoints c
+          WHERE c.user_id=cc.user_id AND c.memory_generation=cc.memory_generation
+            AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'),
+        (SELECT max(id) FROM messages WHERE user_id=cc.user_id AND turn_seq<=:turn_seq)
+      FROM chat_contexts cc WHERE cc.user_id=:user_id
+    """), {"user_id": user_id, "turn_seq": turn_seq})).first()
+    adopted = retention_enabled is True or await context_retention.adopted_user(
+        session, user_id=user_id, config=config)
+    if not contract_paused and adopted:
+        # 현재 설정의 공유 잠금을 잡아 off와 신규 예약의 순서를 고정한다.
+        writable = await context_retention.enabled_now(session, lock=True)
+        if (writable and retention_writes_enabled is not False and saved is not None
+                and await context_retention.adopted_user(session, user_id=user_id, lock=True)):
+            current_generation = int(saved[0])
+            target = through_message_id if through_message_id is not None else saved[2]
+            if generation is not None and generation != current_generation:
+                return closed.isoformat()
+            if target is not None:
+                await context_retention.enqueue_contract_processing(session, user_id=user_id,
+                    generation=current_generation, through_id=int(target))
+    elif not contract_paused:
+        await jobs.enqueue(
+            session, queue=jobs.QUEUE_CONTENT, job_type=JOB_CONTRACT_COMPILE,
+            user_id=user_id, dedup_key=f"contract:{user_id}:{closed.isoformat()}",
+            payload={"after_message_id": 0, "privacy_epoch": privacy_epoch},
+        )
     return closed.isoformat()
 
 

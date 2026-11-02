@@ -177,6 +177,21 @@ SDK의 숨은 재시도와 애플리케이션 재시도를 겹쳐 전체 마감�
 소스: [text_clean.py](../app/services/text_clean.py), `chat._clean_reply`, `llm.require_completed_text`.
 이 방어가 자연스러움이나 모든 내용 안전성을 보장하는 것은 아니다.
 
+### 위기 대화 분기
+
+새 경로는 `crisis_guard_enabled`가 켜져 있고 `crisis_guard_ready_users`에 명시한 사용자에게만 적용한다.
+각 새 메시지의 OpenAI Decisions 판정과 일반 답변 초안을 동시에 시작한다. 판정은 현재 말과 직전
+최대 6개 메시지를 읽고, 명확하면 서버 고정 안내, 애매하면 짧은 질문, 아니면 일반 답변을 선택한다.
+최근 캐피의 재질문·안내가 있으면 같은 질문 대신 진지함 여부를 함께 판정한다. 판정의 2초 마감
+초과·장애는 일반 답변으로 진행하고 실제 `none`과 구분한다. 도구 실행은 일반 경로 확정 후 허용한다.
+
+재질문은 한 번 생성한 뒤 검사하고, 형식·내용·완료 상태가 맞지 않으면 언어별 고정 질문을 쓴다.
+고정 안내에는 모델 문장이나 카드·운세·주제 제안을 붙이지 않는다. 재질문과 안내 턴은 사용자와
+캐피 양쪽을 `safety_check`·`safety`로 저장한다. 최근 대화에서는 읽지만 일기·장기 기억·대화 약속·
+관계 기록·요약 입력에서는 제외한다. 판정 비용은 회사 사용량 원장에 따로 기록한다.
+
+소스: [crisis_guard.py](../app/services/crisis_guard.py), [crisis_chat.py](../app/services/crisis_chat.py).
+
 ## 원문 연속성과 요약
 
 원문은 [messages](ERD.md#대화와-컨텍스트)가 기준이다. 최근 구간은 서버 상한 안에서 보존하고,
@@ -186,6 +201,19 @@ checkpoint의 실제 coverage와 남은 원문을 연결한다. 발행되지 않
 
 요약은 원문을 대체한 새 사실이 아니라 파생 데이터다. 재추출·삭제·발행 경쟁에서는 generation과
 privacy epoch를 확인해 오래된 작업이 새 컨텍스트를 덮어쓰지 못하게 한다.
+
+새 보존 경로는 `context_retention_v2_enabled`와 사용자별 전환 확인을 따로 검사한다. 새 작업은
+기능을 끄면 게시하지 않으며, 이미 현재 세대의 v5 상태를 게시한 사용자의 읽기는 구형 요약으로
+돌아가지 않는다. v5는 현재 주제·미해결 질문 등의 변경 목록만 적용하고 모델 출력에 없는 기존
+항목은 유지한다. 종료된 항목은 게시 이력에 보존하고 이후 현재 입력에서는 제외한다.
+
+일반 원문은 사실 처리·대화 약속 처리·검증된 v5 게시가 끝난 범위만 입력에서 제외한다. 처리 전
+원문이 입력 예산을 넘으면 짧은 뒷부분으로 대체하지 않고 답변을 보류한다. 배경 작업도 전체 입력
+예산을 검사하며 큰 구간과 긴 메시지는 UTF-8 경계를 보존해 여러 작업으로 처리한다. 중간 결과는
+게시하지 않고 진행 위치를 저장한다. 기능을 다시 켜면 추가 발화 없이도 기존 진행에서 재개한다.
+
+소스: [context_retention.py](../app/services/context_retention.py),
+[worker/checkpoint_jobs.py](../worker/checkpoint_jobs.py), [worker/memory_sweep_jobs.py](../worker/memory_sweep_jobs.py).
 
 ## 장기 기억과 사용자별 상태
 
@@ -207,6 +235,16 @@ privacy epoch를 확인해 오래된 작업이 새 컨텍스트를 덮어쓰지 
 사용자별 대화 약속과 관계 상태는 별도 구조화 상태이며 임의의 자유 서술 하나로 덮어쓰지 않는다.
 소스: [memory_pipeline.py](../app/services/memory_pipeline.py), [mem0_recall.py](../app/services/mem0_recall.py),
 [worker/mem0_jobs.py](../worker/mem0_jobs.py), [contract_repo.py](../app/services/contract_repo.py).
+
+새 보존 경로의 사실은 `canonical_text`와 원문 근거로 검증하며 `context_priority=required`는
+벡터 검색과 별도로 항상 읽는다. 관련 회상도 registry의 현재 상태·revision·원문 근거를 확인한다.
+정정이 처리 중이면 이전 파생 정보를 답변에 넣지 않으며 사실·약속·v5 진행 위치가 모두 해당
+구간을 처리한 뒤 다시 읽는다. 이 즉시 보류의 정정 탐지는 명시적 표현에 대한 보조 조건이며
+모든 자연어 정정을 완전히 판정한다는 뜻은 아니다.
+
+대화 약속의 기간은 현재 대화·하루·지속으로 구분한다. 현재 대화 약속은 요약 경계나 자정 때문에
+없애지 않고 사용자 원문의 명시적 종료 근거로 끝낸다. 현재 입력에 종료 표현이 있으면 처리 완료
+전에도 해당 대화 약속만 주입하지 않는다. 일반 사실이나 다른 기간의 약속까지 함께 지우지 않는다.
 
 ## 일기 참조·기억 관리·계정 삭제
 

@@ -1090,6 +1090,22 @@
         "not_null": true,
         "type": "bigint"
       },
+      "public.chat_contexts.contract_generation": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.chat_contexts.contract_processed_through_message_id": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
       "public.chat_contexts.last_active_at": {
         "collation": null,
         "default": null,
@@ -1554,6 +1570,14 @@
         "not_null": false,
         "type": "timestamp with time zone"
       },
+      "public.conversation_checkpoints.state_json": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
+      },
       "public.conversation_checkpoints.summary": {
         "collation": "\"default\"",
         "default": null,
@@ -1577,6 +1601,14 @@
         "identity": "",
         "not_null": true,
         "type": "uuid"
+      },
+      "public.conversation_checkpoints.validation_json": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
       },
       "public.conversation_checkpoints.version": {
         "collation": "\"default\"",
@@ -2866,6 +2898,14 @@
         "not_null": false,
         "type": "text"
       },
+      "public.mem0_ingest_candidates.context_priority": {
+        "collation": "\"default\"",
+        "default": "'related'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
       "public.mem0_ingest_candidates.created_at": {
         "collation": null,
         "default": "now()",
@@ -3002,6 +3042,14 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.mem0_memory_registry.canonical_text": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
       "public.mem0_memory_registry.category": {
         "collation": "\"default\"",
         "default": null,
@@ -3037,6 +3085,14 @@
       "public.mem0_memory_registry.content_hash": {
         "collation": "\"default\"",
         "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.mem0_memory_registry.context_priority": {
+        "collation": "\"default\"",
+        "default": "'related'::text",
         "generated": "",
         "identity": "",
         "not_null": true,
@@ -7893,6 +7949,13 @@
         ],
         "validated": true
       },
+      "public.mem0_ingest_candidates.mem0_ingest_candidates_context_priority_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((context_priority = ANY (ARRAY['related'::text, 'required'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.mem0_ingest_candidates.mem0_ingest_candidates_id_user_id_key": {
         "deferrable": false,
         "deferred": false,
@@ -7930,6 +7993,13 @@
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, turn_seq, candidate_hash, schema_version, repair_generation)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.mem0_memory_registry.mem0_memory_registry_context_priority_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((context_priority = ANY (ARRAY['related'::text, 'required'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -8145,7 +8215,7 @@
       "public.messages.messages_kind_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text, 'topic_opening'::text])))",
+        "definition": "CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text, 'topic_opening'::text, 'safety_check'::text, 'safety'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -16451,5 +16521,5 @@
       }
     }
   },
-  "schema_sha256": "bf3bc3c56a19ba0c3726b9fd7f40ac5eff2dcd0c1fa8a63dd89e44f158d68d23"
+  "schema_sha256": "90e55e6519beac4f2c1f7fd9bc45d7f8e7309e8cc4eb09fc0ff342d77d526b1a"
 }

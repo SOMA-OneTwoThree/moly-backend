@@ -52,6 +52,14 @@ class Settings(BaseSettings):
     # Haiku 4.5·Opus=4096 / Sonnet 5·Sonnet 4.6·Fable=2048 / Sonnet 4.5 이하=1024.
     chat_cache_min_prefix_tokens: int = 2048
 
+    # Decisions crisis guard. Effective values may be overridden by app_config.
+    # Enabling the flow also selects the matching role-separated locale prompt.
+    crisis_guard_enabled: bool = False
+    crisis_guard_timeout_s: float = 2.0
+    crisis_guard_threshold: float = 0.4
+    crisis_guard_history_messages: int = 6
+    context_retention_v2_enabled: bool = False
+
     # --- 대화 컨텍스트(앵커 append-only + 프롬프트 캐싱) ---
     chat_recent_messages: int = 30  # 앵커 미존재/폴백 시 최근 N
     # 앵커 리셋 트리거: 세그먼트가 이만큼 커지면 최근 KEEP만 남기고 앵커를 앞당김(1회 프리픽스 변경 후 append-only).

@@ -51,6 +51,14 @@ class JobRetry(Exception):
         self.retry_after_s = retry_after_s  # provider Retry-After(있으면 그보다 이르게 재시도 안 함)
 
 
+class JobDeferred(Exception):
+    """모델·도메인 실행 전 선행 작업 대기. 실패 시도 횟수를 소모하지 않는다."""
+
+    def __init__(self, reason: str, *, delay_s: float = 5.0) -> None:
+        super().__init__(reason)
+        self.reason, self.delay_s = reason, delay_s
+
+
 class JobFatal(Exception):
     """재시도 불가(스키마 검증 실패·미지원 payload) — 즉시 dead."""
 
@@ -245,6 +253,14 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
         )
         await _finalize_retry(job, "timeout")
         await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_TIMEOUT, "timeout")
+    except JobDeferred as exc:
+        deferred_reason, deferred_delay = exc.reason, exc.delay_s
+        await _finalize("선행 처리 대기", job, lambda s: jobs.finalize_deferred(
+            s, job, reason=deferred_reason, delay_s=deferred_delay,
+        ))
+        await job_telemetry.record_outcome(
+            job, get_sessionmaker, job_telemetry.OUTCOME_RETRYABLE, exc.reason,
+        )
     except JobRetry as exc:
         await _finalize_retry(job, exc.error_code, exc.retry_after_s)
         await job_telemetry.record_outcome(

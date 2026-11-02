@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import BigInteger, DateTime, String, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -29,6 +29,8 @@ class ConversationCheckpoint(Base):
     summary: Mapped[str] = mapped_column(String, nullable=False)  # 실명 금지({유저이름} placeholder)
     version: Mapped[str] = mapped_column(String, nullable=False)  # 요약기 계약 버전
     source_hash: Mapped[str] = mapped_column(String, nullable=False)
+    state_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    validation_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     memory_generation: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default=text("0"))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("now()")

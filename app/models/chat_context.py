@@ -4,11 +4,12 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, text
+from sqlalchemy import BigInteger, DateTime, select, text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, column_property, mapped_column
 
 from app.core.db import Base
+from app.models.conversation_checkpoint import ConversationCheckpoint
 
 
 class ChatContext(Base):
@@ -19,6 +20,16 @@ class ChatContext(Base):
     # forget마다 +1 → 늦게 돌아온 잡의 stale 결과를 버리는 기준.
     memory_generation: Mapped[int] = mapped_column(
         BigInteger, nullable=False, server_default=text("0")
+    )
+    # Reader adoption survives a disabled/deleted rollout setting. This is a
+    # correlated read-only expression, not another database column.
+    retention_v5_adopted: Mapped[bool] = column_property(
+        select(ConversationCheckpoint.id).where(
+            ConversationCheckpoint.user_id == user_id,
+            ConversationCheckpoint.memory_generation == memory_generation,
+            ConversationCheckpoint.version == "conversation-checkpoint-summary-v5",
+            text("conversation_checkpoints.publish_state = 'published'"),
+        ).exists().correlate_except(ConversationCheckpoint)
     )
     # 대화 turn 커밋마다 +1로 배정(memory_source_turns의 watermark).
     memory_source_watermark: Mapped[int] = mapped_column(
@@ -37,6 +48,12 @@ class ChatContext(Base):
     )
     # 기억/프로필/집중 참조가 달라져 안정 프롬프트 prefix를 무효화할 때만 증가한다.
     prompt_cache_generation: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, server_default=text("0")
+    )
+    contract_processed_through_message_id: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, server_default=text("0")
+    )
+    contract_generation: Mapped[int] = mapped_column(
         BigInteger, nullable=False, server_default=text("0")
     )
     last_active_at: Mapped[datetime | None] = mapped_column(

@@ -27,13 +27,18 @@ ingest는 **체인**이다. 성공한 잡이 다음 잡을 만들고, 챗은 `in
 from __future__ import annotations
 
 import logging
+import json
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from sqlalchemy import text
 
 from app.core.db import get_sessionmaker
-from app.services import diary_recall_repo, diary_shared_embeddings, jobs, memory_pipeline
+from app.services import (
+    checkpoint, checkpoint_repo, context_retention,
+    diary_recall_repo, diary_shared_embeddings, jobs, memory_pipeline,
+)
 from app.services.jobs import ClaimedJob
 from worker import consumer
 from worker.consumer import JobResult
@@ -50,6 +55,324 @@ SWEEP_LIMIT = 50
 
 # 다시 걸기까지 기다리는 시간(분). 채팅이 건 잡은 3분 뒤에 도므로 그보다 넉넉히 둔다.
 STALL_GRACE_MIN = 30
+
+# 기존 분당 sweep가 추가 발화 없이 후속 요약을 예약한다. 페이지 상한은 조회 안전 제한이며,
+# 그 뒤의 원문을 처리 완료로 표시하지 않는다. 다음 sweep가 같은 연속 경계부터 이어 읽는다.
+RETENTION_SOURCE_PAGE_SIZE = 120
+RETENTION_SOURCE_MAX_PAGES = 8
+RETENTION_SOURCE_BYTE_BUDGET = 12_288
+
+_RETENTION_RESUME_USERS = text("""
+SELECT cc.user_id, cc.memory_generation
+FROM chat_contexts cc
+JOIN profiles p ON p.id=cc.user_id
+LEFT JOIN LATERAL (
+  SELECT c.through_message_id,c.created_at
+  FROM conversation_checkpoints c
+  WHERE c.user_id=cc.user_id AND c.memory_generation=cc.memory_generation
+    AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+  ORDER BY c.through_message_id DESC,c.created_at DESC,c.id DESC LIMIT 1
+) latest ON true
+WHERE NOT EXISTS (
+  SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=cc.user_id AND b.state<>'active'
+)
+AND (latest.through_message_id IS NOT NULL OR EXISTS (
+  SELECT 1 FROM app_config cohort WHERE cohort.key='context_retention_ready_users'
+    AND jsonb_typeof(cohort.value)='array'
+    AND cohort.value @> jsonb_build_array(cc.user_id::text)
+))
+AND NOT EXISTS (
+  SELECT 1 FROM async_jobs j WHERE j.user_id=cc.user_id
+    AND j.job_type='conversation_checkpoint' AND j.state IN ('ready','running')
+    AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+)
+AND (latest.created_at IS NULL OR latest.created_at<=now()-interval '60 seconds')
+AND (
+  (cc.pending_anchor_message_id IS NOT NULL AND (
+    NOT EXISTS (
+      SELECT 1 FROM messages pending_message WHERE pending_message.user_id=cc.user_id
+        AND pending_message.id>COALESCE(latest.through_message_id,0)
+        AND pending_message.id<cc.pending_anchor_message_id
+    )
+    OR COALESCE((
+      SELECT sum(octet_length(COALESCE(pending_message.content,''))+24)
+      FROM messages pending_message WHERE pending_message.user_id=cc.user_id
+        AND pending_message.id>COALESCE(latest.through_message_id,0)
+        AND pending_message.id<cc.pending_anchor_message_id
+    ),0)>=1024
+  ))
+  OR EXISTS (
+    SELECT 1 FROM messages m
+    WHERE m.user_id=cc.user_id AND m.id>COALESCE(latest.through_message_id,0)
+    GROUP BY m.user_id HAVING sum(octet_length(COALESCE(m.content,''))+24)>=4096
+  )
+)
+ORDER BY (cc.pending_anchor_message_id IS NOT NULL) DESC,
+         COALESCE(latest.through_message_id,0),cc.user_id
+LIMIT :limit
+""")
+
+_RETENTION_CURRENT = text("""
+SELECT cc.memory_generation,cc.pending_anchor_message_id,cc.pending_plan_revision,
+       cc.anchor_revision,(SELECT max(m.id) FROM messages m WHERE m.user_id=cc.user_id)
+FROM chat_contexts cc JOIN profiles p ON p.id=cc.user_id
+WHERE cc.user_id=:user_id AND cc.memory_generation=:generation
+  AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
+                  WHERE b.user_id=cc.user_id AND b.state<>'active')
+  AND NOT EXISTS (
+    SELECT 1 FROM async_jobs j WHERE j.user_id=cc.user_id
+      AND j.job_type='conversation_checkpoint' AND j.state IN ('ready','running')
+      AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+  )
+""")
+
+_CLEAR_RETENTION_TARGET = text("""
+UPDATE chat_contexts cc
+SET pending_anchor_message_id=NULL,pending_plan_revision=NULL
+WHERE cc.user_id=:user_id AND cc.memory_generation=:generation
+  AND cc.pending_anchor_message_id=:target
+  AND cc.pending_plan_revision IS NOT DISTINCT FROM CAST(:plan_revision AS bigint)
+  AND cc.anchor_revision=:anchor_revision
+  AND NOT EXISTS (
+    SELECT 1 FROM messages m WHERE m.user_id=cc.user_id
+      AND m.id>:through_id AND m.id<cc.pending_anchor_message_id
+  )
+RETURNING user_id
+""")
+
+_RETENTION_DEAD_PLAN = text("""
+WITH RECURSIVE replay_chain AS (
+  SELECT j.id,j.state,j.created_at
+  FROM async_jobs j JOIN chat_contexts cc ON cc.user_id=j.user_id
+  WHERE j.user_id=:user_id AND j.job_type='conversation_checkpoint'
+    AND j.dedup_key=:dedup_key AND j.state='dead'
+    AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+    AND cc.memory_generation=:generation
+    AND COALESCE(j.payload->>'mode','normal')='normal'
+    AND NOT EXISTS (
+      SELECT 1 FROM async_jobs active_job WHERE active_job.user_id=cc.user_id
+        AND active_job.job_type='conversation_checkpoint' AND active_job.state IN ('ready','running')
+        AND active_job.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+    )
+    AND NOT EXISTS (
+      SELECT 1 FROM conversation_checkpoints c
+      WHERE c.user_id=cc.user_id AND c.memory_generation=cc.memory_generation
+        AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+        AND (c.through_message_id>=:through_id OR c.created_at>now()-interval '60 seconds')
+    )
+    AND COALESCE((
+      SELECT c.id::text FROM conversation_checkpoints c
+      WHERE c.user_id=cc.user_id AND c.memory_generation=cc.memory_generation
+        AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+      ORDER BY c.through_message_id DESC,c.created_at DESC,c.id DESC LIMIT 1
+    ),'')=:previous_id
+  UNION ALL
+  SELECT child.id,child.state,child.created_at
+  FROM async_jobs child JOIN replay_chain parent ON child.replay_of=parent.id
+  WHERE child.user_id=:user_id AND child.job_type='conversation_checkpoint'
+)
+SELECT c.id FROM replay_chain c
+WHERE c.state='dead'
+  AND NOT EXISTS (SELECT 1 FROM replay_chain done WHERE done.state IN ('ready','running','succeeded'))
+ORDER BY c.created_at DESC,c.id DESC LIMIT 1
+""")
+
+_RETENTION_UNPUBLISHED_SUCCESS = text("""
+SELECT j.id,j.payload
+FROM async_jobs j JOIN chat_contexts cc ON cc.user_id=j.user_id
+WHERE j.user_id=:user_id AND j.job_type='conversation_checkpoint'
+  AND cc.memory_generation=:generation
+  AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+  AND j.payload->>'summarizer_version'='conversation-checkpoint-summary-v5'
+  AND COALESCE(j.payload->>'mode','normal')='normal'
+  AND j.payload->>'source_hash'=:source_hash
+  AND j.payload->'through_message_id'=to_jsonb(CAST(:through_id AS bigint))
+  AND COALESCE(j.payload->>'previous_checkpoint_id','')=:previous_id
+  AND j.state='succeeded'
+  AND j.result_code IN ('checkpoint_disabled','source_changed','checkpoint_progress_page','ok')
+  AND j.payload_redacted_at IS NULL
+  AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
+                  WHERE b.user_id=cc.user_id AND b.state<>'active')
+  AND NOT EXISTS (SELECT 1 FROM async_jobs active_job
+    WHERE active_job.user_id=cc.user_id AND active_job.job_type='conversation_checkpoint'
+      AND active_job.state IN ('ready','running')
+      AND active_job.payload->'memory_generation'=to_jsonb(cc.memory_generation))
+  AND NOT EXISTS (SELECT 1 FROM conversation_checkpoints c
+    WHERE c.user_id=cc.user_id AND c.memory_generation=cc.memory_generation
+      AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+      AND c.through_message_id>=:through_id)
+  AND COALESCE((SELECT c.id::text FROM conversation_checkpoints c
+    WHERE c.user_id=cc.user_id AND c.memory_generation=cc.memory_generation
+      AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+    ORDER BY c.through_message_id DESC,c.created_at DESC,c.id DESC LIMIT 1),'')=:previous_id
+  -- 실제 실패로 끝난 최신 작업의 재시도 예산을 새 성공 재개로 우회하지 않는다.
+  AND NOT EXISTS (SELECT 1 FROM async_jobs failed
+    WHERE failed.user_id=j.user_id AND failed.job_type=j.job_type AND failed.state='dead'
+      AND failed.payload->'memory_generation'=j.payload->'memory_generation'
+      AND failed.payload->>'source_hash'=:source_hash
+      AND COALESCE(failed.payload->>'mode','normal')='normal'
+      AND (failed.finished_at,failed.id)>(j.finished_at,j.id))
+ORDER BY COALESCE((j.payload->>'progress_next_chunk')::bigint,0) DESC,
+         j.finished_at DESC,j.id DESC LIMIT 1
+""")
+
+
+async def _resume_unpublished_success(session, *, user_id, generation, plan, previous):
+    """실제 게시가 없는 동일 계획의 마지막 durable payload만 새 행으로 이어 간다."""
+    row = (await session.execute(_RETENTION_UNPUBLISHED_SUCCESS, {
+        "user_id": user_id, "generation": generation, "source_hash": plan.source_hash,
+        "through_id": plan.through_message_id, "previous_id": str(previous.id) if previous else "",
+    })).first()
+    if row is None:
+        return None
+    payload = row[1] if isinstance(row[1], dict) else json.loads(row[1])
+    # SQL의 상태 조건과 별개로 원본 범위/부모 계약을 모두 비교한다.
+    if any(payload.get(key) != value for key, value in plan.payload().items()):
+        raise context_retention.RetentionError("checkpoint_resume_plan_changed")
+    if "progress_state" in payload:
+        if (type(payload.get("progress_next_chunk")) is not int
+                or payload["progress_next_chunk"]<=0
+                or not isinstance(payload.get("progress_manifest"), str)):
+            raise context_retention.RetentionError("checkpoint_resume_progress")
+        await context_retention.validate_progress_sources(session, user_id=user_id,
+            state=payload["progress_state"])
+    return await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
+        job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=user_id,
+        dedup_key=f"checkpoint-resume:{row[0]}", payload=payload)
+
+
+@dataclass(frozen=True, slots=True)
+class RetentionResumeResult:
+    candidates: int = 0
+    enqueued: int = 0
+    replayed: int = 0
+    busy: int = 0
+    blocked: int = 0
+
+
+async def _retention_enabled(session, *, lock: bool = False) -> bool:
+    return await context_retention.enabled_now(session, lock=lock)
+
+
+async def _load_retention_segment(session, user_id, *, after_id: int, through_id: int):
+    messages = []
+    cursor = after_id
+    for _ in range(RETENTION_SOURCE_MAX_PAGES):
+        page = await checkpoint_repo.load_range(
+            session, user_id, after_id=cursor, through_id=through_id,
+            max_rows=RETENTION_SOURCE_PAGE_SIZE, include_excluded=True,
+        )
+        if not page:
+            break
+        # 잘못된/중복 페이지에서 원문을 건너뛰거나 무한 순회하지 않는다.
+        if any(m.id<=cursor or m.id>through_id for m in page) or any(
+            left.id>=right.id for left,right in zip(page,page[1:])
+        ):
+            raise context_retention.RetentionError("checkpoint_sweep_source_order")
+        messages.extend(page)
+        cursor = page[-1].id
+        if (cursor>=through_id or len(page)<RETENTION_SOURCE_PAGE_SIZE
+                or context_retention.source_tokens(messages)>=RETENTION_SOURCE_BYTE_BUDGET):
+            break
+    return messages
+
+
+async def _resume_retention_checkpoints() -> RetentionResumeResult:
+    """job finalize 밖에서 사용자별 짧은 예약 트랜잭션을 실행한다.
+
+    예약만 멱등으로 수행한다. 모델·요약 게시·원문 압축은 하지 않는다. sweep의 job 행 잠금을
+    가진 apply_domain 안에서 호출하면 job→user 잠금 순서가 되므로 여기서는 별도 세션을 쓴다.
+    """
+    try:
+        async with get_sessionmaker()() as session:
+            if not await _retention_enabled(session):
+                return RetentionResumeResult()
+            candidates = (await session.execute(_RETENTION_RESUME_USERS, {"limit": SWEEP_LIMIT})).all()
+    except Exception as exc:
+        _log.warning("후속 요약 예약 점검 실패 error=%s", type(exc).__name__)
+        return RetentionResumeResult(blocked=1)
+
+    enqueued = replayed = busy = blocked = 0
+    for user_id, generation in candidates:
+        try:
+            async with get_sessionmaker()() as session:
+                # 아무 사용자/잡 행 쓰기 전에 시도한다. 바쁘면 기다리지 않고 다음 sweep에 맡긴다.
+                locked = await session.scalar(_TRY_DOCUMENT_USER_LOCK, {"user_id": str(user_id)})
+                if not locked:
+                    busy += 1
+                    continue
+                if not await _retention_enabled(session, lock=True):
+                    break
+                if not await context_retention.adopted_user(session, user_id=user_id, lock=True):
+                    continue
+                state = (await session.execute(_RETENTION_CURRENT, {
+                    "user_id": user_id, "generation": int(generation),
+                })).first()
+                if state is None:
+                    continue
+                previous = await checkpoint_repo.load_latest(session, user_id, retention_enabled=True)
+                through = previous.through_message_id if previous else 0
+                target, latest_id = state[1], state[4]
+                if target is not None:
+                    cleared = (await session.execute(_CLEAR_RETENTION_TARGET, {
+                        "user_id": user_id, "generation": int(generation), "target": int(target),
+                        "plan_revision": state[2], "anchor_revision": int(state[3]), "through_id": through,
+                    })).first()
+                    if cleared is not None:
+                        target = None
+                if latest_id is None or int(latest_id)<=through:
+                    await session.commit()
+                    continue
+                messages = await _load_retention_segment(
+                    session, user_id, after_id=through, through_id=int(latest_id),
+                )
+                if not messages:
+                    await session.commit()
+                    continue
+                tail = checkpoint.keep_tail(messages, retention_enabled=True)
+                keep_from = tail[0].id
+                # 충분한 새 원문이 있으면 현재 tail로 목표를 확장한다. 작은 옛 목표에 계속
+                # 묶이면 최소 신규 구간을 영원히 못 채워 다른 발화 후에도 복구되지 않는다.
+                if target is not None and not checkpoint.should_checkpoint(messages, retention_enabled=True):
+                    keep_from = int(target)
+                reset_triggered = target is not None
+                plan = checkpoint.plan(
+                    messages, previous=previous, keep_from_message_id=keep_from,
+                    memory_generation=int(generation), reset_triggered=reset_triggered,
+                    version=checkpoint.RETENTION_SUMMARIZER_VERSION,
+                )
+                if plan is None:
+                    await session.commit()
+                    continue
+                made = await checkpoint_repo.maybe_enqueue(
+                    session, user_id=user_id, messages=messages, keep_from_message_id=keep_from,
+                    reset_triggered=reset_triggered, retention_enabled=True,
+                )
+                replay = None
+                if made is None:
+                    # 현재 계획과 정확히 같은 dead만 replay한다. 성공 replay의 모든 조상과
+                    # 이미 처리한 경계는 제외하며 원래 dead 이력/상태는 수정하지 않는다.
+                    dead = (await session.execute(_RETENTION_DEAD_PLAN, {
+                        "user_id": user_id, "generation": int(generation),
+                        "dedup_key": plan.dedup_key(user_id), "through_id": plan.through_message_id,
+                        "previous_id": str(previous.id) if previous else "",
+                    })).first()
+                    if dead is not None:
+                        replay = await jobs.replay_dead(
+                            session, job_id=dead[0],
+                            operation_id=uuid.uuid5(_REPLAY_NAMESPACE, f"checkpoint:{dead[0]}"),
+                        )
+                    else:
+                        made = await _resume_unpublished_success(session, user_id=user_id,
+                            generation=int(generation), plan=plan, previous=previous)
+                await session.commit()
+                enqueued += int(made is not None)
+                replayed += int(replay is not None)
+        except Exception as exc:
+            blocked += 1
+            # 원문·SQL·접속정보가 섞인 예외 문자열은 남기지 않는다.
+            _log.warning("후속 요약 예약 보류 error=%s", type(exc).__name__)
+    return RetentionResumeResult(len(candidates), enqueued, replayed, busy, blocked)
 
 # ── 정지 감지의 기준은 **사용자 커서**다 ────────────────────────────────
 #
@@ -364,9 +687,23 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
             ))
         ) is not None
 
+    # 독립적인 사용자별 예약 트랜잭션이다. 아래 fenced finalize는 sweep job 행을 먼저
+    # 잠그므로, 그 안에서 요약 예약의 사용자 잠금을 잡지 않는다.
+    retention_resume = await _resume_retention_checkpoints()
+    retention_detail = {
+        "checkpoint_candidates": retention_resume.candidates,
+        "checkpoint_enqueued": retention_resume.enqueued,
+        "checkpoint_replayed": retention_resume.replayed,
+        "checkpoint_busy": retention_resume.busy,
+        "checkpoint_blocked": retention_resume.blocked,
+    }
     if (not rows and not missing and not shared_missing and not undocumented
             and not stalled and not unjudged and not has_failed_deletes):
-        return JobResult(result_code="nothing_stalled")
+        return JobResult(
+            result_code=("ok" if retention_resume.enqueued or retention_resume.replayed else
+                         "checkpoint_resume_blocked" if retention_resume.blocked else "nothing_stalled"),
+            result_detail=retention_detail,
+        )
 
     if stalled:
         _log.warning(
@@ -502,6 +839,7 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
     return JobResult(
         result_code="ok",
         result_detail={
+            **retention_detail,
             "stalled_users": len(stalled),
             "resumed": resumed,
             "unjudged_users": len(unjudged),

@@ -36,6 +36,7 @@ EXTRACTOR_MODEL = "gpt-4.1-mini-2025-04-14"
 # ⚠️ 프롬프트 규칙을 바꾸면 반드시 올린다 — 옛 규칙으로 뽑힌 기억과 구분이 안 되면
 #    무엇을 재처리해야 하는지 알 수 없다.
 EXTRACTOR_VERSION = "mem0-extractor-v3"
+RETENTION_EXTRACTOR_VERSION = "mem0-extractor-v4"
 # 출력이 여기서 잘리면 JSON이 안 닫혀 후보를 잃는다. 잘림은 `finish_reason`으로 따로 감지한다.
 #
 # ⚠️ 이 값은 **반드시 `EXTRACTOR_MODEL`로 실측해서** 정한다. 대화 모델(GPT-5 계열)로 재면
@@ -286,13 +287,24 @@ _JA = """あなたは会話から長く覚えておく価値のある事実だ�
 _PROMPTS = {"ko": _KO, "en": _EN, "ja": _JA}
 
 
-def build_system(language: str | None) -> str:
+def build_system(language: str | None, *, retention_enabled: bool = False) -> str:
     """추출기 system 프롬프트. 캐피 페르소나와 무관한 별도 유틸리티 프롬프트다.
 
     **언어별로 전문이 다르다.** 한 줄만 갈아 끼우면 나머지 지시가 한국어라 출력이 한국어로 끌린다.
     """
     template = _PROMPTS.get(i18n.resolve(language), _PROMPTS[i18n.FALLBACK])
-    return template.format(shape=_OUTPUT_SHAPE, cap=MAX_CANDIDATES)
+    system = template.format(shape=_OUTPUT_SHAPE, cap=MAX_CANDIDATES)
+    if retention_enabled:
+        system += (
+            "\nEach candidate also has context_priority (required|related) and priority_reason "
+            "(explicit_preserve|durable_constraint|direct_reference|related). Mark required only for "
+            "an explicit user request to remember a fact, or a currently valid durable constraint "
+            "directly stated by the user. An ordinary worry, temporary feeling, assistant inference, "
+            "or a conversation style preference is not a required fact. A fact referenced only by "
+            "this conversation is direct_reference and stays related in durable storage. Evidence "
+            "must quote the user's actual statement; do not invent priorities or facts."
+        )
+    return system
 
 
 def render_conversation(messages: list[SourceMessage]) -> str:
@@ -420,6 +432,16 @@ def parse(
         if _RELATIVE_TIME.search(body):
             dropped.append((body, "relative_time"))
             continue
-        out.append(Candidate(text=body, evidence=tuple(verified), category=category))
+        priority = item.get("context_priority", "related")
+        reason = item.get("priority_reason", "related")
+        if priority not in {"related", "required"} or reason not in {
+            "related", "explicit_preserve", "durable_constraint", "direct_reference",
+        }:
+            dropped.append((body, "invalid_context_priority"))
+            continue
+        if priority == "required" and reason not in {"explicit_preserve", "durable_constraint"}:
+            priority = "related"
+        out.append(Candidate(text=body, evidence=tuple(verified), category=category,
+                             context_priority=priority))
 
     return out, dropped

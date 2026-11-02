@@ -36,7 +36,7 @@ import logging
 import time
 import uuid
 import weakref
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import date
 from math import ceil
@@ -650,6 +650,8 @@ async def run_turn(
     now: Callable[[], float] = time.monotonic,
     deadline: float | None = None,
     local_calendar_date: date | None = None,
+    before_tools: Callable[[], Awaitable[bool]] | None = None,
+    retention_enabled: bool = False,
 ) -> AgentTurn:
     """한 턴을 끝까지 돌려 최종 텍스트와 그 턴의 LLM 호출 목록을 돌려준다.
 
@@ -698,6 +700,10 @@ async def run_turn(
                 "Preserve safety and factual uncertainty. Do not mention retries, limits, or tools. "
                 "이 답변은 짧은 한 문장으로만 완결하세요. 短い一文だけで答えてください。"
             )]
+        if retention_enabled:
+            from app.services.context_retention import assert_input_budget
+            assert_input_budget([], llm.to_openai_messages(system, hop_transcript),
+                                tools=decide_schemas if with_tools else ())
         return await llm.generate_step(
             system,
             hop_transcript,
@@ -813,6 +819,11 @@ async def run_turn(
             skipped=skipped or "no_tool_calls",
         )
 
+    # The parallel Decisions check must resolve before tool preparation or execution.
+    # The caller replaces this speculative result when the selected route is not normal.
+    if before_tools is not None and not await before_tools():
+        return AgentTurn(text="", calls=calls, skipped="safety")
+
     # 남은 시간이 최종 호출 예약분보다 적으면 도구를 **시작하지 않는다**. 그래도 호출된 call_id는
     # 전부 닫아야 step 2 transcript가 성립한다(실행 전 취소 = cancelled).
     t_tools = time.monotonic()
@@ -846,6 +857,10 @@ async def run_turn(
         AssistantToolCalls(calls=tuple(step1.tool_calls)),
         *results,
     ]
+    if retention_enabled:
+        from app.services.context_retention import assert_input_budget
+        assert_input_budget([], llm.to_openai_messages(system, transcript2),
+                            tools=([response_schema] if response_schema is not None else control_schemas))
     step2 = await llm.generate_step(
         system,
         transcript2,

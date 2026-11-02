@@ -346,6 +346,8 @@ CREATE TABLE public.chat_contexts (
     pending_plan_revision bigint,
     checkpoint_job_id uuid,
     checkpoint_source_hash text,
+    contract_processed_through_message_id bigint DEFAULT 0 NOT NULL,
+    contract_generation bigint DEFAULT 0 NOT NULL,
     CONSTRAINT chat_contexts_anchor_message_id_check CHECK ((anchor_message_id >= 0)),
     CONSTRAINT chat_contexts_memory_mode_check CHECK ((memory_mode = ANY (ARRAY['legacy'::text, 'normalized'::text])))
 );
@@ -394,6 +396,8 @@ CREATE TABLE public.conversation_checkpoints (
     activity_date_from date,
     activity_date_to date,
     publish_state text DEFAULT 'published'::text NOT NULL,
+    state_json jsonb,
+    validation_json jsonb,
     CONSTRAINT conversation_checkpoints_kind_check CHECK ((kind = ANY (ARRAY['window'::text, 'daily_digest'::text]))),
     CONSTRAINT conversation_checkpoints_publish_state_check CHECK ((publish_state = ANY (ARRAY['ready'::text, 'published'::text, 'superseded'::text])))
 );
@@ -689,6 +693,8 @@ CREATE TABLE public.mem0_ingest_candidates (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     category text,
+    context_priority text DEFAULT 'related'::text NOT NULL,
+    CONSTRAINT mem0_ingest_candidates_context_priority_check CHECK ((context_priority = ANY (ARRAY['related'::text, 'required'::text]))),
     CONSTRAINT mem0_ingest_candidates_status_check CHECK ((status = ANY (ARRAY['planned'::text, 'committed'::text, 'dead'::text])))
 );
 
@@ -725,6 +731,9 @@ CREATE TABLE public.mem0_memory_registry (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     category text,
     last_reconsolidated_at timestamp with time zone,
+    canonical_text text,
+    context_priority text DEFAULT 'related'::text NOT NULL,
+    CONSTRAINT mem0_memory_registry_context_priority_check CHECK ((context_priority = ANY (ARRAY['related'::text, 'required'::text]))),
     CONSTRAINT mem0_memory_registry_provider_delete_state_check CHECK ((provider_delete_state = ANY (ARRAY['kept'::text, 'pending'::text, 'deleted'::text, 'failed'::text]))),
     CONSTRAINT mem0_memory_registry_semantic_status_check CHECK ((semantic_status = ANY (ARRAY['pending'::text, 'active'::text, 'duplicate'::text, 'superseded'::text, 'ambiguous'::text, 'excluded'::text, 'rejected_policy'::text]))),
     CONSTRAINT mem0_memory_registry_source_count_check CHECK ((source_count >= 0))
@@ -803,7 +812,7 @@ CREATE TABLE public.messages (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     turn_seq bigint,
     turn_position smallint,
-    CONSTRAINT messages_kind_check CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text, 'topic_opening'::text]))),
+    CONSTRAINT messages_kind_check CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text, 'topic_opening'::text, 'safety_check'::text, 'safety'::text]))),
     CONSTRAINT messages_sender_check CHECK ((sender = ANY (ARRAY['user'::text, 'moly'::text]))),
     CONSTRAINT messages_turn_position_ck CHECK ((((turn_seq IS NULL) AND (turn_position IS NULL)) OR ((turn_seq > 0) AND ((turn_position >= 0) AND (turn_position <= 2)))))
 );

@@ -244,7 +244,7 @@ _PROFILE_RULE = {
         "断定せず、慎重に扱って。"
     ),
 }
-def system_prompt(language: str) -> str:
+def system_prompt(language: str, *, crisis_guard_enabled: bool = False) -> str:
     """페르소나 + 응답 언어 고정(profile.language로 생성). 언어별로 문자 규칙·출력 체크를 분기한다.
 
     ko = 한글 강제 + 한국어 출력 체크. ja = 한자·가나·라틴 허용(다른 문자 계열 배제). 그 외(en 등) = 해당
@@ -285,4 +285,18 @@ def system_prompt(language: str) -> str:
             "Preserve the supplied user nickname. Requested quotations follow the same script limits."
         )
         check = _OUTPUT_CHECK_OTHER.format(lang="English")
+    if crisis_guard_enabled:
+        from app.services.crisis_guard import base_role_rule
+
+        locale = i18n.resolve(language)
+        if locale == "ko":
+            start = persona.index("비유·허구·남의 일을")
+            end = persona.index("\n캐피의 이름과 정체성", start)
+        elif locale == "ja":
+            start = persona.index("- 相手が今すぐにも")
+            end = persona.index("\n- きみはプログラム", start)
+        else:
+            start = persona.index("- Only when it's clear")
+            end = persona.index("\n- You aren't a program", start)
+        persona = persona[:start] + base_role_rule(language) + persona[end:]
     return f"{persona}\n\n{lang_rule}\n\n{check}"

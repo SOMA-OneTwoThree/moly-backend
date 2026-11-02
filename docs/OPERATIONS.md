@@ -40,6 +40,31 @@ python scripts/check_daily_report.py --environment production --expected-sha <40
 
 ## 배포 순서와 복구
 
+### 기억 보존·위기 가드레일의 개발 검증
+
+새 기능 기본값은 끔이다. `crisis_guard_ready_users`·`context_retention_ready_users`는 검증이 끝난
+사용자 ID의 명시 배열이며 `*`로 일괄 전환하지 않는다. 기존 파생 정보가 새 원문 근거·위기 제외
+조건을 통과하기 전에는 명단에 넣지 않는다. 전역 설정과 별도로 사용자별 읽기 전환을 확인한다.
+
+다음 검증은 기존 개발 Supabase만 허용한다. 실제 모델 호출은 별도 설정이 필요하며 비용이 발생한다.
+합성 원문·진행 정보 시험은 rollback하고, 실제 개발 API 시험은 자체 생성한 인증 계정만 사용한 뒤
+설정 복구와 계정 삭제를 확인한다. API 시험은 기대 배포 SHA와 고정 개발 주소를 검사한다.
+
+```bash
+MOLY_CHECKPOINT_TEST_ENV=dev uv run pytest -q \
+  tests/integration/test_context_retention_dev.py \
+  tests/integration/test_checkpoint_sweep_resume_dev.py
+MOLY_CHECKPOINT_TEST_ENV=dev MOLY_RETENTION_MODEL_TEST_ENV=dev uv run pytest -q \
+  tests/integration/test_retention_model_dev.py
+MOLY_GUARDRAIL_API_TEST_ENV=dev MOLY_GUARDRAIL_EXPECTED_SHA=<개발-배포-SHA> uv run pytest -q -s \
+  tests/integration/test_crisis_api_dev.py
+```
+
+중단할 때는 새 게시·작성 설정을 끈다. 이미 전환한 사용자의 v5 읽기나 확장 종류·컬럼을 지우거나
+구형 읽기로 되돌리지 않는다. 계약 작업은 같은 목표 이상인 진행 중 작업이 있으면 중복 예약하지
+않는다. 처리 중 목표보다 큰 새 목표는 별도 작업이 생겨 모델 호출이 겹칠 수 있으며, 최종 커서와
+원문·세대 재검사로 늦은 결과의 게시를 막는다. 이를 단일 모델 호출 보장으로 설명하지 않는다.
+
 ### PR 전
 
 1. 최신 대상 브랜치에서 필요한 변경만 통합한다. 다른 작업의 미커밋 원본과 미추적 사용자 문서를 보존한다.

@@ -12,13 +12,18 @@
 """
 from __future__ import annotations
 
+import json
+import hashlib
 import uuid
 from collections.abc import Sequence
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.core.advisory_lock import advisory_xact_lock
+from app.models.message import SUMMARY_EXCLUDED_MESSAGE_KINDS
 from app.services import checkpoint, jobs
 
 # 🔴 **현재 세대의 요약만 돌려준다.** 잊어줘는 요약을 전량 지우지만, 지우는 트랜잭션과 쓰는
@@ -37,9 +42,15 @@ JOIN chat_contexts cc
  AND COALESCE(cc.memory_generation, 0) = c.memory_generation
 WHERE c.user_id = :user_id
   AND c.publish_state = 'published'
-ORDER BY c.through_message_id DESC
+  AND c.version <> 'conversation-checkpoint-summary-v5'
+ORDER BY c.through_message_id DESC, c.created_at DESC, c.id DESC
 LIMIT 1
 """)
+
+_LATEST_RETENTION_SQL = text(str(_LATEST_SQL).replace(
+    "c.source_hash\n", "c.source_hash, c.state_json, c.validation_json\n"
+).replace("c.version <> 'conversation-checkpoint-summary-v5'",
+          "c.version = 'conversation-checkpoint-summary-v5'"))
 
 _PENDING_SQL = text("""
 SELECT 1 FROM async_jobs j
@@ -73,10 +84,14 @@ _RANGE_SQL = text("""
 SELECT id, sender, kind, content, created_at
 FROM messages
 WHERE user_id = :user_id AND id > :after_id AND id <= :through_id
-  AND kind NOT IN ('fortune_context_root','fortune_derived')
+  AND kind NOT IN ('fortune_context_root','fortune_derived','safety_check','safety')
 ORDER BY id
 LIMIT :max_rows
 """)
+
+_RANGE_ALL_SQL = text(str(_RANGE_SQL).replace(
+    "  AND kind NOT IN ('fortune_context_root','fortune_derived','safety_check','safety')\n", ""
+))
 
 # 세대 검사를 **저장과 같은 문장 안에** 둔다. 따로 읽고 나서 쓰면 그 사이에 잊어줘가 끼어들어
 # 세대 증가·요약 삭제를 마치고, 저장은 검사를 전부 피해 지운 요약을 되살린다(check-then-act).
@@ -96,6 +111,24 @@ ON CONFLICT (user_id, through_message_id, source_hash) DO NOTHING
 RETURNING id
 """)
 
+_INSERT_RETENTION_SQL = text("""
+INSERT INTO conversation_checkpoints
+ (user_id,through_message_id,summary,version,source_hash,memory_generation,
+  state_json,validation_json,previous_checkpoint_id,coverage_from_message_id,
+  coverage_through_message_id,segment_through_message_id)
+SELECT :user_id,:through_message_id,:summary,:version,:source_hash,:expected_generation,
+       CAST(:state AS jsonb),CAST(:validation AS jsonb),CAST(:previous_id AS uuid),
+       :coverage_from,:through_message_id,:through_message_id
+WHERE EXISTS (SELECT 1 FROM chat_contexts cc
+              WHERE cc.user_id=:user_id AND cc.memory_generation=:expected_generation)
+  AND (SELECT c.id FROM conversation_checkpoints c
+       WHERE c.user_id=:user_id AND c.memory_generation=:expected_generation
+         AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+       ORDER BY c.through_message_id DESC,c.created_at DESC,c.id DESC LIMIT 1)
+      IS NOT DISTINCT FROM CAST(:previous_id AS uuid)
+ON CONFLICT (user_id, through_message_id, source_hash) DO NOTHING RETURNING id
+""")
+
 _USER_STATE_SQL = text("SELECT nickname, language FROM profiles WHERE id = :user_id")
 
 
@@ -111,24 +144,35 @@ async def read_memory_generation(session: AsyncSession, user_id: uuid.UUID | str
 
 
 async def load_latest(
-    session: AsyncSession, user_id: uuid.UUID | str
+    session: AsyncSession, user_id: uuid.UUID | str, *, retention_enabled: bool | None = None,
 ) -> checkpoint.Checkpoint | None:
     """`through_message_id`가 가장 큰 checkpoint 하나(§W11-5). 없으면 None."""
-    row = (await session.execute(_LATEST_SQL, {"user_id": user_id})).first()
+    enabled = settings.context_retention_v2_enabled if retention_enabled is None else retention_enabled
+    row = (await session.execute(_LATEST_RETENTION_SQL if enabled else _LATEST_SQL,
+                                 {"user_id": user_id})).first()
     if row is None:
         return None
-    return checkpoint.Checkpoint(
+    value = checkpoint.Checkpoint(
         id=row[0],
         through_message_id=int(row[1]),
         summary=row[2],
         version=row[3],
         source_hash=row[4],
+        state_json=row[5] if enabled else None,
+        validation_json=row[6] if enabled else None,
     )
+    if enabled:
+        from app.services.context_retention import RetentionError, validate_progress_sources
+        if value.state_json is None or not isinstance(value.validation_json, dict) or value.validation_json.get("processing_complete") is not True:
+            raise RetentionError("checkpoint_not_validated")
+        await validate_progress_sources(session, user_id=user_id, state=value.state_json)
+    return value
 
 
-async def count(session: AsyncSession, user_id: uuid.UUID | str) -> int:
+async def count(session: AsyncSession, user_id: uuid.UUID | str, *, retention_enabled: bool = False) -> int:
     """그 유저의 checkpoint 수 — 몇 번째 checkpoint인지(재검증 주기 판정)에 쓴다."""
-    row = (await session.execute(_COUNT_SQL, {"user_id": user_id})).first()
+    statement = text(str(_COUNT_SQL) + " AND c.version = 'conversation-checkpoint-summary-v5'") if retention_enabled else _COUNT_SQL
+    row = (await session.execute(statement, {"user_id": user_id})).first()
     return int(row[0]) if row is not None else 0
 
 
@@ -147,14 +191,16 @@ async def load_range(
     after_id: int | None,
     through_id: int,
     max_rows: int | None = None,
+    include_excluded: bool = False,
 ) -> list[checkpoint.SourceMessage]:
-    """`(after_id, through_id]` 구간 메시지 — **저장 표면 그대로**(placeholder, 실명 렌더 금지).
+    """`(after_id, through_id]`의 요약 허용 메시지(placeholder, 실명 렌더 금지).
 
     `max_rows`는 폭주 방어 상한이다. 상한에 정확히 닿았는지로 "잘렸는지"를 호출측이 판정한다.
+    원문 대화 조회와 달리 fortune_*·safety*는 제외한다. 일반 요약과 재점검이 함께 사용한다.
     """
     rows = (
         await session.execute(
-            _RANGE_SQL,
+            _RANGE_ALL_SQL if include_excluded else _RANGE_SQL,
             {
                 "user_id": user_id,
                 "after_id": after_id or 0,
@@ -169,6 +215,7 @@ async def load_range(
             created_at=r["created_at"],
         )
         for r in rows
+        if include_excluded or r["kind"] not in SUMMARY_EXCLUDED_MESSAGE_KINDS
     ]
 
 
@@ -181,6 +228,10 @@ async def insert(
     source_hash: str,
     expected_generation: int,
     version: str = checkpoint.SUMMARIZER_VERSION,
+    state_json: dict | None = None,
+    validation_json: dict | None = None,
+    previous_id: uuid.UUID | None = None,
+    coverage_from: int | None = None,
 ) -> uuid.UUID | None:
     """checkpoint 1행. 이미 같은 `(user, through, source_hash)`가 있으면 None(멱등).
 
@@ -189,7 +240,7 @@ async def insert(
     """
     row = (
         await session.execute(
-            _INSERT_SQL,
+            _INSERT_RETENTION_SQL if version == checkpoint.RETENTION_SUMMARIZER_VERSION else _INSERT_SQL,
             {
                 "user_id": user_id,
                 "through_message_id": through_message_id,
@@ -197,6 +248,10 @@ async def insert(
                 "version": version,
                 "source_hash": source_hash,
                 "expected_generation": expected_generation,
+                "state": json.dumps(state_json, ensure_ascii=False),
+                "validation": json.dumps(validation_json, ensure_ascii=False),
+                "previous_id": str(previous_id) if previous_id else None,
+                "coverage_from": coverage_from,
             },
         )
     ).first()
@@ -204,7 +259,8 @@ async def insert(
 
 
 async def enqueue_checkpoint(
-    session: AsyncSession, *, user_id: uuid.UUID | str, plan: checkpoint.CheckpointPlan
+    session: AsyncSession, *, user_id: uuid.UUID | str, plan: checkpoint.CheckpointPlan,
+    delay_s: float = 0,
 ) -> uuid.UUID | None:
     """요약 잡 등록(커밋하지 않는다 — 메시지 insert와 **같은 트랜잭션**에서 불러야 한다).
 
@@ -217,6 +273,7 @@ async def enqueue_checkpoint(
         user_id=user_id,
         dedup_key=plan.dedup_key(user_id),
         payload=plan.payload(),
+        **({"available_at": datetime.now(timezone.utc)+timedelta(seconds=delay_s)} if delay_s else {}),
     )
 
 
@@ -228,6 +285,7 @@ async def maybe_enqueue(
     keep_from_message_id: int | None = None,
     reset_triggered: bool = False,
     temporal_enabled: bool = False,
+    retention_enabled: bool | None = None,
 ) -> uuid.UUID | None:
     """세그먼트가 트리거에 닿았으면 요약 잡을 건다. 아니면(또는 킬스위치 off면) None.
 
@@ -241,15 +299,21 @@ async def maybe_enqueue(
     필터 후 메시지가 자체 트리거에 못 미쳐도 같은 `keep_from_message_id` 앞의 정상 메시지를
     checkpoint로 보존한다.
     """
-    if not settings.context_checkpoint_enabled:  # 킬스위치 — 켜기 전까지 동작 변화 0
+    enabled = settings.context_retention_v2_enabled if retention_enabled is None else retention_enabled
+    if not settings.context_checkpoint_enabled and not enabled:
         return None
-    if not messages or (not reset_triggered and not checkpoint.should_checkpoint(messages)):
+    if enabled:
+        return await _maybe_enqueue_retention(session, user_id=user_id, messages=messages,
+            keep_from_message_id=keep_from_message_id, reset_triggered=reset_triggered)
+    if not messages or (not reset_triggered and not checkpoint.should_checkpoint(
+        messages, retention_enabled=enabled,
+    )):
         return None
     # Only reset/pressure turns reach here. Existing async_jobs_user_idx bounds the
     # lookup; terminal or old-generation work must not prevent a new attempt.
     if (await session.execute(_PENDING_SQL, {"user_id": user_id})).first() is not None:
         return None
-    previous = await load_latest(session, user_id)
+    previous = await load_latest(session, user_id, retention_enabled=True) if enabled else await load_latest(session, user_id)
     # 잡을 만드는 시점의 세대를 payload에 박는다. forget이 이 값을 +1 하므로, forget 이후에
     # 뒤늦게 실행된 잡은 핸들러에서 stale로 끊긴다 — 안 그러면 지운 대화를 다시 요약해 넣는다.
     generation = await read_memory_generation(session, user_id)
@@ -259,9 +323,74 @@ async def maybe_enqueue(
         keep_from_message_id=keep_from_message_id,
         memory_generation=generation,
         reset_triggered=reset_triggered,
-        version=(checkpoint.SUMMARIZER_VERSION if temporal_enabled
+        version=(checkpoint.RETENTION_SUMMARIZER_VERSION if enabled else
+                 checkpoint.SUMMARIZER_VERSION if temporal_enabled
                  else checkpoint.LEGACY_SUMMARIZER_VERSION),
     )
     if plan is None:
         return None
     return await enqueue_checkpoint(session, user_id=user_id, plan=plan)
+
+
+_RETENTION_PENDING = text("""
+SELECT j.id,j.state,j.attempt,j.created_at,j.payload
+FROM async_jobs j JOIN chat_contexts cc ON cc.user_id=j.user_id
+WHERE j.user_id=:user_id AND j.job_type='conversation_checkpoint'
+  AND j.state IN ('ready','running')
+  AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+ORDER BY j.created_at,j.id LIMIT 1
+""")
+_MERGE_RETENTION_READY = text("""
+UPDATE async_jobs SET payload=CAST(:payload AS jsonb),payload_hash=:payload_hash,
+ dedup_key=:dedup_key,available_at=LEAST(created_at+interval '15 seconds',now()+interval '5 seconds')
+WHERE id=:id AND state='ready' AND attempt=0
+  AND created_at>now()-interval '15 seconds'
+RETURNING id
+""")
+_RETENTION_COOLDOWN = text("""
+SELECT EXISTS(SELECT 1 FROM conversation_checkpoints c JOIN chat_contexts cc ON cc.user_id=c.user_id
+ WHERE c.user_id=:user_id AND c.memory_generation=cc.memory_generation
+   AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+   AND c.created_at>now()-interval '60 seconds')
+""")
+_SAVE_RETENTION_TARGET = text("""
+UPDATE chat_contexts SET pending_anchor_message_id=GREATEST(COALESCE(pending_anchor_message_id,0),:keep_from)
+WHERE user_id=:user_id
+""")
+
+
+async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
+    messages: Sequence[checkpoint.SourceMessage], keep_from_message_id, reset_triggered: bool,
+) -> uuid.UUID | None:
+    if not messages:
+        return None
+    if not reset_triggered and not checkpoint.should_checkpoint(messages, retention_enabled=True):
+        return None
+    # 모델 호출 없는 예약 트랜잭션에서만 사용자 처리 권한을 잡는다.
+    await advisory_xact_lock(session, user_id)
+    previous = await load_latest(session, user_id, retention_enabled=True)
+    generation = await read_memory_generation(session, user_id)
+    plan = checkpoint.plan(messages, previous=previous, keep_from_message_id=keep_from_message_id,
+        memory_generation=generation, reset_triggered=reset_triggered,
+        version=checkpoint.RETENTION_SUMMARIZER_VERSION)
+    if plan is None:
+        return None
+    if keep_from_message_id is not None:
+        await session.execute(_SAVE_RETENTION_TARGET, {"user_id": user_id, "keep_from": keep_from_message_id})
+    pending = (await session.execute(_RETENTION_PENDING, {"user_id": user_id})).first()
+    if pending is not None:
+        payload = pending[4] if isinstance(pending[4], dict) else json.loads(pending[4])
+        if (payload.get("mode") != "reverify" and "progress_state" not in payload
+                and pending[1] == "ready" and int(pending[2]) == 0
+                and plan.through_message_id > int(payload.get("through_message_id", 0))):
+            wire = json.dumps(plan.payload(), sort_keys=True, separators=(",", ":"))
+            merged = (await session.execute(_MERGE_RETENTION_READY, {
+                "id": pending[0], "payload": wire,
+                "payload_hash": hashlib.sha256(wire.encode()).hexdigest(),
+                "dedup_key": plan.dedup_key(user_id),
+            })).first()
+            return merged[0] if merged else None
+        return None
+    if await session.scalar(_RETENTION_COOLDOWN, {"user_id": user_id}):
+        return None
+    return await enqueue_checkpoint(session, user_id=user_id, plan=plan, delay_s=5)

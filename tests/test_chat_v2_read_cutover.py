@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import inspect
+import ast
+import textwrap
 from types import SimpleNamespace
 
 import pytest
@@ -64,15 +66,22 @@ def test_v2_memory_is_not_in_the_cached_system_prefix():
 
 def test_v2_memory_goes_after_the_recent_turns():
     """11장이 정한 자리는 최근 원문 **뒤**다 — 그래야 앞의 append-only 대화가 캐시된다."""
-    src = inspect.getsource(chat.post_message)
-    assert "convo.insert(" in src, "휘발 블록을 convo에 넣지 않는다"
-    idx = src.index("convo.insert(")
-    assert '"role": "system"' in src[idx:idx + 200], "role이 system이 아니면 user 권위를 갖는다"
+    tree = ast.parse(textwrap.dedent(inspect.getsource(chat.post_message)))
+    insert = next(node for node in ast.walk(tree) if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute) and node.func.attr == "insert"
+        and isinstance(node.func.value, ast.Name) and node.func.value.id == "convo")
+    message = dict(zip((key.value for key in insert.args[1].keys), insert.args[1].values))
+    assert ast.literal_eval(message["role"]) == "system"
+    position = compile(ast.Expression(insert.args[0]), "<volatile-position>", "eval")
+    assert eval(position, {"max": max, "len": len}, {"convo": ["past", "reply", "current"]}) == 2
     # 요약·기억·서버상태가 모두 휘발 블록으로 모였는지
-    vol = src[src.index("volatile: list[str] ="):idx]
+    start = next(node.lineno for node in ast.walk(tree) if isinstance(node, ast.AnnAssign)
+                 and isinstance(node.target, ast.Name) and node.target.id == "volatile")
+    vol = [node for node in ast.walk(tree) if start<=getattr(node, "lineno", 0)<insert.lineno]
+    names = {node.id for node in vol if isinstance(node, ast.Name)}
     for name in ("time_block", "mood_block", "checkpoint_summary", "memory_v2_block", "resident_block"):
-        assert name in vol, f"{name}이 휘발 블록에 없다 — 캐시 프리픽스에 남아 있다"
-    assert "naming.render(" in vol, "placeholder를 렌더하지 않으면 {유저이름}이 보인다"
+        assert name in names, f"{name}이 휘발 블록에 없다"
+    assert any(isinstance(node, ast.Call) and ast.unparse(node.func) == "naming.render" for node in vol)
 
 
 # ── 실패해도 대화는 살아야 한다 ─────────────────────────────
@@ -127,20 +136,30 @@ async def test_recall_timeout_yields_empty_memory_not_an_error():
 
 
 def test_recall_is_started_early_and_awaited_after_commit():
-    """회상을 커밋 뒤에 **직렬로** 부르면 그 지연이 그대로 LLM 예산에서 빠진다.
-
-    실측: 회상 ON 5.7s 타임아웃 / OFF 2.8s 성공. 임베딩+벡터검색 중앙 570ms가 마감을
-    넘겼다. 그래서 Phase 1 시작 직후 태스크로 띄워 DB 작업과 겹쳐 돌리고, 커밋 뒤에 거둔다.
-
-    요청 세션을 쥔 채 외부 호출을 기다리는 문제는 **자체 세션**으로 막는다
-    (test_recall_uses_its_own_session).
-    """
-    src = inspect.getsource(chat.post_message)
-    start_at = src.index("recall_task = asyncio.ensure_future")
-    commit_at = src.index("await session.commit()")
-    collect_at = src.index("asyncio.wait_for(")
-    assert start_at < commit_at, "회상을 미리 띄우지 않으면 지연이 숨지 않는다"
-    assert collect_at > commit_at, "커밋 전에 거두면 겹쳐 돈 의미가 없다"
+    """기존 회상은 DB 작업과 겹치고 새 보존 경로는 원문 조립 성공·커밋 뒤 시작한다."""
+    tree = ast.parse(textwrap.dedent(inspect.getsource(chat.post_message)))
+    assignments = sorted((node for node in ast.walk(tree) if isinstance(node, ast.Assign)
+        and any(isinstance(target, ast.Name) and target.id == "recall_task" for target in node.targets)),
+        key=lambda node: node.lineno)
+    early, late = assignments
+    assert isinstance(early.value, ast.IfExp)
+    calls = []
+    task = object()
+    expression = compile(ast.Expression(early.value), "<recall-start>", "eval")
+    for enabled in (False, True):
+        calls.clear()
+        value = eval(expression, {"retention_enabled": enabled,
+            "recall_memory": lambda: task,
+            "asyncio": SimpleNamespace(ensure_future=lambda value: calls.append(value) or value)})
+        assert calls == ([] if enabled else [task])
+        assert value is (None if enabled else task)
+    calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)]
+    commit = min(node.lineno for node in calls if ast.unparse(node.func) == "session.commit")
+    compose = next(node.lineno for node in calls if isinstance(node.func, ast.Name) and node.func.id == "_context")
+    collect = next(node.lineno for node in calls if ast.unparse(node.func) == "asyncio.wait_for")
+    assert early.lineno < compose < commit < late.lineno < collect
+    branch = next(node for node in ast.walk(tree) if isinstance(node, ast.If) and late in node.body)
+    assert ast.unparse(branch.test) == "recall_task is None"
 
 
 def test_recall_uses_its_own_session():
@@ -216,12 +235,16 @@ async def test_recall_trace_reaches_the_recall_itself(monkeypatch):
 
 def test_timeout_log_uses_the_trace_the_task_fills():
     """태스크에 준 dict와 로그에 넘기는 dict가 다르면 stages가 늘 빈 채로 찍힌다."""
-    src = inspect.getsource(chat.post_message)
-    start = src.index("recall_task = asyncio.ensure_future")
-    wf = src.index("asyncio.wait_for(")
-    assert "trace=recall_trace" in src[start:wf]
-    call = src.index("_log_recall_timeout(", wf)
-    assert "trace=recall_trace" in src[call:src.index("\n", call)]
+    tree = ast.parse(textwrap.dedent(inspect.getsource(chat.post_message)))
+    closure = next(node for node in ast.walk(tree) if isinstance(node, ast.AsyncFunctionDef)
+                   and node.name == "recall_memory")
+    recall = next(node for node in ast.walk(closure) if isinstance(node, ast.Call)
+                  and isinstance(node.func, ast.Name) and node.func.id == "_recall_memory_v2")
+    log = next(node for node in ast.walk(tree) if isinstance(node, ast.Call)
+               and isinstance(node.func, ast.Name) and node.func.id == "_log_recall_timeout")
+    for call in (recall, log):
+        trace = next(keyword.value for keyword in call.keywords if keyword.arg == "trace")
+        assert isinstance(trace, ast.Name) and trace.id == "recall_trace"
 
 
 def test_recall_timeout_log_keeps_stages_overlap_and_count(monkeypatch, caplog):

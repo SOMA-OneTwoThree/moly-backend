@@ -3,11 +3,12 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.revenuecat_event import RevenuecatEvent
 from app.models.subscription import Subscription
+from app.services.subscription_access import resolve_access
 
 
 def period_time(value) -> datetime | None:
@@ -41,13 +42,25 @@ async def period_events(session: AsyncSession, sub: Subscription) -> list[dict]:
 
 async def subscription_at(session: AsyncSession, user_id, at: datetime) -> Subscription | None:
     rows = (await session.execute(select(Subscription).where(
-        Subscription.user_id == user_id,
-        Subscription.status.in_(("active", "grace_period", "expired")),
-        Subscription.expires_at > at,
-        or_(Subscription.ownership_changed_at.is_(None), Subscription.ownership_changed_at <= at),
+        or_(and_(
+            Subscription.access_evidence.is_(None),
+            Subscription.user_id == user_id,
+            Subscription.status.in_(("active", "grace_period", "expired")),
+            Subscription.expires_at > at,
+            or_(Subscription.ownership_changed_at.is_(None), Subscription.ownership_changed_at <= at),
+        ), and_(Subscription.access_evidence.is_not(None), or_(
+            Subscription.user_id == user_id,
+            Subscription.access_evidence["periods"].contains([{"owner_id": str(user_id)}]),
+            Subscription.access_evidence["legacy_history"].contains([{"owner_id": str(user_id)}]),
+        ))),
     ).order_by(Subscription.expires_at.desc()))).scalars().all()
     unresolved = False
     for sub in rows:
+        if getattr(sub, "access_evidence", None) is not None:
+            resolved = resolve_access(sub, at, user_id)
+            if resolved is not None:
+                return resolved
+            continue
         start = sub.purchased_at
         if start is not None and start <= at:
             return sub

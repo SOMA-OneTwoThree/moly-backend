@@ -33,7 +33,7 @@ from app.models.profile import Profile
 from app.models.revenuecat_event import RevenuecatEvent
 from app.models.subscription import Subscription
 from app.models.subscription_hay_grant import SubscriptionHayGrant
-from app.services import hay_ledger, i18n, payment, revenuecat, subscription_periods
+from app.services import hay_ledger, i18n, payment, revenuecat, subscription_access, subscription_periods
 from app.services.account import _load_profile
 from app.services.config_store import get_config_values
 from app.services.entitlement import derive_entitlement
@@ -132,7 +132,7 @@ async def _resolve_plan(
 
 
 async def _latest_sub(session: AsyncSession, uid) -> Subscription | None:
-    return (
+    rows = (
         await session.execute(
             select(Subscription).where(Subscription.user_id == uid).order_by(
                 case((
@@ -140,9 +140,16 @@ async def _latest_sub(session: AsyncSession, uid) -> Subscription | None:
                     & (Subscription.expires_at > datetime.now(timezone.utc)), 0
                 ), else_=1),
                 Subscription.expires_at.desc().nullslast()
-            ).limit(1)
+            )
         )
-    ).scalars().first()
+    ).scalars()
+    rows = list(rows)
+    now = datetime.now(timezone.utc)
+    for sub in rows:
+        resolved = subscription_access.resolve_access(sub, now, uid)
+        if resolved is not None:
+            return resolved
+    return rows[0] if rows else None
 
 
 async def get_subscription(session: AsyncSession, user_id: str) -> dict[str, Any]:
@@ -150,8 +157,8 @@ async def get_subscription(session: AsyncSession, user_id: str) -> dict[str, Any
     config = await effective_token_config(session)
     sub = await _latest_sub(session, profile.id)
     now = datetime.now(timezone.utc)
-    active = sub is not None and sub.status in _ACTIVE and sub.expires_at is not None and sub.expires_at > now
-    entitlement = derive_entitlement(profile, sub if active else None, 0, config, now)
+    active = subscription_access.resolve_access(sub, now) if sub is not None else None
+    entitlement = derive_entitlement(profile, active, 0, config, now)
     trial_ends = entitlement["trial_ends_at"]
     in_trial = trial_ends is not None
     if sub is None:
@@ -160,8 +167,12 @@ async def get_subscription(session: AsyncSession, user_id: str) -> dict[str, Any
             "in_trial": in_trial, "trial_ends_at": _iso(trial_ends),
         }
     return {
-        "status": sub.status, "plan": sub.plan, "auto_renew_enabled": sub.auto_renew_enabled,
-        "expires_at": _iso(sub.expires_at), "in_trial": in_trial, "trial_ends_at": _iso(trial_ends),
+        "status": active.status if active is not None else (
+            "expired" if getattr(sub, "access_evidence", None) is not None else sub.status),
+        "plan": active.plan if active is not None else sub.plan,
+        "auto_renew_enabled": sub.auto_renew_enabled,
+        "expires_at": _iso(active.expires_at if active is not None else sub.expires_at),
+        "in_trial": in_trial, "trial_ends_at": _iso(trial_ends),
     }
 
 
@@ -302,6 +313,37 @@ async def process_event(session: AsyncSession, event_id: str) -> str:
     if row is None:
         return "skipped"  # 이미 처리됐거나 다른 처리자가 잠금 보유
     try:
+        from app.services import subscription_processing
+
+        prepared = await subscription_processing.selected(
+            session, dict(row.payload), getattr(row, "processing_state", None),
+        )
+        if prepared is not None:
+            payload = dict(row.payload)
+            # Release the inbox claim BEFORE any provider HTTP request. Another
+            # consumer may win; the second claim and baseline check decide who applies.
+            await session.rollback()
+            prepared = await subscription_processing.fetch(session, payload, prepared)
+            await session.rollback()
+            row = (await session.execute(select(RevenuecatEvent).where(
+                RevenuecatEvent.event_id == event_id, RevenuecatEvent.status == "pending",
+            ).with_for_update(skip_locked=True))).scalars().first()
+            if row is None:
+                return "skipped"
+            result = await subscription_processing.apply(session, row, prepared)
+            state = dict(row.processing_state)
+            status, pending = subscription_processing.finish_attempt(state)
+            row.processing_state = state
+            row.status = status
+            row.last_error = state.get("reason") if status != "processed" else None
+            if status != "processed":
+                row.attempts += 1
+            if pending:
+                row.next_attempt_at = datetime.now(timezone.utc) + _RETRY_BACKOFF
+            else:
+                row.processed_at = datetime.now(timezone.utc)
+            await session.commit()
+            return HANDLED if status == "processed" else HANDLED_PENDING
         result = await handle_revenuecat_event(session, dict(row.payload))
         if result.outcome == HANDLED_PENDING:
             row.attempts += 1
@@ -390,11 +432,17 @@ async def ingest_event(session: AsyncSession, event_id: str, event: dict) -> str
 # 상태 단조(§3) — status/plan/expires/auto_renew는 event_ts > last_event_at 일 때만
 # ─────────────────────────────────────────────────────────────
 def _state_applies(sub: Subscription, event_ts: datetime | None) -> bool:
+    _legacy_only(sub)
     if event_ts is None:
         return False  # timestamp 누락 → 상태 미적용(보수적·관측)
     if sub.last_event_at is None:
         return True   # 첫 이벤트는 항상 적용
     return event_ts > sub.last_event_at  # 초과만(동일 ts는 no-op)
+
+
+def _legacy_only(sub: Subscription) -> None:
+    if getattr(sub, "access_evidence", None) is not None:
+        raise _dependency("검증된 구독: 기간·금융 단계 처리 경로에서 재검증 필요")
 
 
 def _bump_last_event(sub: Subscription, event_ts: datetime | None) -> None:
@@ -473,6 +521,8 @@ async def _reconcile_subscription(
     if len(rows) > 1:
         raise _dependency("구독 복원: 여러 로컬 구독과 일치하여 수동 대조 필요")
     sub = rows[0] if rows else None
+    if sub is not None:
+        _legacy_only(sub)
     environment = str(snapshot.get("environment", "")).upper()
     if environment not in ("SANDBOX", "PRODUCTION") or snapshot.get("store") not in ("app_store", "play_store"):
         raise _dependency("구독 복원: 지원 스토어/환경 확인 필요")
@@ -762,6 +812,8 @@ async def _handle_active(
 
 
 async def _finish_subscription_bonus(session: AsyncSession, sub: Subscription, pay: Payment, event: dict, plan: str) -> HandlerResult:
+    if pay.status != "paid":
+        return HandlerResult(HANDLED, "환불된 결제: 보류 보너스 지급하지 않음")
     review = await _bonus_review(session, sub, event, plan)
     if review == "eligible":
         grant = await _grant_if_first(session, pay.user_id, plan)
@@ -1020,13 +1072,15 @@ async def _free_period_refund_state(
 
 
 async def _refund_subscription(
-    session: AsyncSession, pay: Payment, event_ts: datetime | None
+    session: AsyncSession, pay: Payment, event_ts: datetime | None, *, update_access: bool = True,
 ) -> HandlerResult:
     sub = await session.get(Subscription, pay.subscription_id, with_for_update=True)
     if sub is None:
         raise _permanent(f"결제의 구독 없음 sub={pay.subscription_id}")
+    if update_access:
+        _legacy_only(sub)
     # 환불은 종단 — 상태 revoked(옛 RENEWAL의 큰 expires로 재활성화되지 않게 last_event_at도 전진).
-    if sub.latest_transaction_id == pay.store_transaction_id:
+    if update_access and sub.latest_transaction_id == pay.store_transaction_id:
         sub.status = "revoked"
         _bump_last_event(sub, event_ts)
     # 증정 회수 — 대상 = Payment.user_id, 회수량 = 실제 원장액(grant.hay_transaction_id→amount).
@@ -1103,11 +1157,13 @@ async def _handle_refund_reversed(
 
 
 async def _reverse_subscription_refund(
-    session: AsyncSession, pay: Payment, event_ts: datetime | None
+    session: AsyncSession, pay: Payment, event_ts: datetime | None, *, update_access: bool = True,
 ) -> HandlerResult:
     sub = await session.get(Subscription, pay.subscription_id, with_for_update=True)
     if sub is None:
         raise _permanent(f"복구 결제의 구독 없음 sub={pay.subscription_id}")
+    if update_access:
+        _legacy_only(sub)
     if pay.status != "refunded":
         if (getattr(pay, "subscription_bonus_review", None) or "").endswith(":refund_reversed"):
             return HandlerResult(NO_OP, "구독 환불 복구 멱등")
@@ -1115,14 +1171,14 @@ async def _reverse_subscription_refund(
     if getattr(pay, "subscription_bonus_review", None) is None:
         pay.status = "paid"
         pay.subscription_bonus_review = "legacy:link_unknown:refund_reversed"
-        if sub.latest_transaction_id == pay.store_transaction_id and _state_applies(sub, event_ts):
+        if update_access and sub.latest_transaction_id == pay.store_transaction_id and _state_applies(sub, event_ts):
             sub.status = "active"
             _bump_last_event(sub, event_ts)
         return HandlerResult(HANDLED, "보너스 복구 보류: 레거시 지급 연결 확인 필요")
     if getattr(pay, "subscription_hay_grant_id", None) is None:
         pay.status = "paid"
         pay.subscription_bonus_review += ":refund_reversed"
-        if sub.latest_transaction_id == pay.store_transaction_id and _state_applies(sub, event_ts):
+        if update_access and sub.latest_transaction_id == pay.store_transaction_id and _state_applies(sub, event_ts):
             sub.status = "active"
             _bump_last_event(sub, event_ts)
         return HandlerResult(HANDLED, "보너스 없는 결제 환불 복구")
@@ -1143,7 +1199,7 @@ async def _reverse_subscription_refund(
     if pay.status == "refunded":
         pay.status = "paid"
     pay.subscription_bonus_review += ":refund_reversed"
-    if sub.status == "revoked" and sub.latest_transaction_id == pay.store_transaction_id and _state_applies(sub, event_ts):
+    if update_access and sub.status == "revoked" and sub.latest_transaction_id == pay.store_transaction_id and _state_applies(sub, event_ts):
         sub.status = "active"
         _bump_last_event(sub, event_ts)
     return HandlerResult(HANDLED, None)

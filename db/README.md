@@ -104,6 +104,12 @@ uv run python -m db.verify --env dev
 
 다른 릴리스의 차이를 자동으로 허용하지 않는다. 새 구조 변경에서는 허용 목록과 검증을 별도로 검토한다.
 
+구독 환불 수정의 `db/changes/subscription_refund_access.sql`도 별도 허용 목록을 사용한다.
+변경은 `subscriptions.access_evidence`, `revenuecat_events.processing_state` nullable JSONB 두 컬럼뿐이다.
+같은 명령에 해당 `--reviewed-sql`, 그 파일의 SHA-256과 변경 전 baseline을 전달한다.
+기존 가드레일 허용 목록을 확장해서 다른 차이까지 승인하지 않는다. 현재 스키마와 baseline의 해시,
+정확한 소스 차이, 개발 catalog를 모두 비교한 뒤 계약을 생성한다.
+
 ## 로컬 재생성과 검증
 
 `db/testing/supabase.sql`은 폐기 가능한 로컬 테스트 DB용 최소 Auth 의존성이다. Supabase에

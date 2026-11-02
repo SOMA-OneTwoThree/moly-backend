@@ -9,13 +9,14 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
 from app.models.profile import Profile
 from app.models.subscription import Subscription
 from app.models.user_daily_stats import UserDailyStats
+from app.services.subscription_access import resolve_access
 
 
 def _uid(user_id: str) -> uuid.UUID:
@@ -40,13 +41,16 @@ async def _load_active_subscription(
         select(Subscription)
         .where(
             Subscription.user_id == _uid(user_id),
-            Subscription.status.in_(["active", "grace_period"]),
-            Subscription.expires_at > now,
+            or_(Subscription.access_evidence.is_not(None),
+                Subscription.status.in_(["active", "grace_period"]) & (Subscription.expires_at > now)),
         )
         .order_by(Subscription.expires_at.desc())
-        .limit(1)
     )
-    return rows.scalars().first()
+    for sub in rows.scalars():
+        resolved = resolve_access(sub, now, user_id)
+        if resolved is not None:
+            return resolved
+    return None
 
 
 async def _load_tokens_used(session: AsyncSession, user_id: str, activity_date: date) -> int:

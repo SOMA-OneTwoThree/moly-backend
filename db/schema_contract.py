@@ -19,6 +19,7 @@ from db.catalog import compare_catalog, read_catalog
 SCHEMA = Path(__file__).with_name('schema.sql')
 CONTRACT = Path(__file__).with_name('schema_contract.json')
 REVIEWED_DEV_SQL = Path(__file__).with_name('changes') / 'crisis_guardrails.sql'
+REVIEWED_SUBSCRIPTION_SQL = Path(__file__).with_name('changes') / 'subscription_refund_access.sql'
 
 
 def _column(sql_type: str, *, not_null: bool = False, default: str | None = None) -> dict:
@@ -122,6 +123,35 @@ def reviewed_catalog_upgrade(baseline: dict) -> dict:
     return expected
 
 
+def reviewed_subscription_schema_upgrade(baseline: str) -> str:
+    upgraded = baseline
+    for old, new in (
+        ('CREATE TABLE public.revenuecat_events (\n    event_id text NOT NULL,\n    payload jsonb NOT NULL,\n',
+         'CREATE TABLE public.revenuecat_events (\n    event_id text NOT NULL,\n    payload jsonb NOT NULL,\n    processing_state jsonb,\n'),
+        ('    last_event_at timestamp with time zone,\n    CONSTRAINT subscriptions_plan_check',
+         '    last_event_at timestamp with time zone,\n    access_evidence jsonb,\n    CONSTRAINT subscriptions_plan_check'),
+    ):
+        if new in upgraded:
+            if upgraded.count(new) != 1:
+                raise ValueError('ambiguous subscription schema edit')
+            continue
+        if upgraded.count(old) != 1:
+            raise ValueError('baseline does not match subscription release')
+        upgraded = upgraded.replace(old, new, 1)
+    return upgraded
+
+
+def reviewed_subscription_catalog_upgrade(baseline: dict) -> dict:
+    expected = deepcopy(baseline)
+    for key in ('public.subscriptions.access_evidence', 'public.revenuecat_events.processing_state'):
+        if key.rsplit('.', 1)[0] not in expected['tables']:
+            raise ValueError('subscription release table missing')
+        if key in expected['columns'] and expected['columns'][key] != _column('jsonb'):
+            raise ValueError('conflicting subscription release column')
+        expected['columns'][key] = _column('jsonb')
+    return expected
+
+
 def require_reviewed_dev(dsn: str, *, env: str, expected_project_ref: str) -> None:
     """Refuse prod, unknown hosts/refs, and URL connection overrides before connecting."""
     from db.envfile import DEV_PROJECT_REFS, project_ref
@@ -144,7 +174,8 @@ async def refresh_from_dev(
 ) -> list[str]:
     """Read dev only; regenerate this release without adopting unrelated live drift."""
     require_reviewed_dev(dsn, env=env, expected_project_ref=expected_project_ref)
-    if reviewed_sql.resolve() != REVIEWED_DEV_SQL.resolve():
+    subscription_release = reviewed_sql.resolve() == REVIEWED_SUBSCRIPTION_SQL.resolve()
+    if not subscription_release and reviewed_sql.resolve() != REVIEWED_DEV_SQL.resolve():
         raise ValueError('only this release reviewed SQL is supported')
     sql_bytes = reviewed_sql.read_bytes()
     if (not re.fullmatch(r'[0-9a-f]{64}', expected_sha256)
@@ -156,10 +187,10 @@ async def refresh_from_dev(
     contract = json.loads(original_contract)
     if hashlib.sha256(original_baseline).hexdigest() != contract['schema_sha256']:
         raise ValueError('baseline schema does not match the existing generated contract')
-    upgraded_source = reviewed_schema_upgrade(original_baseline.decode())
+    upgraded_source = (reviewed_subscription_schema_upgrade if subscription_release else reviewed_schema_upgrade)(original_baseline.decode())
     if upgraded_source.encode() != original_schema:
         raise ValueError('schema.sql contains changes outside the reviewed release')
-    expected = reviewed_catalog_upgrade(contract['catalog'])
+    expected = (reviewed_subscription_catalog_upgrade if subscription_release else reviewed_catalog_upgrade)(contract['catalog'])
     conn = await asyncpg.connect(dsn, statement_cache_size=0, timeout=10, command_timeout=15)
     try:
         # read_catalog owns a repeatable-read, readonly transaction and only reads

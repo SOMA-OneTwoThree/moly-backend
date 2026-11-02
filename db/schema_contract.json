@@ -4650,6 +4650,14 @@
         "not_null": false,
         "type": "timestamp with time zone"
       },
+      "public.revenuecat_events.processing_state": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
+      },
       "public.revenuecat_events.received_at": {
         "collation": null,
         "default": "now()",
@@ -5385,6 +5393,14 @@
         "identity": "",
         "not_null": true,
         "type": "text"
+      },
+      "public.subscriptions.access_evidence": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
       },
       "public.subscriptions.auto_renew_enabled": {
         "collation": null,
@@ -16521,5 +16537,5 @@
       }
     }
   },
-  "schema_sha256": "90e55e6519beac4f2c1f7fd9bc45d7f8e7309e8cc4eb09fc0ff342d77d526b1a"
+  "schema_sha256": "6f9ab2ea386831fd2fd9849989bf87bd56984368574f5f25968dc7197220d2ad"
 }

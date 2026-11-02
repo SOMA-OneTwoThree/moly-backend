@@ -2,6 +2,53 @@
 
 이 문서는 반복해서 사용하는 배포·관측·복구 절차다. 실행 시점의 SHA, 환경 설정, DB 계약과 실제 검사 결과는 해당 PR·배포 기록에 남긴다. 코드 기본값이나 과거 영수증을 현재 운영 상태로 간주하지 않는다.
 
+## 구독 환불 수정과 고객 보정
+
+DB 차이는 `db/changes/subscription_refund_access.sql`의 nullable JSONB 두 컬럼뿐이다.
+기존 구독·Payment·건초·설정 행을 일괄 수정하지 않는다. `db.apply` 기본 롤백 검사 후 검토한
+SHA-256으로 적용하고, 별도 구독 릴리스 허용 목록으로 개발 스키마 계약을 생성·검증한다.
+개발 작업 중 운영 DB에 실행하지 않는다.
+
+최초 채택 설정은 기본 끔이다. API·웹훅 처리기·주기 워커 모두 호환 코드임을 확인하기 전에는
+설정이나 고객 보정을 시작하지 않는다. 한 고객부터 검증한 뒤 적용 범위를 늘린다.
+설정 해제는 신규 채택만 멈추며 기존 채택 고객의 검증·환불·이전과 단계 재시도를 유지한다.
+채택 또는 금융 단계 저장 이후에는 이를 모르는 옛 이미지로 복구하지 않는다.
+
+개발 전용 도구 `scripts/subscription_access_repair.py`는 `--env dev`만 허용하고 고정 개발
+API의 환경과 전체 SHA를 확인한다. 실제 고객을 대신 로그인하거나 대화를 보내지 않는다.
+사용 예의 구독 ID·배포 SHA는 실행 때 확인한 값을 사용한다.
+
+```bash
+python scripts/subscription_access_repair.py preview --env dev \
+  --subscription-id <검증용-구독-UUID> --mode refunded \
+  --expected-app-sha <개발-배포-40자리-SHA> --output /private/tmp/repair-preview.json
+python scripts/subscription_access_repair.py apply --env dev \
+  --plan /private/tmp/repair-preview.json --expected-sha256 <미리보기-SHA256> \
+  --expected-app-sha <같은-개발-SHA> --output /private/tmp/repair-audit.jsonl
+```
+
+`refunded`는 현재 스토어 종료와 결제 환불이 일치할 때만 남은 권한을 종료한다.
+`metadata`는 정상 유료 권한과 만료일을 그대로 유지하며 체험·거래 정보를 바로잡는다.
+새 구매·예정 구독·소유권 변경·미처리 알림·조회 중 값 변경이 있으면 기존 계획으로 실행하지 않는다.
+미리보기는 60초 뒤 만료되며 잠금 이후에도 다시 검사한다. 허용된 Subscription 열만 수정한다.
+이미 처리한 환불이나 건초 회수는 재실행하지 않는다. 실행 전후 금융 상태도 비교한다.
+
+미리보기와 고객 식별 정보는 저장소 밖의 0600 파일에 보관한다. 적용 기록은 커밋 시도 전부터
+추가만 하는 JSON 줄 기록으로 남긴다. `commit_result_unknown`이면 적용 여부를 먼저 확인하고
+재실행하지 않는다. 커밋 뒤 기록 쓰기 실패도 적용 완료와 구분해 보고한다.
+적용 뒤 외부 상태·새 inbox·로컬 구독·금융 상태를 재조회한다. 변화나 조회 실패가 있으면
+적용된 상태임을 기록하고 다음 고객 진행을 멈춘다. 과거의 잘못된 활성 상태로 자동 복원하지 않는다.
+
+운영 고객 보정은 이 개발 전용 도구로 실행할 수 없다. 운영 적용 때는 호환 코드 전체 반영,
+정확한 대상과 최신 RC 읽기 경로, 수정 전후 값·적용 SQL·검증·조건부 복구를 별도 검토한다.
+환불 고객과 정상 결제 고객을 분리하고, 대상 밖 정상 구독은 변경하지 않은 채 각 단계에서 비교한다.
+
+DDL 복구 파일 `subscription_refund_access_rollback.sql`은 채택 기록이 하나라도 있으면 거부한다.
+기록 생성 전에도 모든 호환 reader/writer를 종료한 뒤 외부 트랜잭션 안에서 실행해야 한다.
+`SET LOCAL moly.subscription_readers_and_writers_stopped = 'confirmed'`는 실제 종료 확인 후에만
+설정한다. 두 테이블의 배타 잠금 아래 비어 있음을 재확인한 뒤 컬럼을 제거한다.
+채택 이후에는 컬럼과 호환 코드를 유지하고 신규 채택 설정만 끈다.
+
 ## 일일 보고
 
 `worker/daily_report.py`와 `worker/monitoring.py`는 가입·활동·구독·일기를 독립 조회한다.

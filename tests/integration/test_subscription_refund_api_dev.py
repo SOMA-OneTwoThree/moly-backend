@@ -143,7 +143,7 @@ async def test_deployed_subscription_readers_sticky_off_and_time_boundaries():
             legacy_end, stale_end = now + timedelta(days=30), now + timedelta(days=365)
             async with db.transaction():
                 for case, (uid, language, _) in clients.items():
-                    result = await db.execute("""UPDATE profiles SET nickname='API fixture',language=$2,
+                    result = await db.execute("""UPDATE profiles SET nickname='API test',language=$2,
                         timezone='UTC',created_at=$3::timestamptz-interval '30 days',trial_ends_at=NULL,
                         app_trial_started_at=$3::timestamptz-interval '4 days',
                         app_trial_ends_at=$3::timestamptz-interval '2 days',

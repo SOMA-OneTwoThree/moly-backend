@@ -55,10 +55,12 @@ CONFIG_KEYS = tuple(sorted(("crisis_guard_enabled", "crisis_guard_policy_version
     "crisis_guard_timeout_s", "crisis_guard_history_messages", "crisis_guard_ready_users",
     "context_retention_v2_enabled", "context_retention_ready_users")))
 QUESTIONS = {
-    "ko": ("무슨 일 있었어?", "어떤 뜻인지 조금만 더 얘기해줄래?", "그건 알려 줄 수 없어."),
-    "en": ("What happened?", "Can you tell me a little more about what you mean?",
+    # Both intermediate cases share the approved clarification copy. Case
+    # annotations remain classifier evidence; output alone cannot distinguish them.
+    "ko": ("어떤 뜻인지 조금만 더 얘기해줄래?", "어떤 뜻인지 조금만 더 얘기해줄래?", "그건 알려 줄 수 없어."),
+    "en": ("Can you tell me a little more about what you mean?", "Can you tell me a little more about what you mean?",
            "I can't tell you that."),
-    "ja": ("何があったの？", "どういう意味か、もう少し教えてくれる？", "それは教えられないよ。"),
+    "ja": ("どういう意味か、もう少し教えてくれる？", "どういう意味か、もう少し教えてくれる？", "それは教えられないよ。"),
 }
 QUESTION_TYPES = {"thought", "meaning", "method_thought", "method_meaning"}
 QUESTION_DISAGREEMENTS = {
@@ -345,7 +347,17 @@ class Runner:
               AND c.through_message_id>$2)""", uid, after_through) is True
 
     async def verify_recovery(self, uid: uuid.UUID) -> None:
-        """Strict pressure evidence plus verified publication and raw preservation."""
+        """Drain the latest durable goal, including work not yet enqueued."""
+        deadline = time.monotonic() + self.recovery_timeout
+        while True:
+            pressure = await self.db.fetchval("""SELECT retention_pressure_through_message_id
+                FROM chat_contexts WHERE user_id=$1""", uid)
+            if pressure is None:
+                break
+            require(type(pressure) is int and pressure > 0, "pressure_evidence_invalid")
+            self.pressure_boundaries[uid] = max(self.pressure_boundaries.get(uid, 0), pressure)
+            require(time.monotonic() < deadline, "recovery_pressure_goal_not_completed")
+            await asyncio.sleep(0.5)
         await self.verify_checkpoint(uid, require_pressure=True)
 
     async def verify_checkpoint(self, uid: uuid.UUID, *, require_pressure: bool = False) -> None:

@@ -178,9 +178,9 @@ async def test_fixed_guidance_bypasses_all_normal_state_and_charges_zero(setup, 
 
 
 @pytest.mark.parametrize("case,method,expected", [
-    ("self_thought", False, "무슨 일 있었어?"),
+    ("self_thought", False, "어떤 뜻인지 조금만 더 얘기해줄래?"),
     ("meaning_unclear", False, "어떤 뜻인지 조금만 더 얘기해줄래?"),
-    ("self_thought", True, "그건 알려 줄 수 없어. 무슨 일 있었어?"),
+    ("self_thought", True, "그건 알려 줄 수 없어. 어떤 뜻인지 조금만 더 얘기해줄래?"),
     ("meaning_unclear", None, "그건 알려 줄 수 없어. 어떤 뜻인지 조금만 더 얘기해줄래?"),
 ])
 async def test_check_is_the_selected_fixed_question_without_generation(setup, monkeypatch, case, method, expected):
@@ -326,6 +326,49 @@ async def test_successful_turn_proactively_reserves_through_actual_reply(setup, 
     result = await chat.post_message(session, UID, request(), "proactive")
     chat.checkpoint_repo.request_pressure.assert_awaited_once()
     assert chat.checkpoint_repo.request_pressure.await_args.kwargs["through_id"] == int(result.reply.message_id)
+
+
+@pytest.mark.parametrize(("prior_bytes", "current", "expected"), [
+    (0, "가" * 1400, True),  # A first long completed turn already needs preparation.
+    (4050, "새 대화", True),
+    (0, "짧은 대화", False),
+])
+async def test_soft_prefetch_starts_after_recording_the_complete_source(
+    setup, monkeypatch, prior_bytes, current, expected,
+):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", case="not_applicable")))
+    monkeypatch.setattr(chat, "_context", AsyncMock(return_value=chat.ContextWindow(
+        [{"role": "user", "content": current}], None, [], retention_source_bytes=prior_bytes)))
+    order = []
+    chat._record_memory_v2.side_effect = lambda *a, **kw: order.append("source")
+    chat.checkpoint_repo.request_pressure.side_effect = lambda *a, **kw: order.append("checkpoint")
+    session = Session()
+    result = await chat.post_message(session, UID, request(current), "early-preparation")
+    assert order == (["source", "checkpoint"] if expected else ["source"])
+    if expected:
+        assert chat.checkpoint_repo.request_pressure.await_args.kwargs["through_id"] == int(result.reply.message_id)
+    assert chat.context_retention.fits_input_budget(None, []) is True
+
+
+async def test_covered_tail_budget_fallback_keeps_uncovered_and_required_input(setup, monkeypatch):
+    covered, uncovered, current = "covered" * 6000, "uncovered exact dialogue", "current dialogue"
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", case="not_applicable")))
+    monkeypatch.setattr(chat, "_context", AsyncMock(return_value=chat.ContextWindow(
+        [{"role": "user", "content": covered}, {"role": "assistant", "content": "covered reply"},
+         {"role": "user", "content": uncovered}, {"role": "assistant", "content": "uncovered reply"},
+         {"role": "user", "content": current}], None, [], covered_prefix_count=2)))
+    chat.context_retention.load_required_facts.return_value = "required stable fact"
+    monkeypatch.setattr(chat.context_retention, "assert_input_budget", ACTUAL_ASSERT_BUDGET)
+    monkeypatch.setattr(chat.context_retention, "fits_input_budget", ACTUAL_FITS_BUDGET)
+    result = await chat.post_message(Session(), UID, request(current), "covered-tail-fallback")
+    assert result.reply.content == "합성 답변이야."
+    system, convo = chat.llm.generate.await_args.args[:2]
+    encoded = str(system) + str(convo)
+    assert covered not in encoded
+    assert all(text in encoded for text in (uncovered, current, "required stable fact", "uncovered reply"))
+    chat.checkpoint_repo.request_pressure.assert_not_awaited()
 
 
 async def test_normal_required_fact_change_remains_a_publish_barrier(setup, monkeypatch):

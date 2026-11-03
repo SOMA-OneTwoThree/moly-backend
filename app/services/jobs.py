@@ -590,10 +590,12 @@ async def finalize_retryable(
 async def finalize_deferred(
     session: AsyncSession, job: ClaimedJob, *, reason: str, delay_s: float = 5.0,
 ) -> bool:
-    """모델 호출 전 선행 처리 대기. 실패 예산·payload를 바꾸지 않는다.
+    """Checkpoint 선행 처리 또는 fenced 확정의 단기 잠금 경합 대기.
 
     물리 claim 번호·telemetry는 보존하며 max_attempts를 같은 양 늘려 실패
-    재시도 잔여 예산을 유지한다. 모델·도메인 작업을 시작한 뒤 사용 금지.
+    재시도 잔여 예산을 유지한다. 확정 중의 경합은 성공 fencing과 도메인
+    변경을 먼저 rollback한 동일 lease에만 적용한다. 모델/provider 오류나
+    일반 도메인 실패를 이 경로로 바꿔 실패 예산을 우회하면 안 된다.
     """
     if job.job_type != "conversation_checkpoint":
         raise ValueError("defer is only supported before checkpoint model execution")

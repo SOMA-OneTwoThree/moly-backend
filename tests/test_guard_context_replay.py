@@ -673,6 +673,9 @@ async def test_required_recovery_proves_publication_full_processing_and_preserve
                     "processing_complete": failure != "unvalidated"}
         async def fetchval(self, sql, *args):
             queries.append(sql)
+            if "SELECT retention_pressure_through_message_id" in sql:
+                assert args == (uid,)
+                return None
             assert args == (uid, 7, 2)
             assert "id<=$3 AND kind='normal'" in sql
             assert "cc.memory_generation=$2" in sql and "cc.contract_generation=$2" in sql
@@ -705,6 +708,9 @@ async def test_ordinary_verified_checkpoint_needs_no_pressure_boundary():
         async def fetchrow(self, sql, *args):
             return {"generation": 0, "through_message_id": 2, "processing_complete": True}
         async def fetchval(self, sql, *args):
+            if "SELECT retention_pressure_through_message_id" in sql:
+                assert args == (uid,)
+                return None
             assert args == (uid, 0, 2)
             return True
         async def fetch(self, sql, *args):
@@ -716,6 +722,30 @@ async def test_ordinary_verified_checkpoint_needs_no_pressure_boundary():
     assert not active.pressure_boundaries
     with pytest.raises(replay.ReplayError, match="recovery_checkpoint_coverage_missing"):
         await active.verify_recovery(uid)
+
+
+async def test_pressure_verification_waits_for_unqueued_and_advancing_goal(monkeypatch):
+    from unittest.mock import AsyncMock
+    uid = uuid.uuid4()
+    active = runner(SimpleNamespace(fetchval=AsyncMock(side_effect=[4, 6, None])))
+    active.pressure_boundaries[uid] = 2
+    verified = []
+    async def verify(self, subject, *, require_pressure=False):
+        verified.append((subject, require_pressure, self.pressure_boundaries[subject]))
+    monkeypatch.setattr(replay.Runner, "verify_checkpoint", verify)
+    pause = AsyncMock()
+    monkeypatch.setattr(replay.asyncio, "sleep", pause)
+    await active.verify_recovery(uid)
+    assert verified == [(uid, True, 6)]
+    assert pause.await_count == 2
+
+
+async def test_pressure_verification_does_not_claim_success_for_unreserved_goal():
+    from unittest.mock import AsyncMock
+    active = runner(SimpleNamespace(fetchval=AsyncMock(return_value=4)))
+    active.recovery_timeout = 0
+    with pytest.raises(replay.ReplayError, match="recovery_pressure_goal_not_completed"):
+        await active.verify_recovery(uuid.uuid4())
 
 
 async def test_require_checkpoint_runs_publication_verification_without_claiming_pressure(parallel_execution, monkeypatch):
@@ -782,23 +812,23 @@ async def test_503_retry_requires_checkpoint_evidence_without_becoming_pressure(
     ("meaning", "thought"), ("thought", "meaning"),
     ("method_meaning", "method_thought"), ("method_thought", "method_meaning"),
 ])
-def test_model_annotation_advisory_preserves_expected_type_and_reports_only_enums(language, expected, actual):
+def test_unified_question_copy_does_not_assert_case_annotation_agreement(language, expected, actual):
     step = {"kind": "safety_check", "question": expected, "annotation_source": "model",
             "continue_on_question_disagreement": True}
     reply = next(iter(replay.expected_question(language, actual)))
     warning = replay.check_reply({"reply": {"content": reply}}, step, language)
     assert step["question"] == expected
-    assert warning == f"question_type_disagreement_expected_{expected}_actual_{actual}"
+    assert warning is None
     row = replay.report(1, language, "safety_check", 1, None, warning=warning)
-    assert reply not in json.dumps(row, ensure_ascii=False) and len(warning) <= 79
+    assert reply not in json.dumps(row, ensure_ascii=False)
 
 
 @pytest.mark.parametrize("source,flag", [(None, False), ("model", False), ("human", True), ("golden", True)])
-def test_question_annotation_is_strict_without_both_model_opt_in_fields(source, flag):
+def test_question_annotation_does_not_accept_retired_copy_even_with_opt_in(source, flag):
     step = {"kind": "safety_check", "question": "meaning", "annotation_source": source,
             "continue_on_question_disagreement": flag}
     with pytest.raises(replay.ReplayError, match="question_text_mismatch"):
-        replay.check_reply({"reply": {"content": replay.QUESTIONS["ko"][0]}}, step, "ko")
+        replay.check_reply({"reply": {"content": "무슨 일 있었어?"}}, step, "ko")
 
 
 @pytest.mark.parametrize("expected,actual", [("method_meaning", "thought"), ("meaning", "method_thought")])
@@ -859,8 +889,8 @@ async def test_advisory_send_does_not_soften_kind_or_quota_failures(failure, rea
         assert not emitted
     else:
         assert await active.send(*args) is False
-        assert active.question_disagreements == 1
-        assert emitted[0]["warning"] == "question_type_disagreement_expected_meaning_actual_thought"
+        assert active.question_disagreements == 0
+        assert "warning" not in emitted[0]
 
 
 @pytest.mark.parametrize("reply", ["합성 자유 문장?", "무슨 일 있었어?\n추가 질문?", "그건 알려 줄 수 없어.무슨 일 있었어?"])

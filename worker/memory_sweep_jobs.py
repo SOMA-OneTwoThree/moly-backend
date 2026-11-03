@@ -185,18 +185,19 @@ ORDER BY c.created_at DESC,c.id DESC LIMIT 1
 """)
 
 _RETENTION_UNPUBLISHED_SUCCESS = text("""
-SELECT j.id,j.payload
+SELECT j.id,j.payload,j.max_attempts,j.attempt
 FROM async_jobs j JOIN chat_contexts cc ON cc.user_id=j.user_id
 WHERE j.user_id=:user_id AND j.job_type='conversation_checkpoint'
   AND cc.memory_generation=:generation
   AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
   AND j.payload->>'summarizer_version'='conversation-checkpoint-summary-v5'
-  AND COALESCE(j.payload->>'mode','normal')='normal'
+  AND COALESCE(j.payload->>'mode','normal') IN ('normal','publish_retention')
   AND j.payload->>'source_hash'=:source_hash
   AND j.payload->'through_message_id'=to_jsonb(CAST(:through_id AS bigint))
   AND COALESCE(j.payload->>'previous_checkpoint_id','')=:previous_id
   AND j.state='succeeded'
-  AND j.result_code IN ('checkpoint_disabled','source_changed','checkpoint_progress_page','ok')
+  AND (j.result_code IN ('checkpoint_disabled','source_changed','checkpoint_progress_page','ok')
+       OR (j.result_code='checkpoint_draft_ready' AND j.payload->>'mode'='publish_retention'))
   AND j.payload_redacted_at IS NULL
   AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
                   WHERE b.user_id=cc.user_id AND b.state<>'active')
@@ -217,9 +218,10 @@ WHERE j.user_id=:user_id AND j.job_type='conversation_checkpoint'
     WHERE failed.user_id=j.user_id AND failed.job_type=j.job_type AND failed.state='dead'
       AND failed.payload->'memory_generation'=j.payload->'memory_generation'
       AND failed.payload->>'source_hash'=:source_hash
-      AND COALESCE(failed.payload->>'mode','normal')='normal'
+      AND COALESCE(failed.payload->>'mode','normal') IN ('normal','publish_retention')
       AND (failed.finished_at,failed.id)>(j.finished_at,j.id))
-ORDER BY COALESCE((j.payload->>'progress_next_chunk')::bigint,0) DESC,
+ORDER BY (j.payload->>'mode'='publish_retention') DESC NULLS LAST,
+         COALESCE((j.payload->>'progress_next_chunk')::bigint,0) DESC,
          j.finished_at DESC,j.id DESC LIMIT 1
 """)
 
@@ -233,10 +235,15 @@ async def _resume_unpublished_success(session, *, user_id, generation, plan, pre
     if row is None:
         return None
     payload = row[1] if isinstance(row[1], dict) else json.loads(row[1])
+    if not await context_retention.privacy_epoch_matches(session, user_id=user_id,
+                                                        privacy_epoch=payload.get("privacy_epoch")):
+        return None
     # SQL의 상태 조건과 별개로 원본 범위/부모 계약을 모두 비교한다.
     if any(payload.get(key) != value for key, value in plan.payload().items() if key != "reason"):
         raise context_retention.RetentionError("checkpoint_resume_plan_changed")
-    if plan.reason == "input_pressure":
+    # Completed proof binds the original reason as well as source/epoch.
+    # Reuse a publish-only draft verbatim; do not turn it into a model page.
+    if plan.reason == "input_pressure" and payload.get("mode") != "publish_retention":
         payload = {**payload, "reason": "input_pressure"}
     if "progress_state" in payload:
         if (type(payload.get("progress_next_chunk")) is not int
@@ -247,7 +254,8 @@ async def _resume_unpublished_success(session, *, user_id, generation, plan, pre
             state=payload["progress_state"])
     return await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
         job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=user_id,
-        dedup_key=f"checkpoint-resume:{row[0]}", payload=payload)
+        dedup_key=f"checkpoint-resume:{row[0]}", payload=payload,
+        max_attempts=max(1, min(int(row[2]), int(row[2])-int(row[3])+1)) if len(row)>=4 else 3)
 
 
 @dataclass(frozen=True, slots=True)

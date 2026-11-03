@@ -115,9 +115,17 @@ async def _finalize(what: str, job: ClaimedJob, fn: Callable[[Any], Awaitable[An
         # 경로를 막는다(13.2절). 이 시간은 lease 안에 예약돼 있다.
         async def _run() -> None:
             async with get_sessionmaker()() as session:
-                await fn(session)
+                try:
+                    await fn(session)
+                except JobDeferred:
+                    # Domain apply ran after the success fencing UPDATE. Undo
+                    # both before deferring this SAME running lease in a new TX.
+                    await session.rollback()
+                    raise
 
         await asyncio.wait_for(_run(), timeout=settings.job_finalize_timeout_s)
+    except JobDeferred:
+        raise
     except (asyncio.TimeoutError, TimeoutError):
         _log.warning(
             "잡 %s 확정 시간초과(%.1fs, lease 만료 후 reaper 회수) — job_id=%s",
@@ -282,14 +290,24 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
         )
     else:
         res = result or JobResult()
-        await _finalize(
-            "성공", job,
-            lambda s: jobs.finalize_success(
-                s, job, result_code=res.result_code, result_detail=res.result_detail,
-                apply_domain=res.apply_domain,
-            ),
-        )
-        await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_SUCCEEDED, res.result_code)
+        try:
+            await _finalize(
+                "성공", job,
+                lambda s: jobs.finalize_success(
+                    s, job, result_code=res.result_code, result_detail=res.result_detail,
+                    apply_domain=res.apply_domain,
+                ),
+            )
+        except JobDeferred as exc:
+            reason, delay = exc.reason, exc.delay_s
+            await _finalize("선행 처리 대기", job, lambda s: jobs.finalize_deferred(
+                s, job, reason=reason, delay_s=delay,
+            ))
+            await job_telemetry.record_outcome(
+                job, get_sessionmaker, job_telemetry.OUTCOME_RETRYABLE, reason,
+            )
+        else:
+            await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_SUCCEEDED, res.result_code)
 
 
 async def _sleep_or_stop(stop: asyncio.Event, seconds: float) -> None:

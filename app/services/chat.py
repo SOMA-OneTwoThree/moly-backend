@@ -266,6 +266,8 @@ class ContextWindow:
     lead: list[Message]
     checkpoint_keep_from: int | None = None
     incomplete: bool = False
+    retention_source_bytes: int = 0
+    covered_prefix_count: int = 0
 
 
 class _HistoryReadPressure(Exception):
@@ -320,6 +322,7 @@ async def _context(
     ``_build_system``의 서버 소유 system 블록으로만 넣어 저장 데이터가 user 발화 권위를
     얻지 못하게 한다.
     """
+    retention_source_bytes = covered_prefix_count = 0
     if retention_enabled:
         # Page rather than treating the row safety limit as a context boundary.
         raw_anchor = checkpoint_through + 1 if checkpoint_through is not None else 0
@@ -350,11 +353,24 @@ async def _context(
             id=m.id, sender=m.sender, kind=m.kind, content=m.content or "",
             created_at=getattr(m, "created_at", None),
         ) for m in rows]
+        retention_source_bytes = context_retention.source_tokens(sources)
         if checkpoint.should_checkpoint(sources, retention_enabled=True):
             tail = checkpoint.keep_tail(sources, retention_enabled=True)
             if tail:
                 checkpoint_keep_from = tail[0].id
         # Coverage is the sole permission to exclude old raw messages; no count/char reset.
+        if checkpoint_through is not None and retention_source_bytes < 2_048:
+            # Coverage permits compaction, but an early completed draft need not
+            # remove the latest exact conversation. Keep a protected recent tail.
+            covered = (await session.execute(select(Message).where(
+                Message.user_id == uid, Message.id <= checkpoint_through,
+            ).order_by(Message.id.desc()).limit(120))).scalars().all()
+            candidates = sorted({m.id: m for m in [*covered, *rows]}.values(), key=lambda m: m.id)
+            protected = checkpoint.keep_tail(candidates, retention_enabled=True)
+            if protected and protected[0].sender == "user":
+                protected_ids = {m.id for m in protected}
+                rows = [m for m in candidates if m.id > checkpoint_through or m.id in protected_ids]
+                covered_prefix_count = sum(m.id <= checkpoint_through for m in rows)
     else:
         q = (
             select(Message)
@@ -423,7 +439,8 @@ async def _context(
         kept.append(context_safety.ContextEntry("user", current_text, current_date, current_at))
     convo = [{"role": entry.role, "content": entry.content} for entry in kept]
     _mark_dates(convo, kept, tz_name)
-    return ContextWindow(convo, new_anchor, lead, checkpoint_keep_from, incomplete)
+    return ContextWindow(convo, new_anchor, lead, checkpoint_keep_from, incomplete,
+                         retention_source_bytes, covered_prefix_count)
 
 
 async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> None:
@@ -1634,17 +1651,16 @@ async def _post_message_impl(
         recall_task.cancel()
         raise
 
-    system = _build_system(
-        language,
-        nick,
-        [greeting_content] if greeting_content else [],
-        # ⚠️ **mode 기준이다.** 회상 결과(bool(memory_v2_block))로 정하면, 검색이 실패하거나
-        # 빈 결과일 때 legacy 기억이 되살아나 같은 사용자가 턴마다 v2/legacy 인격을 오간다.
-        contract_text="" if retention_enabled else contract_text,
-        relationship_v2="" if retention_enabled else relationship_v2,
-        historical_lead=historical_lead,
-        crisis_guard_enabled=guard_config.enabled,
-    )
+    def system_with_history(earlier_lead):
+        return _build_system(
+            language, nick, [greeting_content] if greeting_content else [],
+            # The pipeline mode, not an empty recall result, selects this path.
+            contract_text="" if retention_enabled else contract_text,
+            relationship_v2="" if retention_enabled else relationship_v2,
+            historical_lead=earlier_lead, crisis_guard_enabled=guard_config.enabled,
+        )
+
+    system = system_with_history(historical_lead)
     # ── 휘발 블록: **최근 원문 뒤·현재 입력 앞**(11장) ────────────────────────
     # 자주 바뀌는 값을 system(캐시 프리픽스)에 두면 바뀔 때마다 프롬프트 전체가 무효가 된다.
     # 실측: 요약이 발행된 턴마다 캐시읽기 0 · 쓰기 4,500토큰. 여기 두면 앞의 append-only
@@ -1713,7 +1729,10 @@ async def _post_message_impl(
     cache_on = settings.chat_prompt_cache_enabled
     t_llm0 = time.monotonic()
     # 원가 원장 귀속 — 사용자 quota(_billable)와 별개로 provider 단가 기준 USD를 적재한다.
+    retained_covered_prefix = ()
     if retention_enabled:
+        covered_count = getattr(context_window, "covered_prefix_count", 0)
+        retained_covered_prefix = tuple(dict(slot) for slot in convo[:covered_count])
         budget_system, budget_messages, tools = budget_inputs(system, convo)
         try:
             context_retention.assert_input_budget(
@@ -1721,11 +1740,30 @@ async def _post_message_impl(
                 input_limit=context_retention.FOREGROUND_INPUT_LIMIT,
             )
         except context_retention.RetentionError:
-            await _pause_for_history_pressure(
-                session, uid=uid, lease=lease, memory_generation=memory_generation,
-                reserve=recoverable_history(), recent=decision_recent if predecided is not None else None,
-                history_limit=guard_config.history_messages, owner=_owner,
-            )
+            # Only this exact prefix is already covered by a verified checkpoint.
+            # Removing it never removes uncovered dialogue, facts or preferences.
+            fallback = [dict(slot) for slot in convo[covered_count:]] if covered_count else None
+            fallback_lead = list(historical_lead)
+            while fallback and fallback[0]["role"] == "assistant":
+                fallback_lead.append(fallback.pop(0)["content"])
+            fallback_system = system_with_history(fallback_lead)
+            if focus_block:
+                fallback_system = [*fallback_system, focus_block]
+            fallback_fits = False
+            if fallback is not None:
+                alternative_system, alternative_messages, alternative_tools = budget_inputs(fallback_system, fallback)
+                fallback_fits = context_retention.fits_input_budget(
+                    alternative_system, alternative_messages, tools=alternative_tools,
+                    input_limit=context_retention.FOREGROUND_INPUT_LIMIT,
+                )
+            if fallback_fits:
+                system, convo, retained_covered_prefix = fallback_system, fallback, ()
+            else:
+                await _pause_for_history_pressure(
+                    session, uid=uid, lease=lease, memory_generation=memory_generation,
+                    reserve=recoverable_history(), recent=decision_recent if predecided is not None else None,
+                    history_limit=guard_config.history_messages, owner=_owner,
+                )
     try:
         if time.monotonic() >= absolute_deadline:
             raise TimeoutError("chat request deadline exceeded before inference")
@@ -1739,6 +1777,8 @@ async def _post_message_impl(
                 )
                 if retention_enabled:
                     kwargs["retention_enabled"] = True
+                    if retained_covered_prefix:
+                        kwargs["retention_covered_prefix"] = retained_covered_prefix
                 turn = await agent_runtime.run_turn(system, convo, **kwargs)
                 return None, turn
             draft_result = await llm.generate(
@@ -2045,18 +2085,21 @@ async def _post_message_impl(
     session.add(rmsg)
     await session.flush()
 
-    # Recovery does not depend on the user sending one more message. Use the
-    # actual completed reply; do not add a hypothetical maximum-size next input.
+    # Begin work before the next request reaches the foreground limit. The
+    # completed turn is fixed in this transaction; future input is not guessed.
+    prefetch_checkpoint = False
     if retention_writes_enabled and message_kind == "normal":
         projected_system, projected_messages, projected_tools = budget_inputs(
-            system, [*convo, {"role": "assistant", "content": reply_stored}],
+            system, [*convo[len(retained_covered_prefix):],
+                     {"role": "assistant", "content": reply_stored}],
         )
-        if not context_retention.fits_input_budget(
+        raw_bytes = (getattr(context_window, "retention_source_bytes", 0)
+                     + len((umsg.content or "").encode("utf-8"))
+                     + len((rmsg.content or "").encode("utf-8")) + 48)
+        prefetch_checkpoint = (raw_bytes >= checkpoint.RETENTION_SOFT_SOURCE_BYTES
+            or not context_retention.fits_input_budget(
                 projected_system, projected_messages, tools=projected_tools,
-                input_limit=context_retention.FOREGROUND_INPUT_LIMIT):
-            await checkpoint_repo.request_pressure(
-                session, user_id=uid, generation=memory_generation, through_id=rmsg.id,
-            )
+                input_limit=context_retention.FOREGROUND_INPUT_LIMIT))
 
     if (retention_writes_enabled and (correction_pending or scope_end_pending)
             and message_kind == "normal"):
@@ -2074,6 +2117,11 @@ async def _post_message_impl(
         now=now,
         record_derived=message_kind == "normal",
     )
+    # Dependencies must see this turn's newly recorded source before they wake.
+    if prefetch_checkpoint:
+        await checkpoint_repo.request_pressure(
+            session, user_id=uid, generation=memory_generation, through_id=rmsg.id,
+        )
     # last_active_at 기록은 finish_publish의 _PUBLISH SET에 병합됐다(#23a — 왕복 1회 절감).
     # 같은 트랜잭션이라 원자성 동일: CAS 실패(409) 시 함께 롤백된다.
 

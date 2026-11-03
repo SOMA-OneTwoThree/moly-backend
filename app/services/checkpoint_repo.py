@@ -14,10 +14,11 @@ from __future__ import annotations
 
 import json
 import hashlib
+import logging
 import uuid
 from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,6 +27,8 @@ from app.config import settings
 from app.core.advisory_lock import advisory_xact_lock
 from app.models.message import SUMMARY_EXCLUDED_MESSAGE_KINDS
 from app.services import checkpoint, jobs
+
+_log = logging.getLogger("moly-worker")
 
 # 🔴 **현재 세대의 요약만 돌려준다.** 잊어줘는 요약을 전량 지우지만, 지우는 트랜잭션과 쓰는
 # 트랜잭션이 겹치면 한쪽이 다른 쪽의 미커밋 행을 못 본다(READ COMMITTED) — 그 틈으로 들어온
@@ -267,7 +270,16 @@ async def enqueue_checkpoint(
 
     dedup key가 `(through, source_hash, summarizer)`를 담아 같은 입력은 한 번만 돈다(§W11-3).
     """
-    return await jobs.enqueue(
+    if plan.version == checkpoint.RETENTION_SUMMARIZER_VERSION:
+        from app.services import context_retention
+        epoch = plan.privacy_epoch
+        if epoch is None:
+            epoch = await context_retention.capture_privacy_epoch(session, user_id=user_id)
+        if epoch is None or not await context_retention.privacy_epoch_matches(
+                session, user_id=user_id, privacy_epoch=epoch):
+            return None
+        plan = replace(plan, privacy_epoch=epoch)
+    made = await jobs.enqueue(
         session,
         queue=jobs.QUEUE_CONTENT,
         job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT,
@@ -276,6 +288,28 @@ async def enqueue_checkpoint(
         payload=plan.payload(),
         **({"available_at": datetime.now(timezone.utc)+timedelta(seconds=delay_s)} if delay_s else {}),
     )
+    if made is not None and plan.version == checkpoint.RETENTION_SUMMARIZER_VERSION:
+        await reserve_checkpoint_dependencies(session, user_id=user_id, plan=plan)
+    return made
+
+
+async def reserve_checkpoint_dependencies(session, *, user_id, plan: checkpoint.CheckpointPlan) -> None:
+    """Queue only this fixed snapshot's dependencies, in the producer's commit.
+
+    No model/provider call. The caller holds the user lock; the exact ingest
+    wake only tries SKIP LOCKED job rows, so it never waits job→user or user→job.
+    """
+    from app.services import context_retention
+    if not await context_retention.enabled_now(session, lock=True):
+        return
+    if not await context_retention.adopted_user(session, user_id=user_id, lock=True):
+        return
+    if not await context_retention.privacy_epoch_matches(session, user_id=user_id, privacy_epoch=plan.privacy_epoch):
+        return
+    await context_retention.enqueue_contract_processing(session, user_id=user_id,
+        generation=plan.memory_generation, through_id=plan.through_message_id, privacy_epoch=plan.privacy_epoch)
+    await wake_checkpoint_ingest(session, user_id=user_id, generation=plan.memory_generation,
+                                 through_id=plan.through_message_id)
 
 
 async def maybe_enqueue(
@@ -392,13 +426,22 @@ async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
                 and payload.get("mode") != "reverify" and "progress_state" not in payload
                 and pending[1] == "ready" and int(pending[2]) == 0
                 and plan.through_message_id > int(payload.get("through_message_id", 0))):
+            # An existing fixed snapshot may not be rebound to a newer epoch.
+            from app.services import context_retention
+            epoch = payload.get("privacy_epoch")
+            if not await context_retention.privacy_epoch_matches(session, user_id=user_id, privacy_epoch=epoch):
+                return None
+            plan = replace(plan, privacy_epoch=epoch)
             wire = json.dumps(plan.payload(), sort_keys=True, separators=(",", ":"))
             merged = (await session.execute(_MERGE_RETENTION_READY, {
                 "id": pending[0], "payload": wire,
                 "payload_hash": hashlib.sha256(wire.encode()).hexdigest(),
                 "dedup_key": plan.dedup_key(user_id),
             })).first()
-            return merged[0] if merged else None
+            if merged is not None:
+                await reserve_checkpoint_dependencies(session, user_id=user_id, plan=plan)
+                return merged[0]
+            return None
         return None
     if not pressure and await session.scalar(_RETENTION_COOLDOWN, {"user_id": user_id}):
         return None
@@ -454,8 +497,9 @@ async def wake_checkpoint_ingest(session: AsyncSession, *, user_id, generation: 
                                  through_id: int) -> bool:
     """Skip the ordinary idle delay only for an unattempted exact dependency.
 
-    Caller owns a separate short transaction outside checkpoint finalize/user
-    locks. This changes only available_at, never attempts, payload or job state.
+    Caller owns a short transaction, optionally an already-held user lock.
+    The candidate job is SKIP LOCKED: never wait while holding a user/finalize
+    lock. This changes only available_at, never attempts, payload or job state.
     A retry's backoff, a running claim, and exhausted work are not accelerated.
     """
     from app.services import context_retention, memory_pipeline
@@ -595,3 +639,53 @@ async def request_pressure(session: AsyncSession, *, user_id, generation: int,
     made = await maybe_enqueue(session, user_id=user_id, messages=sources,
         retention_enabled=True, pressure_through_message_id=sources[-1].id)
     return PressureReservation("queued" if made else "pending", int(target), made)
+
+
+_TRY_PRESSURE_USER = text("SELECT pg_try_advisory_xact_lock(hashtextextended(CAST(:user_id AS text),0))")
+_REMAINING_PRESSURE_GOAL = text("""
+SELECT cc.retention_pressure_through_message_id FROM chat_contexts cc
+WHERE cc.user_id=:user_id AND cc.memory_generation=:generation
+  AND cc.retention_pressure_through_message_id>:published_through
+  AND EXISTS(SELECT 1 FROM conversation_checkpoints c WHERE c.user_id=cc.user_id
+    AND c.memory_generation=cc.memory_generation AND c.version='conversation-checkpoint-summary-v5'
+    AND c.publish_state='published' AND c.through_message_id>=:published_through
+    AND c.validation_json->'processing_complete'='true'::jsonb)
+FOR UPDATE OF cc SKIP LOCKED
+""")
+_FOLLOWUP_TIMEOUTS = text("SELECT current_setting('lock_timeout'),current_setting('statement_timeout')")
+_FOLLOWUP_SET_TIMEOUTS = text("SELECT set_config('lock_timeout',:lock_timeout,true),set_config('statement_timeout',:statement_timeout,true)")
+
+
+async def reserve_remaining_pressure(session: AsyncSession, *, user_id, generation: int,
+                                     published_through_id: int, privacy_epoch: int) -> bool:
+    """One optional follow-up after a real publication; never extend the saved goal.
+
+    Finalize already owns a job row. Both user and cc acquisition are nonblocking.
+    A savepoint and short SQL timeouts keep optional reservation errors separate
+    from the validated publication. The durable goal/sweep remain the fallback.
+    """
+    from app.services import context_retention
+    made = False
+    try:
+        async with session.begin_nested():
+            timeouts = (await session.execute(_FOLLOWUP_TIMEOUTS)).first()
+            await session.execute(_FOLLOWUP_SET_TIMEOUTS,
+                {"lock_timeout": "100ms", "statement_timeout": "750ms"})
+            if await session.scalar(_TRY_PRESSURE_USER, {"user_id": str(user_id)}):
+                goal = (await session.execute(_REMAINING_PRESSURE_GOAL, {
+                    "user_id": user_id, "generation": generation,
+                    "published_through": published_through_id,
+                })).first()
+                if (goal is not None and await context_retention.enabled_now(session, lock=True)
+                        and await context_retention.adopted_user(session, user_id=user_id, lock=True)
+                        and await context_retention.privacy_epoch_matches(session, user_id=user_id,
+                            privacy_epoch=privacy_epoch, lock=True)):
+                    reserved = await request_pressure(session, user_id=user_id, generation=generation,
+                                                      through_id=int(goal[0]))
+                    made = reserved.job_id is not None
+            await session.execute(_FOLLOWUP_SET_TIMEOUTS,
+                {"lock_timeout": timeouts[0], "statement_timeout": timeouts[1]})
+        return made
+    except Exception as exc:
+        _log.warning("checkpoint_pressure_followup_deferred error=%s", type(exc).__name__)
+        return False

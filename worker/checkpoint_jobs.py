@@ -20,7 +20,9 @@ import hashlib
 import json
 import uuid
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -213,9 +215,173 @@ async def _wake_ingest_dependency(req: _Request) -> None:
         _log.warning("checkpoint_dependency_wake_failed error=%s", type(exc).__name__)
 
 
+def _completed_binding(req: _Request, payload: dict) -> str:
+    fixed = {"user_id": str(req.user_id), "generation": req.memory_generation,
+             "through": req.through_message_id, "ids": list(req.source_message_ids),
+             "source_hash": req.source_hash, "parent": req.previous_id,
+             "parent_through": req.previous_through_message_id,
+             "version": req.version, "schema_version": payload.get("schema_version"),
+             "reason": payload.get("reason"),
+             "privacy_epoch": payload.get("privacy_epoch"),
+             "proof": payload.get("completed_proof")}
+    return hashlib.sha256(json.dumps(fixed, sort_keys=True, ensure_ascii=False,
+                                    separators=(",", ":")).encode()).hexdigest()
+
+
+def _validate_completed(req, payload, sources, previous, language):
+    if payload.get("completed_binding") != _completed_binding(req, payload):
+        raise checkpoint.CheckpointError("progress_completed_binding")
+    allowed = [message for message in sources if message.kind not in SUMMARY_EXCLUDED_MESSAGE_KINDS]
+    return checkpoint.validate_completed_progress(messages=allowed, previous=previous,
+        language=language, state=payload.get("completed_state"), proof=payload.get("completed_proof"))
+
+
+class _PrivacyLockBusy(JobDeferred):
+    """Roll finalize back: the same durable job survives a temporary barrier lock."""
+
+    def __init__(self, reason="checkpoint_privacy_busy"):
+        super().__init__(reason, delay_s=5)
+
+
+_STORE_COMPLETED_PARENT = text("""
+UPDATE async_jobs SET payload=CAST(:payload AS jsonb),payload_hash=:payload_hash
+WHERE id=:job_id AND user_id=:user_id AND job_type='conversation_checkpoint'
+  AND state='succeeded' AND payload_redacted_at IS NULL
+  AND (payload_expires_at IS NULL OR payload_expires_at>now())
+  AND payload->>'source_hash'=:source_hash
+  AND payload->'privacy_epoch'=to_jsonb(CAST(:privacy_epoch AS bigint))
+RETURNING id
+""")
+
+
+async def _store_completed_parent(session, job, payload) -> bool:
+    """Called only inside fenced apply; preserve existing expiry/redaction policy.
+
+    Even if disabled after its model call, an already computed, revalidated final
+    draft may replace this same parent's payload. It creates no job or publication.
+    """
+    wire = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    row = (await session.execute(_STORE_COMPLETED_PARENT, {
+        "job_id": job.id, "user_id": job.user_id, "payload": wire,
+        "payload_hash": hashlib.sha256(wire.encode("utf-8")).hexdigest(),
+        "source_hash": job.payload["source_hash"], "privacy_epoch": job.payload["privacy_epoch"],
+    })).first()
+    return row is not None
+
+
+async def _writable_privacy_epoch(session, req, payload) -> bool:
+    if await context_retention.privacy_epoch_matches(session, user_id=req.user_id,
+            privacy_epoch=payload.get("privacy_epoch"), lock=True):
+        return True
+    if await context_retention.privacy_epoch_matches(session, user_id=req.user_id,
+            privacy_epoch=payload.get("privacy_epoch")):
+        # Never enqueue a new artifact without the barrier lock. finalize rolls
+        # back and lease recovery retries the original job with its same draft.
+        raise _PrivacyLockBusy("checkpoint_privacy_busy")
+    return False  # actual deletion/epoch change: discard, never rebind.
+
+
+async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
+    """A durable completed draft waits here without repeating a single model call."""
+    req, payload = _parse(job), job.payload
+    if req.version != checkpoint.RETENTION_SUMMARIZER_VERSION:
+        raise JobFatal("invalid_payload")
+    async with get_sessionmaker()() as session:
+        if (not await context_retention.enabled_now(session)
+                or not await context_retention.adopted_user(session, user_id=req.user_id)):
+            return JobResult(result_code=RESULT_DISABLED)
+        if not await context_retention.privacy_epoch_matches(session, user_id=req.user_id,
+                privacy_epoch=payload.get("privacy_epoch")):
+            raise JobCancelled("checkpoint_privacy_changed")
+        applicable, previous = await _still_applicable(session, req)
+        if not applicable:
+            return JobResult(result_code=RESULT_SOURCE_CHANGED)
+        user = await checkpoint_repo.load_user_state(session, req.user_id)
+        if user is None:
+            raise JobCancelled("user_deleted")
+        _, language = user
+        sources = await _load_sources(session, req, previous)
+        if not sources or checkpoint.source_hash(previous=previous, messages=sources,
+                version=req.version) != req.source_hash:
+            return JobResult(result_code=RESULT_SOURCE_CHANGED)
+        try:
+            summary = _validate_completed(req, payload, sources, previous, language)
+            await context_retention.validate_progress_sources(session, user_id=req.user_id,
+                state=payload["completed_state"])
+        except (checkpoint.CheckpointError, context_retention.RetentionError) as exc:
+            raise JobFatal("checkpoint_completed_proof_invalid") from exc
+        if not await context_retention.processing_complete(session, user_id=req.user_id,
+                generation=req.memory_generation, through_id=req.through_message_id):
+            await context_retention.enqueue_contract_processing(session, user_id=req.user_id,
+                generation=req.memory_generation, through_id=req.through_message_id)
+            await session.commit()
+            await _wake_ingest_dependency(req)
+            raise JobDeferred("checkpoint_source_processing_pending", delay_s=5)
+        index = await checkpoint_repo.count(session, req.user_id, retention_enabled=True) + 1
+
+    async def _apply(session):
+        if (not await context_retention.enabled_now(session, lock=True)
+                or not await context_retention.adopted_user(session, user_id=req.user_id, lock=True)):
+            return
+        if not await _writable_privacy_epoch(session, req, payload):
+            return
+        applicable, fresh_parent = await _still_applicable(session, req)
+        if not applicable:
+            return
+        current = await _load_sources(session, req, fresh_parent)
+        if not current or checkpoint.source_hash(previous=fresh_parent, messages=current,
+                version=req.version) != req.source_hash:
+            return
+        _validate_completed(req, payload, current, fresh_parent, language)
+        await context_retention.validate_progress_sources(session, user_id=req.user_id,
+            state=payload["completed_state"])
+        if not await context_retention.processing_complete(session, user_id=req.user_id,
+                generation=req.memory_generation, through_id=req.through_message_id):
+            # The handler's earlier true result can regress. Persist the SAME
+            # draft under the finalize lease fence instead of silently losing it.
+            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
+                job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
+                dedup_key=f"checkpoint-publish-wait:{job.id}", payload=payload,
+                available_at=datetime.now(timezone.utc) + timedelta(seconds=5),
+                max_attempts=max(1, job.max_attempts - job.attempt + 1))
+            return
+        inserted = await checkpoint_repo.insert(session, user_id=req.user_id,
+            through_message_id=req.through_message_id, summary=summary, source_hash=req.source_hash,
+            expected_generation=req.memory_generation, version=req.version,
+            state_json=payload["completed_state"], validation_json={
+                "source_message_ids": list(req.source_message_ids), "processing_complete": True,
+                "policy_excluded_ids": [m.id for m in current if m.kind in SUMMARY_EXCLUDED_MESSAGE_KINDS],
+                "completed_proof": payload["completed_proof"],
+                "completed_binding": payload["completed_binding"],
+                "privacy_epoch": payload["privacy_epoch"],
+            }, previous_id=fresh_parent.id if fresh_parent else None,
+            coverage_from=req.source_message_ids[0])
+        if inserted is None:
+            return
+        await checkpoint_repo.clear_completed_pressure(session, user_id=req.user_id,
+            generation=req.memory_generation, through_id=req.through_message_id)
+        if index % max(int(settings.context_checkpoint_reverify_every), 1) == 0:
+            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
+                job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
+                dedup_key=f"checkpoint-reverify:{req.user_id}:{req.memory_generation}:{inserted}:0",
+                payload={"mode": "reverify", "schema_version": checkpoint.SCHEMA_VERSION,
+                    "summarizer_version": checkpoint.RETENTION_SUMMARIZER_VERSION,
+                    "memory_generation": req.memory_generation, "checkpoint_id": str(inserted),
+                    "through_message_id": req.through_message_id, "after_message_id": 0,
+                    "privacy_epoch": payload["privacy_epoch"], "manifests": []}, max_attempts=2)
+        else:
+            await checkpoint_repo.reserve_remaining_pressure(session, user_id=req.user_id,
+                generation=req.memory_generation, published_through_id=req.through_message_id,
+                privacy_epoch=payload["privacy_epoch"])
+
+    return JobResult(result_code=RESULT_OK, apply_domain=_apply)
+
+
 async def handle_checkpoint(job: ClaimedJob) -> JobResult:
     if (job.payload or {}).get("mode") == "reverify":
         return await _handle_retention_reverify(job)
+    if (job.payload or {}).get("mode") == "publish_retention":
+        return await _handle_retention_publish(job)
     payload_version = (job.payload or {}).get("summarizer_version")
     if not settings.context_checkpoint_enabled and payload_version != checkpoint.RETENTION_SUMMARIZER_VERSION:
         return JobResult(result_code=RESULT_DISABLED)
@@ -229,6 +395,9 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 return JobResult(result_code=RESULT_DISABLED)
             if not await context_retention.adopted_user(session, user_id=req.user_id):
                 return JobResult(result_code=RESULT_DISABLED)
+            if not await context_retention.privacy_epoch_matches(session, user_id=req.user_id,
+                    privacy_epoch=(job.payload or {}).get("privacy_epoch")):
+                raise JobCancelled("checkpoint_privacy_changed")
         state = await checkpoint_repo.load_user_state(session, req.user_id)
         if state is None:  # 탈퇴 — 처리 의미가 사라졌다(경보 대상 아님)
             raise JobCancelled("user_deleted")
@@ -268,7 +437,8 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 generation=req.memory_generation, through_id=req.through_message_id)
             await session.commit()
             await _wake_ingest_dependency(req)
-            raise JobDeferred("checkpoint_source_processing_pending", delay_s=5)
+            # Facts/contracts and unpublished summary pages are independent. Only
+            # publication waits for all three to have validated this exact range.
 
         # 잊어줘가 닫은 메시지 검사는 없다 — 대화형 망각이 제거되면서 `memory_recall_suppressions`
         # 자체가 사라졌다(2026-08-06). 닫히는 구간이 없으므로 이 검사는 항상 통과였다.
@@ -349,15 +519,21 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
     except Exception as e:  # noqa: BLE001  # provider 타임아웃·429·일시 장애 — backoff 재시도
         raise JobRetry("summary_llm_failed") from e
 
+    completed_proof = (checkpoint.completed_progress_proof(
+        messages=inputs, previous=previous, language=language, state=state_json,
+    ) if retention and continuation is None else None)
+
     async def _apply(session: AsyncSession) -> None:
         # 🔴 여기서 하는 도메인 쓰기는 checkpoint 1행뿐이다. 요약에서 기억 추출 잡을 만들지 않는다.
         # 여기 검사들은 **이른 종료용**이다. 잊어줘와의 경합에 대한 최종 방어는
         # `checkpoint_repo.insert`가 같은 문장 안에서 하는 세대 검사다 — 읽고 나서 쓰는
         # 사이를 잠금으로 막으려 하면 챗과 락 순서가 반대라 교착이 나고, 그걸 NOWAIT로
         # 피하면 재시도 횟수를 갉아먹어 요약이 영구 유실된다.
-        if retention and not await context_retention.enabled_now(session, lock=True):
-            return
-        if retention and not await context_retention.adopted_user(session, user_id=req.user_id, lock=True):
+        writes_enabled = True
+        if retention:
+            writes_enabled = (await context_retention.enabled_now(session, lock=True)
+                and await context_retention.adopted_user(session, user_id=req.user_id, lock=True))
+        if retention and not await _writable_privacy_epoch(session, req, job.payload or {}):
             return
         ok, _ = await _still_applicable(session, req)
         if not ok:
@@ -372,10 +548,14 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 previous=previous, messages=fresh_sources, version=req.version,
             ) != req.source_hash:
                 return
-            if not await context_retention.processing_complete(session, user_id=req.user_id,
-                generation=req.memory_generation, through_id=req.through_message_id):
-                return
+            await context_retention.validate_progress_sources(session, user_id=req.user_id,
+                state=state_json)
         if continuation is not None:
+            if not writes_enabled:
+                return
+            checkpoint.validate_progress_page(messages=inputs, previous=previous, language=language,
+                state=state_json, next_chunk=continuation.next_chunk, manifest=continuation.manifest,
+                start_chunk=(job.payload or {}).get("progress_next_chunk", 0))
             await context_retention.validate_progress_sources(session, user_id=req.user_id,
                 state=state_json)
             await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
@@ -384,6 +564,22 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 payload={**job.payload, "progress_state": state_json,
                          "progress_next_chunk": continuation.next_chunk,
                          "progress_manifest": continuation.manifest})
+            return
+        if retention:
+            payload = {key: value for key, value in job.payload.items()
+                       if key not in {"progress_state", "progress_next_chunk", "progress_manifest"}}
+            payload.update(mode="publish_retention", completed_state=state_json,
+                           completed_proof=completed_proof)
+            payload["completed_binding"] = _completed_binding(req, payload)
+            _validate_completed(req, payload, fresh_sources, previous, language)
+            if not await _store_completed_parent(session, job, payload):
+                return
+            if not writes_enabled:
+                return
+            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
+                job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
+                dedup_key=f"checkpoint-publish:{req.user_id}:{req.memory_generation}:{req.source_hash}",
+                payload=payload, max_attempts=3)
             return
         inserted_id = await checkpoint_repo.insert(
             session,
@@ -413,7 +609,8 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                     "manifests": []}, max_attempts=2)
 
     return JobResult(
-        result_code="checkpoint_progress_page" if continuation is not None else RESULT_OK,
+        result_code=("checkpoint_progress_page" if continuation is not None else
+                     "checkpoint_draft_ready" if retention else RESULT_OK),
         result_detail={
             "messages": len(inputs),
             "chars": len(summary),
@@ -538,11 +735,15 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
         await context_retention.validate_progress_sources(session, user_id=job.user_id, state=working)
         digest = hashlib.sha256(json.dumps({"parent": current.source_hash,
             "manifests": manifests, "state": working}, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-        await checkpoint_repo.insert(session, user_id=job.user_id, through_message_id=through,
+        inserted = await checkpoint_repo.insert(session, user_id=job.user_id, through_message_id=through,
             summary=context_retention.render_state(working), source_hash=digest,
             expected_generation=generation, version=checkpoint.RETENTION_SUMMARIZER_VERSION,
             state_json=working, validation_json={"processing_complete": True, "reverified": True,
                 "page_manifests": manifests}, previous_id=current.id, coverage_from=1)
+        if inserted is not None:
+            await checkpoint_repo.reserve_remaining_pressure(session, user_id=job.user_id,
+                generation=generation, published_through_id=through,
+                privacy_epoch=payload.get("privacy_epoch"))
     return JobResult(result_code=("reverify_progress_page" if continuation is not None
                                  else "reverify_complete" if completed else "reverify_page"),
         result_detail={"through": boundary, "pages": len(manifests)}, apply_domain=_apply)

@@ -17,6 +17,8 @@ def message(body="한글🙂" * 1400):
 
 
 def job(payload=None):
+    if payload and payload.get("retention_enabled") is True:
+        payload = {"privacy_epoch": 0, **payload}
     return jobs.ClaimedJob(uuid.uuid4(), "content", "contract_compile", uuid.uuid4(),
         "budget-test", payload or {}, 1, 3, "worker", uuid.uuid4(),
         datetime.now(timezone.utc) + timedelta(minutes=1), None)
@@ -177,6 +179,8 @@ def contract_environment(monkeypatch):
         return state["enabled"]
     async def retained(*args, **kwargs):
         return state["published"]
+    async def epoch_matches(*args, **kwargs):
+        return type(kwargs["privacy_epoch"]) is int and kwargs["privacy_epoch"] == state.get("privacy_epoch", 0)
     async def same(*args, **kwargs):
         return False
     async def publish(session, *, contract_id, **kwargs):
@@ -193,6 +197,7 @@ def contract_environment(monkeypatch):
         return llm.LLMResult(json.dumps(candidates), 5, 3, finish_reason="stop")
     monkeypatch.setattr(retention, "adopted_user", adopted)
     monkeypatch.setattr(retention, "enabled_now", enabled)
+    monkeypatch.setattr(retention, "privacy_epoch_matches", epoch_matches)
     monkeypatch.setattr(worker.contract_repo, "retained_document", retained)
     monkeypatch.setattr(worker.contract_repo, "has_same_document", same)
     monkeypatch.setattr(worker.contract_repo, "publish", publish)
@@ -275,7 +280,8 @@ async def test_retention_changed_source_restarts_current_range_without_old_draft
     await result.apply_domain(session)
     assert not state["docs"] and state["cursor"] == 0
     payload = state["queued"][0]["payload"]
-    assert payload == {"retention_enabled": True, "memory_generation": 0, "through_message_id": 1}
+    assert payload == {"retention_enabled": True, "memory_generation": 0, "through_message_id": 1,
+                       "privacy_epoch": 0}
 
 
 async def test_retention_partial_hash_mismatch_cannot_call_model(contract_environment):
@@ -307,3 +313,58 @@ async def test_worker_persists_explicit_end_when_model_returns_empty(contract_en
     assert state["cursor"] == 2 and state["calls"] == 1
     assert state["published"][0]["status"] == "ended"
     assert state["published"][0]["scope_end"]["source_message_id"] == 2
+
+
+async def test_memory_contract_continuations_and_source_restart_keep_queue_epoch_and_max_three(contract_environment):
+    state, session = contract_environment
+    current = replace(job({"retention_enabled": True, "memory_generation": 0,
+                           "through_message_id": 1}), queue=jobs.QUEUE_MEMORY)
+    result = await worker.handle_contract_compile(current)
+    await result.apply_domain(session)
+    queued = state["queued"][-1]
+    assert queued["queue"] == jobs.QUEUE_MEMORY and queued["max_attempts"] == 3
+    assert queued["payload"]["privacy_epoch"] == 0 and queued["payload"]["partial_offset"] > 0
+    # A changed source requeues from the current cursor; never restore old draft.
+    state["body"] += "synthetic source changed"
+    result = await worker.handle_contract_compile(current)
+    state["body"] += "synthetic changed again"
+    await result.apply_domain(session)
+    restarted = state["queued"][-1]
+    assert restarted["queue"] == jobs.QUEUE_MEMORY and restarted["max_attempts"] == 3
+    assert restarted["payload"]["privacy_epoch"] == 0 and "partial_items" not in restarted["payload"]
+
+
+async def test_concurrent_contract_targets_publish_once_then_resume_latest_cursor(contract_environment, monkeypatch):
+    import asyncio
+    state, session = contract_environment
+    state["body"] = "This conversation, use short replies."
+    first = replace(job({"retention_enabled": True, "memory_generation": 0,
+                         "through_message_id": 1}), queue=jobs.QUEUE_MEMORY)
+    second = replace(job({"retention_enabled": True, "memory_generation": 0,
+                          "through_message_id": 2}), queue=jobs.QUEUE_MEMORY, user_id=first.user_id)
+    results = await asyncio.gather(worker.handle_contract_compile(first), worker.handle_contract_compile(second))
+    assert state["calls"] == 2 and state["cursor"] == 0
+    await results[0].apply_domain(session)
+    await results[1].apply_domain(session)
+    assert state["cursor"] == 1 and len(state["docs"]) == 1
+    queued = state["queued"][-1]
+    assert queued["queue"] == jobs.QUEUE_MEMORY and queued["max_attempts"] == 3
+    assert queued["payload"] == {"retention_enabled": True, "memory_generation": 0,
+                                 "through_message_id": 2, "privacy_epoch": 0}
+    async def same(*args, **kwargs):
+        return True
+    monkeypatch.setattr(worker.contract_repo, "has_same_document", same)
+    resumed = replace(second, id=uuid.uuid4(), payload=queued["payload"])
+    result = await worker.handle_contract_compile(resumed)
+    await result.apply_domain(session)
+    assert state["cursor"] == 2 and len(state["docs"]) == 1 and state["calls"] == 2
+
+
+@pytest.mark.parametrize("epoch", [None, True, 1])
+async def test_retention_contract_missing_or_stale_epoch_cannot_call_model(contract_environment, epoch):
+    state, _ = contract_environment
+    current = job({"retention_enabled": True, "memory_generation": 0,
+                   "through_message_id": 1, "privacy_epoch": epoch})
+    with pytest.raises(JobCancelled, match="privacy_epoch"):
+        await worker.handle_contract_compile(current)
+    assert state["calls"] == 0 and state["cursor"] == 0

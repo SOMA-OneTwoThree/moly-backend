@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from dataclasses import replace
 
 import pytest
 from sqlalchemy import text
@@ -25,6 +26,7 @@ async def seed_plan(session, uid):
     plan = checkpoint.plan(sources, previous=None, keep_from_message_id=ids[2],
         memory_generation=0, reset_triggered=True, version=checkpoint.RETENTION_SUMMARIZER_VERSION)
     assert plan is not None
+    plan = replace(plan, privacy_epoch=0)
     return plan, ids
 
 
@@ -120,6 +122,25 @@ async def test_actual_sql_does_not_reset_newer_dead_retry_budget(checkpoint_db):
     assert (await session.execute(text("SELECT state FROM async_jobs WHERE id=:j"), {"j": dead})).scalar_one() == "dead"
 
 
+async def test_actual_sql_prefers_materialized_draft_ready_parent_without_model_page_reentry(checkpoint_db):
+    session, (uid, _) = checkpoint_db
+    plan, _ = await seed_plan(session, uid)
+    await terminal(session, uid, {**plan.payload(), "progress_state": context_retention.empty_state(),
+        "progress_next_chunk": 99, "progress_manifest": "a"*64}, result="checkpoint_progress_page")
+    completed = {**plan.payload(), "mode": "publish_retention",
+        "completed_state": context_retention.empty_state(), "completed_proof": {"synthetic": True},
+        "completed_binding": "b"*64}
+    parent = await terminal(session, uid, completed, result="checkpoint_draft_ready")
+    row = await selected(session, uid, plan)
+    assert row[0] == parent and row[1] == completed
+    resumed = await sweep._resume_unpublished_success(session, user_id=uid, generation=0,
+        plan=plan, previous=None)
+    assert resumed is not None
+    stored = (await session.execute(text("SELECT payload,attempt,max_attempts FROM async_jobs WHERE id=:j"),
+        {"j": resumed})).one()
+    assert stored[0] == completed and stored[1] == 0 and stored[2] == 3
+
+
 async def test_actual_correction_scan_pages_short_sources_and_finds_late_correction(checkpoint_db):
     session, (uid, _) = checkpoint_db
     await session.execute(text("""
@@ -150,7 +171,7 @@ async def test_contract_off_on_resumes_unprocessed_partial_and_stops_at_processe
       UPDATE async_jobs SET state='succeeded',result_code='ok',finished_at=clock_timestamp()
       WHERE id=:j AND user_id=:u
     """), {"j": original, "u": uid})
-    payload = {"retention_enabled": True, "memory_generation": 0, "through_message_id": target,
+    payload = {"retention_enabled": True, "memory_generation": 0, "privacy_epoch": 0, "through_message_id": target,
                "after_message_id": 0, "partial_message_id": plan.source_message_ids[0],
                "partial_offset": 128, "partial_source_hash": "a"*64, "partial_items": [],
                "partial_drafts": [], "partial_document_hash": "b"*64}
@@ -191,7 +212,7 @@ async def test_contract_suffix_only_history_cannot_reset_retry_budget(checkpoint
     plan, _ = await seed_plan(session, uid)
     target, identity = plan.through_message_id, uuid.uuid4()
     base = f"contract-retention:{uid}:0:0:{target}"
-    payload = {"retention_enabled": True, "memory_generation": 0, "through_message_id": target}
+    payload = {"retention_enabled": True, "memory_generation": 0, "privacy_epoch": 0, "through_message_id": target}
     await session.execute(text("""
       INSERT INTO async_jobs(id,queue,job_type,user_id,dedup_key,payload,state,max_attempts,result_code,finished_at)
       VALUES(:j,'content','contract_compile',:u,:key,CAST(:payload AS jsonb),:state,3,

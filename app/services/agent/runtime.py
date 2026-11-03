@@ -648,6 +648,24 @@ def foreground_budget_inputs(system, convo, *, user_text: str, registry=None):
     return [], llm.to_openai_messages(_runtime_system(system), _transcript(convo)), schemas
 
 
+def _covered_prefix_count(convo, prefix, *, retention_enabled: bool) -> int:
+    """The caller attests coverage; runtime verifies the exact immutable source prefix."""
+    if type(prefix) is not tuple:
+        raise ValueError("retention_covered_prefix_invalid")
+    if not prefix:
+        return 0
+    if not retention_enabled or len(prefix) >= len(convo) or convo[-1].get("role") != "user":
+        raise ValueError("retention_covered_prefix_invalid")
+    for original, actual in zip(prefix, convo, strict=False):
+        if (type(original) is not dict or set(original) != {"role", "content"}
+                or not isinstance(original.get("role"), str)
+                or original["role"] not in {"user", "assistant"}
+                or not isinstance(original.get("content"), str)
+                or dict(actual) != original):
+            raise ValueError("retention_covered_prefix_invalid")
+    return len(prefix)
+
+
 def _ledger_ctx(user_id: uuid.UUID, activity_date: date) -> usage_ledger.LedgerContext:
     """도구 루프 호출의 원가 귀속. purpose는 step별로 generate_step이 덮어쓴다."""
     return usage_ledger.LedgerContext(
@@ -675,6 +693,7 @@ async def run_turn(
     local_calendar_date: date | None = None,
     before_tools: Callable[[], Awaitable[bool]] | None = None,
     retention_enabled: bool = False,
+    retention_covered_prefix: tuple[dict[str, str], ...] = (),
 ) -> AgentTurn:
     """한 턴을 끝까지 돌려 최종 텍스트와 그 턴의 LLM 호출 목록을 돌려준다.
 
@@ -685,6 +704,9 @@ async def run_turn(
     system = _runtime_system(system)
     deadline = deadline if deadline is not None else now() + config.turn_deadline_s
     transcript = _transcript(convo)
+    covered_count = _covered_prefix_count(convo, retention_covered_prefix,
+                                          retention_enabled=retention_enabled)
+    covered_omitted = False
     registry = registry if registry is not None else _resolve_registry()
     schemas = list(registry.wire_schemas()) if registry is not None else []
     input_models = dict(registry.input_models()) if registry is not None else {}
@@ -710,6 +732,28 @@ async def run_turn(
 
     use_tools = skipped is None
 
+    def _bounded_transcript(items, *, tools):
+        nonlocal transcript, covered_omitted
+        if not retention_enabled:
+            return items
+        from app.services.context_retention import FOREGROUND_INPUT_LIMIT, RetentionError, assert_input_budget
+        try:
+            assert_input_budget([], llm.to_openai_messages(system, items), tools=tools,
+                                input_limit=FOREGROUND_INPUT_LIMIT)
+            return items
+        except RetentionError as exc:
+            if str(exc) != "context_input_budget" or not covered_count or covered_omitted:
+                raise
+        # The typed transcript preserves one item per original row. All later
+        # system instructions, uncovered rows, current input, tool calls/results
+        # stay byte-for-byte; only this verified covered prefix is optional.
+        shortened = items[covered_count:]
+        assert_input_budget([], llm.to_openai_messages(system, shortened), tools=tools,
+                            input_limit=FOREGROUND_INPUT_LIMIT)
+        transcript = transcript[covered_count:]
+        covered_omitted = True
+        return shortened
+
     async def _hop1(with_tools: bool, *, recover_length: bool = False):
         hop_transcript = transcript
         if recover_length:
@@ -722,10 +766,8 @@ async def run_turn(
                 "Preserve safety and factual uncertainty. Do not mention retries, limits, or tools. "
                 "이 답변은 짧은 한 문장으로만 완결하세요. 短い一文だけで答えてください。"
             )]
-        if retention_enabled:
-            from app.services.context_retention import FOREGROUND_INPUT_LIMIT, assert_input_budget
-            assert_input_budget([], llm.to_openai_messages(system, hop_transcript),
-                                tools=decide_schemas if with_tools else (), input_limit=FOREGROUND_INPUT_LIMIT)
+        hop_transcript = _bounded_transcript(hop_transcript,
+                                            tools=decide_schemas if with_tools else ())
         return await llm.generate_step(
             system,
             hop_transcript,
@@ -879,11 +921,8 @@ async def run_turn(
         AssistantToolCalls(calls=tuple(step1.tool_calls)),
         *results,
     ]
-    if retention_enabled:
-        from app.services.context_retention import FOREGROUND_INPUT_LIMIT, assert_input_budget
-        assert_input_budget([], llm.to_openai_messages(system, transcript2),
-                            tools=([response_schema] if response_schema is not None else control_schemas),
-                            input_limit=FOREGROUND_INPUT_LIMIT)
+    transcript2 = _bounded_transcript(transcript2,
+        tools=([response_schema] if response_schema is not None else control_schemas))
     step2 = await llm.generate_step(
         system,
         transcript2,

@@ -36,6 +36,34 @@ class RetentionError(ValueError):
     """근거·구조·범위가 불완전하다. 기존 상태와 원문을 유지한다."""
 
 
+async def capture_privacy_epoch(session, *, user_id) -> int | None:
+    """Only a new server-owned snapshot may bind the current authorized epoch."""
+    from app.services import privacy
+    barrier = await privacy.load_barrier(session, user_id)
+    epoch = barrier.epoch
+    if not privacy.authorize_job(barrier, job_type="conversation_checkpoint", payload_epoch=epoch,
+                                 mode=settings.privacy_barrier_mode).allowed:
+        return None
+    return epoch
+
+
+async def privacy_epoch_matches(session, *, user_id, privacy_epoch, lock: bool = False) -> bool:
+    """Never rebind old work. Busy barriers are not missing compatibility rows."""
+    from app.services import privacy
+    if type(privacy_epoch) is not int or privacy_epoch < 0:
+        return False
+    if lock:
+        barrier = await privacy.load_barrier_nonblocking(session, user_id)
+        if barrier is None:
+            return False
+    else:
+        barrier = await privacy.load_barrier(session, user_id)
+    if barrier.epoch != privacy_epoch:
+        return False
+    return privacy.authorize_job(barrier, job_type="conversation_checkpoint", payload_epoch=privacy_epoch,
+                                 mode=settings.privacy_barrier_mode).allowed
+
+
 _FLAG_LOCK = text("SELECT value FROM app_config WHERE key='context_retention_v2_enabled' FOR SHARE")
 
 
@@ -598,9 +626,12 @@ ORDER BY COALESCE((j.payload->>'partial_offset')::bigint,0) DESC,
 
 
 async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UUID | str,
-                                      generation: int, through_id: int):
+                                      generation: int, through_id: int, privacy_epoch: int | None = None):
     """현재 턴과 같은 커밋에서 명시 선호/정정의 기존 계약 작업을 예약한다."""
     from app.services import jobs
+    epoch = await capture_privacy_epoch(session, user_id=user_id) if privacy_epoch is None else privacy_epoch
+    if epoch is None or not await privacy_epoch_matches(session, user_id=user_id, privacy_epoch=epoch):
+        return None
     cursor = await session.scalar(text("""
       SELECT CASE WHEN contract_generation=memory_generation THEN contract_processed_through_message_id
                   ELSE 0 END FROM chat_contexts
@@ -619,7 +650,7 @@ async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UU
     existing = (await session.execute(_CONTRACT_BASE_JOB, params)).first()
     if existing is None and latest_terminal is None:
         payload = {"retention_enabled": True, "memory_generation": generation,
-                   "through_message_id": through_id, "after_message_id": int(cursor)}
+                   "through_message_id": through_id, "after_message_id": int(cursor), "privacy_epoch": epoch}
         key = params["dedup_key"]
     else:
         terminal = (await session.execute(_CONTRACT_UNPROCESSED_TERMINAL, params)).first()
@@ -630,10 +661,12 @@ async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UU
                 or payload.get("memory_generation") != generation
                 or payload.get("through_message_id") != through_id):
             raise RetentionError("contract_resume_plan_changed")
+        if payload.get("privacy_epoch") != epoch or type(payload.get("privacy_epoch")) is not int:
+            return None  # Old/unbound or stale work cannot adopt a fresh privacy epoch.
         payload = {**payload, "after_message_id": int(cursor)}
         key = f"contract-retention-resume:{terminal[0]}"
-    return await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT, job_type="contract_compile",
-        user_id=user_id, dedup_key=key, payload=payload)
+    return await jobs.enqueue(session, queue=jobs.QUEUE_MEMORY, job_type="contract_compile",
+        user_id=user_id, dedup_key=key, payload=payload, max_attempts=3)
 
 
 async def processing_complete(session: AsyncSession, *, user_id: uuid.UUID | str,

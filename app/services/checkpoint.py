@@ -41,6 +41,7 @@ SCHEMA_VERSION = "conversation-checkpoint-payload-v2"
 LEGACY_SUMMARIZER_VERSION = "conversation-checkpoint-summary-v3"
 SUMMARIZER_VERSION = "conversation-checkpoint-summary-v4"
 RETENTION_SUMMARIZER_VERSION = "conversation-checkpoint-summary-v5"
+RETENTION_SOFT_SOURCE_BYTES = 4_096
 # Enable only after every consumer understands v4; missing/invalid config stays on v3.
 TEMPORAL_CONFIG_KEY = "context_checkpoint_temporal_enabled"
 
@@ -115,6 +116,7 @@ class CheckpointPlan:
     # 잡은 핸들러에서 세대 불일치로 끊긴다(잊어달라고 한 대화가 요약으로 되살아나지 못한다).
     memory_generation: int = 0
     reason: str | None = None
+    privacy_epoch: int | None = None
 
     def dedup_key(self, user_id: uuid.UUID | str) -> str:
         return dedup_key(
@@ -137,6 +139,8 @@ class CheckpointPlan:
         }
         if self.reason is not None:
             payload["reason"] = self.reason
+        if self.privacy_epoch is not None:
+            payload["privacy_epoch"] = self.privacy_epoch
         return payload
 
 
@@ -223,7 +227,7 @@ def should_checkpoint(
                else retention_enabled)
     if enabled:
         from app.services.context_retention import source_tokens
-        return source_tokens(messages) >= 4_096
+        return source_tokens(messages) >= RETENTION_SOFT_SOURCE_BYTES
     if len(messages) >= settings.context_reset_messages:
         return True
     return sum(len(m.content or "") for m in messages) >= settings.context_reset_chars
@@ -554,6 +558,51 @@ def _progress_manifest(batches, *, previous: Checkpoint | None, language: str | 
                 "source_hash": m.source_hash, "chunk_hash": hashlib.sha256(m.content.encode()).hexdigest(),
                 "created_at": _source_time(m)} for m in batch] for batch in batches]}
     return hashlib.sha256(json.dumps(plan, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def completed_progress_proof(*, messages: Sequence[SourceMessage], previous: Checkpoint | None,
+                             language: str | None, state: dict) -> dict:
+    """Bind an unpublished, completed draft to its entire deterministic chunk plan."""
+    from app.services import context_retention as retention
+
+    valid = retention.validate_state(state)
+    batches = progress_batches(messages, previous=previous, language=language)
+    parent_sequence = retention.validate_state(previous.state_json if previous else None)["sequence"]
+    if valid["sequence"] != parent_sequence + bool(batches):
+        raise CheckpointError("progress_completed_sequence")
+    # Render now as well as at publication: malformed/oversized drafts never become ready.
+    retention.render_state(valid)
+    return {"manifest": _progress_manifest(batches, previous=previous, language=language),
+            "total_chunks": len(batches), "completed_chunks": len(batches),
+            "state_hash": hashlib.sha256(json.dumps(valid, sort_keys=True, ensure_ascii=False,
+                                                    separators=(",", ":")).encode()).hexdigest()}
+
+
+def validate_progress_page(*, messages: Sequence[SourceMessage], previous: Checkpoint | None,
+                           language: str | None, state: dict, next_chunk: int,
+                           manifest: str, start_chunk: int) -> None:
+    """A durable intermediate page must match the frozen plan and exactly one completed call."""
+    from app.services import context_retention as retention
+    batches = progress_batches(messages, previous=previous, language=language)
+    parent_sequence = retention.validate_state(previous.state_json if previous else None)["sequence"]
+    if (type(next_chunk) is not int or next_chunk != start_chunk + 1
+            or not 0 < next_chunk < len(batches)
+            or manifest != _progress_manifest(batches, previous=previous, language=language)
+            or retention.validate_state(state)["sequence"] != parent_sequence):
+        raise CheckpointError("progress_page_proof")
+
+
+def validate_completed_progress(*, messages: Sequence[SourceMessage], previous: Checkpoint | None,
+                                language: str | None, state: dict, proof: dict) -> str:
+    """Publication uses no model and accepts neither a partial draft nor a changed proof."""
+    expected = completed_progress_proof(messages=messages, previous=previous, language=language,
+                                        state=state)
+    if (not isinstance(proof, dict) or set(proof) != set(expected)
+            or type(proof.get("total_chunks")) is not int
+            or type(proof.get("completed_chunks")) is not int or proof != expected):
+        raise CheckpointError("progress_completed_proof")
+    from app.services import context_retention as retention
+    return retention.render_state(retention.validate_state(state))
 
 
 async def summarize_progress(

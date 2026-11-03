@@ -236,18 +236,19 @@ async def test_deadline_caps_slow_http_and_cancellation_propagates():
             await task
 
 
-@pytest.mark.parametrize("language,thought,meaning,refusal", [
+@pytest.mark.parametrize("language,retired,question,refusal", [
     ("ko", "무슨 일 있었어?", "어떤 뜻인지 조금만 더 얘기해줄래?", "그건 알려 줄 수 없어."),
     ("en", "What happened?", "Can you tell me a little more about what you mean?", "I can't tell you that."),
     ("ja", "何があったの？", "どういう意味か、もう少し教えてくれる？", "それは教えられないよ。"),
 ])
-def test_two_exact_rechecks_no_model_output_is_accepted(language, thought, meaning, refusal):
-    for case, expected in (("self_thought", thought), ("meaning_unclear", meaning)):
-        assert cg.reask_fallback(language, case=case) == expected
-        assert cg.checked_reask("untrusted generated text", language, case=case) == expected
-        assert cg.reask_fallback(language, True, case=case) == refusal + " " + expected
-        assert cg.reask_fallback(language, None, case=case) == refusal + " " + expected
-        assert cg.validate_reask(expected, language, case=case)
+def test_both_intermediate_cases_use_one_exact_clarification_and_unchanged_refusal(language, retired, question, refusal):
+    for case in ("self_thought", "meaning_unclear", None):
+        assert cg.reask_fallback(language, case=case) == question
+        assert cg.checked_reask("untrusted generated text", language, case=case) == question
+        assert cg.reask_fallback(language, True, case=case) == refusal + " " + question
+        assert cg.reask_fallback(language, None, case=case) == refusal + " " + question
+        assert cg.validate_reask(question, language, case=case)
+        assert not cg.validate_reask(retired, language, case=case)
         assert not cg.validate_reask("untrusted generated text", language, case=case)
 
 

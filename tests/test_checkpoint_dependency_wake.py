@@ -11,7 +11,6 @@ import pytest
 
 from app.services import checkpoint, checkpoint_repo as repo, context_retention, memory_pipeline
 from worker import checkpoint_jobs as worker
-from worker.consumer import JobDeferred
 
 
 class Result:
@@ -146,6 +145,10 @@ async def test_handler_commits_contract_reservation_before_separate_dependency_t
     monkeypatch.setattr(worker, "_still_applicable", AsyncMock(return_value=(True, None)))
     monkeypatch.setattr(worker, "_load_sources", AsyncMock(return_value=sources))
     monkeypatch.setattr(context_retention, "processing_complete", AsyncMock(return_value=False))
+    monkeypatch.setattr(context_retention, "privacy_epoch_matches", AsyncMock(return_value=True), raising=False)
+    monkeypatch.setattr(repo, "count", AsyncMock(return_value=0))
+    monkeypatch.setattr(checkpoint, "summarize_progress", AsyncMock(return_value=("",
+        {**context_retention.empty_state(), "sequence": 1}, SimpleNamespace(billable=0))))
 
     async def reserve(session, **kwargs):
         assert session is sessions[0]
@@ -159,9 +162,10 @@ async def test_handler_commits_contract_reservation_before_separate_dependency_t
 
     monkeypatch.setattr(context_retention, "enqueue_contract_processing", reserve)
     monkeypatch.setattr(repo, "wake_checkpoint_ingest", wake_dependency)
-    with pytest.raises(JobDeferred) as result:
-        await worker.handle_checkpoint(SimpleNamespace(user_id=uid, payload=plan.payload()))
-    assert result.value.reason == "checkpoint_source_processing_pending"
+    result = await worker.handle_checkpoint(SimpleNamespace(user_id=uid, payload=plan.payload(),
+        id=uuid.uuid4(), attempt=1))
+    assert result.result_code == "checkpoint_draft_ready"
+    checkpoint.summarize_progress.assert_awaited_once()
     assert events == ["read_enter", "reserve_contract", "read_commit", "wake_enter",
                       "wake_dependency", "wake_commit", "wake_exit", "read_exit"]
 

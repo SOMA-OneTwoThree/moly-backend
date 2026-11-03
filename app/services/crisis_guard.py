@@ -399,7 +399,6 @@ def normal_reply_instruction(language: str | None) -> str:
     return _NORMAL_REPLY_INSTRUCTIONS[i18n.resolve(language)]
 
 
-_THOUGHT_QUESTION = {"ko": "무슨 일 있었어?", "en": "What happened?", "ja": "何があったの？"}
 _MEANING_QUESTION = {
     "ko": "어떤 뜻인지 조금만 더 얘기해줄래?",
     "en": "Can you tell me a little more about what you mean?",
@@ -410,7 +409,9 @@ _REFUSAL = {"ko": "그건 알려 줄 수 없어.", "en": "I can't tell you that.
 
 def reask_fallback(language: str | None, method_request: bool | None = False, *, case: Case | None = "self_thought") -> str:
     lang = i18n.resolve(language)
-    question = _MEANING_QUESTION[lang] if case == "meaning_unclear" else _THOUGHT_QUESTION[lang]
+    # Keep the case argument for callers; both intermediate cases use one copy.
+    # The classifier still distinguishes their meaning and retains its routing.
+    question = _MEANING_QUESTION[lang]
     return ((_REFUSAL[lang] + " ") if method_request is not False else "") + question
 
 

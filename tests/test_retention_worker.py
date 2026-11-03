@@ -9,7 +9,6 @@ import pytest
 from app.config import settings
 from app.services import checkpoint, checkpoint_repo, context_retention, jobs
 from worker import checkpoint_jobs
-from worker.consumer import JobDeferred
 
 _REAL_SUMMARIZE_PROGRESS = checkpoint.summarize_progress
 
@@ -18,7 +17,7 @@ def make_job(messages):
     plan = checkpoint.CheckpointPlan(messages[-1].id, tuple(m.id for m in messages),
         checkpoint.source_hash(previous=None, messages=messages,
             version=checkpoint.RETENTION_SUMMARIZER_VERSION), None, None,
-        version=checkpoint.RETENTION_SUMMARIZER_VERSION)
+        version=checkpoint.RETENTION_SUMMARIZER_VERSION, privacy_epoch=0)
     return jobs.ClaimedJob(uuid.uuid4(), "content", "conversation_checkpoint", uuid.uuid4(),
         "test-retention", plan.payload(), 1, 3, "worker", uuid.uuid4(),
         datetime.now(timezone.utc)+timedelta(minutes=1), None)
@@ -68,6 +67,8 @@ def environment(monkeypatch):
         return state["enabled"]
     async def adopted(*args, **kwargs):
         return state["adopted"]
+    async def privacy_matches(*args, **kwargs):
+        return kwargs["privacy_epoch"] == 0
     async def enqueue(*args, **kwargs):
         state["enqueued"].append(kwargs)
         return uuid.uuid4()
@@ -80,31 +81,40 @@ def environment(monkeypatch):
     async def clear_pressure(*args, **kwargs):
         state.setdefault("cleared_pressure", []).append(kwargs)
         return True
+    async def resume_pressure(*args, **kwargs):
+        state.setdefault("resumed_pressure", []).append(kwargs)
+        return True
     async def model(*args, **kwargs):
         state["models"] += 1
-        return "", context_retention.empty_state(), SimpleNamespace(billable=12)
+        return "", {**context_retention.empty_state(), "sequence": 1}, SimpleNamespace(billable=12)
+    async def archive(session, job, payload):
+        state.setdefault("archived", []).append(payload)
+        return True
     for owner, name, value in [
         (checkpoint_jobs.config_store, "get_config_values", config),
         (checkpoint_repo, "load_latest", latest), (checkpoint_repo, "load_user_state", profile),
         (checkpoint_repo, "read_memory_generation", generation), (checkpoint_repo, "count", count),
         (checkpoint_repo, "load_range", sources), (checkpoint_repo, "insert", insert),
         (checkpoint_repo, "clear_completed_pressure", clear_pressure),
+        (checkpoint_repo, "reserve_remaining_pressure", resume_pressure),
         (context_retention, "processing_complete", complete), (jobs, "enqueue", enqueue),
         (context_retention, "enabled_now", enabled),
         (context_retention, "adopted_user", adopted),
+        (context_retention, "privacy_epoch_matches", privacy_matches),
         (context_retention, "enqueue_contract_processing", contract_dependency),
         (checkpoint, "summarize_progress", model),
+        (checkpoint_jobs, "_store_completed_parent", archive),
     ]:
         monkeypatch.setattr(owner, name, value)
     return state, session
 
 
-async def test_dependency_wait_does_not_call_summary_model(environment):
+async def test_dependencies_do_not_block_unpublished_summary_model(environment):
     state, session = environment
     state["complete"] = False
-    with pytest.raises(JobDeferred, match="source_processing_pending"):
-        await checkpoint_jobs.handle_checkpoint(make_job(state["messages"]))
-    assert state["models"] == 0 and not state["inserts"]
+    result = await checkpoint_jobs.handle_checkpoint(make_job(state["messages"]))
+    assert result.result_code == "checkpoint_draft_ready"
+    assert state["models"] == 1 and not state["inserts"]
     assert state["enqueued"][0]["job_type"] == "contract_compile"
     assert session.commits == 1
 
@@ -113,9 +123,13 @@ async def test_policy_only_range_does_not_call_model(environment):
     state, session = environment
     state["messages"] = [checkpoint.SourceMessage(1, "user", "safety", "synthetic safety"),
                          checkpoint.SourceMessage(2, "moly", "safety", "synthetic fixed")]
-    result = await checkpoint_jobs.handle_checkpoint(make_job(state["messages"]))
+    original = make_job(state["messages"])
+    result = await checkpoint_jobs.handle_checkpoint(original)
     await result.apply_domain(session)
     assert state["models"] == 0 and result.result_detail["billable"] == 0
+    publish = replace(original, payload=state["enqueued"][-1]["payload"])
+    result = await checkpoint_jobs.handle_checkpoint(publish)
+    await result.apply_domain(session)
     assert state["inserts"][0]["validation_json"]["policy_excluded_ids"] == [1, 2]
     assert state["cleared_pressure"][0]["through_id"] == 2
 
@@ -156,9 +170,12 @@ async def test_first_checkpoint_cannot_publish_after_ready_user_removal(environm
 
 async def test_progress_continuation_is_fenced_and_never_published(environment, monkeypatch):
     state, session = environment
+    state["messages"] = [checkpoint.SourceMessage(1, "user", "normal", "hello"+"x"*4_000)]
+    expected_manifest = checkpoint._progress_manifest(checkpoint.progress_batches(state["messages"],
+        previous=None, language="en"), previous=None, language="en")
     class Continuation(Exception):
         state = context_retention.empty_state()
-        next_chunk, manifest, billable = 1, "plan-hash", 17
+        next_chunk, manifest, billable = 1, expected_manifest, 17
     async def model(*args, **kwargs):
         assert kwargs["max_batches"] == 1
         raise Continuation()
@@ -175,7 +192,7 @@ async def test_progress_continuation_is_fenced_and_never_published(environment, 
     assert payload["source_hash"] == original.payload["source_hash"]
     assert payload["reason"] == "input_pressure"
     assert payload["source_message_ids"] == original.payload["source_message_ids"]
-    assert payload["progress_next_chunk"] == 1 and payload["progress_manifest"] == "plan-hash"
+    assert payload["progress_next_chunk"] == 1 and payload["progress_manifest"] == expected_manifest
 
 
 async def test_progress_continuation_cannot_schedule_after_toggle_off(environment, monkeypatch):
@@ -218,6 +235,9 @@ async def test_real_split_plan_runs_each_utf8_segment_once_before_final_publish(
             assert not state.get("cleared_pressure")
             job = replace(job, payload=state["enqueued"][-1]["payload"])
     assert "".join(consumed) == text and len(consumed) == len(segments)
+    assert not state["inserts"]
+    publish = await checkpoint_jobs.handle_checkpoint(replace(job, payload=state["enqueued"][-1]["payload"]))
+    await publish.apply_domain(session)
     assert len(state["inserts"]) == 1 and state["inserts"][0]["state_json"]["sequence"] == 1
     assert len(state["cleared_pressure"]) == 1
 

@@ -1,5 +1,6 @@
 """추가 발화 없이 후속 요약을 예약한다. 잡 확정과 사용자 예약의 잠금을 분리한다."""
 from datetime import datetime, timezone
+from dataclasses import replace
 from types import SimpleNamespace
 import uuid
 
@@ -117,6 +118,8 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
 
     async def cohort(*args, **kwargs):
         return adopted
+    async def epoch(*args, **kwargs):
+        return kwargs.get("privacy_epoch") == 0
 
     async def resume_enqueue(session, **kwargs):
         calls.append(("resume_enqueue", kwargs))
@@ -139,6 +142,7 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
     monkeypatch.setattr(sweep.jobs, "replay_dead", replay)
     monkeypatch.setattr(sweep.jobs, "enqueue", resume_enqueue)
     monkeypatch.setattr(sweep.context_retention, "adopted_user", cohort)
+    monkeypatch.setattr(sweep.context_retention, "privacy_epoch_matches", epoch)
     monkeypatch.setattr(sweep, "_read_resume_cursor", cursor_read)
     monkeypatch.setattr(sweep, "_advance_resume_cursor", cursor_advance)
     return SimpleNamespace(uid=uid, events=events, calls=calls, counts=counts, previous=checkpoint_value)
@@ -282,6 +286,7 @@ def resume_plan(old=None):
     history = [message(27), message(37, "moly", "safety"), message(41), message(55, "moly")]
     plan = checkpoint.plan(history, previous=old, keep_from_message_id=41,
         memory_generation=7, reset_triggered=True, version=checkpoint.RETENTION_SUMMARIZER_VERSION)
+    plan = replace(plan, privacy_epoch=0)
     return old, history, plan
 
 
@@ -458,3 +463,42 @@ def test_discovery_uses_real_source_size_and_privacy_not_dead_row_count():
     assert "'conversation-checkpoint-summary-v5'" in sql
     assert "interval '60 seconds'" in sql and "LIMIT :limit" in sql
     assert "state='dead'" not in sql
+
+
+async def test_completed_publish_draft_resumes_verbatim_with_remaining_budget_without_model_reentry(monkeypatch):
+    old, history, plan = resume_plan()
+    terminal_id = uuid.uuid4()
+    payload = {**plan.payload(), "mode": "publish_retention",
+               "completed_state": context_retention.empty_state(),
+               "completed_proof": {"next_chunk": 3, "total_chunks": 3},
+               "completed_binding": "a"*64}
+    pressure_plan = replace(plan, reason="input_pressure")
+    setup = install(monkeypatch, checkpoint_value=old, messages=history,
+        terminal=(terminal_id, payload, 3, 2))
+    session = sweep.get_sessionmaker()()
+    made = await sweep._resume_unpublished_success(session,
+        user_id=setup.uid, generation=7, plan=pressure_plan, previous=old)
+    assert made is not None
+    queued = next(value for name, value in setup.calls if name == "resume_enqueue")
+    assert queued["payload"] == payload  # reason is part of the completed binding
+    assert queued["max_attempts"] == 2
+    assert queued["payload"]["mode"] == "publish_retention"
+
+
+async def test_unbound_completed_draft_never_acquires_a_fresh_epoch(monkeypatch):
+    old, history, plan = resume_plan()
+    payload = {**plan.payload(), "mode": "publish_retention", "privacy_epoch": 9}
+    setup = install(monkeypatch, checkpoint_value=old, messages=history, terminal=(uuid.uuid4(), payload))
+    session = sweep.get_sessionmaker()()
+    assert await sweep._resume_unpublished_success(session,
+        user_id=setup.uid, generation=7, plan=plan, previous=old) is None
+    assert not any(name == "resume_enqueue" for name, _ in setup.calls)
+    assert payload["privacy_epoch"] == 9
+
+
+def test_completed_draft_selector_precedes_model_pages_and_only_accepts_materialized_draft_ready():
+    sql = str(sweep._RETENTION_UNPUBLISHED_SUCCESS)
+    assert "IN ('normal','publish_retention')" in sql
+    assert "ORDER BY (j.payload->>'mode'='publish_retention') DESC" in sql
+    assert "j.result_code='checkpoint_draft_ready' AND j.payload->>'mode'='publish_retention'" in sql
+    assert "failed.payload->>'mode','normal') IN ('normal','publish_retention')" in sql

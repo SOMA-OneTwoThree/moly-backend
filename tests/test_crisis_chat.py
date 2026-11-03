@@ -60,7 +60,7 @@ async def test_reask_is_fixed_without_calling_a_generation_model():
         decision=decide(), draft=draft, reask=reask, language="en", nickname=None,
         deadline=time.monotonic() + 1,
     )
-    assert result.result.text == "What happened?"
+    assert result.result.text == "Can you tell me a little more about what you mean?"
     assert result.result.finish_reason == "stop"
 
 

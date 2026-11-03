@@ -424,10 +424,13 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
     uid = job.user_id
     payload = job.payload or {}
     generation = payload.get("memory_generation")
+    privacy_epoch = payload.get("privacy_epoch")
     target = payload.get("through_message_id")
     if type(generation) is not int or generation < 0 or type(target) is not int or target <= 0:
         raise JobFatal("invalid_contract_retention_payload")
     async with get_sessionmaker()() as session:
+        if not await context_retention.privacy_epoch_matches(session, user_id=uid, privacy_epoch=privacy_epoch):
+            raise JobCancelled("contract_privacy_epoch_changed")
         if not await context_retention.enabled_now(session):
             raise JobCancelled("contract_retention_disabled")
         if not await context_retention.adopted_user(session, user_id=uid):
@@ -465,6 +468,9 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
     except cc.CompilerRejection as exc:
         raise JobRetry("contract_background_budget") from exc
     selected = list(batch.messages)
+    async with get_sessionmaker()() as session:
+        if not await context_retention.privacy_epoch_matches(session, user_id=uid, privacy_epoch=privacy_epoch):
+            raise JobCancelled("contract_privacy_epoch_changed")
     partial = batch.next_offset > 0
     if partial:
         boundary = cursor
@@ -515,6 +521,9 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         raise JobRetry("contract_retention_budget")
 
     async def _apply(session) -> None:
+        if not await context_retention.privacy_epoch_matches(session, user_id=uid,
+                privacy_epoch=privacy_epoch, lock=True):
+            return
         if not await context_retention.enabled_now(session, lock=True):
             return
         if not await context_retention.adopted_user(session, user_id=uid, lock=True):
@@ -525,10 +534,10 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
 
         async def restart_current() -> None:
             from app.services import jobs
-            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT, job_type=JOB_CONTRACT_COMPILE,
+            await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
                 user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{int(fresh[2])}:{target}:after:{job.id}",
                 payload={"retention_enabled": True, "memory_generation": generation,
-                         "through_message_id": target})
+                         "through_message_id": target, "privacy_epoch": privacy_epoch}, max_attempts=3)
 
         if tuple(fresh) != tuple(base):
             # 다른 정상 작업이 앞 구간을 처리했어도 남은 목표를 새 커서에서 이어 간다.
@@ -556,9 +565,9 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             next_payload = {**payload, "partial_message_id": first.id, "partial_offset": batch.next_offset,
                 "partial_source_hash": source_hash, "partial_items": merged, "partial_drafts": draft_items,
                 "partial_document_hash": previous_hash}
-            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT, job_type=JOB_CONTRACT_COMPILE,
+            await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
                 user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{cursor}:{target}:source:{first.id}:{source_hash}:{previous_hash}:{batch.next_offset}",
-                payload=next_payload)
+                payload=next_payload, max_attempts=3)
             return  # 원문 전체를 읽기 전 커서 전진·중간 선호 발행을 하지 않는다.
         for items, text_render, publish in ((merged, rendered, True),
                 (draft_items, "", False)):
@@ -590,9 +599,9 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         if boundary < target:
             from app.services import jobs
             next_payload = {key: value for key, value in payload.items() if not key.startswith("partial_")}
-            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT, job_type=JOB_CONTRACT_COMPILE,
+            await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
                 user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{boundary}:{target}",
-                payload={**next_payload, "after_message_id": boundary})
+                payload={**next_payload, "after_message_id": boundary}, max_attempts=3)
     return JobResult(result_code="ok", result_detail={"kept": len(ordinary), "draft": len(drafts),
         "through": boundary}, apply_domain=_apply)
 

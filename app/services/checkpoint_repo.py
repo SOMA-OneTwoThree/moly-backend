@@ -17,6 +17,7 @@ import hashlib
 import uuid
 from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
+from dataclasses import dataclass
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -286,6 +287,7 @@ async def maybe_enqueue(
     reset_triggered: bool = False,
     temporal_enabled: bool = False,
     retention_enabled: bool | None = None,
+    pressure_through_message_id: int | None = None,
 ) -> uuid.UUID | None:
     """세그먼트가 트리거에 닿았으면 요약 잡을 건다. 아니면(또는 킬스위치 off면) None.
 
@@ -304,7 +306,8 @@ async def maybe_enqueue(
         return None
     if enabled:
         return await _maybe_enqueue_retention(session, user_id=user_id, messages=messages,
-            keep_from_message_id=keep_from_message_id, reset_triggered=reset_triggered)
+            keep_from_message_id=keep_from_message_id, reset_triggered=reset_triggered,
+            pressure_through_message_id=pressure_through_message_id)
     if not messages or (not reset_triggered and not checkpoint.should_checkpoint(
         messages, retention_enabled=enabled,
     )):
@@ -333,7 +336,7 @@ async def maybe_enqueue(
 
 
 _RETENTION_PENDING = text("""
-SELECT j.id,j.state,j.attempt,j.created_at,j.payload
+SELECT j.id,j.state,j.attempt,j.created_at,j.payload,cc.retention_pressure_through_message_id
 FROM async_jobs j JOIN chat_contexts cc ON cc.user_id=j.user_id
 WHERE j.user_id=:user_id AND j.job_type='conversation_checkpoint'
   AND j.state IN ('ready','running')
@@ -361,10 +364,12 @@ WHERE user_id=:user_id
 
 async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
     messages: Sequence[checkpoint.SourceMessage], keep_from_message_id, reset_triggered: bool,
+    pressure_through_message_id: int | None = None,
 ) -> uuid.UUID | None:
     if not messages:
         return None
-    if not reset_triggered and not checkpoint.should_checkpoint(messages, retention_enabled=True):
+    pressure = pressure_through_message_id is not None
+    if not pressure and not reset_triggered and not checkpoint.should_checkpoint(messages, retention_enabled=True):
         return None
     # 모델 호출 없는 예약 트랜잭션에서만 사용자 처리 권한을 잡는다.
     await advisory_xact_lock(session, user_id)
@@ -372,15 +377,19 @@ async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
     generation = await read_memory_generation(session, user_id)
     plan = checkpoint.plan(messages, previous=previous, keep_from_message_id=keep_from_message_id,
         memory_generation=generation, reset_triggered=reset_triggered,
-        version=checkpoint.RETENTION_SUMMARIZER_VERSION)
+        version=checkpoint.RETENTION_SUMMARIZER_VERSION,
+        through_message_id=pressure_through_message_id,
+        reason="input_pressure" if pressure else None)
     if plan is None:
         return None
-    if keep_from_message_id is not None:
+    if keep_from_message_id is not None and not pressure:
         await session.execute(_SAVE_RETENTION_TARGET, {"user_id": user_id, "keep_from": keep_from_message_id})
     pending = (await session.execute(_RETENTION_PENDING, {"user_id": user_id})).first()
     if pending is not None:
         payload = pending[4] if isinstance(pending[4], dict) else json.loads(pending[4])
-        if (payload.get("mode") != "reverify" and "progress_state" not in payload
+        if (not pressure and (len(pending)<6 or pending[5] is None)
+                and payload.get("reason") != "input_pressure"
+                and payload.get("mode") != "reverify" and "progress_state" not in payload
                 and pending[1] == "ready" and int(pending[2]) == 0
                 and plan.through_message_id > int(payload.get("through_message_id", 0))):
             wire = json.dumps(plan.payload(), sort_keys=True, separators=(",", ":"))
@@ -391,6 +400,127 @@ async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
             })).first()
             return merged[0] if merged else None
         return None
-    if await session.scalar(_RETENTION_COOLDOWN, {"user_id": user_id}):
+    if not pressure and await session.scalar(_RETENTION_COOLDOWN, {"user_id": user_id}):
         return None
-    return await enqueue_checkpoint(session, user_id=user_id, plan=plan, delay_s=5)
+    return await enqueue_checkpoint(session, user_id=user_id, plan=plan, delay_s=0 if pressure else 5)
+
+
+@dataclass(frozen=True, slots=True)
+class PressureReservation:
+    status: str
+    through_message_id: int | None = None
+    job_id: uuid.UUID | None = None
+
+
+_PRESSURE_BOUNDARY = text("""
+SELECT m.id FROM messages m JOIN chat_contexts cc ON cc.user_id=m.user_id
+WHERE m.user_id=:user_id AND cc.memory_generation=:generation
+  AND m.sender='moly' AND m.turn_position=2 AND m.turn_seq IS NOT NULL
+  AND ((CAST(:through_id AS bigint) IS NULL AND m.turn_seq<=cc.last_committed_turn_seq)
+       OR (m.id=CAST(:through_id AS bigint) AND m.turn_seq<=cc.last_committed_turn_seq+1))
+  AND EXISTS (SELECT 1 FROM messages u WHERE u.user_id=m.user_id AND u.turn_seq=m.turn_seq
+              AND u.sender='user' AND u.turn_position=1 AND u.id<m.id)
+ORDER BY m.id DESC LIMIT 1
+""")
+_SET_PRESSURE = text("""
+UPDATE chat_contexts cc
+SET retention_pressure_through_message_id=GREATEST(
+    COALESCE(cc.retention_pressure_through_message_id,0),:through_id)
+WHERE cc.user_id=:user_id AND cc.memory_generation=:generation
+  AND NOT EXISTS (SELECT 1 FROM privacy_subject_barriers b
+                  WHERE b.user_id=cc.user_id AND b.state<>'active')
+RETURNING retention_pressure_through_message_id
+""")
+_CLEAR_PRESSURE = text("""
+WITH completed AS (
+SELECT cc.user_id FROM chat_contexts cc
+WHERE cc.user_id=:user_id AND cc.memory_generation=:generation
+  AND cc.retention_pressure_through_message_id<=:through_id
+  AND EXISTS (SELECT 1 FROM conversation_checkpoints c WHERE c.user_id=cc.user_id
+    AND c.memory_generation=cc.memory_generation AND c.publish_state='published'
+    AND c.version='conversation-checkpoint-summary-v5'
+    AND c.through_message_id>=cc.retention_pressure_through_message_id
+    AND c.validation_json->'processing_complete'='true'::jsonb)
+FOR UPDATE OF cc SKIP LOCKED
+)
+UPDATE chat_contexts cc SET retention_pressure_through_message_id=NULL
+FROM completed WHERE cc.user_id=completed.user_id
+RETURNING cc.user_id
+""")
+
+
+async def clear_completed_pressure(session: AsyncSession, *, user_id, generation: int,
+                                   through_id: int) -> bool:
+    """검증된 게시만 해제한다. 바쁜 사용자 행은 기다리지 않고 sweep에 맡긴다.
+
+    worker finalize는 이미 job 행을 잡고 있다. cc 잠금을 기다리면 채팅의 cc→job
+    순서와 교착할 수 있으므로 잠기지 않은 행만 해제한다.
+    """
+    return (await session.execute(_CLEAR_PRESSURE, {
+        "user_id": user_id, "generation": generation, "through_id": through_id,
+    })).first() is not None
+
+
+async def load_pressure_sources(session: AsyncSession, user_id, *, after_id: int,
+                                through_id: int) -> list[checkpoint.SourceMessage]:
+    """고정 목표의 연속 앞부분을 읽는다. 마지막 완결 답변까지만 한 작업에 포함한다."""
+    sources = []
+    cursor = after_id
+    for _ in range(8):
+        page = await load_range(session, user_id, after_id=cursor, through_id=through_id,
+                                max_rows=120, include_excluded=True)
+        if not page:
+            break
+        if any(m.id<=cursor or m.id>through_id for m in page) or any(
+                a.id>=b.id for a,b in zip(page,page[1:])):
+            raise checkpoint.CheckpointError("pressure_source_order")
+        sources.extend(page)
+        cursor = page[-1].id
+        if cursor>=through_id or len(page)<120 or sum(len(m.content.encode())+24 for m in sources)>=12_288:
+            break
+    completed = [index for index, source in enumerate(sources) if source.sender == "moly"]
+    return sources[:completed[-1]+1] if completed else []
+
+
+async def request_pressure(session: AsyncSession, *, user_id, generation: int,
+                           through_id: int | None = None) -> PressureReservation:
+    """커밋하지 않는다. 호출측이 lease/privacy를 재검증하고 사용자 잠금을 먼저 잡는다.
+
+    명시 경계는 같은 커밋에 저장할 양쪽 메시지 flush 이후에만 전달한다.
+    일반 요청 실패에서는 경계를 생략하여 이전 커밋 완료 대화만 처리한다.
+    """
+    from app.services import context_retention
+    if type(generation) is not int or generation<0 or (
+            through_id is not None and (type(through_id) is not int or through_id<=0)):
+        raise ValueError("pressure_boundary")
+    if not await context_retention.enabled_now(session, lock=True):
+        return PressureReservation("disabled")
+    if not await context_retention.adopted_user(session, user_id=user_id, lock=True):
+        return PressureReservation("not_adopted")
+    boundary = await session.scalar(_PRESSURE_BOUNDARY, {
+        "user_id": user_id, "generation": generation, "through_id": through_id,
+    })
+    if boundary is None:
+        return PressureReservation("no_source")
+    previous = await load_latest(session, user_id, retention_enabled=True)
+    if previous is not None and previous.through_message_id>=int(boundary):
+        if await context_retention.processing_complete(session, user_id=user_id,
+                generation=generation, through_id=previous.through_message_id):
+            await clear_completed_pressure(session, user_id=user_id, generation=generation,
+                                           through_id=previous.through_message_id)
+        return PressureReservation("covered", int(boundary))
+    target = await session.scalar(_SET_PRESSURE, {
+        "user_id": user_id, "generation": generation, "through_id": int(boundary),
+    })
+    if target is None:
+        return PressureReservation("stale_generation")
+    # 실행 중 원본 payload와 준비 중인 normal 계획도 변경하지 않는다.
+    if (await session.execute(_RETENTION_PENDING, {"user_id": user_id})).first() is not None:
+        return PressureReservation("pending", int(target))
+    sources = await load_pressure_sources(session, user_id,
+        after_id=previous.through_message_id if previous else 0, through_id=int(target))
+    if not sources:
+        return PressureReservation("pending", int(target))
+    made = await maybe_enqueue(session, user_id=user_id, messages=sources,
+        retention_enabled=True, pressure_through_message_id=sources[-1].id)
+    return PressureReservation("queued" if made else "pending", int(target), made)

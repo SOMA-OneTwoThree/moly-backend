@@ -77,6 +77,9 @@ def environment(monkeypatch):
     async def insert(*args, **kwargs):
         state["inserts"].append(kwargs)
         return uuid.uuid4()
+    async def clear_pressure(*args, **kwargs):
+        state.setdefault("cleared_pressure", []).append(kwargs)
+        return True
     async def model(*args, **kwargs):
         state["models"] += 1
         return "", context_retention.empty_state(), SimpleNamespace(billable=12)
@@ -85,6 +88,7 @@ def environment(monkeypatch):
         (checkpoint_repo, "load_latest", latest), (checkpoint_repo, "load_user_state", profile),
         (checkpoint_repo, "read_memory_generation", generation), (checkpoint_repo, "count", count),
         (checkpoint_repo, "load_range", sources), (checkpoint_repo, "insert", insert),
+        (checkpoint_repo, "clear_completed_pressure", clear_pressure),
         (context_retention, "processing_complete", complete), (jobs, "enqueue", enqueue),
         (context_retention, "enabled_now", enabled),
         (context_retention, "adopted_user", adopted),
@@ -113,6 +117,7 @@ async def test_policy_only_range_does_not_call_model(environment):
     await result.apply_domain(session)
     assert state["models"] == 0 and result.result_detail["billable"] == 0
     assert state["inserts"][0]["validation_json"]["policy_excluded_ids"] == [1, 2]
+    assert state["cleared_pressure"][0]["through_id"] == 2
 
 
 async def test_source_change_after_model_cannot_publish(environment):
@@ -121,6 +126,7 @@ async def test_source_change_after_model_cannot_publish(environment):
     state["messages"] = [replace(state["messages"][0], content="changed")]
     await result.apply_domain(session)
     assert state["models"] == 1 and state["inserts"] == []
+    assert not state.get("cleared_pressure")
 
 
 async def test_dependency_change_after_model_cannot_publish(environment):
@@ -137,6 +143,7 @@ async def test_disabled_during_model_cannot_publish_or_advance(environment):
     state["enabled"] = False
     await result.apply_domain(session)
     assert state["models"] == 1 and state["inserts"] == [] and state["enqueued"] == []
+    assert not state.get("cleared_pressure")
 
 
 async def test_first_checkpoint_cannot_publish_after_ready_user_removal(environment):
@@ -158,12 +165,15 @@ async def test_progress_continuation_is_fenced_and_never_published(environment, 
     monkeypatch.setattr(checkpoint, "ProgressContinuation", Continuation, raising=False)
     monkeypatch.setattr(checkpoint, "summarize_progress", model)
     original = make_job(state["messages"])
+    original = replace(original, payload={**original.payload, "reason": "input_pressure"})
     result = await checkpoint_jobs.handle_checkpoint(original)
     assert result.result_code == "checkpoint_progress_page" and result.result_detail["billable"] == 17
     await result.apply_domain(session)
     assert not state["inserts"] and len(state["enqueued"]) == 1
+    assert not state.get("cleared_pressure")
     payload = state["enqueued"][0]["payload"]
     assert payload["source_hash"] == original.payload["source_hash"]
+    assert payload["reason"] == "input_pressure"
     assert payload["source_message_ids"] == original.payload["source_message_ids"]
     assert payload["progress_next_chunk"] == 1 and payload["progress_manifest"] == "plan-hash"
 
@@ -205,9 +215,11 @@ async def test_real_split_plan_runs_each_utf8_segment_once_before_final_publish(
         await result.apply_domain(session)
         if index + 1 < len(segments):
             assert not state["inserts"]
+            assert not state.get("cleared_pressure")
             job = replace(job, payload=state["enqueued"][-1]["payload"])
     assert "".join(consumed) == text and len(consumed) == len(segments)
     assert len(state["inserts"]) == 1 and state["inserts"][0]["state_json"]["sequence"] == 1
+    assert len(state["cleared_pressure"]) == 1
 
 
 async def test_reverify_reads_more_than_four_hundred_messages_in_pages(environment):

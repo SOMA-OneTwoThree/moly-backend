@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import logging
 import math
 import time
@@ -39,7 +39,7 @@ async def drain_cost_tasks(timeout_s: float = 1.0) -> None:
             await asyncio.gather(*pending, return_exceptions=True)
 
 CONFIG_KEYS = (
-    "crisis_guard_enabled", "crisis_guard_timeout_s", "crisis_guard_threshold",
+    "crisis_guard_enabled", "crisis_guard_policy_version", "crisis_guard_timeout_s",
     "crisis_guard_history_messages", "crisis_guard_ready_users",
 )
 
@@ -48,8 +48,8 @@ CONFIG_KEYS = (
 class GuardConfig:
     enabled: bool = False
     timeout_s: float = 2.0
-    threshold: float = 0.4
     history_messages: int = 6
+    policy_version: str = ""
 
 
 def effective_config(raw: Mapping) -> GuardConfig:
@@ -60,15 +60,14 @@ def effective_config(raw: Mapping) -> GuardConfig:
         value = float(value)
         return value if math.isfinite(value) and low <= value <= high else default
 
-    enabled = raw.get("crisis_guard_enabled", settings.crisis_guard_enabled) is True
-    history = raw.get("crisis_guard_history_messages", settings.crisis_guard_history_messages)
-    if isinstance(history, bool) or not isinstance(history, int) or not 1 <= history <= 50:
-        history = 6
+    policy_version = raw.get("crisis_guard_policy_version", settings.crisis_guard_policy_version)
+    enabled = (raw.get("crisis_guard_enabled", settings.crisis_guard_enabled) is True
+               and policy_version == crisis_guard.QUESTION_VERSION)
     return GuardConfig(
         enabled=enabled,
         timeout_s=bounded("crisis_guard_timeout_s", 2.0, 0.01, 2.0),
-        threshold=bounded("crisis_guard_threshold", 0.4, 0.0, 1.0),
-        history_messages=history,
+        history_messages=6,
+        policy_version=policy_version if isinstance(policy_version, str) else "",
     )
 
 
@@ -94,7 +93,7 @@ async def recorded_decision(
     # The opening request survives a fast classification; the cost finalizer waits
     # for its actual id rather than dropping known usage on an arbitrary DB timeout.
     opened = asyncio.create_task(usage_ledger.open_call(
-        usage_ledger.with_purpose(ledger, "crisis_decision"),
+        replace(usage_ledger.with_purpose(ledger, "crisis_decision"), prompt_version=crisis_guard.QUESTION_VERSION),
         provider="openai", model=crisis_guard.MODEL,
     ))
 
@@ -117,7 +116,7 @@ async def recorded_decision(
     try:
         decision = await crisis_guard.decide(
             text, recent, api_key=settings.openai_api_key, deadline=check_deadline,
-            timeout_s=config.timeout_s, threshold=config.threshold,
+            timeout_s=config.timeout_s,
             history_limit=config.history_messages,
         )
     except BaseException:
@@ -125,8 +124,8 @@ async def recorded_decision(
         raise
     _finish_cost(finalize(decision))
     _log.info(
-        "crisis_guard route=%s status=%s followup=%s latency_ms=%d",
-        decision.route, decision.status, decision.followup, round(decision.latency_ms),
+        "crisis_guard route=%s status=%s followup=%s method_status=%s latency_ms=%d",
+        decision.route, decision.status, decision.followup, decision.method_status, round(decision.latency_ms),
     )
     return decision
 
@@ -147,9 +146,10 @@ class GuardedReply:
 async def generate(
     *, decision: Awaitable[crisis_guard.DecisionResult],
     draft: Callable[[Callable[[], Awaitable[bool]]], Awaitable[Draft]],
-    reask: Callable[[], Awaitable[llm.LLMResult]],
+    reask: Callable[[], Awaitable[llm.LLMResult]] | None = None,
     language: str, nickname: str | None, deadline: float,
     normal_error: Exception | None = None,
+    normal_requires_recall: bool = False,
 ) -> GuardedReply:
     """도구는 판정 뒤에만, 초안은 동시에. 취소·실패 때 고아 태스크를 남기지 않는다."""
     decision_task = asyncio.ensure_future(decision)
@@ -160,24 +160,28 @@ async def generate(
             raise normal_error
         return verdict.route == "normal"
 
-    draft_task = asyncio.create_task(draft(before_tools))
+    # Existing automatic recall remains automatic, but runs only after a normal
+    # verdict. Other drafts may speculate; neither path generates a recheck.
+    draft_task = None if normal_requires_recall else asyncio.create_task(draft(before_tools))
     try:
         verdict = await asyncio.shield(decision_task)
         if verdict.route == "normal":
             if normal_error is not None:
                 raise normal_error
+            if draft_task is None:
+                draft_task = asyncio.create_task(draft(before_tools))
             result, agent = await draft_task
             return GuardedReply(result, agent, verdict)
 
         discarded_result = None
         discarded_agent = None
-        if draft_task.done() and not draft_task.cancelled():
+        if draft_task is not None and draft_task.done() and not draft_task.cancelled():
             try:
                 discarded_result, discarded_agent = draft_task.result()
             except Exception:
                 # A failed speculative model call cannot prevent a fixed safety reply.
                 pass
-        else:
+        elif draft_task is not None:
             draft_task.cancel()
             await asyncio.gather(draft_task, return_exceptions=True)
 
@@ -185,24 +189,13 @@ async def generate(
             text = crisis_guard.fixed_reply(language, nickname)
             result = llm.LLMResult(text, 0, 0, model=settings.model_chat, finish_reason="stop")
         else:
-            result = None
-            try:
-                remaining = deadline - time.monotonic()
-                if remaining > 0.05:
-                    async with asyncio.timeout(remaining):
-                        result = await reask()
-                        llm.require_completed_text(result.text, result.finish_reason)
-            except Exception:
-                # Incomplete text must not survive as a valid generated recheck.
-                result = None
-            if result is None:
-                result = llm.LLMResult("", 0, 0, model=settings.model_chat, finish_reason="stop")
-            result.text = crisis_guard.checked_reask(
-                result.text, language, method_request=verdict.method_request,
+            text = crisis_guard.reask_fallback(
+                language, method_request=verdict.method_request, case=verdict.case,
             )
+            result = llm.LLMResult(text, 0, 0, model=settings.model_chat, finish_reason="stop")
         return GuardedReply(result, None, verdict, discarded_result, discarded_agent)
     finally:
         for task in (decision_task, draft_task):
-            if not task.done():
+            if task is not None and not task.done():
                 task.cancel()
-        await asyncio.gather(decision_task, draft_task, return_exceptions=True)
+        await asyncio.gather(*(task for task in (decision_task, draft_task) if task is not None), return_exceptions=True)

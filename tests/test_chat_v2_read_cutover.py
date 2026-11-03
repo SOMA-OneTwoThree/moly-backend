@@ -66,7 +66,7 @@ def test_v2_memory_is_not_in_the_cached_system_prefix():
 
 def test_v2_memory_goes_after_the_recent_turns():
     """11장이 정한 자리는 최근 원문 **뒤**다 — 그래야 앞의 append-only 대화가 캐시된다."""
-    tree = ast.parse(textwrap.dedent(inspect.getsource(chat.post_message)))
+    tree = ast.parse(textwrap.dedent(inspect.getsource(chat._post_message_impl)))
     insert = next(node for node in ast.walk(tree) if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Attribute) and node.func.attr == "insert"
         and isinstance(node.func.value, ast.Name) and node.func.value.id == "convo")
@@ -112,7 +112,7 @@ def test_recall_is_bounded_at_the_boundary_not_just_inside():
     (이전 버전의 이 테스트는 소스에 `timeout=`이 있는지만 봐서 이걸 못 잡았다.)
     """
     assert chat._MEM0_RECALL_TIMEOUT_S <= 3.0
-    src = inspect.getsource(chat.post_message)
+    src = inspect.getsource(chat._post_message_impl)
     assert "asyncio.wait_for(" in src, "회상 await에 상한이 없다"
     wf = src.index("asyncio.wait_for(")
     assert "recall_task" in src[wf:wf + 120], "wait_for가 회상 태스크를 감싸지 않는다"
@@ -137,7 +137,7 @@ async def test_recall_timeout_yields_empty_memory_not_an_error():
 
 def test_recall_is_started_early_and_awaited_after_commit():
     """기존 회상은 DB 작업과 겹치고 새 보존 경로는 원문 조립 성공·커밋 뒤 시작한다."""
-    tree = ast.parse(textwrap.dedent(inspect.getsource(chat.post_message)))
+    tree = ast.parse(textwrap.dedent(inspect.getsource(chat._post_message_impl)))
     assignments = sorted((node for node in ast.walk(tree) if isinstance(node, ast.Assign)
         and any(isinstance(target, ast.Name) and target.id == "recall_task" for target in node.targets)),
         key=lambda node: node.lineno)
@@ -154,8 +154,11 @@ def test_recall_is_started_early_and_awaited_after_commit():
         assert calls == ([] if enabled else [task])
         assert value is (None if enabled else task)
     calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)]
-    commit = min(node.lineno for node in calls if ast.unparse(node.func) == "session.commit")
     compose = next(node.lineno for node in calls if isinstance(node.func, ast.Name) and node.func.id == "_context")
+    # A guarded request commits its common lease before classification; this is
+    # the later normal-preparation commit that releases context read locks.
+    commit = min(node.lineno for node in calls if ast.unparse(node.func) == "session.commit"
+                 and node.lineno > compose)
     collect = next(node.lineno for node in calls if ast.unparse(node.func) == "asyncio.wait_for")
     assert early.lineno < compose < commit < late.lineno < collect
     branch = next(node for node in ast.walk(tree) if isinstance(node, ast.If) and late in node.body)
@@ -181,7 +184,7 @@ def test_nothing_raises_between_starting_and_awaiting_the_recall_task():
     import ast
     import textwrap
 
-    src = textwrap.dedent(inspect.getsource(chat.post_message))
+    src = textwrap.dedent(inspect.getsource(chat._post_message_impl))
     lines = src.splitlines()
     start = next(i for i, ln in enumerate(lines)
                  if "recall_task = asyncio.ensure_future" in ln) + 1
@@ -235,7 +238,7 @@ async def test_recall_trace_reaches_the_recall_itself(monkeypatch):
 
 def test_timeout_log_uses_the_trace_the_task_fills():
     """태스크에 준 dict와 로그에 넘기는 dict가 다르면 stages가 늘 빈 채로 찍힌다."""
-    tree = ast.parse(textwrap.dedent(inspect.getsource(chat.post_message)))
+    tree = ast.parse(textwrap.dedent(inspect.getsource(chat._post_message_impl)))
     closure = next(node for node in ast.walk(tree) if isinstance(node, ast.AsyncFunctionDef)
                    and node.name == "recall_memory")
     recall = next(node for node in ast.walk(closure) if isinstance(node, ast.Call)

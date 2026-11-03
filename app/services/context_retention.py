@@ -118,6 +118,20 @@ def assert_input_budget(system, messages, *, tools=(), input_limit: int = 16_384
     return bound
 
 
+def fits_input_budget(system, messages, *, tools=(), input_limit: int = 16_384,
+                      output_reserve: int = 1_024) -> bool:
+    """실제 전체 입력과 필수 입력만 남긴 입력을 같은 계산으로 비교한다.
+
+    호출측이 필수 블록을 명시한다. 역할 이름만 보고 중요 정보를 임의로 빼지 않는다.
+    """
+    try:
+        assert_input_budget(system, messages, tools=tools, input_limit=input_limit,
+                            output_reserve=output_reserve)
+    except RetentionError:
+        return False
+    return True
+
+
 def empty_state() -> dict[str, Any]:
     return {"schema_version": STATE_SCHEMA, "sequence": 0, "items": []}
 

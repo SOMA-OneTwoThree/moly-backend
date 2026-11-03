@@ -20,6 +20,7 @@ SCHEMA = Path(__file__).with_name('schema.sql')
 CONTRACT = Path(__file__).with_name('schema_contract.json')
 REVIEWED_DEV_SQL = Path(__file__).with_name('changes') / 'crisis_guardrails.sql'
 REVIEWED_SUBSCRIPTION_SQL = Path(__file__).with_name('changes') / 'subscription_refund_access.sql'
+REVIEWED_GUARD_CONTEXT_SQL = Path(__file__).with_name('changes') / 'guard_context_v2.sql'
 
 
 def _column(sql_type: str, *, not_null: bool = False, default: str | None = None) -> dict:
@@ -152,6 +153,92 @@ def reviewed_subscription_catalog_upgrade(baseline: dict) -> dict:
     return expected
 
 
+_PRESSURE_CHECK = 'CHECK (((retention_pressure_through_message_id IS NULL) OR (retention_pressure_through_message_id > 0)))'
+_PRESSURE_FUNCTIONS = {
+    'reset_retention_pressure_generation': (False, """BEGIN
+  IF NEW.memory_generation IS DISTINCT FROM OLD.memory_generation THEN
+    NEW.retention_pressure_through_message_id := NULL;
+  END IF;
+  RETURN NEW;
+END;
+"""),
+    'reset_retention_pressure_privacy': (True, """BEGIN
+  IF NEW.state <> 'active' OR (TG_OP = 'UPDATE' AND NEW.epoch IS DISTINCT FROM OLD.epoch) THEN
+    UPDATE public.chat_contexts SET retention_pressure_through_message_id = NULL
+    WHERE user_id = NEW.user_id AND retention_pressure_through_message_id IS NOT NULL;
+  END IF;
+  RETURN NEW;
+END;
+"""),
+}
+_PRESSURE_TRIGGERS = {
+    'public.chat_contexts.chat_contexts_retention_pressure_generation':
+        'CREATE TRIGGER chat_contexts_retention_pressure_generation BEFORE UPDATE OF memory_generation ON public.chat_contexts FOR EACH ROW EXECUTE FUNCTION public.reset_retention_pressure_generation()',
+    'public.privacy_subject_barriers.privacy_subject_barriers_retention_pressure':
+        'CREATE TRIGGER privacy_subject_barriers_retention_pressure AFTER INSERT OR UPDATE OF state, epoch ON public.privacy_subject_barriers FOR EACH ROW EXECUTE FUNCTION public.reset_retention_pressure_privacy()',
+}
+
+
+def reviewed_guard_context_schema_upgrade(baseline: str) -> str:
+    functions = ''.join(
+        f'-- FUNCTION: public.{name}()\nCREATE FUNCTION public.{name}() RETURNS trigger\n'
+        f"    LANGUAGE plpgsql{' SECURITY DEFINER' if secure else ''}\n    SET search_path TO ''\n"
+        f'    AS $function$\n{body}$function$;\n\n'
+        for name, (secure, body) in _PRESSURE_FUNCTIONS.items())
+    triggers = ''.join(
+        f"-- TRIGGER: {key.rsplit('.', 1)[0]} {key.rsplit('.', 1)[1]}\n{definition};\n\n"
+        for key, definition in _PRESSURE_TRIGGERS.items())
+    grants = ''.join(
+        f'-- ACL: public.FUNCTION {name}()\n'
+        f'REVOKE ALL ON FUNCTION public.{name}() FROM PUBLIC, anon, authenticated, service_role;\n\n'
+        for name in _PRESSURE_FUNCTIONS)
+    edits = (
+        ('    contract_generation bigint DEFAULT 0 NOT NULL,\n',
+         '    contract_generation bigint DEFAULT 0 NOT NULL,\n'
+         '    retention_pressure_through_message_id bigint,\n'
+         '    CONSTRAINT chat_contexts_retention_pressure_positive_check ' + _PRESSURE_CHECK + ',\n'),
+        ('-- FUNCTION: public.guard_normalized_memory_snapshot()\n', functions + '-- FUNCTION: public.guard_normalized_memory_snapshot()\n'),
+        ('-- TRIGGER: public.orders orders_set_updated_at\n', triggers + '-- TRIGGER: public.orders orders_set_updated_at\n'),
+        ('-- ACL: public.FUNCTION guard_normalized_memory_snapshot()\n', grants + '-- ACL: public.FUNCTION guard_normalized_memory_snapshot()\n'),
+    )
+    result = baseline
+    for old, new in edits:
+        if new in result:
+            if result.count(new) != 1:
+                raise ValueError('ambiguous guard context schema edit')
+            continue
+        if result.count(old) != 1:
+            raise ValueError('baseline does not match guard context release')
+        result = result.replace(old, new, 1)
+    return result
+
+
+def reviewed_guard_context_catalog_upgrade(baseline: dict) -> dict:
+    expected = deepcopy(baseline)
+    changes = {
+        'columns': {'public.chat_contexts.retention_pressure_through_message_id': _column('bigint')},
+        'constraints': {'public.chat_contexts.chat_contexts_retention_pressure_positive_check': _constraint(_PRESSURE_CHECK)},
+        'triggers': {key: {'definition': definition, 'enabled': 'O'}
+                     for key, definition in _PRESSURE_TRIGGERS.items()},
+        'functions': {f'public.{name}()': {
+            'definition': f'CREATE OR REPLACE FUNCTION public.{name}()\n RETURNS trigger\n'
+                f" LANGUAGE plpgsql\n{' SECURITY DEFINER' + chr(10) if secure else ''} SET search_path TO ''\n"
+                f'AS $function$\n{body}$function$\n',
+            'owner': baseline['tables']['public.chat_contexts']['owner'],
+        } for name, (secure, body) in _PRESSURE_FUNCTIONS.items()},
+    }
+    for section, entries in changes.items():
+        for key, definition in entries.items():
+            if key in expected[section] and expected[section][key] != definition:
+                raise ValueError('conflicting guard context release object')
+            expected[section][key] = definition
+    # New trigger helpers have no direct execution grant; preserve all existing ACLs.
+    for key in expected['function_grants']:
+        if any(key.startswith(f'public.{name}():') for name in _PRESSURE_FUNCTIONS):
+            raise ValueError('unexpected guard context function grant')
+    return expected
+
+
 def require_reviewed_dev(dsn: str, *, env: str, expected_project_ref: str) -> None:
     """Refuse prod, unknown hosts/refs, and URL connection overrides before connecting."""
     from db.envfile import DEV_PROJECT_REFS, project_ref
@@ -175,7 +262,8 @@ async def refresh_from_dev(
     """Read dev only; regenerate this release without adopting unrelated live drift."""
     require_reviewed_dev(dsn, env=env, expected_project_ref=expected_project_ref)
     subscription_release = reviewed_sql.resolve() == REVIEWED_SUBSCRIPTION_SQL.resolve()
-    if not subscription_release and reviewed_sql.resolve() != REVIEWED_DEV_SQL.resolve():
+    guard_context_release = reviewed_sql.resolve() == REVIEWED_GUARD_CONTEXT_SQL.resolve()
+    if not subscription_release and not guard_context_release and reviewed_sql.resolve() != REVIEWED_DEV_SQL.resolve():
         raise ValueError('only this release reviewed SQL is supported')
     sql_bytes = reviewed_sql.read_bytes()
     if (not re.fullmatch(r'[0-9a-f]{64}', expected_sha256)
@@ -187,10 +275,14 @@ async def refresh_from_dev(
     contract = json.loads(original_contract)
     if hashlib.sha256(original_baseline).hexdigest() != contract['schema_sha256']:
         raise ValueError('baseline schema does not match the existing generated contract')
-    upgraded_source = (reviewed_subscription_schema_upgrade if subscription_release else reviewed_schema_upgrade)(original_baseline.decode())
+    source_upgrade = (reviewed_guard_context_schema_upgrade if guard_context_release else
+                      reviewed_subscription_schema_upgrade if subscription_release else reviewed_schema_upgrade)
+    catalog_upgrade = (reviewed_guard_context_catalog_upgrade if guard_context_release else
+                       reviewed_subscription_catalog_upgrade if subscription_release else reviewed_catalog_upgrade)
+    upgraded_source = source_upgrade(original_baseline.decode())
     if upgraded_source.encode() != original_schema:
         raise ValueError('schema.sql contains changes outside the reviewed release')
-    expected = (reviewed_subscription_catalog_upgrade if subscription_release else reviewed_catalog_upgrade)(contract['catalog'])
+    expected = catalog_upgrade(contract['catalog'])
     conn = await asyncpg.connect(dsn, statement_cache_size=0, timeout=10, command_timeout=15)
     try:
         # read_catalog owns a repeatable-read, readonly transaction and only reads

@@ -34,7 +34,7 @@ def previous(through=13):
 
 def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, busy=False,
             stale=False, enabled=True, second_enabled=True, made=True, dead=None, fail_commit=False,
-            terminal=None, adopted=True):
+            terminal=None, adopted=True, pressure=None):
     uid = uuid.uuid4()
     history = messages or [message(27), message(37, "moly", "safety"), message(41), message(55, "moly")]
     checkpoint_value = checkpoint_value or previous()
@@ -65,7 +65,7 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
             if sql is sweep._RETENTION_CURRENT:
                 events.append((self.name, "current"))
                 assert params == {"user_id": uid, "generation": 7}
-                return Result([] if stale else [(7, pending, 2, 3, history[-1].id)])
+                return Result([] if stale else [(7, pending, 2, 3, history[-1].id, pressure)])
             if sql is sweep._CLEAR_RETENTION_TARGET:
                 events.append((self.name, "clear_target"))
                 assert params["generation"] == 7
@@ -122,6 +122,14 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
         calls.append(("resume_enqueue", kwargs))
         return uuid.uuid4()
 
+    async def cursor_read(session):
+        return None
+
+    async def cursor_advance(**kwargs):
+        # Cursor writes must run after the per-user session has released its lock.
+        assert events[-1] == ("user", "exit")
+        return True
+
     monkeypatch.setattr(settings, "context_checkpoint_enabled", True)
     monkeypatch.setattr(sweep, "get_sessionmaker", lambda: factory)
     monkeypatch.setattr(sweep, "_retention_enabled", flag)
@@ -131,6 +139,8 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
     monkeypatch.setattr(sweep.jobs, "replay_dead", replay)
     monkeypatch.setattr(sweep.jobs, "enqueue", resume_enqueue)
     monkeypatch.setattr(sweep.context_retention, "adopted_user", cohort)
+    monkeypatch.setattr(sweep, "_read_resume_cursor", cursor_read)
+    monkeypatch.setattr(sweep, "_advance_resume_cursor", cursor_advance)
     return SimpleNamespace(uid=uid, events=events, calls=calls, counts=counts, previous=checkpoint_value)
 
 
@@ -234,21 +244,30 @@ async def test_commit_failure_does_not_report_a_completed_reservation(monkeypatc
     assert any(name == "enqueue" for name, _kwargs in setup.calls)
 
 
-async def test_only_exact_current_dead_plan_is_replayed_without_mutating_old_job(monkeypatch):
+async def test_exact_current_dead_plan_is_blocked_without_a_new_attempt_budget(monkeypatch):
     dead = uuid.uuid4()
     setup = install(monkeypatch, made=False, dead=dead)
     result = await sweep._resume_retention_checkpoints()
-    assert result.replayed == 1 and result.enqueued == 0
+    assert result.replayed == result.enqueued == 0 and result.blocked == 1
     criteria = next(data for name, data in setup.calls if name == "dead")
     assert criteria["user_id"] == setup.uid and criteria["generation"] == 7
     assert criteria["through_id"] == 37
     assert criteria["previous_id"] == str(setup.previous.id)
     assert checkpoint.RETENTION_SUMMARIZER_VERSION in criteria["dedup_key"]
-    replay = next(data for name, data in setup.calls if name == "replay")
-    assert replay == {
-        "job_id": dead,
-        "operation_id": uuid.uuid5(sweep._REPLAY_NAMESPACE, f"checkpoint:{dead}"),
-    }
+    assert not any(name in {"replay", "unpublished", "resume_enqueue"}
+                   for name, _data in setup.calls)
+    assert ("user", "commit") in setup.events
+
+
+async def test_repeated_sweeps_do_not_create_new_jobs_or_reset_dead_attempts(monkeypatch):
+    dead = uuid.uuid4()
+    setup = install(monkeypatch, made=False, dead=dead)
+    for _ in range(4):
+        result = await sweep._resume_retention_checkpoints()
+        assert result.blocked == 1 and result.enqueued == result.replayed == 0
+    assert len([data for name, data in setup.calls if name == "dead"]) == 4
+    assert not any(name in {"replay", "unpublished", "resume_enqueue"}
+                   for name, _data in setup.calls)
 
 
 async def test_no_unresolved_dead_plan_means_no_replay(monkeypatch):

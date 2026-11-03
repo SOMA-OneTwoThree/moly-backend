@@ -76,6 +76,8 @@ def _generation_field(payload: dict) -> int:
 def _parse(job: ClaimedJob) -> _Request:
     """payload 검증 — 어기면 재시도해도 같으므로 즉시 dead."""
     payload = job.payload if isinstance(job.payload, dict) else {}
+    if payload.get("reason") not in {None, "input_pressure"}:
+        raise JobFatal("invalid_payload")
     if payload.get("schema_version") != checkpoint.SCHEMA_VERSION:
         raise JobFatal("unsupported_payload_schema")
     if job.user_id is None:
@@ -381,6 +383,9 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             }, "previous_id": previous.id if previous else None,
                 "coverage_from": req.source_message_ids[0]} if retention else {}),
         )
+        if retention and inserted_id is not None:
+            await checkpoint_repo.clear_completed_pressure(session, user_id=req.user_id,
+                generation=req.memory_generation, through_id=req.through_message_id)
         if retention and inserted_id is not None and index % every == 0:
             await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
                 job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,

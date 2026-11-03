@@ -984,7 +984,135 @@ async def _accumulate_tokens(
 
 
 # --- POST /chat/messages ---
+def _guard_source_proof(messages) -> tuple:
+    """Compare the exact short source window without persisting its contents."""
+    return tuple((m.message_id, m.role, m.kind, m.content) for m in messages)
+
+
+async def _guard_recent(session, uid, limit: int):
+    rows = (await session.execute(
+        select(Message).where(Message.user_id == uid)
+        .order_by(Message.id.desc()).limit(limit)
+        .execution_options(populate_existing=True)
+    )).scalars().all()
+    return [crisis_guard.GuardMessage(
+        "assistant" if m.sender == "moly" else "user",
+        m.content or "", kind=m.kind, message_id=m.id,
+    ) for m in reversed(rows)]
+
+
+async def _publish_fixed_guard(
+    session, *, uid, user_id, req, idempotency_key, request_digest, lease,
+    memory_generation, decision, recent, history_limit, language, nick,
+    ad, now, tokens_used_pre, limit, t0, phase1_ms,
+) -> PostMessageResponse:
+    """Fixed replies have no dependency on normal memory/summary/tool state.
+
+    Only the account/privacy, lease/generation, exact recent source window and
+    idempotency fences are shared. No enrichment or speculative task can roll
+    this transaction back, release its lease, or supply chargeable token calls.
+    """
+    await _lock_user(session, uid)
+    await privacy.ensure_subject_active(session, uid)
+    duplicate = await session.get(IdempotencyKey, (uid, idempotency_key), populate_existing=True)
+    if duplicate is not None:
+        if duplicate.request_hash is not None and duplicate.request_hash != request_digest:
+            raise errors.AppError("IDEMPOTENCY_KEY_REUSED", 409,
+                                  "같은 Idempotency-Key를 다른 요청에 사용할 수 없어요.")
+        if (duplicate.response is None or duplicate.terminal_status != "succeeded"
+                or (duplicate.response_expires_at is not None and duplicate.response_expires_at <= now)):
+            raise errors.AppError("IDEMPOTENCY_REPLAY_UNAVAILABLE", 409,
+                                  "이 요청의 재생 보존 기간이 끝났어요. 새 Idempotency-Key로 보내 주세요.")
+        payload = duplicate.response
+        await chat_turns.release(session, user_id=uid, lease=lease)
+        await session.commit()
+        return validate_post_message_response(payload, user_id=user_id, idempotency_key=idempotency_key)
+    await chat_turns.verify_publish(session, user_id=uid, lease=lease,
+                                    memory_generation=memory_generation)
+    fresh_recent = await _guard_recent(session, uid, history_limit)
+    if _guard_source_proof(fresh_recent) != _guard_source_proof(recent):
+        raise errors.AppError("CHAT_TURN_STALE", 409,
+                              "답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.")
+    if decision.route == "safety":
+        content = crisis_guard.fixed_reply(language, nick)
+    else:
+        content = crisis_guard.reask_fallback(
+            language, decision.method_request, case=decision.case,
+        )
+    kind = crisis_guard.message_kind(decision.route)
+    user_message = Message(
+        user_id=uid, sender="user", kind=kind, content=naming.to_placeholder(req.text, nick),
+        activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=1,
+    )
+    reply = Message(
+        user_id=uid, sender="moly", kind=kind, content=content,
+        input_tokens=0, output_tokens=0, cache_read_tokens=0, cache_write_tokens=0,
+        billable_tokens=0, activity_date=ad, created_at=now,
+        turn_seq=lease.turn_seq, turn_position=2,
+    )
+    session.add(user_message)
+    session.add(reply)
+    await session.flush()
+    # This aggregate is not a provider cost: Decisions is recorded separately in
+    # ai_usage_ledger. Existing quota remains unchanged, including v2 billing off.
+    current_total = await _accumulate_tokens(session, uid, ad, 0)
+    new_used = current_total if current_total is not None else tokens_used_pre
+    await chat_turns.finish_publish(session, user_id=uid, lease=lease, now=now)
+    payload = {
+        "greeting": None,
+        "user_message": {"message_id": str(user_message.id), "created_at": _iso(now)},
+        "reply": {"message_id": str(reply.id), "content": content,
+                  "created_at": _iso(now), "references": []},
+        "tokens_used": new_used, "tokens_remaining": max(0, limit - new_used),
+        "review_prompt": False,
+    }
+    validated = validate_post_message_response(payload, user_id=user_id, idempotency_key=idempotency_key)
+    from datetime import timedelta
+    session.add(IdempotencyKey(
+        user_id=uid, key=idempotency_key, request_hash=request_digest,
+        response_schema_version=2, response=payload, reply_message_id=reply.id,
+        terminal_status="succeeded", response_expires_at=now + timedelta(hours=24),
+        dedupe_expires_at=now + timedelta(days=30),
+    ))
+    await session.commit()
+    elapsed = _ms(t0, time.monotonic())
+    _emit_turn_metrics(
+        replay=False, total_ms=elapsed, phase1_ms=phase1_ms,
+        llm_ms=decision.latency_ms, repair_ms=0.0, egress_ms=0.0,
+        phase2_ms=max(0.0, elapsed - phase1_ms - decision.latency_ms),
+        prompt_tokens=0, cache_read_tokens=0, cache_write_tokens=0,
+        cache_read_ratio=None, billable=0, lang=i18n.resolve(language),
+        used_tools=False, context_ms=0.0,
+    )
+    return validated
+
+
 async def post_message(
+    session: AsyncSession, user_id: str, req, idempotency_key: str, *,
+    deadline: float | None = None, capabilities: str | None = None,
+    topic_catalog: TopicCatalog | None = None,
+) -> PostMessageResponse:
+    """One owner releases its own lease on every uncommitted failure/cancellation."""
+    owner: dict[str, Any] = {}
+    try:
+        return await _post_message_impl(
+            session, user_id, req, idempotency_key, deadline=deadline,
+            capabilities=capabilities, topic_catalog=topic_catalog, _owner=owner,
+        )
+    except BaseException:
+        if owner.get("lease") is not None:
+            try:
+                await session.rollback()
+                await chat_turns.release(session, user_id=_uid(user_id), lease=owner["lease"])
+                await session.commit()
+            except Exception as cleanup_error:
+                # A later request's lease is never released: release matches the
+                # original token. Its expiry is the fallback if DB is unavailable.
+                _log.warning("chat_lease_cleanup_failed error=%s", type(cleanup_error).__name__)
+        raise
+
+
+async def _post_message_impl(
     session: AsyncSession,
     user_id: str,
     req,
@@ -993,15 +1121,16 @@ async def post_message(
     deadline: float | None = None,
     capabilities: str | None = None,
     topic_catalog: TopicCatalog | None = None,
+    _owner: dict | None = None,
 ) -> PostMessageResponse:
-    """2단계 상태머신(SOMA-374) — LLM 호출 구간에 DB 트랜잭션/유저 락을 쥐지 않는다.
+    """Inference never holds the account lock or a request DB connection.
 
-    Phase 1(짧은 txn+유저락, **DB 쓰기 없음**): 멱등 확인 → 게이팅 → 컨텍스트/기억 스냅샷 읽기 →
-    프롬프트 조립 → 커밋(락·커넥션 해제). Phase 사이(커넥션 없음): LLM·백스톱.
-    Phase 2(짧은 txn+유저락 재획득): 선발화·유저메시지·응답 커밋 + 토큰 누적 + 멱등응답 저장.
-
-    Phase 1이 read-only라 LLM 실패/타임아웃 시 저장된 게 없어 클린 재시도된다(예약 누수·고아 없음).
-    SQLAlchemy는 commit() 시 커넥션을 풀에 반납하므로 LLM await 동안 커넥션 점유가 0이다.
+    Guarded requests first commit only acceptance/lease and the short source
+    snapshot. Fixed replies use their own publish path. Normal preparation then
+    reads enrichment and releases its transaction before recall/generation.
+    The first v2 implementation deliberately serializes even no-recall requests;
+    that latency tradeoff must be measured rather than called fully parallel.
+    A pressure pause may commit a background reservation but no current turn.
     """
     uid = _uid(user_id)
     now = datetime.now(timezone.utc)
@@ -1070,6 +1199,8 @@ async def post_message(
         request_digest=request_digest,
         lease_seconds=max(15.0, settings.agent_turn_deadline_s + 10.0),
     )
+    if _owner is not None:
+        _owner["lease"] = lease
 
     # app_config 왕복 병합(#11) — 게이팅 키 + 도구 루프 키를 한 SELECT로 읽는다.
     # 반드시 유저 락(808행) **이후**여야 한다 — 동시요청의 한도 우회(TOCTOU) 방지 순서 불변.
@@ -1096,7 +1227,7 @@ async def post_message(
         # 한도 미해석(app_config의 daily_token_limit dict 부분/불량) → 무제한으로 새지 않게 free 폴백.
         _log.warning("daily_token_limit 미해석 → free 한도로 fail-closed(user=%s)", user_id)
         remaining = max(0, settings.daily_token_limit_free - g.tokens_used)
-    if remaining <= 0:
+    if remaining <= 0 and not guard_config.enabled:
         raise errors.daily_limit_reached()
 
     # 커밋 전 스칼라 전량 캡처 — 커밋 후엔 ORM/세션 미접근(async MissingGreenlet 방지).
@@ -1117,17 +1248,42 @@ async def post_message(
                   and context_safety.is_continuing_distress(req.text, language))
     decision_recent = []
     if guard_config.enabled:
-        recent_rows = (await session.execute(
-            select(Message).where(Message.user_id == uid)
-            .order_by(Message.id.desc()).limit(guard_config.history_messages)
-        )).scalars().all()
-        decision_recent = [
-            crisis_guard.GuardMessage(
-                "assistant" if m.sender == "moly" else "user",
-                m.content or "", kind=m.kind, message_id=m.id,
-            ) for m in reversed(recent_rows)
-        ]
-    deferred_context_error = None
+        decision_recent = await _guard_recent(session, uid, guard_config.history_messages)
+
+    # Only common acceptance state is read before classification. All normal
+    # enrichment happens after it, in a new transaction with no fixed-reply work.
+    ctx = await session.get(ChatContext, uid)
+    anchor = ctx.anchor_message_id if ctx is not None else 0
+    memory_generation = (getattr(ctx, "memory_generation", 0) or 0) if ctx is not None else 0
+    retention_enabled = (retention_enabled
+                         or getattr(ctx, "retention_v5_adopted", False) is True)
+    last_turn_at = getattr(ctx, "last_active_at", None)
+    agent_cfg = await agent_config.effective_agent_config(session, raw=raw_cfg)
+    absolute_deadline += agent_cfg.turn_deadline_s - settings.agent_turn_deadline_s
+    ledger_ctx = usage_ledger.LedgerContext(
+        lane=usage_ledger.LANE_FOREGROUND, purpose="chat", user_id=uid,
+        turn_seq=lease.turn_seq, activity_date=ad,
+    )
+    predecided = None
+    if guard_config.enabled:
+        await session.commit()  # Common lease/proof only; release all DB locks.
+        common_phase_ms = _ms(t0, time.monotonic())
+        predecided = await crisis_chat.recorded_decision(
+            req.text, decision_recent, config=guard_config,
+            deadline=absolute_deadline, ledger=ledger_ctx,
+        )
+        if predecided.route != "normal":
+            return await _publish_fixed_guard(
+                session, uid=uid, user_id=user_id, req=req, idempotency_key=idempotency_key,
+                request_digest=request_digest, lease=lease, memory_generation=memory_generation,
+                decision=predecided, recent=decision_recent, history_limit=guard_config.history_messages,
+                language=language, nick=nick, ad=ad, now=now, tokens_used_pre=tokens_used_pre,
+                limit=limit, t0=t0, phase1_ms=common_phase_ms,
+            )
+        # A depleted normal quota cannot suppress a zero-charge fixed check or
+        # guide. Disabled requests retain the existing early daily-limit gate.
+        if remaining <= 0:
+            raise errors.daily_limit_reached()
     topic_snapshot = None
     fortune_snapshot: fortune_chat.FortuneContextSnapshot | None = None
     local_calendar_date = reward_date_for(now, account_timezone)
@@ -1150,10 +1306,10 @@ async def post_message(
                 locale=req.context_ref.locale,
                 account_timezone=account_timezone,
             )
-    except errors.AppError as exc:
-        if not guard_config.enabled:
-            raise
-        deferred_context_error = exc
+    except errors.AppError:
+        # Fixed replies returned before entering this normal-only preparation.
+        # A stale topic/fortune reference still keeps its existing normal error.
+        raise
 
     # 운세가 장기 기억·관계·일기 계약으로 굳지 않게 시작 턴과 이어지는 두 유저 턴을 기존
     # messages.kind discriminator로 격리한다. 현재 위기는 언제나 normal이 우선한다.
@@ -1192,13 +1348,6 @@ async def post_message(
             if following < 2 and not await topic_chat.has_boundary_after(session, uid, root.id):
                 message_kind = "fortune_derived"
 
-    ctx = await session.get(ChatContext, uid)  # 대화 앵커·기억 처리 좌표 1회 로드
-    anchor = ctx.anchor_message_id if ctx is not None else 0
-    memory_generation = (getattr(ctx, "memory_generation", 0) or 0) if ctx is not None else 0
-    retention_enabled = (retention_enabled
-                         or getattr(ctx, "retention_v5_adopted", False) is True)
-    # finish_publish stores the last committed turn's request time here; no extra query.
-    last_turn_at = getattr(ctx, "last_active_at", None)
     zone = safe_zone(account_timezone)
     time_block = _time_context(now, last_turn_at, account_timezone)
 
@@ -1309,14 +1458,10 @@ async def post_message(
     # 도구 루프 설정(W5) — Phase 1에서 이미 읽은 raw_cfg(#11 병합 SELECT)로 frozen snapshot을 만든다.
     # agent phase는 DB도 settings도 다시 읽지 않는다(TTL 캐시 없음 = 두 EC2 캐시 불일치 없음).
     # 조회 실패는 잡지 않는다 — 설정 장애를 숨기지 않고 기존 Phase 1 DB 오류로 전파시킨다.
-    agent_cfg = await agent_config.effective_agent_config(session, raw=raw_cfg)
-
     # 데드라인을 **유효 설정**으로 다시 잰다. api/chat.py는 DB를 열기 전에 요청 수신 시각으로
     # 데드라인을 만들어야 해서 `settings` 값을 쓸 수밖에 없다. 그대로 두면 app_config로
     # `agent_turn_deadline_s`를 올려도 실제 요청은 예전 예산에서 끊긴다 — 설정이 있는데
     # 안 듣는 상태다. 시작점(요청 수신)은 유지하고 예산만 갈아 끼운다.
-    absolute_deadline += agent_cfg.turn_deadline_s - settings.agent_turn_deadline_s
-
     focus_block = (await chat_references.load_focus_block(
         session, user_id=uid, current_turn_seq=lease.turn_seq,
     )) if not correction_pending else ""
@@ -1400,9 +1545,6 @@ async def post_message(
         _log_recall_timeout(uid, started=t_recall0, phase1_done=t_phase1, trace=recall_trace)
     except asyncio.CancelledError:
         recall_task.cancel()
-        await session.rollback()
-        await chat_turns.release(session, user_id=uid, lease=lease)
-        await session.commit()
         raise
 
     system = _build_system(
@@ -1415,14 +1557,6 @@ async def post_message(
         relationship_v2="" if retention_enabled else relationship_v2,
         historical_lead=historical_lead,
         crisis_guard_enabled=guard_config.enabled,
-    )
-    # Rechecks use the same recent raw context, without fortune/topic/focus enrichment.
-    reask_convo = [dict(c) for c in convo]
-    reask_convo.insert(max(0, len(reask_convo) - 1), {
-        "role": "system", "content": time_block + "\n\n" + crisis_guard.reask_instruction(language),
-    })
-    reask_system = _build_system(
-        language, nick, crisis_guard_enabled=guard_config.enabled,
     )
     # ── 휘발 블록: **최근 원문 뒤·현재 입력 앞**(11장) ────────────────────────
     # 자주 바뀌는 값을 system(캐시 프리픽스)에 두면 바뀔 때마다 프롬프트 전체가 무효가 된다.
@@ -1490,37 +1624,57 @@ async def post_message(
     cache_on = settings.chat_prompt_cache_enabled
     t_llm0 = time.monotonic()
     # 원가 원장 귀속 — 사용자 quota(_billable)와 별개로 provider 단가 기준 USD를 적재한다.
-    ledger_ctx = usage_ledger.LedgerContext(
-        lane=usage_ledger.LANE_FOREGROUND,
-        purpose="chat",
-        user_id=uuid.UUID(uid) if isinstance(uid, str) else uid,
-        turn_seq=lease.turn_seq,
-        activity_date=ad,
-    )
     if retention_enabled:
         try:
             tools = (list(agent_runtime._resolve_registry().wire_schemas())
                      if agent_runtime.should_run(agent_cfg, uid) else ())
             context_retention.assert_input_budget(system, convo, tools=tools)
         except context_retention.RetentionError:
+            # Only completed history can be recovered by checkpoint work. If
+            # immutable rules/current input/required facts alone are too large,
+            # reserving the same historical job forever cannot fix the request.
+            essential_system = _build_system(
+                language, nick, crisis_guard_enabled=guard_config.enabled,
+            )
+            essential_blocks = [time_block]
+            if contract_text:
+                essential_blocks.append(naming.render(contract_text, nick))
+            if required_facts:
+                essential_blocks.append("[Current verified facts]\n" + naming.render(required_facts, nick))
+            essential_convo = [
+                {"role": "system", "content": "\n\n".join(essential_blocks)},
+                dict(convo[-1]),
+            ]
+            if context_retention.fits_input_budget(essential_system, essential_convo, tools=tools):
+                await _lock_user(session, uid)
+                await privacy.ensure_subject_active(session, uid)
+                await chat_turns.verify_publish(
+                    session, user_id=uid, lease=lease, memory_generation=memory_generation,
+                )
+                if predecided is not None:
+                    current_sources = await _guard_recent(session, uid, guard_config.history_messages)
+                    if _guard_source_proof(current_sources) != _guard_source_proof(decision_recent):
+                        raise errors.AppError("CHAT_TURN_STALE", 409,
+                                              "답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.")
+                await checkpoint_repo.request_pressure(
+                    session, user_id=uid, generation=memory_generation,
+                )
             await chat_turns.release(session, user_id=uid, lease=lease)
             await session.commit()
+            if _owner is not None:
+                _owner["lease"] = None  # Intentional committed pressure pause.
             raise errors.ai_unavailable() from None
-    guard_reply = None
-    guard_extra_calls = []
     try:
         if time.monotonic() >= absolute_deadline:
             raise TimeoutError("chat request deadline exceeded before inference")
 
-        async def generate_draft(before_tools=None):
+        async def generate_draft():
             if agent_runtime.should_run(agent_cfg, uid):
                 kwargs = dict(
                     config=agent_cfg, user_id=uid, language=language, activity_date=ad,
                     user_text=req.text, deadline=absolute_deadline,
                     local_calendar_date=local_calendar_date,
                 )
-                if before_tools is not None:
-                    kwargs["before_tools"] = before_tools
                 if retention_enabled:
                     kwargs["retention_enabled"] = True
                 turn = await agent_runtime.run_turn(system, convo, **kwargs)
@@ -1534,44 +1688,10 @@ async def post_message(
             llm.require_completed_text(draft_result.text, draft_result.finish_reason)
             return draft_result, None
 
-        async def generate_reask():
-            return await llm.generate(
-                reask_system, reask_convo,
-                ledger=usage_ledger.with_purpose(ledger_ctx, "crisis_reask"),
-                cache_messages=cache_on, ttl_system=settings.cache_ttl_system,
-                ttl_messages=settings.cache_ttl_messages,
-                timeout=min(settings.llm_timeout_s, absolute_deadline - time.monotonic()),
-                sdk_retries=False, foreground_deadline=absolute_deadline,
-            )
-
-        if guard_config.enabled:
-            guard_reply = await crisis_chat.generate(
-                decision=crisis_chat.recorded_decision(
-                    req.text, decision_recent, config=guard_config,
-                    deadline=absolute_deadline, ledger=ledger_ctx,
-                ),
-                draft=generate_draft, reask=generate_reask, language=language,
-                nickname=nick, deadline=absolute_deadline, normal_error=deferred_context_error,
-            )
-            result, agent_turn = guard_reply.result, guard_reply.agent_turn
-            if guard_reply.discarded_result is not None:
-                guard_extra_calls.append(_llm_call(guard_reply.discarded_result, "chat_discarded"))
-            if guard_reply.discarded_agent is not None:
-                guard_extra_calls.extend(guard_reply.discarded_agent.calls)
-            if guard_reply.decision.route != "normal":
-                message_kind = crisis_guard.message_kind(guard_reply.decision.route)
-                crisis_now = True
-                topic_snapshot = None
-                fortune_snapshot = None
-                greeting_gid = None
-                greeting_content = None
-        else:
-            result, agent_turn = await generate_draft()
+        result, agent_turn = await generate_draft()
     except BaseException as exc:
-        # 외부 호출 실패는 저장 0인 클린 재시도다. lease도 즉시 회수해 TTL만큼 막히지 않게 한다.
-        await session.rollback()
-        await chat_turns.release(session, user_id=uid, lease=lease)
-        await session.commit()
+        # The outer owner performs rollback/release once for every failure,
+        # including cancellation inside provider ledger cleanup.
         if llm.is_transient_failure(exc):
             _log.warning("chat_llm_unavailable error=%s status=%s%s", type(exc).__name__, getattr(exc, "status_code", None), incomplete_diagnostics.suffix(exc))
             raise errors.ai_unavailable() from exc
@@ -1597,8 +1717,8 @@ async def post_message(
     repair_ms = 0.0
     # 복원 호출이 붙을 수 있어 차감은 백스톱 뒤에. 도구 턴은 step1·step2가 이미 LlmCall로 온다.
     usage = TurnUsage(
-        guard_extra_calls + (list(agent_turn.calls) if agent_turn is not None
-                             else [_llm_call(result, "crisis_reask" if message_kind == "safety_check" else "chat")])
+        list(agent_turn.calls) if agent_turn is not None
+        else [_llm_call(result, "chat")]
     )
     reply_text = agent_turn.text if agent_turn is not None else result.text
     is_ko = i18n.is_korean(language)  # 백스톱 게이팅 공용(메타 제거·외래문자 복원)
@@ -1624,23 +1744,10 @@ async def post_message(
             "응답 언어 외 문자 제거(egress) user=%s lang=%s reply_len=%d",
             user_id, language, len(reply_text),
         )
-    if message_kind == "safety":
-        # A versioned fixed template is not passed through ordinary reply rewriting.
-        reply_text = crisis_guard.fixed_reply(language, nick)
-        reply_stored = naming.to_placeholder(reply_text, nick)
-    elif message_kind == "safety_check":
-        reply_text = crisis_guard.checked_reask(
-            reply_text, language, method_request=guard_reply.decision.method_request,
-        )
-        reply_stored = naming.to_placeholder(reply_text, nick)
-    else:
-        reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
+    reply_stored = naming.to_placeholder(_clean_reply(reply_text, nick, language), nick)
     try:
         llm.require_completed_text(reply_stored, "")
     except llm.IncompleteResponseError:
-        await session.rollback()
-        await chat_turns.release(session, user_id=uid, lease=lease)
-        await session.commit()
         raise errors.ai_unavailable() from None
     egress_ms = _ms(t_egress0, time.monotonic())
 
@@ -1662,6 +1769,11 @@ async def post_message(
         session, user_id=uid, lease=lease, memory_generation=memory_generation,
     )
     await privacy.ensure_subject_active(session, uid)
+    if predecided is not None:
+        current_sources = await _guard_recent(session, uid, guard_config.history_messages)
+        if _guard_source_proof(current_sources) != _guard_source_proof(decision_recent):
+            raise errors.AppError("CHAT_TURN_STALE", 409,
+                                  "답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.")
     retention_writes_enabled = False
     if retention_enabled:
         retention_writes_enabled = await context_retention.enabled_now(session, lock=True)
@@ -1700,8 +1812,6 @@ async def post_message(
                         recall_changed = True
             if (current_required != required_facts or current_contract != contract_text
                     or recall_changed):
-                await chat_turns.release(session, user_id=uid, lease=lease)
-                await session.commit()
                 raise errors.ai_unavailable() from None
     if fortune_snapshot is not None:
         phase2_now = datetime.now(timezone.utc)
@@ -1861,6 +1971,18 @@ async def post_message(
     )
     session.add(rmsg)
     await session.flush()
+
+    # Recovery does not depend on the user sending one more message. Use the
+    # actual completed reply; do not add a hypothetical maximum-size next input.
+    if (retention_writes_enabled and message_kind == "normal"
+            and not context_retention.fits_input_budget(
+                system, [*convo, {"role": "assistant", "content": reply_stored}],
+                tools=(list(agent_runtime._resolve_registry().wire_schemas())
+                       if agent_runtime.should_run(agent_cfg, uid) else ()),
+            )):
+        await checkpoint_repo.request_pressure(
+            session, user_id=uid, generation=memory_generation, through_id=rmsg.id,
+        )
 
     if (retention_writes_enabled and (correction_pending or scope_end_pending)
             and message_kind == "normal"):

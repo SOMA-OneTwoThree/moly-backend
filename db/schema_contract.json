@@ -1194,6 +1194,14 @@
         "not_null": true,
         "type": "bigint"
       },
+      "public.chat_contexts.retention_pressure_through_message_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "bigint"
+      },
       "public.chat_contexts.updated_at": {
         "collation": null,
         "default": "now()",
@@ -7106,6 +7114,13 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.chat_contexts.chat_contexts_retention_pressure_positive_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((retention_pressure_through_message_id IS NULL) OR (retention_pressure_through_message_id > 0)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.chat_contexts.chat_contexts_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
@@ -10016,6 +10031,14 @@
       },
       "public.normalize_profile_language()": {
         "definition": "CREATE OR REPLACE FUNCTION public.normalize_profile_language()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nBEGIN\n  NEW.language := public.normalize_content_language(NEW.language);\n  RETURN NEW;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
+      "public.reset_retention_pressure_generation()": {
+        "definition": "CREATE OR REPLACE FUNCTION public.reset_retention_pressure_generation()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nBEGIN\n  IF NEW.memory_generation IS DISTINCT FROM OLD.memory_generation THEN\n    NEW.retention_pressure_through_message_id := NULL;\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
+      "public.reset_retention_pressure_privacy()": {
+        "definition": "CREATE OR REPLACE FUNCTION public.reset_retention_pressure_privacy()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  IF NEW.state <> 'active' OR (TG_OP = 'UPDATE' AND NEW.epoch IS DISTINCT FROM OLD.epoch) THEN\n    UPDATE public.chat_contexts SET retention_pressure_through_message_id = NULL\n    WHERE user_id = NEW.user_id AND retention_pressure_through_message_id IS NOT NULL;\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n",
         "owner": "postgres"
       },
       "public.set_updated_at()": {
@@ -16503,12 +16526,20 @@
         "definition": "CREATE TRIGGER chat_contexts_normalized_snapshot_guard BEFORE INSERT OR UPDATE ON public.chat_contexts FOR EACH ROW EXECUTE FUNCTION public.guard_normalized_memory_snapshot()",
         "enabled": "O"
       },
+      "public.chat_contexts.chat_contexts_retention_pressure_generation": {
+        "definition": "CREATE TRIGGER chat_contexts_retention_pressure_generation BEFORE UPDATE OF memory_generation ON public.chat_contexts FOR EACH ROW EXECUTE FUNCTION public.reset_retention_pressure_generation()",
+        "enabled": "O"
+      },
       "public.orders.orders_set_updated_at": {
         "definition": "CREATE TRIGGER orders_set_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.set_updated_at()",
         "enabled": "O"
       },
       "public.payments.payments_cleanup_unowned_subscription": {
         "definition": "CREATE CONSTRAINT TRIGGER payments_cleanup_unowned_subscription AFTER DELETE ON public.payments DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.cleanup_unowned_subscription()",
+        "enabled": "O"
+      },
+      "public.privacy_subject_barriers.privacy_subject_barriers_retention_pressure": {
+        "definition": "CREATE TRIGGER privacy_subject_barriers_retention_pressure AFTER INSERT OR UPDATE OF state, epoch ON public.privacy_subject_barriers FOR EACH ROW EXECUTE FUNCTION public.reset_retention_pressure_privacy()",
         "enabled": "O"
       },
       "public.profiles.profiles_create_privacy_barrier": {
@@ -16537,5 +16568,5 @@
       }
     }
   },
-  "schema_sha256": "6f9ab2ea386831fd2fd9849989bf87bd56984368574f5f25968dc7197220d2ad"
+  "schema_sha256": "042d3a892dd8824cf53370213ce6369115b8d9071a3dfa3c40a3e6d604fb73a7"
 }

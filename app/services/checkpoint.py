@@ -114,6 +114,7 @@ class CheckpointPlan:
     # 잡을 만든 시점의 `chat_contexts.memory_generation`. forget이 이 값을 +1 하므로, 늦게 실행된
     # 잡은 핸들러에서 세대 불일치로 끊긴다(잊어달라고 한 대화가 요약으로 되살아나지 못한다).
     memory_generation: int = 0
+    reason: str | None = None
 
     def dedup_key(self, user_id: uuid.UUID | str) -> str:
         return dedup_key(
@@ -124,7 +125,7 @@ class CheckpointPlan:
         )
 
     def payload(self) -> dict:
-        return {
+        payload = {
             "schema_version": SCHEMA_VERSION,
             "through_message_id": self.through_message_id,
             "source_message_ids": list(self.source_message_ids),
@@ -134,6 +135,9 @@ class CheckpointPlan:
             "previous_through_message_id": self.previous_through_message_id,
             "memory_generation": self.memory_generation,
         }
+        if self.reason is not None:
+            payload["reason"] = self.reason
+        return payload
 
 
 # ─────────────────────────────────────────────────────────────
@@ -259,6 +263,8 @@ def plan(
     memory_generation: int = 0,
     reset_triggered: bool = False,
     version: str = SUMMARIZER_VERSION,
+    through_message_id: int | None = None,
+    reason: str | None = None,
 ) -> CheckpointPlan | None:
     """이번 세그먼트로 만들 checkpoint 계획. 만들 게 없으면 None.
 
@@ -285,9 +291,19 @@ def plan(
     """
     ordered = normalize_messages(messages)
     retention_enabled = version == RETENTION_SUMMARIZER_VERSION
-    if not reset_triggered and not should_checkpoint(ordered, retention_enabled=retention_enabled):
+    pressure = reason == "input_pressure"
+    if reason not in {None, "input_pressure"} or (pressure and not retention_enabled):
+        raise CheckpointError("checkpoint_reason")
+    if pressure and (type(through_message_id) is not int or through_message_id <= 0
+                     or through_message_id not in {m.id for m in ordered}):
+        raise CheckpointError("pressure_source_boundary")
+    if through_message_id is not None and not pressure:
+        raise CheckpointError("unexpected_source_boundary")
+    if not pressure and not reset_triggered and not should_checkpoint(ordered, retention_enabled=retention_enabled):
         return None
-    if keep_from_message_id is not None:
+    if pressure:
+        head = tuple(m for m in ordered if m.id <= through_message_id)
+    elif keep_from_message_id is not None:
         head = tuple(m for m in ordered if m.id < keep_from_message_id)
     else:
         tail = keep_tail(ordered, retention_enabled=retention_enabled)
@@ -297,7 +313,7 @@ def plan(
     if not head:
         # tail 하나가 세그먼트 전체이거나(초장문 1건) 이전 checkpoint가 이미 여기까지 덮었다.
         return None
-    if retention_enabled:
+    if retention_enabled and not pressure:
         from app.services.context_retention import source_tokens
         if source_tokens(head) < 1_024:
             return None
@@ -310,6 +326,7 @@ def plan(
             previous.through_message_id if previous is not None else None
         ),
         memory_generation=memory_generation,
+        reason=reason,
         version=version,
     )
 

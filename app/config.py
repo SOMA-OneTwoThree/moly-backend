@@ -55,8 +55,8 @@ class Settings(BaseSettings):
     # Decisions crisis guard. Effective values may be overridden by app_config.
     # Enabling the flow also selects the matching role-separated locale prompt.
     crisis_guard_enabled: bool = False
+    crisis_guard_policy_version: str = ""  # Explicit crisis-v2 adoption; never infer from an old enable flag.
     crisis_guard_timeout_s: float = 2.0
-    crisis_guard_threshold: float = 0.4
     crisis_guard_history_messages: int = 6
     context_retention_v2_enabled: bool = False
 

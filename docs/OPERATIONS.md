@@ -95,17 +95,26 @@ python scripts/check_daily_report.py --environment production --expected-sha <40
 
 다음 검증은 기존 개발 Supabase만 허용한다. 실제 모델 호출은 별도 설정이 필요하며 비용이 발생한다.
 합성 원문·진행 정보 시험은 rollback하고, 실제 개발 API 시험은 자체 생성한 인증 계정만 사용한 뒤
-설정 복구와 계정 삭제를 확인한다. API 시험은 기대 배포 SHA와 고정 개발 주소를 검사한다.
+설정 복구와 계정·대화·벡터 기억 삭제를 확인한다. API 시험은 기대 배포 SHA와 고정 개발 주소를 검사한다.
+`crisis-v2`를 쓰지 않는 기존 명단을 시험 도중 새 정책으로 바꾸지 않는다.
 
 ```bash
 MOLY_CHECKPOINT_TEST_ENV=dev uv run pytest -q \
   tests/integration/test_context_retention_dev.py \
-  tests/integration/test_checkpoint_sweep_resume_dev.py
+  tests/integration/test_checkpoint_sweep_resume_dev.py \
+  tests/integration/test_context_pressure_dev.py
 MOLY_CHECKPOINT_TEST_ENV=dev MOLY_RETENTION_MODEL_TEST_ENV=dev uv run pytest -q \
   tests/integration/test_retention_model_dev.py
-MOLY_GUARDRAIL_API_TEST_ENV=dev MOLY_GUARDRAIL_EXPECTED_SHA=<개발-배포-SHA> uv run pytest -q -s \
-  tests/integration/test_crisis_api_dev.py
+uv run python scripts/replay_guard_context_dev.py --env-file <개발-env-경로> \
+  --input <저장소-밖-비식별-검토완료-입력.json> --expected-sha <개발-배포-SHA> --execute-dev
 ```
+
+재현 입력과 복구 기록은 저장소 밖에 소유자만 읽을 수 있게 둔다. 입력 출처는 비공개 기록에
+정확히 보존하고, 공유 결과에는 원문·식별자 대신 검사 수와 오류 유형만 남긴다. 시험이 중단되면
+같은 스크립트의 `--cleanup-state <복구-기록> --expected-sha <SHA> --execute-dev`로 정리한다.
+Auth 삭제 성공만으로 완료 처리하지 않고 개인정보 처리 장벽의 삭제 완료 및 잔여 0을 두 번
+확인한다. 실패 시 복구 기록을 보존한다. 개발 배포 전 `db/changes/guard_context_v2.sql`을
+개발 DB에 검토 적용한다. 운영 적용·운영 PR은 이 절차에 포함하지 않는다.
 
 중단할 때는 새 게시·작성 설정을 끈다. 이미 전환한 사용자의 v5 읽기나 확장 종류·컬럼을 지우거나
 구형 읽기로 되돌리지 않는다. 계약 작업은 같은 목표 이상인 진행 중 작업이 있으면 중복 예약하지

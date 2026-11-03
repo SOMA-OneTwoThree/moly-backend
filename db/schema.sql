@@ -106,6 +106,33 @@ CREATE FUNCTION public.delete_user_memories(p_user_id uuid) RETURNS integer
   SELECT count(*)::integer FROM deleted;
 $$;
 
+-- FUNCTION: public.reset_retention_pressure_generation()
+CREATE FUNCTION public.reset_retention_pressure_generation() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO ''
+    AS $function$
+BEGIN
+  IF NEW.memory_generation IS DISTINCT FROM OLD.memory_generation THEN
+    NEW.retention_pressure_through_message_id := NULL;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+-- FUNCTION: public.reset_retention_pressure_privacy()
+CREATE FUNCTION public.reset_retention_pressure_privacy() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $function$
+BEGIN
+  IF NEW.state <> 'active' OR (TG_OP = 'UPDATE' AND NEW.epoch IS DISTINCT FROM OLD.epoch) THEN
+    UPDATE public.chat_contexts SET retention_pressure_through_message_id = NULL
+    WHERE user_id = NEW.user_id AND retention_pressure_through_message_id IS NOT NULL;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
 -- FUNCTION: public.guard_normalized_memory_snapshot()
 CREATE FUNCTION public.guard_normalized_memory_snapshot() RETURNS trigger
     LANGUAGE plpgsql
@@ -348,6 +375,8 @@ CREATE TABLE public.chat_contexts (
     checkpoint_source_hash text,
     contract_processed_through_message_id bigint DEFAULT 0 NOT NULL,
     contract_generation bigint DEFAULT 0 NOT NULL,
+    retention_pressure_through_message_id bigint,
+    CONSTRAINT chat_contexts_retention_pressure_positive_check CHECK (((retention_pressure_through_message_id IS NULL) OR (retention_pressure_through_message_id > 0))),
     CONSTRAINT chat_contexts_anchor_message_id_check CHECK ((anchor_message_id >= 0)),
     CONSTRAINT chat_contexts_memory_mode_check CHECK ((memory_mode = ANY (ARRAY['legacy'::text, 'normalized'::text])))
 );
@@ -1937,6 +1966,12 @@ CREATE INDEX moly_memories_v2_user_idx ON vecs.moly_memories_v2 USING btree (((m
 -- TRIGGER: public.chat_contexts chat_contexts_normalized_snapshot_guard
 CREATE TRIGGER chat_contexts_normalized_snapshot_guard BEFORE INSERT OR UPDATE ON public.chat_contexts FOR EACH ROW EXECUTE FUNCTION public.guard_normalized_memory_snapshot();
 
+-- TRIGGER: public.chat_contexts chat_contexts_retention_pressure_generation
+CREATE TRIGGER chat_contexts_retention_pressure_generation BEFORE UPDATE OF memory_generation ON public.chat_contexts FOR EACH ROW EXECUTE FUNCTION public.reset_retention_pressure_generation();
+
+-- TRIGGER: public.privacy_subject_barriers privacy_subject_barriers_retention_pressure
+CREATE TRIGGER privacy_subject_barriers_retention_pressure AFTER INSERT OR UPDATE OF state, epoch ON public.privacy_subject_barriers FOR EACH ROW EXECUTE FUNCTION public.reset_retention_pressure_privacy();
+
 -- TRIGGER: public.orders orders_set_updated_at
 CREATE TRIGGER orders_set_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
@@ -2427,6 +2462,12 @@ GRANT EXECUTE ON FUNCTION public.create_privacy_barrier_for_profile() TO PUBLIC;
 REVOKE ALL ON FUNCTION public.delete_user_memories(p_user_id uuid) FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON FUNCTION public.delete_user_memories(p_user_id uuid) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.delete_user_memories(p_user_id uuid) TO service_role;
+
+-- ACL: public.FUNCTION reset_retention_pressure_generation()
+REVOKE ALL ON FUNCTION public.reset_retention_pressure_generation() FROM PUBLIC, anon, authenticated, service_role;
+
+-- ACL: public.FUNCTION reset_retention_pressure_privacy()
+REVOKE ALL ON FUNCTION public.reset_retention_pressure_privacy() FROM PUBLIC, anon, authenticated, service_role;
 
 -- ACL: public.FUNCTION guard_normalized_memory_snapshot()
 REVOKE ALL ON FUNCTION public.guard_normalized_memory_snapshot() FROM PUBLIC, anon, authenticated, service_role;

@@ -234,7 +234,7 @@ async def test_revalidate_fails_closed_when_chat_flag_turns_off(monkeypatch):
 
 
 def test_crisis_check_precedes_fortune_fetch_in_chat_source():
-    tree = ast.parse(textwrap.dedent(inspect.getsource(chat.post_message)))
+    tree = ast.parse(textwrap.dedent(inspect.getsource(chat._post_message_impl)))
     crisis = next(node for node in ast.walk(tree) if isinstance(node, ast.Assign)
         and any(isinstance(target, ast.Name) and target.id == "crisis_now" for target in node.targets))
     expression = compile(ast.Expression(crisis.value), "<legacy-crisis>", "eval")

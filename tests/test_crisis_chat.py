@@ -3,6 +3,7 @@ import asyncio
 import time
 import uuid
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -45,7 +46,7 @@ async def test_draft_and_decision_start_together_but_only_selected_reply_survive
     assert tools == (["executed"] if route == "normal" else [])
 
 
-async def test_incomplete_reask_uses_completed_server_fallback():
+async def test_reask_is_fixed_without_calling_a_generation_model():
     async def decide():
         return crisis_guard.DecisionResult("ok", route="ask", method_request=False)
 
@@ -53,7 +54,7 @@ async def test_incomplete_reask_uses_completed_server_fallback():
         return response(), None
 
     async def reask():
-        return response("What happened?", finish="length")
+        raise AssertionError("v2 must never generate a question")
 
     result = await crisis_chat.generate(
         decision=decide(), draft=draft, reask=reask, language="en", nickname=None,
@@ -161,7 +162,8 @@ async def test_chat_stores_selected_kind_on_both_messages(monkeypatch, route, st
 
     async def config(*args, **kwargs):
         result = await original_config(*args, **kwargs)
-        return {**result, "crisis_guard_ready_users": ["11111111-1111-1111-1111-111111111111"]}
+        return {**result, "crisis_guard_policy_version": "crisis-v2",
+                "crisis_guard_ready_users": ["11111111-1111-1111-1111-111111111111"]}
     monkeypatch.setattr(chat.config_store, "get_config_values", config)
 
     async def gating(*a, **kw):
@@ -187,3 +189,86 @@ async def test_chat_stores_selected_kind_on_both_messages(monkeypatch, route, st
     if route == "safety":
         assert result.reply.content == crisis_guard.fixed_reply("ko", "지훈")
         assert result.reply.references == []
+
+
+@pytest.mark.parametrize("policy", [None, "", "crisis-v1", True, "unknown"])
+def test_old_enable_flag_cannot_adopt_v2_without_explicit_version(monkeypatch, policy):
+    monkeypatch.setattr(chat.settings, "crisis_guard_enabled", False)
+    monkeypatch.setattr(chat.settings, "crisis_guard_policy_version", "")
+    raw = {"crisis_guard_enabled": True, "crisis_guard_policy_version": policy}
+    assert not crisis_chat.effective_config(raw).enabled
+    raw["crisis_guard_policy_version"] = "crisis-v2"
+    assert crisis_chat.effective_config(raw).enabled
+
+
+def test_v2_does_not_read_old_risk_threshold_or_expand_the_window():
+    config = crisis_chat.effective_config({"crisis_guard_enabled": True, "crisis_guard_policy_version": "crisis-v2",
+                                           "crisis_guard_threshold": 0.0, "crisis_guard_history_messages": 50})
+    assert config.enabled and config.history_messages == 6
+    assert not hasattr(config, "threshold")
+
+
+@pytest.mark.parametrize("route", ["normal", "ask", "safety"])
+async def test_automatic_recall_draft_starts_only_after_normal_decision(route):
+    events = []
+
+    async def decide():
+        events.append("decision")
+        await asyncio.sleep(0)
+        return crisis_guard.DecisionResult("ok", route=route, case="self_thought", method_request=False)
+
+    async def draft(gate):
+        assert await gate()
+        events.append("recall_then_one_draft")
+        return response(), None
+
+    guarded = await crisis_chat.generate(decision=decide(), draft=draft, normal_requires_recall=True,
+        language="en", nickname=None, deadline=time.monotonic()+1)
+    assert events == (["decision", "recall_then_one_draft"] if route == "normal" else ["decision"])
+    if route != "normal":
+        assert guarded.result.input_tokens == guarded.result.output_tokens == 0
+        assert guarded.discarded_result is None
+
+
+@pytest.mark.parametrize("case", ["self_thought", "meaning_unclear"])
+async def test_completed_discarded_draft_has_cost_but_fixed_reply_has_zero_usage(case):
+    completed = asyncio.Event()
+
+    async def draft(gate):
+        completed.set()
+        return response("discarded"), None
+
+    async def decide():
+        await completed.wait()
+        await asyncio.sleep(0)
+        return crisis_guard.DecisionResult("ok", route="ask", case=case, method_request=False)
+
+    guarded = await crisis_chat.generate(decision=decide(), draft=draft,
+        language="en", nickname=None, deadline=time.monotonic()+1)
+    assert guarded.result.text == crisis_guard.reask_fallback("en", case=case)
+    assert guarded.result.input_tokens == guarded.result.output_tokens == 0
+    assert guarded.discarded_result.text == "discarded" and guarded.discarded_result.input_tokens == 10
+
+
+async def test_cost_missing_usage_is_unknown_never_zero(monkeypatch):
+    call_id = uuid.uuid4()
+    unknown, known = [], []
+
+    async def open_cost(context, **kwargs):
+        assert context.prompt_version == "crisis-v2"
+        return call_id
+
+    async def close_unknown(identity, **kwargs):
+        unknown.append((identity, kwargs))
+
+    async def close_known(*args, **kwargs):
+        known.append(kwargs)
+
+    monkeypatch.setattr(usage_ledger, "open_call", open_cost)
+    monkeypatch.setattr(usage_ledger, "close_unknown", close_unknown)
+    monkeypatch.setattr(usage_ledger, "close_call", close_known)
+    monkeypatch.setattr(crisis_guard, "decide", AsyncMock(return_value=crisis_guard.DecisionResult("timeout")))
+    await crisis_chat.recorded_decision("synthetic", [], config=crisis_chat.GuardConfig(),
+        deadline=time.monotonic()+1, ledger=usage_ledger.LedgerContext(lane="foreground", purpose="chat"))
+    await crisis_chat.drain_cost_tasks()
+    assert unknown == [(call_id, {"error_code": "crisis_decision_timeout"})] and known == []

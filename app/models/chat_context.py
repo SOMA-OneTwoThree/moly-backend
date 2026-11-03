@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, select, text
+from sqlalchemy import BigInteger, CheckConstraint, DateTime, select, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, column_property, mapped_column
 
@@ -14,6 +14,10 @@ from app.models.conversation_checkpoint import ConversationCheckpoint
 
 class ChatContext(Base):
     __tablename__ = "chat_contexts"
+    __table_args__ = (CheckConstraint(
+        "retention_pressure_through_message_id IS NULL OR retention_pressure_through_message_id > 0",
+        name="chat_contexts_retention_pressure_positive_check",
+    ),)
 
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     anchor_message_id: Mapped[int] = mapped_column(BigInteger, nullable=False, server_default=text("0"))
@@ -56,6 +60,8 @@ class ChatContext(Base):
     contract_generation: Mapped[int] = mapped_column(
         BigInteger, nullable=False, server_default=text("0")
     )
+    # 저장 완료된 원문의 포함 종료 경계. 일반 pending_anchor와 구분한다.
+    retention_pressure_through_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     last_active_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

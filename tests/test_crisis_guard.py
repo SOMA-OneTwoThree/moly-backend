@@ -1,414 +1,311 @@
-"""위기 판정 API의 형식·경로·마감·발행 문구를 네트워크 없이 검증한다."""
-
+"""crisis-v2 contract and server-owned text; all HTTP is mocked."""
 import asyncio
 from copy import deepcopy
+from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 import json
 import time
 
 import httpx
 import pytest
 
-from app.services import crisis_guard as cg, naming
+from app.services import crisis_guard as cg
 
 
-def choice(name="level", selected="none", **probabilities):
-    if not probabilities:
-        values = ("none", "ambiguous", "clear") if name == "level" else ("yes", "no", "unclear")
-        probabilities = {value: float(value == selected) for value in values}
-    return {
-        "name": name,
-        "type": "choice",
-        "choice": selected,
-        "probabilities": [
-            {"value": key, "probability": value} for key, value in probabilities.items()
-        ],
-        "confidence": 0.9,
-    }
+def choice(name="case", selected="not_applicable", **probabilities):
+    values = cg.CASES if name == "case" else cg.ANSWERS
+    probabilities = probabilities or {value: float(value == selected) for value in values}
+    return {"name": name, "type": "choice", "choice": selected, "confidence": 0.9,
+            "probabilities": [{"value": key, "probability": value} for key, value in probabilities.items()]}
 
 
-def payload(level="none", answer=None, method=False):
-    answers = [choice(selected=level)]
+def payload(case="not_applicable", answer=None, method=False):
+    answers = [choice(selected=case)]
     if answer is not None:
-        answers.append(choice("answer", answer))
+        answers.append(choice("followup", answer))
     answers.append({"name": "method_request", "type": "predicate", "probability": float(method)})
-    return {
-        "model": cg.MODEL,
-        "answers": answers,
-        "usage": {
-            "input_tokens": 30,
-            "output_tokens": 0,
-            "input_tokens_details": {"cached_tokens": 10},
-        },
-    }
+    return {"model": cg.MODEL, "answers": answers,
+            "usage": {"input_tokens": 30, "output_tokens": 0, "input_tokens_details": {"cached_tokens": 10}}}
 
 
-@pytest.mark.parametrize(
-    ("level", "answer", "followup", "route"),
-    [
-        ("none", None, False, "normal"),
-        ("ambiguous", None, False, "ask"),
-        ("clear", None, False, "safety"),
-        ("none", "yes", True, "safety"),
-        ("ambiguous", "yes", True, "safety"),
-        ("clear", "yes", True, "safety"),
-        ("clear", "no", True, "safety"),
-        ("clear", "unclear", True, "safety"),
-        ("ambiguous", "no", True, "normal"),
-        ("ambiguous", "unclear", True, "normal"),
-        ("none", "no", True, "normal"),
-        ("none", "unclear", True, "normal"),
-    ],
-)
-def test_route_table(level, answer, followup, route):
-    result = cg.parse_decision(payload(level, answer), followup=followup)
-    assert result.status == "ok"
-    assert result.route == route
-    assert (
-        cg.message_kind(route)
-        == {"normal": "normal", "ask": "safety_check", "safety": "safety"}[route]
-    )
+@pytest.mark.parametrize("case", cg.CASES)
+@pytest.mark.parametrize("intervention", [None, "safety", "safety_check"])
+@pytest.mark.parametrize("answer", cg.ANSWERS)
+def test_complete_route_priority(case, intervention, answer):
+    data = payload(case, answer if intervention == "safety_check" else None)
+    result = cg.parse_decision(data, last_intervention=intervention)
+    expected = ("safety" if case in cg.ACTION_CASES else
+                "normal" if case == "not_applicable" or intervention == "safety" else
+                ("safety" if answer == "same_confirmed" else "normal") if intervention == "safety_check" else "ask")
+    assert result.route == expected and result.case == case
+    assert result.status == ("conflict" if case == "not_applicable" and intervention == "safety_check"
+                             and answer == "same_confirmed" else "ok")
+    assert cg.message_kind(result.route) == {"normal": "normal", "ask": "safety_check", "safety": "safety"}[expected]
 
 
-@pytest.mark.parametrize(
-    ("probabilities", "expected"),
-    [
-        ({"none": 0.6, "ambiguous": 0.3, "clear": 0.1}, "ambiguous"),
-        ({"none": 0.61, "ambiguous": 0.29, "clear": 0.1}, "none"),
-        ({"none": 0.6, "ambiguous": 0.1, "clear": 0.3}, "clear"),
-        ({"none": 0.6, "ambiguous": 0.2, "clear": 0.2}, "clear"),
-        ({"none": 0.4, "ambiguous": 0.3, "clear": 0.3}, "clear"),
-        ({"none": 0.0, "ambiguous": 0.5, "clear": 0.5}, "clear"),
-    ],
-)
-def test_risk_sum_boundary_and_ties(probabilities, expected):
-    selected = max(probabilities, key=probabilities.__getitem__)
-    result = cg.parse_decision(
-        {"answers": [choice(selected=selected, **probabilities)]}, followup=False
-    )
-    assert result.status == "ok" and result.level == expected
+def test_argmax_has_no_old_point_four_risk_sum():
+    data = payload()
+    data["answers"][0] = choice(not_applicable=.6, self_thought=.35, self_intent_plan=.05,
+                                self_preparation_action=0, meaning_unclear=0)
+    result = cg.parse_decision(data)
+    assert result.case == "not_applicable" and result.route == "normal"
+    data["answers"][0] = choice(selected="self_thought", not_applicable=0, self_thought=.5,
+                                self_intent_plan=0, self_preparation_action=.5, meaning_unclear=0)
+    assert cg.parse_decision(data).case == "self_preparation_action"
 
 
-def test_confidence_is_not_risk_and_answer_tie_is_unclear():
-    data = payload("none", "yes")
-    data["answers"][0]["confidence"] = 0.01
-    data["answers"][1] = choice("answer", "yes", yes=0.45, no=0.45, unclear=0.1)
-    result = cg.parse_decision(data, followup=True)
-    assert result.answer == "unclear" and result.route == "normal"
+def test_confidence_does_not_change_route_and_followup_tie_does_not_confirm():
+    data = payload("self_thought", "same_confirmed")
+    data["answers"][0]["confidence"] = .00001
+    data["answers"][1] = choice("followup", "same_confirmed", same_confirmed=.5,
+                                same_denied=.5, same_unresolved=0, different_topic=0)
+    result = cg.parse_decision(data, last_intervention="safety_check")
+    assert result.route == "normal" and result.answer == "same_unresolved"
 
 
-def test_history_is_last_six_messages_not_turns_and_current_once():
-    old = cg.GuardMessage("assistant", "earlier", "safety", 1)
-    recent = [cg.GuardMessage("user", str(i), message_id=i) for i in range(2, 8)]
-    inputs, followup = cg.prepare_input("current", [old, *recent])
-    assert not followup and len(inputs) == 7
-    assert inputs[0]["content"] == "2" and inputs[-1] == {"role": "user", "content": "current"}
-    inputs, followup = cg.prepare_input("current", [old, *recent[:-1]])
-    assert followup
-    assert len(inputs) == 7
-    _, followup = cg.prepare_input("current", [cg.GuardMessage("user", "x", "safety")])
-    assert not followup  # 캐피가 실제 발행한 표지만 후속 판정에 사용한다.
+@pytest.mark.parametrize("failure", ["missing", "refusal", "duplicate", "invalid"])
+@pytest.mark.parametrize("case", cg.CASES)
+def test_followup_fault_never_lowers_current_action_and_is_not_success(failure, case):
+    data = payload(case, "same_confirmed")
+    item = data["answers"][1]
+    if failure == "missing":
+        data["answers"].remove(item)
+    elif failure == "refusal":
+        item["type"] = "refusal"
+    elif failure == "duplicate":
+        data["answers"].append(deepcopy(item))
+    else:
+        item["probabilities"][0]["probability"] = float("nan")
+    result = cg.parse_decision(data, last_intervention="safety_check")
+    assert result.status == ("refusal" if failure == "refusal" else "invalid")
+    assert result.route == ("safety" if case in cg.ACTION_CASES else "normal")
+    assert result.case == case
 
 
-def test_questions_do_not_mix_previous_answers_or_request_generated_reason():
-    questions = cg.questions(followup=True)
-    assert [(q["name"], q["type"]) for q in questions] == [
-        ("level", "choice"),
-        ("answer", "choice"),
-        ("method_request", "predicate"),
-    ]
-    assert len(cg.questions(followup=False)) == 2
-    assert "why" not in json.dumps(questions)
-    questions[0]["choices"][0]["value"] = "tampered"
-    assert cg.questions(followup=False)[0]["choices"][0]["value"] == "none"
+@pytest.mark.parametrize("failure", ["missing", "duplicate", "wrong_type", "nan", "huge", "refusal"])
+@pytest.mark.parametrize("case", ["self_thought", "self_preparation_action"])
+def test_method_failure_is_auxiliary(failure, case):
+    data = payload(case)
+    item = data["answers"][-1]
+    if failure == "missing":
+        data["answers"].remove(item)
+    elif failure == "duplicate":
+        data["answers"].append(deepcopy(item))
+    elif failure == "wrong_type":
+        item["type"] = "choice"
+    elif failure == "refusal":
+        item["type"] = "refusal"
+    else:
+        item["probability"] = float("nan") if failure == "nan" else 10**1000
+    result = cg.parse_decision(data)
+    expected_status = "refusal" if failure == "refusal" else "invalid"
+    assert result.status == expected_status and result.method_request is None
+    assert result.method_status == expected_status
+    assert result.route == ("ask" if case == "self_thought" else "safety")
 
 
-@pytest.mark.parametrize(
-    "mutation",
-    [
-        "missing",
-        "duplicate",
-        "unknown",
-        "wrong_type",
-        "bad_choice",
-        "duplicate_probability",
-        "missing_probability",
-        "negative",
-        "nan",
-        "infinity",
-        "bool_probability",
-        "wrong_sum",
-        "contradiction",
-    ],
-)
-def test_required_invalid_answers_fail_to_normal_with_distinct_status(mutation):
-    data = payload("clear")
+def test_method_failure_keeps_a_valid_same_subject_confirmation():
+    data = payload("self_thought", "same_confirmed")
+    data["answers"].pop()
+    result = cg.parse_decision(data, last_intervention="safety_check")
+    assert result.route == "safety" and result.status == "invalid" and result.method_status == "invalid"
+
+
+@pytest.mark.parametrize("mutation", ["missing", "duplicate", "unknown", "wrong_type", "bad_choice", "duplicate_probability",
+                                     "missing_probability", "negative", "nan", "infinity", "bool", "sum", "contradiction", "old_version"])
+def test_body_fault_is_always_normal_not_a_successful_none(mutation):
+    data = payload("self_preparation_action")
     item = data["answers"][0]
     if mutation == "missing":
-        data["answers"].pop(0)
+        data["answers"].remove(item)
     elif mutation == "duplicate":
         data["answers"].append(deepcopy(item))
     elif mutation == "unknown":
-        item["name"] = "unrequested"
+        item["name"] = "unknown"
     elif mutation == "wrong_type":
         item["type"] = "predicate"
     elif mutation == "bad_choice":
         item["choice"] = "other"
+    elif mutation == "old_version":
+        item["name"] = "level"
+        item["choice"] = "clear"
     elif mutation == "duplicate_probability":
-        item["probabilities"][0] = deepcopy(item["probabilities"][1])
+        item["probabilities"][0]["value"] = item["probabilities"][1]["value"]
     elif mutation == "missing_probability":
         item["probabilities"].pop()
-    elif mutation in {"negative", "nan", "infinity", "bool_probability"}:
-        item["probabilities"][0]["probability"] = {
-            "negative": -0.1,
-            "nan": float("nan"),
-            "infinity": float("inf"),
-            "bool_probability": False,
-        }[mutation]
-    elif mutation == "wrong_sum":
-        item["probabilities"][0]["probability"] = 0.1
     elif mutation == "contradiction":
-        item["choice"] = "none"
-    result = cg.parse_decision(data, followup=False)
-    assert result.status == "invalid" and result.route == "normal"
-    assert result.raw_usage["input_tokens"] == 30
+        item["choice"] = "not_applicable"
+    else:
+        item["probabilities"][0]["probability"] = {"negative": -1, "nan": float("nan"), "infinity": float("inf"),
+                                                  "bool": True, "sum": .5}[mutation]
+    result = cg.parse_decision(data)
+    assert result.status == "invalid" and result.route == "normal" and result.case is None
 
 
-@pytest.mark.parametrize(
-    "failure", ["missing", "refusal", "duplicate", "nan", "huge", "wrong_type"]
-)
-@pytest.mark.parametrize(
-    ("level", "answer"), [("clear", None), ("none", "yes"), ("ambiguous", None)]
-)
-def test_auxiliary_failure_cannot_downgrade_valid_routing(failure, level, answer):
-    data = payload(level, answer)
-    method = data["answers"][-1]
-    if failure == "missing":
-        data["answers"].pop()
-    elif failure == "refusal":
-        method["type"] = "refusal"
-    elif failure == "duplicate":
-        data["answers"].append(deepcopy(method))
-    elif failure == "nan":
-        method["probability"] = float("nan")
-    elif failure == "huge":
-        method["probability"] = 10**1000
-    elif failure == "wrong_type":
-        method["type"] = "choice"
-    result = cg.parse_decision(data, followup=answer is not None)
-    assert result.status == "ok" and result.method_request is None
-    assert result.route == ("ask" if level == "ambiguous" else "safety")
+def test_body_refusal_is_distinct_and_numeric_usage_survives():
+    data = payload()
+    data["answers"][0]["type"] = "refusal"
+    data["usage"]["private"] = "not propagated"
+    result = cg.parse_decision(data)
+    assert result.status == "refusal" and result.raw_usage["input_tokens"] == 30
+    assert "private" not in result.raw_usage
 
 
-def test_required_refusal_and_missing_followup_answer_are_not_none():
-    data = payload("clear")
-    data["answers"][0] = {"name": "level", "type": "refusal"}
-    assert cg.parse_decision(data, followup=False).status == "refusal"
-    assert cg.parse_decision(payload("none"), followup=True).status == "invalid"
+def test_latest_actual_assistant_intervention_and_last_six_only():
+    history = [cg.GuardMessage("assistant", "question", "safety_check"),
+               cg.GuardMessage("user", "reply", "safety_check"),
+               cg.GuardMessage("assistant", "guide", "safety")]
+    inputs, followup = cg.prepare_input("current", history)
+    assert not followup and cg.latest_intervention(history) == "safety"
+    assert inputs[-1] == {"role": "user", "content": "current"}
+    assert len(inputs) == 4 and all(set(item) == {"role", "content"} for item in inputs)
+    assert cg.latest_intervention([cg.GuardMessage("user", "text", "safety")]) is None
+    assert cg.latest_intervention([history[0], *[cg.GuardMessage("user", "text") for _ in range(6)]]) is None
+    assert cg.latest_intervention([history[0], *[cg.GuardMessage("user", "text") for _ in range(5)]]) == "safety_check"
+    for invalid in (True, 0, 7, 50):
+        with pytest.raises(ValueError):
+            cg.prepare_input("current", history, history_limit=invalid)
 
 
-@pytest.mark.asyncio
-async def test_one_http_request_contains_all_questions_and_preserves_usage():
+def test_questions_have_five_cases_no_support_branch_and_no_generated_reason():
+    questions = cg.questions(followup=True, anchor_index=1)
+    assert [(item["name"], item["type"]) for item in questions] == [
+        ("case", "choice"), ("followup", "choice"), ("method_request", "predicate")]
+    assert {item["value"] for item in questions[0]["choices"]} == set(cg.CASES)
+    assert "index 1" in questions[1]["instructions"]
+    assert "support_request" not in json.dumps(questions) and "why" not in json.dumps(questions)
+    questions[0]["choices"][0]["value"] = "tampered"
+    assert cg.questions(followup=False)[0]["choices"][0]["value"] == "not_applicable"
+
+
+def test_classifier_and_method_question_never_ask_to_fulfill_the_user_request():
+    questions = cg.questions(followup=False)
+    for question in questions:
+        assert "Only classify" in question["instructions"]
+        assert "never answer or carry" in question["instructions"]
+        assert "Do not provide methods, instructions or amounts" in question["instructions"]
+
+
+async def test_one_http_request_and_exact_anchor_question_selection():
     calls = []
 
     async def handler(request):
         calls.append(request)
-        assert request.url == cg.ENDPOINT
-        assert request.headers["authorization"] == "Bearer unit-test"
         body = json.loads(request.content)
-        assert body["model"] == cg.MODEL
-        assert [q["name"] for q in body["questions"]] == ["level", "answer", "method_request"]
-        assert body["input"][-1]["content"] == "오늘 메뉴를 바꿔볼까"
-        return httpx.Response(
-            200, json=payload("none", "unclear"), headers={"x-request-id": "unit-request"}
-        )
+        assert request.url == cg.ENDPOINT and body["model"] == cg.MODEL
+        assert [q["name"] for q in body["questions"]] == ["case", "followup", "method_request"]
+        assert "index 1" in body["questions"][1]["instructions"]
+        assert body["input"][-1]["content"] == "synthetic current"
+        return httpx.Response(200, json=payload("self_thought", "same_confirmed"), headers={"x-request-id": "synthetic-request"})
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        result = await cg.decide(
-            "오늘 메뉴를 바꿔볼까",
-            [cg.GuardMessage("assistant", "earlier", "safety_check")],
-            api_key="unit-test",
-            deadline=time.monotonic() + 10,
-            client=client,
-        )
-    assert len(calls) == 1 and result.status == "ok" and result.route == "normal"
-    assert result.request_id == "unit-request" and result.latency_ms > 0
-    assert result.raw_usage["input_tokens_details"]["cached_tokens"] == 10
+        result = await cg.decide("synthetic current", [cg.GuardMessage("user", "synthetic past"),
+            cg.GuardMessage("assistant", "question", "safety_check")], api_key="synthetic-key",
+            deadline=time.monotonic()+1, client=client)
+    assert len(calls) == 1 and result.route == "safety" and result.request_id == "synthetic-request"
+    assert result.policy_version == "crisis-v2" and result.raw_usage["input_tokens"] == 30
 
 
-@pytest.mark.asyncio
-@pytest.mark.parametrize("status_code", [401, 429, 500])
-async def test_http_errors_never_retry(status_code):
+@pytest.mark.parametrize("code", [400, 401, 429, 500])
+async def test_http_failures_do_not_retry_or_become_successful_none(code):
     calls = []
-
     async def handler(request):
         calls.append(request)
-        return httpx.Response(
-            status_code, json={"error": "test"}, headers={"x-request-id": "failure-id"}
-        )
-
+        return httpx.Response(code, json={"error": "synthetic"})
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        result = await cg.decide(
-            "ordinary", [], api_key="unit-test", deadline=time.monotonic() + 10, client=client
-        )
+        result = await cg.decide("synthetic", [], api_key="synthetic-key", deadline=time.monotonic()+1, client=client)
     assert len(calls) == 1 and result.status == "error" and result.route == "normal"
-    assert result.request_id == "failure-id" and result.raw_usage is None
 
 
-@pytest.mark.asyncio
-async def test_absolute_deadline_stops_slow_response_without_retries():
-    calls = []
-    cancelled = asyncio.Event()
-
+async def test_deadline_caps_slow_http_and_cancellation_propagates():
+    calls, stopped = [], asyncio.Event()
     async def handler(request):
         calls.append(request)
         try:
-            await asyncio.sleep(10)
+            await asyncio.Event().wait()
         finally:
-            cancelled.set()
-        return httpx.Response(200, json=payload("clear"))
-
+            stopped.set()
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        start = time.monotonic()
-        result = await cg.decide(
-            "ordinary", [], api_key="unit-test", deadline=start + 0.02, timeout_s=20, client=client
-        )
-    assert len(calls) == 1 and cancelled.is_set()
-    assert result.status == "timeout" and result.route == "normal"
-    assert time.monotonic() - start < 0.5
-
-
-@pytest.mark.asyncio
-async def test_external_cancellation_propagates():
-    entered = asyncio.Event()
-
-    async def handler(request):
-        entered.set()
-        await asyncio.sleep(10)
-
-    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        task = asyncio.create_task(
-            cg.decide(
-                "ordinary", [], api_key="unit-test", deadline=time.monotonic() + 10, client=client
-            )
-        )
-        await entered.wait()
+        result = await cg.decide("synthetic", [], api_key="synthetic-key", deadline=time.monotonic()+.02,
+                                 timeout_s=30, client=client)
+        assert result.status == "timeout" and stopped.is_set() and len(calls) == 1
+        task = asyncio.create_task(cg.decide("synthetic", [], api_key="synthetic-key", deadline=time.monotonic()+2, client=client))
+        await asyncio.sleep(0)
         task.cancel()
         with pytest.raises(asyncio.CancelledError):
             await task
 
 
-@pytest.mark.asyncio
-async def test_expired_deadline_and_missing_key_do_not_send_request():
-    def handler(request):
-        pytest.fail("no request expected")
-
-    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        result = await cg.decide(
-            "ordinary", [], api_key="unit-test", deadline=time.monotonic() - 1, client=client
-        )
-        assert result.status == "timeout"
-        result = await cg.decide(
-            "ordinary", [], api_key="", deadline=time.monotonic() + 1, client=client
-        )
-        assert result.status == "error"
-
-
-@pytest.mark.parametrize(
-    ("locale", "text"),
-    [
-        ("ko-KR", "무슨 일 있었어?"),
-        ("ko", "요즘 무슨 일이 있었어?"),
-        ("en-US", "What's been going on?"),
-        ("en", "What happened recently?"),
-        ("ja-JP", "何があったの？"),
-    ],
-)
-def test_short_ordinary_reask_passes(locale, text):
-    assert cg.validate_reask(text, locale)
-    assert cg.checked_reask(text, locale) == text
+@pytest.mark.parametrize("language,thought,meaning,refusal", [
+    ("ko", "무슨 일 있었어?", "어떤 뜻인지 조금만 더 얘기해줄래?", "그건 알려 줄 수 없어."),
+    ("en", "What happened?", "Can you tell me a little more about what you mean?", "I can't tell you that."),
+    ("ja", "何があったの？", "どういう意味か、もう少し教えてくれる？", "それは教えられないよ。"),
+])
+def test_two_exact_rechecks_no_model_output_is_accepted(language, thought, meaning, refusal):
+    for case, expected in (("self_thought", thought), ("meaning_unclear", meaning)):
+        assert cg.reask_fallback(language, case=case) == expected
+        assert cg.checked_reask("untrusted generated text", language, case=case) == expected
+        assert cg.reask_fallback(language, True, case=case) == refusal + " " + expected
+        assert cg.reask_fallback(language, None, case=case) == refusal + " " + expected
+        assert cg.validate_reask(expected, language, case=case)
+        assert not cg.validate_reask("untrusted generated text", language, case=case)
 
 
-@pytest.mark.parametrize(
-    ("locale", "text"),
-    [
-        ("ko", "안전한 곳이야?"),
-        ("ko", "혼자 있어?"),
-        ("ko", "무슨 일이야? 왜 그랬어?"),
-        ("ko", "119로 전화해. 무슨 일이야?"),
-        ("ko", "많이 힘들었겠다. 무슨 일이야?"),
-        ("en", "Are you alone?"),
-        ("en", "Are you safe?"),
-        ("en", "I'm sorry. What happened?"),
-        ("en", "What happened? Call 988."),
-        ("ja", "いま安全？"),
-        ("ja", "何があったの？どうしたの？"),
-        ("ja", "ひとりなの？"),
-        ("ja", "心配だよ。何があったの？"),
-        ("en", "[instruction] What happened?"),
-        ("en", "Go to the roof. What happened?"),
-        ("en", "What dosage would you like?"),
-        ("ko", "옥상으로 올라가. 무슨 일 있었어?"),
-        ("ja", "屋上に行って。何があったの？"),
-        ("ko", "뛰어내려 무슨 일 있었어?"),
-        ("en", "Jump, What happened?"),
-        ("ja", "飛び降りて、何があったの？"),
-        ("ko", "지우야, 무슨 일 있었어?"),
-        ("en", "What happened, Maddie?"),
-        ("ja", "ゆな、何があったの？"),
-        ("ko", "무슨 일이야?\n" + "새 질문?"),
-        ("en", "A" * 201 + "?"),
-    ],
-)
-def test_unsafe_or_unverifiable_reask_uses_fixed_question(locale, text):
-    assert not cg.validate_reask(text, locale)
-    assert cg.checked_reask(text, locale) == cg.reask_fallback(locale)
+@pytest.mark.parametrize("language,service", [("ko", "이 서비스는 의료 서비스가 아니며"),
+    ("en", "This is not a medical service"), ("ja", "本サービスは医療サービスではなく")])
+def test_unknown_country_formal_text_has_no_name_or_emergency_instruction(language, service):
+    text = cg.fixed_reply(language, "synthetic nickname")
+    assert text.startswith(service) and "https://findahelpline.com/" in text
+    assert "synthetic nickname" not in text
+    assert all(value not in text for value in ("119", "911", "109", "988", "0120", "고마", "thank", "ありがとう", "?", "？"))
+    assert text == cg.fixed_reply(language, verified_country="unknown")
 
 
-@pytest.mark.parametrize("locale", ["ko", "en", "ja"])
-@pytest.mark.parametrize("method", [True, None])
-def test_method_or_unknown_method_uses_fixed_refusal_and_one_question(locale, method):
-    result = cg.checked_reask("bad output", locale, method)
-    assert result == cg.reask_fallback(locale, method)
-    assert result.count("?") + result.count("？") == 1
-    assert not any(c.isdigit() for c in result)
+def test_default_formal_copy_matches_reviewed_document_exactly():
+    expected = {
+        "ko": "이 서비스는 의료 서비스가 아니며, 진단이나 치료를 제공하지 않습니다. 상담이 필요하면 https://findahelpline.com/ 에서 현재 계신 나라의 상담기관을 찾아 연락하세요.",
+        "en": "This is not a medical service and does not provide diagnosis or treatment. For crisis support, select the country you are in at https://findahelpline.com/ and contact a local helpline.",
+        "ja": "本サービスは医療サービスではなく、診断や治療は行いません。相談が必要な場合は、https://findahelpline.com/ で現在いる国の相談窓口を探し、連絡してください。",
+    }
+    for language, text in expected.items():
+        assert cg.fixed_reply(language) == text
 
 
-@pytest.mark.parametrize(
-    ("locale", "nickname"), [("ko-KR", "지우"), ("en-US", "Maddie"), ("ja-JP", "ゆな")]
-)
-def test_unknown_country_never_uses_locale_as_country(locale, nickname):
-    reply = cg.fixed_reply(locale, nickname)
-    assert nickname in reply and naming.TOKEN not in reply
-    assert not any(number in reply for number in ("109", "119", "988", "0120"))
-    assert "?" not in reply and "？" not in reply
-    stored = naming.to_placeholder(reply, nickname)
-    assert naming.TOKEN in stored and nickname not in stored
+@pytest.mark.parametrize("country,language,expected", [
+    ("KR", "ko", "109(24시간)"), ("KR", "en", "select South Korea"), ("KR", "ja", "韓国"),
+    ("US", "en", "call or text 988"), ("US", "ko", "988lifeline.org/get-help/"),
+    ("US", "ja", "988lifeline.org/get-help/"), ("JP", "ko", "yorisoi/n2/"),
+    ("JP", "en", "yorisoi/n2/"), ("JP", "ja", "0120-279-226"),
+])
+def test_verified_country_and_language_catalog(country, language, expected):
+    assert expected in cg.fixed_reply(language, verified_country=country, at=datetime(2026, 11, 3, 1, tzinfo=timezone.utc))
 
 
-def test_local_country_requires_verified_country_and_japanese_eligibility():
-    assert "109" in cg.fixed_reply("ko", "지우", "KR")
-    assert "988" in cg.fixed_reply("en", "Maddie", "US")
-    assert "988" not in cg.fixed_reply("en", "Maddie", "GB")
-    assert "0120" not in cg.fixed_reply("ja", "ゆな", "JP")
-    assert "0120" in cg.fixed_reply("ja", "ゆな", "JP", local_hotline_eligible=True)
-    assert naming.TOKEN not in cg.fixed_reply("ko", None)
-    assert cg.fixed_reply("zh", "Alex") == cg.fixed_reply("en", "Alex")
+def test_japanese_has_both_regional_numbers_and_expiry_falls_back_to_link():
+    valid = datetime(2026, 11, 3, 1, tzinfo=timezone.utc)
+    text = cg.fixed_reply("ja", verified_country="JP", at=valid)
+    assert "0120-279-338" in text and "0120-279-226" in text and "福島県" in text
+    for at in (valid+timedelta(days=7), valid-timedelta(days=1), valid.replace(tzinfo=None)):
+        text = cg.fixed_reply("ja", verified_country="JP", at=at)
+        assert "0120" not in text and "https://www.since2011.net/yorisoi/" in text
 
 
-def test_usage_forwarding_drops_text_and_invalid_numbers():
-    data = payload()
-    data["usage"].update(
-        {"secret_text": "never forward", "invalid": float("inf"), "huge": 10**1000}
-    )
-    result = cg.parse_decision(data, followup=False)
-    assert result.status == "ok"
-    assert set(result.raw_usage) == {"input_tokens", "output_tokens", "input_tokens_details"}
+def test_catalog_rejects_unreviewed_version_or_long_validity(monkeypatch):
+    entry = cg.CONTACT_CATALOG["KR", "ko"]
+    at = datetime(2026, 11, 3, 1, tzinfo=timezone.utc)
+    for invalid in (replace(entry, version="unreviewed"), replace(entry, expires_at=entry.verified_at+timedelta(days=8))):
+        monkeypatch.setitem(cg.CONTACT_CATALOG, ("KR", "ko"), invalid)
+        assert "109(24시간)" not in cg.fixed_reply("ko", verified_country="KR", at=at)
 
 
-def test_role_and_reask_instructions_are_available_in_all_locales():
-    for locale in ("ko", "en", "ja"):
-        assert len(cg.base_role_rule(locale)) > 50
-        assert len(cg.reask_instruction(locale)) > 50
-    assert "앱이 따로 판단" in cg.base_role_rule("ko-KR")
-    assert "No hotlines" in cg.reask_instruction("en-US")
-    assert "安全かどうか" in cg.reask_instruction("ja-JP")
+@pytest.mark.parametrize("corrupt", [None, {}, "unreviewed"])
+def test_country_catalog_failure_never_blocks_formal_guidance(monkeypatch, corrupt):
+    monkeypatch.setitem(cg.CONTACT_CATALOG, ("KR", "ko"), corrupt)
+    assert cg.fixed_reply("ko", verified_country="KR") == cg.fixed_reply("ko")
+
+
+def test_catalog_missing_source_falls_back_to_a_reviewed_link(monkeypatch):
+    entry = cg.CONTACT_CATALOG["KR", "ko"]
+    monkeypatch.setitem(cg.CONTACT_CATALOG, ("KR", "ko"), replace(entry, source=""))
+    text = cg.fixed_reply("ko", verified_country="KR", at=datetime(2026, 11, 3, 1, tzinfo=timezone.utc))
+    assert "109(24시간)" not in text and "https://www.129.go.kr/109" in text

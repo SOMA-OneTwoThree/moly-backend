@@ -80,6 +80,7 @@ class EvidenceQuote(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     message_id: StrictInt = Field(gt=0)
     quote: str = Field(min_length=1, max_length=600)
+    occurrence: StrictInt | None = Field(default=None, ge=1)
 
 
 class ProgressUpdate(BaseModel):
@@ -191,10 +192,20 @@ def _evidence(update: ProgressUpdate, sources: dict[int, Any]) -> list[dict[str,
         if message is None or message.kind in SUMMARY_EXCLUDED_MESSAGE_KINDS:
             raise RetentionError("evidence_source")
         body = message.content or ""
-        # 같은 인용이 여러 번 있으면 근거 위치를 임의로 고르지 않는다.
+        # A repeated literal must identify its occurrence in this provided
+        # fragment. Never silently choose the first match. Overlapping starts
+        # count too, matching the legacy ambiguity check's find(start+1).
         start = body.find(quote.quote)
-        if start < 0 or body.find(quote.quote, start + 1) >= 0:
+        if start < 0:
             raise RetentionError("evidence_quote")
+        if quote.occurrence is None:
+            if body.find(quote.quote, start + 1) >= 0:
+                raise RetentionError("evidence_quote")
+        else:
+            for _ in range(1, quote.occurrence):
+                start = body.find(quote.quote, start + 1)
+                if start < 0:
+                    raise RetentionError("evidence_quote")
         begin = len(body[:start].encode("utf-8"))
         end = begin + len(quote.quote.encode("utf-8"))
         offset = getattr(message, "start_utf8", 0)
@@ -295,13 +306,16 @@ def build_delta_system(language: str | None) -> str:
         "현재 주제(topic), 미해결 질문(open_question), 지칭 대상(reference)의 변경만 JSON으로 출력한다. "
         "이전 항목을 다시 출력할 필요는 없다. 누락은 유지다. 바뀐 내용이 없으면 updates는 빈 배열이다. "
         "기존 항목의 ID와 kind는 바꾸지 않는다. resolve에는 실제 해결 근거가 필요하며 시간이 지났다는 이유로 "
-        "질문을 해결하지 않는다. 근거는 제공한 원문 message_id와 그 메시지에서 그대로 복사한 유일한 quote다. "
+        "질문을 해결하지 않는다. 근거는 제공한 원문 message_id와 제공된 content에서 그대로 복사한 quote다. "
+        "모든 evidence에 occurrence를 명시한다. occurrence는 이번 호출에 제공된 해당 content 조각 안에서 "
+        "같은 quote가 시작하는 위치 순서의 1-based 정수다. 겹치는 일치도 세며 한 번만 나오면 1이다. "
+        "전체 원문에서의 횟수나 이전 호출의 횟수를 쓰지 않는다. 조각이나 호출이 바뀌면 다시 1부터 센다. "
         "부정·주체·조건·시점을 유지한다. 알 수 없는 사실은 만들지 않는다. "
         "base_checkpoint_id와 source_message_ids는 입력과 정확히 같게 돌려준다. "
         "출력형식: {\"base_checkpoint_id\":null,\"source_message_ids\":[1],\"updates\":["
         "{\"op\":\"add|amend|resolve|dormant\",\"item_id\":\"stable-id\","
         "\"kind\":\"topic|open_question|reference\",\"text\":\"short text\","
-        "\"evidence\":[{\"message_id\":1,\"quote\":\"exact quote\"}]}]}. "
+        "\"evidence\":[{\"message_id\":1,\"quote\":\"exact quote\",\"occurrence\":1}]}]}. "
         f"본문 언어는 {language or 'ko'}다. JSON 이외의 설명·코드펜스를 출력하지 않는다."
     )
 

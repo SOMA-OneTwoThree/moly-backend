@@ -338,6 +338,34 @@ async def test_normal_required_fact_change_remains_a_publish_barrier(setup, monk
     assert caught.value.code == "AI_UNAVAILABLE" and session.added == []
 
 
+async def test_normal_revision_pause_can_retry_same_key_then_replay_without_double_charge(setup, monkeypatch):
+    decision = AsyncMock(return_value=crisis_guard.DecisionResult("ok", case="not_applicable"))
+    monkeypatch.setattr(crisis_chat, "recorded_decision", decision)
+    facts = chat.context_retention.load_required_facts
+    facts.side_effect = ["old synthetic fact", "new synthetic fact"]
+    first = Session()
+    with pytest.raises(errors.AppError) as caught:
+        await chat.post_message(first, UID, request(), "same-normal-request")
+    assert caught.value.code == "AI_UNAVAILABLE" and first.added == []
+    chat._accumulate_tokens.assert_not_awaited()
+    chat.chat_turns.release.assert_awaited_once()
+
+    facts.side_effect = None
+    facts.return_value = "new synthetic fact"
+    retry_session = Session()
+    accepted = await chat.post_message(retry_session, UID, request(), "same-normal-request")
+    assert len([m for m in retry_session.added if isinstance(m, Message)]) == 2
+    assert chat._accumulate_tokens.await_count == 1
+    assert chat._accumulate_tokens.await_args.args[-1] > 0
+    cached = next(row for row in retry_session.added if isinstance(row, IdempotencyKey))
+    replay_session = Session()
+    replay_session.get_map["IdempotencyKey"] = cached
+    replay = await chat.post_message(replay_session, UID, request(), "same-normal-request")
+    assert replay == accepted and replay_session.added == []
+    assert decision.await_count == chat.llm.generate.await_count == 2
+    assert chat._accumulate_tokens.await_count == 1
+
+
 async def test_policy_version_or_ready_cohort_gate_preserves_legacy_path(setup, monkeypatch):
     _, configuration = setup
     configuration["crisis_guard_policy_version"] = "old-policy"

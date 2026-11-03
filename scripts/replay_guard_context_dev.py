@@ -10,7 +10,9 @@ Input v1: {"schema":"guard-context-replay-v1","redaction_reviewed":true,
 origin may instead be "deidentified"; this provenance is retained in the private
 input, never relabelled as synthetic. Optional step fields: question
 (thought/meaning/method_thought/method_meaning), contains, absent,
-wait_processing, allow_recovery. Optional scenario: require_recovery (strict
+wait_processing, allow_recovery, allow_transient_retry (normal steps only;
+AI_UNAVAILABLE 503 allows at most two additional same-key attempts).
+Optional scenario: require_recovery (strict
 pressure evidence) or require_checkpoint (verified publication/continuity).
 Only explicitly model-labelled steps may opt into continuing after a fixed
 question-type disagreement; it remains a warning and a non-successful run.
@@ -172,8 +174,10 @@ def load_corpus(path: Path, *, checkout: Path) -> list[dict]:
             if step.get("continue_on_question_disagreement"):
                 require(step.get("annotation_source") == "model" and question in QUESTION_TYPES,
                         "question_annotation_invalid")
-            for key in ("replay", "wait_processing", "allow_recovery"):
+            for key in ("replay", "wait_processing", "allow_recovery", "allow_transient_retry"):
                 require(type(step.get(key, False)) is bool, "corpus_invalid")
+            require(not step.get("allow_transient_retry") or step["kind"] == "normal",
+                    "transient_retry_requires_normal")
             for key in ("contains", "absent"):
                 require(isinstance(step.get(key, []), list) and
                         all(isinstance(v, str) and 0 < len(v) <= 300 for v in step.get(key, [])),
@@ -306,6 +310,7 @@ class Runner:
     pressure_boundaries: dict[uuid.UUID, int] = field(default_factory=dict)
     raw_proofs: dict[uuid.UUID, dict[int, tuple[str, str, str]]] = field(default_factory=dict)
     question_disagreements: int = 0
+    transient_retries: int = 0
 
     async def observed_pressure(self, uid: uuid.UUID) -> bool:
         through = await self.db.fetchval("""SELECT max((j.payload->>'through_message_id')::bigint)
@@ -523,26 +528,49 @@ class Runner:
                 AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'""", uid)
         started = time.monotonic()
         recovered = False
+        transient_retries = 0
+        pending_transient_retry = None
         end = started + self.recovery_timeout
         while True:
-            response = await self.client.post(f"{API}/chat/messages", headers=headers, json=body)
+            remaining = end - time.monotonic()
+            require(remaining > 0, "request_retry_timeout")
+            if pending_transient_retry is not None:
+                retry_row = report(scenario["number"], scenario["language"], "validation",
+                                   round((time.monotonic() - started) * 1000), None)
+                retry_row.update(retry="retry_http_503_ai_unavailable", retry_attempt=pending_transient_retry)
+                self.emit(retry_row)
+                self.transient_retries += 1
+                pending_transient_retry = None
+            try:
+                async with asyncio.timeout(remaining):
+                    response = await self.client.post(f"{API}/chat/messages", headers=headers, json=body,
+                                                      timeout=min(45.0, remaining))
+            except TimeoutError:
+                raise ReplayError("request_retry_timeout") from None
             if response.status_code == 200:
                 break
             # A pressure pause is not a completed turn. Retry exactly the same
             # key, never duplicate the current user message to force progress.
-            require(step.get("allow_recovery", False) and response.status_code == 503,
-                    response_failure(response))
             require(await self.snapshot(uid) == before, "paused_request_committed_side_effects")
-            pressure = await self.db.fetchval("""SELECT retention_pressure_through_message_id
-              FROM chat_contexts WHERE user_id=$1""", uid)
+            failure = response_failure(response)
+            require(response.status_code == 503 and failure == "http_503_ai_unavailable", failure)
+            pressure = None
             checkpoint_pending = False
-            if pressure is None:
-                checkpoint_pending = await self.checkpoint_retry_evidence(uid, after_through=checkpoint_before)
-            require(pressure is not None or checkpoint_pending, "pressure_target_missing")
+            if step.get("allow_recovery"):
+                pressure = await self.db.fetchval("""SELECT retention_pressure_through_message_id
+                  FROM chat_contexts WHERE user_id=$1""", uid)
+                if pressure is None:
+                    checkpoint_pending = await self.checkpoint_retry_evidence(uid, after_through=checkpoint_before)
+            if pressure is None and not checkpoint_pending:
+                require(step.get("allow_transient_retry", False) and step["kind"] == "normal",
+                        "pressure_target_missing" if step.get("allow_recovery") else failure)
+                require(transient_retries < 2, "transient_retry_exhausted")
+                transient_retries += 1
+                pending_transient_retry = transient_retries
             if pressure is not None:
                 self.pressure_boundaries[uid] = max(self.pressure_boundaries.get(uid, 0), int(pressure))
                 recovered = True
-            require(time.monotonic() < end, "pressure_recovery_timeout")
+            require(time.monotonic() < end, "request_retry_timeout")
             await asyncio.sleep(0.5)
         payload = response.json()
         warning = check_reply(payload, step, scenario["language"])

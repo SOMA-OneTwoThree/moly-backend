@@ -33,7 +33,7 @@ def env():
 
 def runner(db, client=None, emit=None):
     return replay.Runner(db, client, {"apikey": "synthetic-secret"}, "synthetic-public", "a"*40,
-                         emit or (lambda row: None), recovery_timeout=0)
+                         emit or (lambda row: None))
 
 
 def state(users=()):
@@ -881,3 +881,125 @@ def test_require_checkpoint_is_an_explicit_boolean(tmp_path, value):
     else:
         with pytest.raises(replay.ReplayError, match="corpus_invalid"):
             replay.load_corpus(path, checkout=tmp_path / "checkout")
+
+
+@pytest.fixture
+def transient_send(monkeypatch):
+    uid = uuid.uuid4()
+    state = SimpleNamespace(statuses=[503, 503, 200], code="AI_UNAVAILABLE", calls=[], emitted=[],
+        success=False, mutate=None, elapsed=0.0, delay=0.0, checkpoint=False, snapshots=0)
+    class DB:
+        async def fetchrow(self, sql, *args):
+            state.snapshots += 1
+            return {"messages": 2 if state.success else (1 if state.calls and state.mutate == "messages" else 0),
+                    "tokens": 1 if state.calls and state.mutate == "quota" else 0}
+        async def fetchval(self, sql, *args):
+            if "COALESCE(max(c.through_message_id),0)" in sql:
+                return 0
+            if "SELECT EXISTS(" in sql:
+                return state.checkpoint
+            return None
+        async def fetch(self, sql, *args):
+            return [{"sender": "user", "kind": "normal"}, {"sender": "moly", "kind": "normal"}]
+    class Client:
+        async def post(self, url, **kwargs):
+            state.calls.append((url, kwargs))
+            state.elapsed += state.delay
+            status = state.statuses.pop(0)
+            state.success = status == 200
+            payload = ({"user_message": {"message_id": "1"}, "reply": {"message_id": "2", "content": "합성 답변"}}
+                if state.success else {"error": {"code": state.code, "message": "synthetic private response body"}})
+            return SimpleNamespace(status_code=status, json=lambda: payload)
+    async def sleep(seconds):
+        state.elapsed += seconds
+    monkeypatch.setattr(replay.asyncio, "sleep", sleep)
+    monkeypatch.setattr(replay.time, "monotonic", lambda: state.elapsed)
+    state.runner = runner(DB(), Client(), state.emitted.append)
+    state.uid = uid
+    state.step = {"text": "합성", "kind": "normal", "allow_transient_retry": True}
+    state.scenario = {"number": 1, "language": "ko"}
+    return state
+
+
+async def test_explicit_transient_retry_is_same_key_same_body_and_reported_twice(transient_send):
+    e = transient_send
+    assert await e.runner.send(e.uid, "synthetic", e.scenario, e.step) is False
+    assert len(e.calls) == 3 and e.snapshots == 4
+    assert all(call[1]["headers"] == e.calls[0][1]["headers"] for call in e.calls)
+    assert all(call[1]["json"] == e.calls[0][1]["json"] for call in e.calls)
+    assert e.runner.transient_retries == 2
+    retries = [row for row in e.emitted if "retry" in row]
+    assert [row["retry_attempt"] for row in retries] == [1, 2]
+    assert all(row["retry"] == "retry_http_503_ai_unavailable" and row["route"] == "validation" for row in retries)
+    assert "synthetic private response body" not in json.dumps(e.emitted)
+
+
+async def test_transient_retry_exhausts_after_three_failed_attempts(transient_send):
+    e = transient_send
+    e.statuses = [503, 503, 503, 200]
+    with pytest.raises(replay.ReplayError, match="transient_retry_exhausted"):
+        await e.runner.send(e.uid, "synthetic", e.scenario, e.step)
+    assert len(e.calls) == 3 and e.snapshots == 4 and e.runner.transient_retries == 2
+
+
+@pytest.mark.parametrize("status,code", [(429, "AI_UNAVAILABLE"), (500, "AI_UNAVAILABLE"),
+    (503, "DAILY_LIMIT_REACHED"), (503, None), (503, "synthetic_unknown_code")])
+async def test_transient_retry_rejects_other_status_or_error_codes(transient_send, status, code):
+    e = transient_send
+    e.statuses, e.code = [status, 200], code
+    with pytest.raises(replay.ReplayError):
+        await e.runner.send(e.uid, "synthetic", e.scenario, e.step)
+    assert len(e.calls) == 1 and e.snapshots == 2 and e.runner.transient_retries == 0
+
+
+@pytest.mark.parametrize("mutation", ["messages", "quota"])
+async def test_each_failed_attempt_must_preserve_message_and_quota_snapshot(transient_send, mutation):
+    e = transient_send
+    e.mutate = mutation
+    with pytest.raises(replay.ReplayError, match="paused_request_committed_side_effects"):
+        await e.runner.send(e.uid, "synthetic", e.scenario, e.step)
+    assert len(e.calls) == 1 and e.runner.transient_retries == 0
+
+
+async def test_transient_retry_requires_opt_in(transient_send):
+    e = transient_send
+    e.step.pop("allow_transient_retry")
+    with pytest.raises(replay.ReplayError, match="http_503_ai_unavailable"):
+        await e.runner.send(e.uid, "synthetic", e.scenario, e.step)
+    assert len(e.calls) == 1
+
+
+async def test_transient_retry_preserves_one_cumulative_deadline(transient_send):
+    e = transient_send
+    e.statuses, e.delay = [503, 503, 503, 200], 0.8
+    e.runner.recovery_timeout = 2.0
+    with pytest.raises(replay.ReplayError, match="request_retry_timeout"):
+        await e.runner.send(e.uid, "synthetic", e.scenario, e.step)
+    assert len(e.calls) == 2 and e.runner.transient_retries == 1
+    assert e.calls[1][1]["timeout"] < e.calls[0][1]["timeout"]
+
+
+async def test_checkpoint_evidence_policy_does_not_spend_transient_retry_allowance(transient_send):
+    e = transient_send
+    e.statuses, e.checkpoint = [503, 503, 503, 503, 200], True
+    e.step["allow_recovery"] = True
+    assert await e.runner.send(e.uid, "synthetic", e.scenario, e.step) is False
+    assert len(e.calls) == 5 and e.runner.transient_retries == 0
+    assert all("retry" not in row for row in e.emitted)
+
+
+@pytest.mark.parametrize("value", [True, False, 1, "true"])
+def test_allow_transient_retry_is_explicit_boolean_and_normal_only(tmp_path, value):
+    data = corpus()
+    step = data["scenarios"][0]["steps"][0]
+    step["allow_transient_retry"] = value
+    path = private(tmp_path, data=data)
+    if type(value) is not bool:
+        with pytest.raises(replay.ReplayError, match="corpus_invalid"):
+            replay.load_corpus(path, checkout=tmp_path / "checkout")
+    else:
+        assert replay.load_corpus(path, checkout=tmp_path / "checkout")
+        if value:
+            step["kind"] = "safety"
+            with pytest.raises(replay.ReplayError, match="transient_retry_requires_normal"):
+                replay.load_corpus(private(tmp_path, data=data), checkout=tmp_path / "checkout")

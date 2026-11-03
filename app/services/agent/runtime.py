@@ -41,6 +41,7 @@ from dataclasses import dataclass, replace
 from datetime import date
 from math import ceil
 from typing import Any, Protocol
+from app.services.context_provenance import VerifiedCoverage, ProvenanceError, without_covered
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -226,14 +227,15 @@ def _transcript(convo: Sequence[Mapping[str, str]]) -> list[TranscriptItem]:
     for m in convo:
         text = m.get("content") or ""
         role = m.get("role")
+        source = getattr(m, "source_ref", None)
         if role == "user":
-            items.append(UserText(text))
+            items.append(UserText(text, source_ref=source))
         elif role == "system":
             # ⚠️ 예전엔 여기서 AssistantText로 떨어뜨렸다. 그러면 서버 정본(요약·기억·장비)이
             # **캐피가 과거에 한 말**이 되어, 대화 속 옛 정보와 같은 무게로 경쟁한다.
-            items.append(SystemText(text))
+            items.append(SystemText(text, source_ref=source))
         else:
-            items.append(AssistantText(text))
+            items.append(AssistantText(text, source_ref=source))
     return items
 
 
@@ -648,24 +650,6 @@ def foreground_budget_inputs(system, convo, *, user_text: str, registry=None):
     return [], llm.to_openai_messages(_runtime_system(system), _transcript(convo)), schemas
 
 
-def _covered_prefix_count(convo, prefix, *, retention_enabled: bool) -> int:
-    """The caller attests coverage; runtime verifies the exact immutable source prefix."""
-    if type(prefix) is not tuple:
-        raise ValueError("retention_covered_prefix_invalid")
-    if not prefix:
-        return 0
-    if not retention_enabled or len(prefix) >= len(convo) or convo[-1].get("role") != "user":
-        raise ValueError("retention_covered_prefix_invalid")
-    for original, actual in zip(prefix, convo, strict=False):
-        if (type(original) is not dict or set(original) != {"role", "content"}
-                or not isinstance(original.get("role"), str)
-                or original["role"] not in {"user", "assistant"}
-                or not isinstance(original.get("content"), str)
-                or dict(actual) != original):
-            raise ValueError("retention_covered_prefix_invalid")
-    return len(prefix)
-
-
 def _ledger_ctx(user_id: uuid.UUID, activity_date: date) -> usage_ledger.LedgerContext:
     """도구 루프 호출의 원가 귀속. purpose는 step별로 generate_step이 덮어쓴다."""
     return usage_ledger.LedgerContext(
@@ -693,7 +677,7 @@ async def run_turn(
     local_calendar_date: date | None = None,
     before_tools: Callable[[], Awaitable[bool]] | None = None,
     retention_enabled: bool = False,
-    retention_covered_prefix: tuple[dict[str, str], ...] = (),
+    retention_coverage: VerifiedCoverage | None = None,
 ) -> AgentTurn:
     """한 턴을 끝까지 돌려 최종 텍스트와 그 턴의 LLM 호출 목록을 돌려준다.
 
@@ -704,8 +688,11 @@ async def run_turn(
     system = _runtime_system(system)
     deadline = deadline if deadline is not None else now() + config.turn_deadline_s
     transcript = _transcript(convo)
-    covered_count = _covered_prefix_count(convo, retention_covered_prefix,
-                                          retention_enabled=retention_enabled)
+    if retention_enabled and convo and getattr(convo[-1], "source_ref", None) is not None:
+        raise ProvenanceError("current_input_has_source")
+    if retention_coverage is not None and not retention_enabled:
+        raise ValueError("retention_coverage_disabled")
+    without_covered(transcript, retention_coverage)
     covered_omitted = False
     registry = registry if registry is not None else _resolve_registry()
     schemas = list(registry.wire_schemas()) if registry is not None else []
@@ -742,15 +729,14 @@ async def run_turn(
                                 input_limit=FOREGROUND_INPUT_LIMIT)
             return items
         except RetentionError as exc:
-            if str(exc) != "context_input_budget" or not covered_count or covered_omitted:
+            if str(exc) != "context_input_budget" or retention_coverage is None or covered_omitted:
                 raise
-        # The typed transcript preserves one item per original row. All later
-        # system instructions, uncovered rows, current input, tool calls/results
-        # stay byte-for-byte; only this verified covered prefix is optional.
-        shortened = items[covered_count:]
+        shortened = without_covered(items, retention_coverage)
+        if len(shortened) == len(items):
+            raise RetentionError("context_input_budget")
         assert_input_budget([], llm.to_openai_messages(system, shortened), tools=tools,
                             input_limit=FOREGROUND_INPUT_LIMIT)
-        transcript = transcript[covered_count:]
+        transcript = without_covered(transcript, retention_coverage)
         covered_omitted = True
         return shortened
 

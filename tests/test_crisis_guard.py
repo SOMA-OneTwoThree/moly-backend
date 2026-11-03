@@ -178,6 +178,27 @@ def test_questions_have_five_cases_no_support_branch_and_no_generated_reason():
     assert cg.questions(followup=False)[0]["choices"][0]["value"] == "not_applicable"
 
 
+def test_followup_accepts_current_thought_confirmation_after_a_generic_recheck_without_weakening_negatives():
+    plain = cg.questions(followup=False)
+    followup = cg.questions(followup=True, anchor_index=1)
+    # Clarifying the follow-up leaves body/predicate questions and all choices
+    # unchanged; no extra model question or routing input is introduced.
+    assert [item["name"] for item in followup] == ["case", "followup", "method_request"]
+    assert plain == [followup[0], followup[2]]
+    assert [item["value"] for item in followup[1]["choices"]] == [
+        "same_confirmed", "same_denied", "same_unresolved", "different_topic",
+    ]
+    instructions = followup[1]["instructions"]
+    for rule in (
+        "generic request to clarify meaning", "preceding user concern",
+        "rejecting a joke or exaggeration", "those same thoughts continue now is same_confirmed",
+        "no plan or action details are required", "bare yes without that confirmation is same_unresolved",
+        "resolved past episode with no current thoughts is same_denied",
+        "source concern is not visible or cannot be linked", "Topic changes are different_topic",
+    ):
+        assert rule in instructions
+
+
 def test_classifier_and_method_question_never_ask_to_fulfill_the_user_request():
     questions = cg.questions(followup=False)
     for question in questions:

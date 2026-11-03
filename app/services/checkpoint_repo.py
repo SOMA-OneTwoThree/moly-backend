@@ -27,6 +27,7 @@ from app.config import settings
 from app.core.advisory_lock import advisory_xact_lock
 from app.models.message import SUMMARY_EXCLUDED_MESSAGE_KINDS
 from app.services import checkpoint, jobs
+from app.services.context_provenance import VerifiedCoverage
 
 _log = logging.getLogger("moly-worker")
 
@@ -171,6 +172,30 @@ async def load_latest(
             raise RetentionError("checkpoint_not_validated")
         await validate_progress_sources(session, user_id=user_id, state=value.state_json)
     return value
+
+
+async def coverage_for_checkpoint(session, *, user_id, generation: int,
+                                  value: checkpoint.Checkpoint | None) -> VerifiedCoverage | None:
+    """Grant raw exclusion from the existing validated current-generation reader.
+
+    The caller holds its normal user read lock and obtains ``value`` from
+    load_latest, whose SQL joins the current generation. The existing publisher
+    proves a complete same-user prefix/parent chain, including policy-excluded
+    rows. The assembler then binds only actual fetched SourceRefs to this grant.
+    No additional history scan or new persistence/authorization contract.
+    """
+    from app.services import context_retention
+    if value is None or value.version != checkpoint.RETENTION_SUMMARIZER_VERSION:
+        return None
+    if (not isinstance(value.validation_json, dict)
+            or value.validation_json.get("processing_complete") is not True):
+        return None
+    if not await context_retention.processing_complete(session, user_id=user_id,
+            generation=generation, through_id=value.through_message_id):
+        return None
+    return VerifiedCoverage(uuid.UUID(str(user_id)), generation, uuid.UUID(str(value.id)),
+        value.through_message_id, value.source_hash,
+        frozenset(value.validation_json.get("policy_excluded_ids", [])))
 
 
 async def count(session: AsyncSession, user_id: uuid.UUID | str, *, retention_enabled: bool = False) -> int:

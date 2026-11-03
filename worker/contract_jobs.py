@@ -292,11 +292,15 @@ def _model_input(messages, previous: list[dict]) -> list[dict]:
 
 
 def contract_batch(messages, *, previous: list[dict], system: str,
-                   start_index: int = 0, start_offset: int = 0) -> ContractBatch:
+                   start_index: int = 0, start_offset: int = 0,
+                   retention_enabled: bool = False) -> ContractBatch:
     """행 수는 조회 상한일 뿐이다. 전체 배경 입력 예산에 맞는 연속 원문만 선택한다."""
     if (type(start_index) is not int or not 0 <= start_index < len(messages)
             or type(start_offset) is not int or start_offset < 0):
         raise cc.CompilerRejection("잘못된 선호 분할 위치")
+    if retention_enabled:
+        return _retention_contract_batch(messages, previous=previous, system=system,
+            start_index=start_index, start_offset=start_offset)
     chosen = []
     for index in range(start_index, len(messages)):
         message = messages[index]
@@ -341,6 +345,59 @@ def contract_batch(messages, *, previous: list[dict], system: str,
                 raise cc.CompilerRejection("선호 배경 입력 예산을 넘었다")
             return ContractBatch(tuple(chosen), index, 0)
         chosen.append(message)
+    return ContractBatch(tuple(chosen), len(messages), 0)
+
+
+def _retention_contract_batch(messages, *, previous, system, start_index, start_offset):
+    """Fill the unchanged serialized budget; only the first source may be partial.
+
+    A later partial source cannot share a batch with earlier complete sources:
+    the durable partial cursor deliberately remains at the original first row.
+    """
+    def fits(selected):
+        return context_retention.fits_input_budget(system, _model_input(selected, previous),
+            output_reserve=_MAX_OUTPUT_TOKENS)
+
+    chosen = []
+    for index in range(start_index, len(messages)):
+        message = messages[index]
+        body = message.content.encode("utf-8")
+        offset = start_offset if index == start_index else 0
+        if offset > len(body):
+            raise cc.CompilerRejection("선호 분할 위치가 원문 밖이다")
+        try:
+            remaining = body[offset:].decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise cc.CompilerRejection("선호 분할 위치가 UTF-8 경계를 자른다") from exc
+        if not offset and fits([*chosen, message]):
+            chosen.append(message)
+            continue
+        if chosen:
+            return ContractBatch(tuple(chosen), index, 0)
+
+        digest = hashlib.sha256(body).hexdigest()
+
+        def part(characters):
+            text = remaining[:characters]
+            return _Msg(message.id, message.sender, text, message.activity_date,
+                        offset, offset + len(text.encode("utf-8")), digest)
+
+        # Prefix length is measured in Unicode characters, so every tested end
+        # is a UTF-8 boundary. Test the real JSON wire, including escaping and
+        # the existing contract, rather than estimating room from source bytes.
+        low, high, best = 1, len(remaining), 0
+        while low <= high:
+            middle = (low + high) // 2
+            if fits([part(middle)]):
+                best, low = middle, middle + 1
+            else:
+                high = middle - 1
+        if not best:
+            raise cc.CompilerRejection("선호 배경 입력 예산을 넘었다")
+        selected = part(best)
+        complete = selected.end_utf8 == len(body)
+        return ContractBatch((selected,), index + 1 if complete else index,
+                             0 if complete else selected.end_utf8)
     return ContractBatch(tuple(chosen), len(messages), 0)
 
 
@@ -418,11 +475,44 @@ def merge_retained_items(previous: list[dict], candidates: list[cc.Candidate],
     return [items[key] for key in sorted(items)]
 
 
+async def _persist_output_fallback(job, before, after):
+    """Only control metadata, never truncated output; no schema or shared-core change."""
+    wire = json.dumps(after, sort_keys=True, separators=(",", ":"))
+    async with get_sessionmaker()() as session:
+        if not await context_retention.privacy_epoch_matches(session, user_id=job.user_id,
+                privacy_epoch=before.get("privacy_epoch"), lock=True):
+            raise JobCancelled("contract_privacy_epoch_changed")
+        row = (await session.execute(text("""
+          UPDATE async_jobs j SET payload=CAST(:payload AS jsonb),payload_hash=:payload_hash
+          WHERE j.id=:job_id AND j.user_id=:user_id AND j.state='running'
+            AND j.lease_owner=:owner AND j.lease_token=:token AND j.lease_until>now()
+            AND j.payload=CAST(:before AS jsonb) AND j.payload_redacted_at IS NULL
+            AND (j.payload_expires_at IS NULL OR j.payload_expires_at>now())
+            AND EXISTS(SELECT 1 FROM chat_contexts c WHERE c.user_id=j.user_id
+                       AND c.memory_generation=:generation)
+          RETURNING j.id
+        """), {"payload":wire,"payload_hash":hashlib.sha256(wire.encode()).hexdigest(),
+                "before":json.dumps(before,sort_keys=True,separators=(",", ":")),
+                "job_id":job.id,"user_id":job.user_id,"owner":job.lease_owner,
+                "token":job.lease_token,"generation":before["memory_generation"]})).first()
+        if row is None:
+            raise JobCancelled("contract_fallback_snapshot_changed")
+        await session.commit()
+
+
 async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
     if job.user_id is None:
         raise JobFatal("missing_user")
     uid = job.user_id
     payload = job.payload or {}
+    fallback_planner = payload.get("adaptive_output_fallback", False)
+    if type(fallback_planner) is not bool:
+        raise JobFatal("invalid_contract_output_fallback")
+    fallback_available = payload.get("adaptive_output_attempts_remaining")
+    if fallback_planner and (type(fallback_available) is not int or fallback_available < 0):
+        raise JobFatal("invalid_contract_output_fallback")
+    if fallback_planner and fallback_available == 0:
+        raise JobFatal("contract_fallback_attempts_exhausted")
     generation = payload.get("memory_generation")
     privacy_epoch = payload.get("privacy_epoch")
     target = payload.get("through_message_id")
@@ -464,7 +554,8 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
     messages = [_Msg(row[0], row[1], row[2] or "", row[3]) for row in rows]
     try:
         batch = contract_batch(messages, previous=working, system=cc.RETENTION_SYSTEM,
-                               start_offset=partial_offset) if messages else ContractBatch((), 0, 0)
+                               start_offset=partial_offset,
+                               retention_enabled=not fallback_planner) if messages else ContractBatch((), 0, 0)
     except cc.CompilerRejection as exc:
         raise JobRetry("contract_background_budget") from exc
     selected = list(batch.messages)
@@ -479,46 +570,64 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
     else:
         boundary = messages[batch.next_index-1].id
     kept, dropped = [], []
+    output_fallback = False
     if any(message.sender == "user" for message in selected):
         model_input = _model_input(selected, working)
         context_retention.assert_input_budget(cc.RETENTION_SYSTEM, model_input,
                                               output_reserve=_MAX_OUTPUT_TOKENS)
+        if fallback_planner:
+            # Persist before inference: a later OFF/cancel/new-row resume must
+            # not forget a failed call merely because its physical attempt reset.
+            await _persist_output_fallback(job, payload,
+                {**payload, "adaptive_output_attempts_remaining": fallback_available-1})
         result = await llm.generate(
             cc.RETENTION_SYSTEM, model_input,
             model=settings.model_utility, reasoning_effort="none", max_tokens=_MAX_OUTPUT_TOKENS,
             ledger=usage_ledger.LedgerContext(lane=usage_ledger.LANE_BACKGROUND,
                 purpose="contract_compile", user_id=uid, job_id=job.id, attempt=job.attempt),
         )
-        llm.require_completed_text(result.text, result.finish_reason)
+        if result.finish_reason == "length":
+            enlarged = sum(len(message.content.encode("utf-8")) for message in selected) > checkpoint.BACKGROUND_SEGMENT_BYTES
+            if not fallback_planner and enlarged and job.max_attempts - job.attempt > 0:
+                output_fallback = True
+                fallback_available = job.max_attempts-job.attempt
+                await _persist_output_fallback(job, payload, {**payload,
+                    "adaptive_output_fallback": True,
+                    "adaptive_output_attempts_remaining": fallback_available})
+            else:
+                raise JobRetry("contract_retention_length")
+        if not output_fallback:
+            llm.require_completed_text(result.text, result.finish_reason)
+            try:
+                kept, dropped = cc.parse(result.text,
+                    user_message_ids={message.id for message in selected if message.sender == "user"},
+                    source_messages=selected, existing_items=working)
+            except cc.CompilerRejection as exc:
+                raise JobRetry("contract_retention_schema") from exc
+            if dropped:
+                raise JobRetry("contract_retention_evidence")
+    if not output_fallback:
+        ordinary = [candidate for candidate in kept if candidate.operation == "end" or candidate.directive.kind not in HIGH_IMPACT]
+        drafts = [candidate for candidate in kept if candidate.operation != "end" and candidate.directive.kind in HIGH_IMPACT]
         try:
-            kept, dropped = cc.parse(result.text,
-                user_message_ids={message.id for message in selected if message.sender == "user"},
-                source_messages=selected, existing_items=working)
-        except cc.CompilerRejection as exc:
-            raise JobRetry("contract_retention_schema") from exc
-        if dropped:
-            raise JobRetry("contract_retention_evidence")
-    ordinary = [candidate for candidate in kept if candidate.operation == "end" or candidate.directive.kind not in HIGH_IMPACT]
-    drafts = [candidate for candidate in kept if candidate.operation != "end" and candidate.directive.kind in HIGH_IMPACT]
-    try:
-        # 닫힌 긍정 종료는 모델 누락([]) 뒤 커서만 전진하여 옛 선호가 부활하지 않게 한다.
-        setters = [candidate for candidate in ordinary if candidate.operation != "end"]
-        prospective = merge_retained_items(working, setters, generation=generation)
-        model_ends = [candidate for candidate in ordinary if candidate.operation == "end"]
-        ended_keys = {candidate.ends_item_key for candidate in model_ends}
-        supplementary = [candidate for candidate in cc.explicit_scope_end_candidates(selected, prospective)
-                         if candidate.ends_item_key not in ended_keys]
-        ordinary = sorted([*ordinary, *supplementary],
-                          key=lambda candidate: (candidate.source_message_id, candidate.operation == "end"))
-        merged = merge_retained_items(working, ordinary, generation=generation)
-        active = contract_repo.active_retained_items(merged,
-            activity_date=selected[-1].activity_date if selected else None)
-        rendered = ic.render_document([contract_repo.directive_from_item(item) for item in active],
-                                      language=locale) if active else ""
-    except (cc.CompilerRejection, ic.ContractViolation) as exc:
-        raise JobRetry("contract_retention_merge") from exc
-    if len(rendered.encode()) > 2_048:
-        raise JobRetry("contract_retention_budget")
+            # 닫힌 긍정 종료는 모델 누락([]) 뒤 커서만 전진하여 옛 선호가 부활하지 않게 한다.
+            setters = [candidate for candidate in ordinary if candidate.operation != "end"]
+            prospective = merge_retained_items(working, setters, generation=generation)
+            model_ends = [candidate for candidate in ordinary if candidate.operation == "end"]
+            ended_keys = {candidate.ends_item_key for candidate in model_ends}
+            supplementary = [candidate for candidate in cc.explicit_scope_end_candidates(selected, prospective)
+                             if candidate.ends_item_key not in ended_keys]
+            ordinary = sorted([*ordinary, *supplementary],
+                              key=lambda candidate: (candidate.source_message_id, candidate.operation == "end"))
+            merged = merge_retained_items(working, ordinary, generation=generation)
+            active = contract_repo.active_retained_items(merged,
+                activity_date=selected[-1].activity_date if selected else None)
+            rendered = ic.render_document([contract_repo.directive_from_item(item) for item in active],
+                                          language=locale) if active else ""
+        except (cc.CompilerRejection, ic.ContractViolation) as exc:
+            raise JobRetry("contract_retention_merge") from exc
+        if len(rendered.encode()) > 2_048:
+            raise JobRetry("contract_retention_budget")
 
     async def _apply(session) -> None:
         if not await context_retention.privacy_epoch_matches(session, user_id=uid,
@@ -534,10 +643,15 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
 
         async def restart_current() -> None:
             from app.services import jobs
+            restart_payload = {"retention_enabled": True, "memory_generation": generation,
+                               "through_message_id": target, "privacy_epoch": privacy_epoch}
+            if fallback_planner or output_fallback:
+                restart_payload["adaptive_output_fallback"] = True
+                restart_payload["adaptive_output_attempts_remaining"] = fallback_available
             await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
                 user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{int(fresh[2])}:{target}:after:{job.id}",
-                payload={"retention_enabled": True, "memory_generation": generation,
-                         "through_message_id": target, "privacy_epoch": privacy_epoch}, max_attempts=3)
+                payload=restart_payload,
+                max_attempts=fallback_available if fallback_planner or output_fallback else 3)
 
         if tuple(fresh) != tuple(base):
             # 다른 정상 작업이 앞 구간을 처리했어도 남은 목표를 새 커서에서 이어 간다.
@@ -555,6 +669,14 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         if latest_previous != previous:
             await restart_current()
             return
+        if output_fallback:
+            from app.services import jobs
+            await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
+                user_id=uid, dedup_key=f"contract-output-fallback:{job.id}",
+                payload={**payload, "adaptive_output_fallback": True,
+                         "adaptive_output_attempts_remaining": fallback_available},
+                max_attempts=job.max_attempts-job.attempt)
+            return  # Truncated text is neither parsed, merged nor published.
         draft_items = [*(payload.get("partial_drafts") or []),
                        *[_retention_item(candidate, generation) for candidate in drafts]]
         if partial:
@@ -565,9 +687,12 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             next_payload = {**payload, "partial_message_id": first.id, "partial_offset": batch.next_offset,
                 "partial_source_hash": source_hash, "partial_items": merged, "partial_drafts": draft_items,
                 "partial_document_hash": previous_hash}
+            if fallback_planner:
+                next_payload["adaptive_output_attempts_remaining"] = fallback_available
             await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
                 user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{cursor}:{target}:source:{first.id}:{source_hash}:{previous_hash}:{batch.next_offset}",
-                payload=next_payload, max_attempts=3)
+                payload=next_payload,
+                max_attempts=fallback_available if fallback_planner else 3)
             return  # 원문 전체를 읽기 전 커서 전진·중간 선호 발행을 하지 않는다.
         for items, text_render, publish in ((merged, rendered, True),
                 (draft_items, "", False)):
@@ -599,11 +724,16 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         if boundary < target:
             from app.services import jobs
             next_payload = {key: value for key, value in payload.items() if not key.startswith("partial_")}
+            if fallback_planner:
+                next_payload["adaptive_output_attempts_remaining"] = fallback_available
             await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
                 user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{boundary}:{target}",
-                payload={**next_payload, "after_message_id": boundary}, max_attempts=3)
-    return JobResult(result_code="ok", result_detail={"kept": len(ordinary), "draft": len(drafts),
-        "through": boundary}, apply_domain=_apply)
+                payload={**next_payload, "after_message_id": boundary},
+                max_attempts=fallback_available if fallback_planner else 3)
+    return JobResult(result_code="ok", result_detail={
+        "kept": 0 if output_fallback else len(ordinary), "draft": 0 if output_fallback else len(drafts),
+        "through": cursor if output_fallback else boundary,
+        "adaptive_output_fallback": output_fallback}, apply_domain=_apply)
 
 
 consumer.register(JOB_CONTRACT_COMPILE, handle_contract_compile)

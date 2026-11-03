@@ -102,7 +102,8 @@ python scripts/check_daily_report.py --environment production --expected-sha <40
 MOLY_CHECKPOINT_TEST_ENV=dev uv run pytest -q \
   tests/integration/test_context_retention_dev.py \
   tests/integration/test_checkpoint_sweep_resume_dev.py \
-  tests/integration/test_context_pressure_dev.py
+  tests/integration/test_context_pressure_dev.py \
+  tests/integration/test_contract_fallback_dev.py
 MOLY_CHECKPOINT_TEST_ENV=dev MOLY_RETENTION_MODEL_TEST_ENV=dev uv run pytest -q \
   tests/integration/test_retention_model_dev.py
 uv run python scripts/replay_guard_context_dev.py --env-file <개발-env-경로> \
@@ -135,6 +136,15 @@ Auth 삭제 성공만으로 완료 처리하지 않고 개인정보 처리 장�
 새 배포의 문구 평가와 기존의 두 질문 정책 평가를 분리하고, 과거 질문 선택 불일치 기록은
 지우거나 소급해 성공으로 바꾸지 않는다. 출력 문구가 같다는 사실을 두 분류가 일치했다는
 검증 결과로 해석하지 않는다.
+
+뜻을 묻는 고정 질문 뒤의 답은 질문 문구 자체가 아니라 앞선 사용자 발언과 연결해 판정한다.
+같은 생각이 현재도 이어진다고 밝히고 농담임을 부정한 경우에는 실행 계획이 없어도 확인된 답으로
+본다. 짧은 동의만 있거나 화제를 바꾼 답은 이 조건에 포함하지 않는다.
+
+원문 생략은 메시지 식별 정보와 검증된 처리 범위를 함께 확인한다. 전환한 사용자의 읽기에서
+구형 위기 압축이 실행되지 않는지, 날짜·이름 변환과 도구 결과 추가 뒤에도 미처리 원문이 유지되는지 확인한다.
+선호 정리의 확대 입력·출력 잘림 복구는 기존 배경 상한과 실패 예산 안에서 시험한다. 이 보완에는
+새 DB 변경이나 계정 API 배포가 필요하지 않다.
 
 중단할 때는 새 게시·작성 설정을 끈다. 이미 전환한 사용자의 v5 읽기나 확장 종류·컬럼을 지우거나
 구형 읽기로 되돌리지 않는다. 계약 작업은 같은 목표 이상인 진행 중 작업이 있으면 중복 예약하지

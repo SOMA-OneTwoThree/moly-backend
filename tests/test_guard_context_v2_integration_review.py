@@ -16,6 +16,9 @@ from app.core import errors
 from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
 from app.services import chat, crisis_chat, crisis_guard, llm
+from app.services.context_provenance import HistoryEntry, SourceRef, VerifiedCoverage
+import hashlib
+import uuid
 from tests.test_chat import FakeSession, UID, _gating
 
 ACTUAL_ASSERT_BUDGET = chat.context_retention.assert_input_budget
@@ -355,10 +358,15 @@ async def test_covered_tail_budget_fallback_keeps_uncovered_and_required_input(s
     covered, uncovered, current = "covered" * 6000, "uncovered exact dialogue", "current dialogue"
     monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
         "ok", case="not_applicable")))
+    uid = chat._uid(UID)
+    refs = [SourceRef(uid, i, 0, hashlib.sha256(text.encode()).hexdigest())
+            for i, text in enumerate((covered, "covered reply"), start=1)]
+    coverage = VerifiedCoverage(uid, 0, uuid.UUID(int=9), 2, "a" * 64).bind_sources(refs)
     monkeypatch.setattr(chat, "_context", AsyncMock(return_value=chat.ContextWindow(
-        [{"role": "user", "content": covered}, {"role": "assistant", "content": "covered reply"},
+        [HistoryEntry("user", covered, source_ref=refs[0]),
+         HistoryEntry("assistant", "covered reply", source_ref=refs[1]),
          {"role": "user", "content": uncovered}, {"role": "assistant", "content": "uncovered reply"},
-         {"role": "user", "content": current}], None, [], covered_prefix_count=2)))
+         {"role": "user", "content": current}], None, [], coverage=coverage)))
     chat.context_retention.load_required_facts.return_value = "required stable fact"
     monkeypatch.setattr(chat.context_retention, "assert_input_budget", ACTUAL_ASSERT_BUDGET)
     monkeypatch.setattr(chat.context_retention, "fits_input_budget", ACTUAL_FITS_BUDGET)
@@ -379,6 +387,26 @@ async def test_normal_required_fact_change_remains_a_publish_barrier(setup, monk
     with pytest.raises(errors.AppError) as caught:
         await chat.post_message(session, UID, request(), "normal-revision")
     assert caught.value.code == "AI_UNAVAILABLE" and session.added == []
+
+
+async def test_leading_assistant_keeps_identity_outside_required_system(setup, monkeypatch):
+    uid, text, current = chat._uid(UID), "covered lead " * 4000, "current synthetic question"
+    ref = SourceRef(uid, 4, 0, hashlib.sha256(text.encode()).hexdigest())
+    coverage = VerifiedCoverage(uid, 0, uuid.UUID(int=9), 4, "a" * 64).bind_sources([ref])
+    lead = SimpleNamespace(id=4, sender="moly", content=text, created_at=None)
+    monkeypatch.setattr(chat, "_context", AsyncMock(return_value=chat.ContextWindow(
+        [{"role": "user", "content": "uncovered source"},
+         {"role": "assistant", "content": "uncovered reply"},
+         {"role": "user", "content": current}], None, [lead], coverage=coverage)))
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", case="not_applicable")))
+    monkeypatch.setattr(chat.context_retention, "assert_input_budget", ACTUAL_ASSERT_BUDGET)
+    monkeypatch.setattr(chat.context_retention, "fits_input_budget", ACTUAL_FITS_BUDGET)
+    await chat.post_message(Session(), UID, request(current), "leading-source")
+    system, messages = chat.llm.generate.await_args.args[:2]
+    assert text not in str(system) + str(messages)
+    assert all(s in str(messages) for s in ("uncovered source", "uncovered reply", current))
+    assert all(set(m) == {"role", "content"} for m in messages)
 
 
 async def test_normal_revision_pause_can_retry_same_key_then_replay_without_double_charge(setup, monkeypatch):

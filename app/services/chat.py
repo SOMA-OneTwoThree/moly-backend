@@ -28,6 +28,9 @@ from app.models.message import Message, SUMMARY_EXCLUDED_MESSAGE_KINDS
 from app.models.memory_v2 import Mem0MemoryRegistry
 from app.models.user_daily_stats import UserDailyStats
 from app.schemas.chat import PostMessageResponse
+from app.services.context_provenance import (
+    HistoryEntry, SourceRef, VerifiedCoverage, ProvenanceError, without_covered, wire_messages,
+)
 from app.services import (
     alerts,
     incomplete_diagnostics,
@@ -267,7 +270,7 @@ class ContextWindow:
     checkpoint_keep_from: int | None = None
     incomplete: bool = False
     retention_source_bytes: int = 0
-    covered_prefix_count: int = 0
+    coverage: VerifiedCoverage | None = None
 
 
 class _HistoryReadPressure(Exception):
@@ -303,6 +306,8 @@ async def _context(
     checkpoint_through: int | None = None,
     compact_crises: bool = True,
     retention_enabled: bool = False,
+    memory_generation: int = 0,
+    coverage: VerifiedCoverage | None = None,
 ) -> ContextWindow:
     """Build a bounded window without removing an uncheckpointed head at normal resets.
 
@@ -322,8 +327,13 @@ async def _context(
     ``_build_system``의 서버 소유 system 블록으로만 넣어 저장 데이터가 user 발화 권위를
     얻지 못하게 한다.
     """
-    retention_source_bytes = covered_prefix_count = 0
+    retention_source_bytes = 0
     if retention_enabled:
+        if coverage is not None and (coverage.user_id != uid
+                or coverage.memory_generation != memory_generation):
+            raise ProvenanceError("stale_source_identity")
+        # An integer boundary alone never authorizes a sticky reader to omit raw.
+        checkpoint_through = coverage.through_message_id if coverage is not None else None
         # Page rather than treating the row safety limit as a context boundary.
         raw_anchor = checkpoint_through + 1 if checkpoint_through is not None else 0
         descending = []
@@ -370,7 +380,6 @@ async def _context(
             if protected and protected[0].sender == "user":
                 protected_ids = {m.id for m in protected}
                 rows = [m for m in candidates if m.id > checkpoint_through or m.id in protected_ids]
-                covered_prefix_count = sum(m.id <= checkpoint_through for m in rows)
     else:
         q = (
             select(Message)
@@ -429,18 +438,24 @@ async def _context(
         context_safety.ContextEntry(
             role=slot["role"], content=slot["content"], activity_date=m.activity_date,
             created_at=getattr(m, "created_at", None),
+            source_ref=(SourceRef.from_message(m, user_id=uid, generation=memory_generation)
+                        if retention_enabled else None),
         ) for slot, m in zip(convo, kept, strict=True)
     ]
     compacted = (context_safety.compact_historical_crises(
         entries, current_text=current_text, current_date=current_date, language=language,
-    ) if compact_crises else context_safety.CompactionResult(tuple(entries)))
+    ) if compact_crises and not retention_enabled else context_safety.CompactionResult(tuple(entries)))
     kept = list(compacted.entries)
     if current_text is not None:
         kept.append(context_safety.ContextEntry("user", current_text, current_date, current_at))
-    convo = [{"role": entry.role, "content": entry.content} for entry in kept]
+    convo = [HistoryEntry(entry.role, entry.content, source_ref=entry.source_ref) for entry in kept]
     _mark_dates(convo, kept, tz_name)
+    if retention_enabled and coverage is not None:
+        coverage = coverage.bind_sources([
+            SourceRef.from_message(m, user_id=uid, generation=memory_generation) for m in rows
+        ])
     return ContextWindow(convo, new_anchor, lead, checkpoint_keep_from, incomplete,
-                         retention_source_bytes, covered_prefix_count)
+                         retention_source_bytes, coverage)
 
 
 async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> None:
@@ -1153,7 +1168,7 @@ async def post_message(
             session, user_id, req, idempotency_key, deadline=deadline,
             capabilities=capabilities, topic_catalog=topic_catalog, _owner=owner,
         )
-    except BaseException:
+    except BaseException as exc:
         if owner.get("lease") is not None:
             try:
                 await session.rollback()
@@ -1163,6 +1178,9 @@ async def post_message(
                 # A later request's lease is never released: release matches the
                 # original token. Its expiry is the fallback if DB is unavailable.
                 _log.warning("chat_lease_cleanup_failed error=%s", type(cleanup_error).__name__)
+        if isinstance(exc, ProvenanceError):
+            raise errors.AppError("CHAT_TURN_STALE", 409,
+                                  "대화 근거가 바뀌었어요. 새 요청으로 다시 시도해 주세요.") from exc
         raise
 
 
@@ -1492,15 +1510,16 @@ async def _post_message_impl(
     # 요약과 아래 대화 배열은 겹치지 않고 이어진다.
     checkpoint_summary = ""
     checkpoint_through = None
+    read_coverage = None
     if settings.context_checkpoint_enabled or retention_enabled:
         latest_checkpoint = await checkpoint_repo.load_latest(
             session, uid, **({"retention_enabled": True} if retention_enabled else {}),
         )
         if retention_enabled and latest_checkpoint is not None:
-            if not await context_retention.processing_complete(
-                session, user_id=uid, generation=memory_generation,
-                through_id=latest_checkpoint.through_message_id,
-            ):
+            read_coverage = await checkpoint_repo.coverage_for_checkpoint(
+                session, user_id=uid, generation=memory_generation, value=latest_checkpoint,
+            )
+            if read_coverage is None:
                 latest_checkpoint = None
         if retention_enabled:
             # The old persisted anchor may be ahead of the new verified coverage.
@@ -1594,6 +1613,7 @@ async def _post_message_impl(
             current_at=now, tz_name=account_timezone, checkpoint_through=checkpoint_through,
             compact_crises=not guard_config.enabled,
             retention_enabled=retention_enabled,
+            memory_generation=memory_generation, coverage=read_coverage,
         )
     except _HistoryReadPressure:
         await _pause_for_history_pressure(
@@ -1604,12 +1624,19 @@ async def _post_message_impl(
     if correction_pending:
         checkpoint_summary = ""
     convo = context_window.conversation
+    if retention_enabled:
+        read_coverage = context_window.coverage
     new_anchor = context_window.new_anchor
     lead = context_window.lead
     historical_lead = [
         f"{_time_label(getattr(m, 'created_at', None), account_timezone)} {m.content}"
         for m in lead
     ]
+    if retention_enabled:
+        # Keep leading sources separate from mandatory persona/fact blocks.
+        convo = [HistoryEntry("system", _HISTORICAL_LEAD_HEADER[i18n.resolve(language)] + text,
+                    source_ref=SourceRef.from_message(m, user_id=uid, generation=memory_generation))
+                 for m, text in zip(lead, historical_lead, strict=True)] + convo
 
     # 현재 턴 선발화(있으면) — 이번 턴 system[먼저 건넨 말]에 넣으려 읽기만. insert는 phase 2.
     greeting_content: str | None = None
@@ -1657,7 +1684,8 @@ async def _post_message_impl(
             # The pipeline mode, not an empty recall result, selects this path.
             contract_text="" if retention_enabled else contract_text,
             relationship_v2="" if retention_enabled else relationship_v2,
-            historical_lead=earlier_lead, crisis_guard_enabled=guard_config.enabled,
+            historical_lead=earlier_lead if not retention_enabled else [],
+            crisis_guard_enabled=guard_config.enabled,
         )
 
     system = system_with_history(historical_lead)
@@ -1729,10 +1757,8 @@ async def _post_message_impl(
     cache_on = settings.chat_prompt_cache_enabled
     t_llm0 = time.monotonic()
     # 원가 원장 귀속 — 사용자 quota(_billable)와 별개로 provider 단가 기준 USD를 적재한다.
-    retained_covered_prefix = ()
     if retention_enabled:
-        covered_count = getattr(context_window, "covered_prefix_count", 0)
-        retained_covered_prefix = tuple(dict(slot) for slot in convo[:covered_count])
+        fallback = without_covered(convo, read_coverage)
         budget_system, budget_messages, tools = budget_inputs(system, convo)
         try:
             context_retention.assert_input_budget(
@@ -1740,24 +1766,13 @@ async def _post_message_impl(
                 input_limit=context_retention.FOREGROUND_INPUT_LIMIT,
             )
         except context_retention.RetentionError:
-            # Only this exact prefix is already covered by a verified checkpoint.
-            # Removing it never removes uncovered dialogue, facts or preferences.
-            fallback = [dict(slot) for slot in convo[covered_count:]] if covered_count else None
-            fallback_lead = list(historical_lead)
-            while fallback and fallback[0]["role"] == "assistant":
-                fallback_lead.append(fallback.pop(0)["content"])
-            fallback_system = system_with_history(fallback_lead)
-            if focus_block:
-                fallback_system = [*fallback_system, focus_block]
-            fallback_fits = False
-            if fallback is not None:
-                alternative_system, alternative_messages, alternative_tools = budget_inputs(fallback_system, fallback)
-                fallback_fits = context_retention.fits_input_budget(
-                    alternative_system, alternative_messages, tools=alternative_tools,
-                    input_limit=context_retention.FOREGROUND_INPUT_LIMIT,
-                )
+            alternative_system, alternative_messages, alternative_tools = budget_inputs(system, fallback)
+            fallback_fits = len(fallback) < len(convo) and context_retention.fits_input_budget(
+                alternative_system, alternative_messages, tools=alternative_tools,
+                input_limit=context_retention.FOREGROUND_INPUT_LIMIT,
+            )
             if fallback_fits:
-                system, convo, retained_covered_prefix = fallback_system, fallback, ()
+                convo = fallback
             else:
                 await _pause_for_history_pressure(
                     session, uid=uid, lease=lease, memory_generation=memory_generation,
@@ -1777,12 +1792,11 @@ async def _post_message_impl(
                 )
                 if retention_enabled:
                     kwargs["retention_enabled"] = True
-                    if retained_covered_prefix:
-                        kwargs["retention_covered_prefix"] = retained_covered_prefix
+                    kwargs["retention_coverage"] = read_coverage
                 turn = await agent_runtime.run_turn(system, convo, **kwargs)
                 return None, turn
             draft_result = await llm.generate(
-                system, convo, ledger=ledger_ctx, cache_messages=cache_on,
+                system, wire_messages(convo), ledger=ledger_ctx, cache_messages=cache_on,
                 ttl_system=settings.cache_ttl_system, ttl_messages=settings.cache_ttl_messages,
                 timeout=min(settings.llm_timeout_s, absolute_deadline - time.monotonic()),
                 sdk_retries=False, foreground_deadline=absolute_deadline,
@@ -2090,7 +2104,7 @@ async def _post_message_impl(
     prefetch_checkpoint = False
     if retention_writes_enabled and message_kind == "normal":
         projected_system, projected_messages, projected_tools = budget_inputs(
-            system, [*convo[len(retained_covered_prefix):],
+            system, [*without_covered(convo, read_coverage),
                      {"role": "assistant", "content": reply_stored}],
         )
         raw_bytes = (getattr(context_window, "retention_source_bytes", 0)

@@ -304,13 +304,18 @@ async def enqueue_checkpoint(
                 session, user_id=user_id, privacy_epoch=epoch):
             return None
         plan = replace(plan, privacy_epoch=epoch)
+    payload = plan.payload()
+    if plan.version == checkpoint.RETENTION_SUMMARIZER_VERSION:
+        # Only a newly created regular root adopts packing. Shared source-plan
+        # comparisons and existing partial/completed jobs retain their format.
+        payload["packing_version"] = checkpoint.PACKING_VERSION
     made = await jobs.enqueue(
         session,
         queue=jobs.QUEUE_CONTENT,
         job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT,
         user_id=user_id,
         dedup_key=plan.dedup_key(user_id),
-        payload=plan.payload(),
+        payload=payload,
         **({"available_at": datetime.now(timezone.utc)+timedelta(seconds=delay_s)} if delay_s else {}),
     )
     if made is not None and plan.version == checkpoint.RETENTION_SUMMARIZER_VERSION:
@@ -448,7 +453,10 @@ async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
         payload = pending[4] if isinstance(pending[4], dict) else json.loads(pending[4])
         if (not pressure and (len(pending)<6 or pending[5] is None)
                 and payload.get("reason") != "input_pressure"
-                and payload.get("mode") != "reverify" and "progress_state" not in payload
+                and payload.get("mode") is None and "progress_state" not in payload
+                and not any(key in payload for key in (
+                    "packing_chunk_cap", "model_attempts_remaining", "progress_page_proof"))
+                and payload.get("packing_version") in (None, checkpoint.PACKING_VERSION)
                 and pending[1] == "ready" and int(pending[2]) == 0
                 and plan.through_message_id > int(payload.get("through_message_id", 0))):
             # An existing fixed snapshot may not be rebound to a newer epoch.
@@ -457,7 +465,10 @@ async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
             if not await context_retention.privacy_epoch_matches(session, user_id=user_id, privacy_epoch=epoch):
                 return None
             plan = replace(plan, privacy_epoch=epoch)
-            wire = json.dumps(plan.payload(), sort_keys=True, separators=(",", ":"))
+            merged_payload = plan.payload()
+            if "packing_version" in payload:
+                merged_payload["packing_version"] = payload["packing_version"]
+            wire = json.dumps(merged_payload, sort_keys=True, separators=(",", ":"))
             merged = (await session.execute(_MERGE_RETENTION_READY, {
                 "id": pending[0], "payload": wire,
                 "payload_hash": hashlib.sha256(wire.encode()).hexdigest(),

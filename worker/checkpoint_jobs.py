@@ -44,6 +44,58 @@ RESULT_SOURCE_CHANGED = "source_changed"
 RESULT_STALE_GENERATION = "stale_generation"
 # 요약 대상 구간에 잊어줘가 닫은 메시지가 섞여 있다 — 요약하면 지운 내용이 되살아난다.
 RESULT_SOURCE_CLOSED = "source_range_closed"
+PACKING_VERSION = "packed-v1"
+
+
+def _packing_version(payload: dict) -> str | None:
+    version = payload.get("packing_version")
+    if version is not None and version != PACKING_VERSION:
+        raise JobFatal("checkpoint_packing_version")
+    if version is not None:
+        cap = payload.get("packing_chunk_cap")
+        remaining = payload.get("model_attempts_remaining")
+        if cap is not None and (type(cap) is not int or cap < 1):
+            raise JobFatal("checkpoint_packing_cap")
+        if "model_attempts_remaining" in payload and (type(remaining) is not int or remaining < 0):
+            raise JobFatal("checkpoint_packing_attempts")
+    return version
+
+
+async def _persist_packing_control(job, before: dict, after: dict) -> None:
+    """Persist only call reservation/control metadata under the original running lease."""
+    keys = {"packing_chunk_cap", "model_attempts_remaining"}
+    if ({key: value for key, value in before.items() if key not in keys}
+            != {key: value for key, value in after.items() if key not in keys}
+            or _packing_version(after) != PACKING_VERSION):
+        raise JobFatal("checkpoint_packing_control_invalid")
+    wire = json.dumps(after, sort_keys=True, separators=(",", ":"))
+    async with get_sessionmaker()() as session:
+        req = _parse(job)
+        if not await _writable_privacy_epoch(session, req, before):
+            raise JobCancelled("checkpoint_privacy_changed")
+        row = (await session.execute(text("""
+          UPDATE async_jobs j SET payload=CAST(:payload AS jsonb),payload_hash=:payload_hash
+          WHERE j.id=:job_id AND j.user_id=:user_id AND j.state='running'
+            AND j.job_type='conversation_checkpoint'
+            AND j.lease_owner=:owner AND j.lease_token=:token AND j.lease_until>now()
+            AND j.payload=CAST(:before AS jsonb) AND j.payload_redacted_at IS NULL
+            AND (j.payload_expires_at IS NULL OR j.payload_expires_at>now())
+            AND EXISTS(SELECT 1 FROM chat_contexts c WHERE c.user_id=j.user_id
+                       AND c.memory_generation=:generation)
+          RETURNING j.id
+        """), {"payload": wire, "payload_hash": hashlib.sha256(wire.encode()).hexdigest(),
+                "before": json.dumps(before, sort_keys=True, separators=(",", ":")),
+                "job_id": job.id, "user_id": job.user_id, "owner": job.lease_owner,
+                "token": job.lease_token, "generation": req.memory_generation})).first()
+        if row is None:
+            raise JobCancelled("checkpoint_packing_snapshot_changed")
+        await session.commit()
+
+
+def _packing_dedup(payload: dict) -> str:
+    if _packing_version(payload) is None:
+        return ""
+    return f":{PACKING_VERSION}:{payload.get('progress_next_chunk', 0)}:{payload.get('packing_chunk_cap', 'auto')}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -224,6 +276,9 @@ def _completed_binding(req: _Request, payload: dict) -> str:
              "reason": payload.get("reason"),
              "privacy_epoch": payload.get("privacy_epoch"),
              "proof": payload.get("completed_proof")}
+    if _packing_version(payload) is not None:
+        fixed["packing_version"] = payload["packing_version"]
+        fixed["packing_chunk_cap"] = payload.get("packing_chunk_cap")
     return hashlib.sha256(json.dumps(fixed, sort_keys=True, ensure_ascii=False,
                                     separators=(",", ":")).encode()).hexdigest()
 
@@ -233,7 +288,12 @@ def _validate_completed(req, payload, sources, previous, language):
         raise checkpoint.CheckpointError("progress_completed_binding")
     allowed = [message for message in sources if message.kind not in SUMMARY_EXCLUDED_MESSAGE_KINDS]
     return checkpoint.validate_completed_progress(messages=allowed, previous=previous,
-        language=language, state=payload.get("completed_state"), proof=payload.get("completed_proof"))
+        language=language, state=payload.get("completed_state"), proof=payload.get("completed_proof"),
+        **({"packing_version": payload["packing_version"],
+            "packing_chunk_cap": payload.get("packing_chunk_cap"),
+            "page_proof": payload.get("completed_page_proof"),
+            "previous_state": payload.get("completed_previous_state"),
+            "start_chunk": payload.get("completed_start_chunk", 0)} if _packing_version(payload) else {}))
 
 
 class _PrivacyLockBusy(JobDeferred):
@@ -378,7 +438,10 @@ async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
 
 
 async def handle_checkpoint(job: ClaimedJob) -> JobResult:
+    packing = _packing_version(job.payload or {})
     if (job.payload or {}).get("mode") == "reverify":
+        if packing is not None:
+            raise JobFatal("checkpoint_packing_mode")
         return await _handle_retention_reverify(job)
     if (job.payload or {}).get("mode") == "publish_retention":
         return await _handle_retention_publish(job)
@@ -386,6 +449,8 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
     if not settings.context_checkpoint_enabled and payload_version != checkpoint.RETENTION_SUMMARIZER_VERSION:
         return JobResult(result_code=RESULT_DISABLED)
     req = _parse(job)
+    if packing is not None and req.version != checkpoint.RETENTION_SUMMARIZER_VERSION:
+        raise JobFatal("checkpoint_packing_mode")
 
     async with get_sessionmaker()() as session:
         retention = req.version == checkpoint.RETENTION_SUMMARIZER_VERSION
@@ -481,20 +546,56 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
     state_json = None
     call = None
     continuation = None
+    packed_result = None
+    output_fallback = False
+    fallback_billable = 0
+    control_payload = dict(job.payload or {})
+    available_before_call = None
+    starting_state = None
+    if packing:
+        try:
+            starting_state = context_retention.validate_state(
+                control_payload.get("progress_state", previous.state_json if previous else None))
+        except context_retention.RetentionError as exc:
+            raise JobFatal("checkpoint_packing_state") from exc
+
+    async def before_call():
+        nonlocal control_payload, available_before_call
+        if available_before_call is not None:
+            raise JobFatal("checkpoint_packing_multiple_calls")
+        physical_remaining = max(0, job.max_attempts - job.attempt + 1)
+        available_before_call = min(
+            control_payload.get("model_attempts_remaining", physical_remaining), physical_remaining)
+        if available_before_call <= 0:
+            raise JobFatal("checkpoint_packing_attempts_exhausted")
+        updated = {**control_payload, "model_attempts_remaining": available_before_call - 1}
+        await _persist_packing_control(job, control_payload, updated)
+        control_payload = updated
+
     try:
         if retention and not inputs:
             state_json = context_retention.validate_state(previous.state_json if previous else None)
             summary = context_retention.render_state(state_json)
         elif retention:
-            summary, state_json, call = await checkpoint.summarize_progress(
+            progress_result = await checkpoint.summarize_progress(
                 messages=inputs, previous=previous, language=language, nickname=nickname,
                 continuation_state=(job.payload or {}).get("progress_state"),
                 start_chunk=(job.payload or {}).get("progress_next_chunk", 0),
                 continuation_manifest=(job.payload or {}).get("progress_manifest"),
                 max_batches=1,
+                **({"packing_version": packing,
+                    "packing_chunk_cap": control_payload.get("packing_chunk_cap"),
+                    "continuation_proof": control_payload.get("progress_page_proof"),
+                    "before_call": before_call} if packing else {}),
                 ledger=usage_ledger.LedgerContext(lane=usage_ledger.LANE_BACKGROUND,
                     purpose="context_summary", user_id=job.user_id, job_id=job.id, attempt=job.attempt),
             )
+            summary, state_json, call = progress_result
+            if packing:
+                packed_result = progress_result
+                if (packed_result.before_state != starting_state
+                        or packed_result.page_start != control_payload.get("progress_next_chunk", 0)):
+                    raise checkpoint.CheckpointError("progress_completed_start_state")
         else:
             summary, call = await checkpoint.summarize(
             messages=inputs,
@@ -510,6 +611,22 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
     except checkpoint.ProgressContinuation as pending:
         continuation = pending
         state_json, summary = pending.state, ""
+    except checkpoint.ExpandedProgressLength as pending:
+        if not packing or available_before_call is None:
+            raise JobRetry("summary_length") from None
+        if (pending.start_chunk != control_payload.get("progress_next_chunk", 0)
+                or pending.before_state != starting_state or pending.consumed_atoms <= 1):
+            raise JobRetry("summary_packing_length_snapshot") from None
+        updated = {**control_payload, "packing_chunk_cap": 1}
+        await _persist_packing_control(job, control_payload, updated)
+        control_payload = updated
+        if control_payload["model_attempts_remaining"] <= 0:
+            raise JobFatal("checkpoint_packing_attempts_exhausted") from None
+        output_fallback = True
+        fallback_billable = pending.billable
+        state_json, summary = starting_state, ""
+    except (JobCancelled, JobDeferred, JobFatal):
+        raise
     except checkpoint.NameLeakError as e:
         # 마스킹 후에도 실명이 남았다 — 저장하지 않고 재시도(다음 샘플은 통과할 수 있다).
         _log.warning("요약 실명 회귀 검사 실패(재시도) — job_id=%s: %s", job.id, e)
@@ -521,7 +638,12 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
 
     completed_proof = (checkpoint.completed_progress_proof(
         messages=inputs, previous=previous, language=language, state=state_json,
-    ) if retention and continuation is None else None)
+        **({"packing_version": packing,
+            "packing_chunk_cap": control_payload.get("packing_chunk_cap"),
+            "page_proof": packed_result.page_proof if packed_result else None,
+            "previous_state": packed_result.before_state if packed_result else starting_state,
+            "start_chunk": packed_result.page_start if packed_result else 0} if packing else {}),
+    ) if retention and continuation is None and not output_fallback else None)
 
     async def _apply(session: AsyncSession) -> None:
         # 🔴 여기서 하는 도메인 쓰기는 checkpoint 1행뿐이다. 요약에서 기억 추출 잡을 만들지 않는다.
@@ -533,7 +655,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         if retention:
             writes_enabled = (await context_retention.enabled_now(session, lock=True)
                 and await context_retention.adopted_user(session, user_id=req.user_id, lock=True))
-        if retention and not await _writable_privacy_epoch(session, req, job.payload or {}):
+        if retention and not await _writable_privacy_epoch(session, req, control_payload):
             return
         ok, _ = await _still_applicable(session, req)
         if not ok:
@@ -550,26 +672,48 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 return
             await context_retention.validate_progress_sources(session, user_id=req.user_id,
                 state=state_json)
+        if output_fallback:
+            if not writes_enabled:
+                return
+            await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
+                job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
+                dedup_key=f"checkpoint-output-fallback:{job.id}{_packing_dedup(control_payload)}",
+                payload=control_payload,
+                max_attempts=control_payload["model_attempts_remaining"])
+            return
         if continuation is not None:
             if not writes_enabled:
                 return
+            if packing and (continuation.before_state != starting_state
+                    or continuation.page_start != control_payload.get("progress_next_chunk", 0)):
+                raise checkpoint.CheckpointError("progress_page_start_state")
             checkpoint.validate_progress_page(messages=inputs, previous=previous, language=language,
                 state=state_json, next_chunk=continuation.next_chunk, manifest=continuation.manifest,
-                start_chunk=(job.payload or {}).get("progress_next_chunk", 0))
+                start_chunk=(job.payload or {}).get("progress_next_chunk", 0),
+                **({"packing_version": packing, "page_proof": continuation.page_proof,
+                    "previous_state": starting_state,
+                    "packing_chunk_cap": control_payload.get("packing_chunk_cap")} if packing else {}))
             await context_retention.validate_progress_sources(session, user_id=req.user_id,
                 state=state_json)
             await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
                 job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
-                dedup_key=f"checkpoint-progress:{req.user_id}:{req.memory_generation}:{req.source_hash}:{continuation.next_chunk}",
-                payload={**job.payload, "progress_state": state_json,
+                dedup_key=f"checkpoint-progress:{req.user_id}:{req.memory_generation}:{req.source_hash}:{continuation.next_chunk}{_packing_dedup(control_payload)}",
+                payload={**control_payload, "progress_state": state_json,
                          "progress_next_chunk": continuation.next_chunk,
-                         "progress_manifest": continuation.manifest})
+                         "progress_manifest": continuation.manifest,
+                         **({"progress_page_proof": continuation.page_proof,
+                             "model_attempts_remaining": available_before_call} if packing else {})},
+                **({"max_attempts": available_before_call} if packing else {}))
             return
         if retention:
-            payload = {key: value for key, value in job.payload.items()
-                       if key not in {"progress_state", "progress_next_chunk", "progress_manifest"}}
+            payload = {key: value for key, value in control_payload.items()
+                       if key not in {"progress_state", "progress_next_chunk", "progress_manifest", "progress_page_proof"}}
             payload.update(mode="publish_retention", completed_state=state_json,
                            completed_proof=completed_proof)
+            if packing:
+                payload.update(completed_page_proof=packed_result.page_proof if packed_result else None,
+                    completed_previous_state=packed_result.before_state if packed_result else starting_state,
+                    completed_start_chunk=packed_result.page_start if packed_result else 0)
             payload["completed_binding"] = _completed_binding(req, payload)
             _validate_completed(req, payload, fresh_sources, previous, language)
             if not await _store_completed_parent(session, job, payload):
@@ -578,7 +722,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 return
             await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
                 job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
-                dedup_key=f"checkpoint-publish:{req.user_id}:{req.memory_generation}:{req.source_hash}",
+                dedup_key=f"checkpoint-publish:{req.user_id}:{req.memory_generation}:{req.source_hash}{_packing_dedup(control_payload)}",
                 payload=payload, max_attempts=3)
             return
         inserted_id = await checkpoint_repo.insert(
@@ -609,13 +753,14 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                     "manifests": []}, max_attempts=2)
 
     return JobResult(
-        result_code=("checkpoint_progress_page" if continuation is not None else
+        result_code=("checkpoint_progress_page" if continuation is not None or output_fallback else
                      "checkpoint_draft_ready" if retention else RESULT_OK),
         result_detail={
             "messages": len(inputs),
             "chars": len(summary),
             "reverified": reverify,
-            "billable": (continuation.billable if continuation is not None
+            "billable": (fallback_billable if output_fallback else
+                         continuation.billable if continuation is not None
                          else call.billable if call is not None else 0),
         },
         apply_domain=_apply,

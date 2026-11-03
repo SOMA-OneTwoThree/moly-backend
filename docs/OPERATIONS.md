@@ -103,9 +103,11 @@ MOLY_CHECKPOINT_TEST_ENV=dev uv run pytest -q \
   tests/integration/test_context_retention_dev.py \
   tests/integration/test_checkpoint_sweep_resume_dev.py \
   tests/integration/test_context_pressure_dev.py \
-  tests/integration/test_contract_fallback_dev.py
+  tests/integration/test_contract_fallback_dev.py \
+  tests/integration/test_checkpoint_packing_dev.py
 MOLY_CHECKPOINT_TEST_ENV=dev MOLY_RETENTION_MODEL_TEST_ENV=dev uv run pytest -q \
-  tests/integration/test_retention_model_dev.py
+  tests/integration/test_retention_model_dev.py \
+  tests/integration/test_checkpoint_packing_model_dev.py
 uv run python scripts/replay_guard_context_dev.py --env-file <개발-env-경로> \
   --input <저장소-밖-비식별-검토완료-입력.json> --expected-sha <개발-배포-SHA> --execute-dev
 ```
@@ -149,6 +151,13 @@ Auth 삭제 성공만으로 완료 처리하지 않고 개인정보 처리 장�
 유효한 일반 판정에서는 과거 `safety`·`safety_check`의 양쪽 메시지가 일반 입력과 선발화 system에
 없는지 검사한다. 판정용 최근 6개·현재 입력·일반 메시지와 원문 식별 정보는 유지해야 한다.
 판정 장애·시간 초과에는 원문 fallback을 보존하고, 고정 안내 경로의 입력과 차감은 바꾸지 않는다.
+신규 일반 요약의 `packed-v1`은 실제 입력 크기에 맞춰 여러 원자 조각을 한 호출로 처리한다.
+구형 작업과 완성 초안의 재개는 기존 방식이며, 새 root에만 버전을 붙인다. 아직 호출하지 않은
+ready 작업의 범위를 합칠 때도 기존 버전을 유지하고, 진행·실패 예산·게시 초안이 있는 작업은
+재계획하지 않는다. 확대 출력 잘림·OFF/ON 뒤의 동일 시작 위치와 남은 예산, 원문 전 구간의
+근거 위치·해시 및 내용 보존을 검사한다. 원자 수를 실제 모델 호출 수로 보고하지 않는다.
+묶음 전용 시스템 문구가 바뀌면 기존 packed 진행·완성 초안의 해시가 맞지 않아 중단될 수 있다.
+배포 전에 해당 작업을 확인하고, 자동 호환이나 모델 호출 없는 게시를 가정하지 않는다.
 선호 정리의 확대 입력·출력 잘림 복구는 기존 배경 상한과 실패 예산 안에서 시험한다. 이 보완에는
 새 DB 변경이나 계정 API 배포가 필요하지 않다.
 

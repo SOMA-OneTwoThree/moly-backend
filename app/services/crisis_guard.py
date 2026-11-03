@@ -81,11 +81,11 @@ _CASE_INSTRUCTIONS = (
     "Ordinary thanks or greetings alone do not continue an action; thoughts alone do not establish intent."
 )
 _CASE_CHOICES = (
-    {"value": "not_applicable", "description": "Not the user's own current suicide or self-harm statement: ordinary conversation, clear everyday exaggeration/joking, someone else, fiction, quotation, or a resolved past event unrelated to now. No current self-directed action is stated."},
+    {"value": "not_applicable", "description": "Not the user's own current suicide or self-harm statement: ordinary conversation, clear everyday exaggeration/joking, someone else, fiction, quotation, or a resolved past event unrelated to now. Lack of intent, preparation or action alone does not make a message not_applicable; current thoughts and unresolved plausible self-harm meaning belong to their own cases."},
     {"value": "self_thought", "description": "The user's own current thoughts/wishes about death or self-harm, or a method/amount question in that context; no stated intent, concrete plan, preparation or action."},
     {"value": "self_intent_plan", "description": "The user's current intent to act or a concrete plan to end their life or hurt themselves. If preparation or action is stated choose self_preparation_action instead."},
     {"value": "self_preparation_action", "description": "The user's preparation, an act underway, or an act already done that remains unresolved and relevant now."},
-    {"value": "meaning_unclear", "description": "An expression plausibly about suicide/self-harm whose person, current relevance or actual meaning cannot be resolved from recent context. Semantic ambiguity, NOT low model confidence or ordinary tiredness/sadness."},
+    {"value": "meaning_unclear", "description": "An expression plausibly about suicide/self-harm whose person, current relevance or actual meaning cannot be resolved from recent context. This includes an isolated death-related expression when person, current relevance or literal-versus-figurative meaning remains unresolved; an earlier everyday topic alone does not resolve it. Unresolved examples can include bare 'しぬ', '죽겠어' or 'I'm gonna die' after casual chat. These strings are not automatic matches: clear tiredness idioms, a game character or a battery whose context resolves the referent remain not_applicable. Semantic ambiguity, NOT low model confidence or ordinary tiredness/sadness."},
 )
 _FOLLOWUP_CHOICES = (
     {"value": "same_confirmed", "description": "An answer about the SAME earlier concern affirming the user's own serious thoughts continuing NOW. A bare yes or a resolved past story does not confirm this."},

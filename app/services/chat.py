@@ -268,6 +268,10 @@ class ContextWindow:
     incomplete: bool = False
 
 
+class _HistoryReadPressure(Exception):
+    """Persisted, uncovered history exceeded the foreground read safety bound."""
+
+
 def _bounded_tail(rows: list[Message]) -> list[Message]:
     """Keep whole recent messages; even an oversized stored message cannot defeat the cap."""
     kept: list[Message] = []
@@ -331,8 +335,10 @@ async def _context(
             if before_id is not None and any(m.id >= before_id for m in page):
                 raise errors.ai_unavailable()
             descending.extend(page)
-            if context_retention.source_tokens(descending) > 16_384:
-                raise errors.ai_unavailable()
+            if context_retention.source_tokens(descending) > context_retention.FOREGROUND_INPUT_LIMIT:
+                # Do not discard the unread source or send a truncated prompt.
+                # The request owner reserves committed-history recovery instead.
+                raise _HistoryReadPressure()
             before_id = min(m.id for m in page)
             if len(page) < 120:
                 break
@@ -1001,6 +1007,37 @@ async def _guard_recent(session, uid, limit: int):
     ) for m in reversed(rows)]
 
 
+async def _pause_for_history_pressure(
+    session, *, uid, lease, memory_generation, reserve, recent, history_limit, owner,
+) -> None:
+    """The two pressure boundaries share one fenced commit/lease owner.
+
+    The current request is never stored or charged. request_pressure chooses
+    the last committed complete reply, not a partially read page/current input.
+    If immutable required input alone is too large, reserve=False avoids work
+    that cannot make that request fit.
+    """
+    if reserve:
+        await _lock_user(session, uid)
+        await privacy.ensure_subject_active(session, uid)
+        await chat_turns.verify_publish(
+            session, user_id=uid, lease=lease, memory_generation=memory_generation,
+        )
+        if recent is not None:
+            current_sources = await _guard_recent(session, uid, history_limit)
+            if _guard_source_proof(current_sources) != _guard_source_proof(recent):
+                raise errors.AppError("CHAT_TURN_STALE", 409,
+                                      "답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.")
+        await checkpoint_repo.request_pressure(
+            session, user_id=uid, generation=memory_generation,
+        )
+    await chat_turns.release(session, user_id=uid, lease=lease)
+    await session.commit()
+    if owner is not None:
+        owner["lease"] = None
+    raise errors.ai_unavailable()
+
+
 async def _publish_fixed_guard(
     session, *, uid, user_id, req, idempotency_key, request_digest, lease,
     memory_generation, decision, recent, history_limit, language, nick,
@@ -1490,13 +1527,53 @@ async def _post_message_impl(
             resident_block = ""
         context_ms = _ms(t_context0, time.monotonic())
 
+    if retention_enabled:
+        def budget_inputs(prompt_system, prompt_messages):
+            if agent_runtime.should_run(agent_cfg, uid):
+                return agent_runtime.foreground_budget_inputs(
+                    prompt_system, prompt_messages, user_text=req.text,
+                )
+            return prompt_system, prompt_messages, ()
+
+        def recoverable_history():
+            # Both raw-read and assembled-input pressure need this same check:
+            # removing history cannot fix oversized immutable required input.
+            essential_system = _build_system(
+                language, nick, crisis_guard_enabled=guard_config.enabled,
+            )
+            essential_blocks = [time_block]
+            if contract_text:
+                essential_blocks.append(naming.render(contract_text, nick))
+            if required_facts:
+                essential_blocks.append("[Current verified facts]\n" + naming.render(required_facts, nick))
+            essential_convo = [
+                {"role": "system", "content": "\n\n".join(essential_blocks)},
+                {"role": "user", "content": naming.render(
+                    f"{_time_label(now, account_timezone)}\n{req.text}", nick,
+                )},
+            ]
+            essential_system, essential_convo, essential_tools = budget_inputs(
+                essential_system, essential_convo,
+            )
+            return context_retention.fits_input_budget(
+                essential_system, essential_convo, tools=essential_tools,
+                input_limit=context_retention.FOREGROUND_INPUT_LIMIT,
+            )
+
     # 컨텍스트 조립 — 현재 유저 메시지는 아직 미저장. _context가 현재 턴을 in-memory로 붙인다.
-    context_window = await _context(
-        session, uid, anchor, current_text=req.text, current_date=ad, language=language,
-        current_at=now, tz_name=account_timezone, checkpoint_through=checkpoint_through,
-        compact_crises=not guard_config.enabled,
-        retention_enabled=retention_enabled,
-    )
+    try:
+        context_window = await _context(
+            session, uid, anchor, current_text=req.text, current_date=ad, language=language,
+            current_at=now, tz_name=account_timezone, checkpoint_through=checkpoint_through,
+            compact_crises=not guard_config.enabled,
+            retention_enabled=retention_enabled,
+        )
+    except _HistoryReadPressure:
+        await _pause_for_history_pressure(
+            session, uid=uid, lease=lease, memory_generation=memory_generation,
+            reserve=recoverable_history(), recent=decision_recent if predecided is not None else None,
+            history_limit=guard_config.history_messages, owner=_owner,
+        )
     if correction_pending:
         checkpoint_summary = ""
     convo = context_window.conversation
@@ -1625,45 +1702,18 @@ async def _post_message_impl(
     t_llm0 = time.monotonic()
     # 원가 원장 귀속 — 사용자 quota(_billable)와 별개로 provider 단가 기준 USD를 적재한다.
     if retention_enabled:
+        budget_system, budget_messages, tools = budget_inputs(system, convo)
         try:
-            tools = (list(agent_runtime._resolve_registry().wire_schemas())
-                     if agent_runtime.should_run(agent_cfg, uid) else ())
-            context_retention.assert_input_budget(system, convo, tools=tools)
-        except context_retention.RetentionError:
-            # Only completed history can be recovered by checkpoint work. If
-            # immutable rules/current input/required facts alone are too large,
-            # reserving the same historical job forever cannot fix the request.
-            essential_system = _build_system(
-                language, nick, crisis_guard_enabled=guard_config.enabled,
+            context_retention.assert_input_budget(
+                budget_system, budget_messages, tools=tools,
+                input_limit=context_retention.FOREGROUND_INPUT_LIMIT,
             )
-            essential_blocks = [time_block]
-            if contract_text:
-                essential_blocks.append(naming.render(contract_text, nick))
-            if required_facts:
-                essential_blocks.append("[Current verified facts]\n" + naming.render(required_facts, nick))
-            essential_convo = [
-                {"role": "system", "content": "\n\n".join(essential_blocks)},
-                dict(convo[-1]),
-            ]
-            if context_retention.fits_input_budget(essential_system, essential_convo, tools=tools):
-                await _lock_user(session, uid)
-                await privacy.ensure_subject_active(session, uid)
-                await chat_turns.verify_publish(
-                    session, user_id=uid, lease=lease, memory_generation=memory_generation,
-                )
-                if predecided is not None:
-                    current_sources = await _guard_recent(session, uid, guard_config.history_messages)
-                    if _guard_source_proof(current_sources) != _guard_source_proof(decision_recent):
-                        raise errors.AppError("CHAT_TURN_STALE", 409,
-                                              "답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.")
-                await checkpoint_repo.request_pressure(
-                    session, user_id=uid, generation=memory_generation,
-                )
-            await chat_turns.release(session, user_id=uid, lease=lease)
-            await session.commit()
-            if _owner is not None:
-                _owner["lease"] = None  # Intentional committed pressure pause.
-            raise errors.ai_unavailable() from None
+        except context_retention.RetentionError:
+            await _pause_for_history_pressure(
+                session, uid=uid, lease=lease, memory_generation=memory_generation,
+                reserve=recoverable_history(), recent=decision_recent if predecided is not None else None,
+                history_limit=guard_config.history_messages, owner=_owner,
+            )
     try:
         if time.monotonic() >= absolute_deadline:
             raise TimeoutError("chat request deadline exceeded before inference")
@@ -1689,6 +1739,17 @@ async def _post_message_impl(
             return draft_result, None
 
         result, agent_turn = await generate_draft()
+    except context_retention.RetentionError as exc:
+        # A tool-result hop or length recovery can grow after preflight. Handle
+        # only this exact budget failure; source/semantic validation failures
+        # must not be disguised as recoverable history pressure.
+        if not retention_enabled or str(exc) != "context_input_budget":
+            raise
+        await _pause_for_history_pressure(
+            session, uid=uid, lease=lease, memory_generation=memory_generation,
+            reserve=recoverable_history(), recent=decision_recent if predecided is not None else None,
+            history_limit=guard_config.history_messages, owner=_owner,
+        )
     except BaseException as exc:
         # The outer owner performs rollback/release once for every failure,
         # including cancellation inside provider ledger cleanup.
@@ -1974,15 +2035,16 @@ async def _post_message_impl(
 
     # Recovery does not depend on the user sending one more message. Use the
     # actual completed reply; do not add a hypothetical maximum-size next input.
-    if (retention_writes_enabled and message_kind == "normal"
-            and not context_retention.fits_input_budget(
-                system, [*convo, {"role": "assistant", "content": reply_stored}],
-                tools=(list(agent_runtime._resolve_registry().wire_schemas())
-                       if agent_runtime.should_run(agent_cfg, uid) else ()),
-            )):
-        await checkpoint_repo.request_pressure(
-            session, user_id=uid, generation=memory_generation, through_id=rmsg.id,
+    if retention_writes_enabled and message_kind == "normal":
+        projected_system, projected_messages, projected_tools = budget_inputs(
+            system, [*convo, {"role": "assistant", "content": reply_stored}],
         )
+        if not context_retention.fits_input_budget(
+                projected_system, projected_messages, tools=projected_tools,
+                input_limit=context_retention.FOREGROUND_INPUT_LIMIT):
+            await checkpoint_repo.request_pressure(
+                session, user_id=uid, generation=memory_generation, through_id=rmsg.id,
+            )
 
     if (retention_writes_enabled and (correction_pending or scope_end_pending)
             and message_kind == "normal"):

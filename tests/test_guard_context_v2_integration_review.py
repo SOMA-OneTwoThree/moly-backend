@@ -6,6 +6,7 @@ They do not claim real model accuracy or existing development API validation.
 from __future__ import annotations
 
 import asyncio
+from datetime import date
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -16,6 +17,9 @@ from app.models.idempotency_key import IdempotencyKey
 from app.models.message import Message
 from app.services import chat, crisis_chat, crisis_guard, llm
 from tests.test_chat import FakeSession, UID, _gating
+
+ACTUAL_ASSERT_BUDGET = chat.context_retention.assert_input_budget
+ACTUAL_FITS_BUDGET = chat.context_retention.fits_input_budget
 
 
 class Session(FakeSession):
@@ -348,3 +352,162 @@ def test_independent_six_message_boundary_is_messages_and_assistant_only(distanc
     data, followup = crisis_guard.prepare_input("합성 현재 입력", history)
     assert len(data) == min(len(history), 6) + 1 and followup is (expected == "safety_check")
     assert data[-1] == {"role": "user", "content": "합성 현재 입력"}
+
+
+@pytest.mark.parametrize("language,character", [("ko", "가"), ("en", "A"), ("ja", "あ"),
+                                               ("ko", "😀"), ("en", "😀"), ("ja", "😀")])
+def test_actual_foreground_persona_tools_and_large_required_input_fit(language, character):
+    retention = chat.context_retention
+    system = chat._build_system(language, "테스터", crisis_guard_enabled=True)
+    # Facts use their 2048-unit bound; contract has no global maximum. This
+    # explicitly tests 2048 bytes of preserved contract, not a fictional cap.
+    required = "[Current verified facts]\n" + "F" * 2048 + "\n" + "C" * 2048
+    messages = [{"role": "system", "content": required},
+                {"role": "user", "content": character * 2000}]
+    system, messages, tools = chat.agent_runtime.foreground_budget_inputs(
+        system, messages, user_text=character * 2000,
+    )
+    assert tools  # Use the complete real registry, not an empty stand-in schema.
+    assert retention.assert_input_budget(system, messages, tools=tools,
+        input_limit=retention.FOREGROUND_INPUT_LIMIT) <= 32_768
+
+
+def test_foreground_32k_does_not_raise_background_defaults():
+    retention = chat.context_retention
+    messages = [{"role": "user", "content": "x" * 20_000}]
+    assert retention.fits_input_budget("system", messages, input_limit=retention.FOREGROUND_INPUT_LIMIT)
+    assert not retention.fits_input_budget("system", messages)
+    assert chat.checkpoint.BACKGROUND_INPUT_LIMIT == 16_384
+    assert retention.MAX_CORRECTION_SOURCE_BYTES == 16_384
+
+
+@pytest.mark.parametrize("raw_overflow", [False, True])
+@pytest.mark.parametrize("uses_agent", [False, True])
+async def test_large_immutable_contract_fails_without_a_history_recovery_job(setup, monkeypatch, raw_overflow, uses_agent):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", case="not_applicable")))
+    monkeypatch.setattr(chat.context_retention, "assert_input_budget", ACTUAL_ASSERT_BUDGET)
+    monkeypatch.setattr(chat.context_retention, "fits_input_budget", ACTUAL_FITS_BUDGET)
+    monkeypatch.setattr(chat.agent_runtime, "should_run", lambda *args: uses_agent)
+    chat.contract_repo.published_text.return_value = "C" * 40_000
+    if raw_overflow:
+        monkeypatch.setattr(chat, "_context", AsyncMock(side_effect=chat._HistoryReadPressure))
+    session = Session()
+    with pytest.raises(errors.AppError) as caught:
+        await chat.post_message(session, UID, request(), "irreducible-contract")
+    assert caught.value.code == "AI_UNAVAILABLE"
+    chat.checkpoint_repo.request_pressure.assert_not_awaited()
+    chat.chat_turns.release.assert_awaited_once()
+    assert session.added == []
+
+
+@pytest.mark.parametrize("boundary", ["raw", "assembled"])
+async def test_both_history_pressure_boundaries_use_one_fenced_committed_reservation(setup, monkeypatch, boundary):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", case="not_applicable")))
+    if boundary == "raw":
+        monkeypatch.setattr(chat, "_context", AsyncMock(side_effect=chat._HistoryReadPressure))
+    else:
+        def too_large(*args, **kwargs):
+            assert kwargs["input_limit"] == 32_768
+            raise chat.context_retention.RetentionError("context_input_budget")
+        monkeypatch.setattr(chat.context_retention, "assert_input_budget", too_large)
+    verify = AsyncMock()
+    monkeypatch.setattr(chat.chat_turns, "verify_publish", verify)
+    session = Session()
+    with pytest.raises(errors.AppError) as caught:
+        await chat.post_message(session, UID, request(), "history-boundary")
+    assert caught.value.code == "AI_UNAVAILABLE"
+    chat.checkpoint_repo.request_pressure.assert_awaited_once()
+    assert chat.checkpoint_repo.request_pressure.await_args.kwargs == {
+        "user_id": chat._uid(UID), "generation": 0,
+    }
+    verify.assert_awaited_once()
+    chat.chat_turns.release.assert_awaited_once()
+    chat._accumulate_tokens.assert_not_awaited()
+    chat.llm.generate.assert_not_awaited()
+    assert session.added == [] and session.commits >= 2
+
+
+@pytest.mark.parametrize("change", ["generation", "privacy", "recent_source"])
+async def test_raw_pressure_preserves_common_privacy_and_generation_fences(setup, monkeypatch, change):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", case="not_applicable")))
+    monkeypatch.setattr(chat, "_context", AsyncMock(side_effect=chat._HistoryReadPressure))
+    if change == "generation":
+        monkeypatch.setattr(chat.chat_turns, "verify_publish", AsyncMock(side_effect=errors.AppError(
+            "CHAT_TURN_STALE", 409, "synthetic stale generation")))
+    elif change == "privacy":
+        monkeypatch.setattr(chat.privacy, "ensure_subject_active", AsyncMock(side_effect=[
+            None, errors.AppError("ACCOUNT_DELETED", 403, "synthetic deletion")]))
+    else:
+        chat._guard_recent.side_effect = [[], [crisis_guard.GuardMessage("user", "synthetic changed", message_id=9)]]
+    session = Session()
+    with pytest.raises(errors.AppError):
+        await chat.post_message(session, UID, request(), "raw-source-fence")
+    chat.checkpoint_repo.request_pressure.assert_not_awaited()
+    assert session.added == []
+
+
+@pytest.mark.parametrize("path", ["single", "tools", "length_recovery"])
+async def test_agent_hop_and_recovery_keep_foreground_budget(path, monkeypatch):
+    from tests.test_agent_runtime import (
+        _FakeRegistry, _FakeSteps, _FakeTool, _call, _calls_step, _cfg, _factory,
+        _text_step, _usage,
+    )
+    if path == "tools":
+        first = _calls_step(_call(1))
+    elif path == "length_recovery":
+        first = llm.StepResult(text="synthetic incomplete", tool_calls=[],
+                               finish_reason="length", usage=_usage("tool_decide"))
+    else:
+        first = _text_step("synthetic complete")
+    steps = _FakeSteps(first, _text_step("synthetic complete", purpose="tool_final"))
+    checked = []
+
+    def budget(system, messages, **kwargs):
+        assert kwargs["input_limit"] == 32_768
+        checked.append(kwargs)
+        return ACTUAL_ASSERT_BUDGET(system, messages, **kwargs)
+
+    monkeypatch.setattr(chat.llm, "generate_step", steps)
+    monkeypatch.setattr(chat.context_retention, "assert_input_budget", budget)
+    await chat.agent_runtime.run_turn(
+        ["x" * 20_000], [{"role": "user", "content": "synthetic current"}],
+        config=_cfg(), user_id=chat._uid(UID), language="en", activity_date=date(2026, 11, 3),
+        user_text="synthetic current", model="gpt-6-luna",
+        registry=_FakeRegistry(_FakeTool()), session_factory=_factory, retention_enabled=True,
+    )
+    assert len(checked) == (1 if path == "single" else 2)
+
+
+@pytest.mark.parametrize("recoverable", [True, False])
+async def test_late_runtime_budget_overflow_becomes_one_pressure_pause_not_500(setup, monkeypatch, recoverable):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", case="not_applicable")))
+    monkeypatch.setattr(chat.agent_runtime, "should_run", lambda *args: True)
+    monkeypatch.setattr(chat.agent_runtime, "run_turn", AsyncMock(side_effect=chat.context_retention.RetentionError(
+        "context_input_budget")))
+    monkeypatch.setattr(chat.context_retention, "fits_input_budget", lambda *args, **kwargs: recoverable)
+    session = Session()
+    with pytest.raises(errors.AppError) as caught:
+        await chat.post_message(session, UID, request(), "late-runtime-overflow")
+    assert caught.value.code == "AI_UNAVAILABLE"
+    assert chat.checkpoint_repo.request_pressure.await_count == int(recoverable)
+    chat.chat_turns.release.assert_awaited_once()
+    chat._accumulate_tokens.assert_not_awaited()
+    assert session.added == []
+
+
+async def test_unrelated_runtime_retention_failure_is_not_relabelled_or_reserved(setup, monkeypatch):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", case="not_applicable")))
+    monkeypatch.setattr(chat.agent_runtime, "should_run", lambda *args: True)
+    monkeypatch.setattr(chat.agent_runtime, "run_turn", AsyncMock(side_effect=chat.context_retention.RetentionError(
+        "synthetic_source_validation_failure")))
+    session = Session()
+    with pytest.raises(chat.context_retention.RetentionError, match="synthetic_source_validation_failure"):
+        await chat.post_message(session, UID, request(), "unrelated-retention")
+    chat.checkpoint_repo.request_pressure.assert_not_awaited()
+    chat.chat_turns.release.assert_awaited_once()
+    assert session.added == []

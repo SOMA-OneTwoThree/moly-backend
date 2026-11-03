@@ -25,6 +25,10 @@ STATE_SCHEMA = "conversation-progress-v1"
 MAX_STATE_BYTES = 24_000
 MAX_ACTIVE_TOKENS = 2_048
 MAX_UPDATES = 40
+# Application safety budget in conservative UTF-8-byte units, not measured
+# provider tokens. Foreground personas/tools alone exceed 16k in some locales.
+# Keep background/correction budgets independent; never raise their defaults.
+FOREGROUND_INPUT_LIMIT = 32_768
 _ITEM_ID = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
 
 

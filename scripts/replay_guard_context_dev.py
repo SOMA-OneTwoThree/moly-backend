@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import logging
@@ -74,6 +74,22 @@ class ReplayError(Exception):
 def require(condition: bool, reason: str) -> None:
     if not condition:
         raise ReplayError(reason)
+
+
+def response_failure(response: Any) -> str:
+    """Expose only known application enums, never provider bodies or text."""
+    allowed = {"AI_UNAVAILABLE", "DAILY_LIMIT_REACHED", "CHAT_BUSY", "CHAT_TURN_STALE",
+               "ACCOUNT_DELETING", "CHAT_TURN_IN_PROGRESS"}
+    code = None
+    try:
+        payload = response.json()
+        error = payload.get("error", {})
+        code = error.get("code") if isinstance(error, dict) else None
+        code = code or payload.get("code")
+    except (ValueError, AttributeError, TypeError):
+        pass
+    suffix = f"_{code.lower()}" if isinstance(code, str) and code in allowed else ""
+    return f"http_{response.status_code}{suffix}"
 
 
 def report(number: int, language: str, route: str, latency: int, failure: str | None) -> dict:
@@ -252,6 +268,76 @@ class Runner:
     expected_sha: str
     emit: Callable[[dict], None]
     recovery_timeout: float = 150.0
+    run_tag: str | None = None
+    privacy_step: Any = None
+    pressure_boundaries: dict[uuid.UUID, int] = field(default_factory=dict)
+    raw_proofs: dict[uuid.UUID, dict[int, tuple[str, str, str]]] = field(default_factory=dict)
+
+    async def observed_pressure(self, uid: uuid.UUID) -> bool:
+        through = await self.db.fetchval("""SELECT max((j.payload->>'through_message_id')::bigint)
+          FROM async_jobs j JOIN chat_contexts cc ON cc.user_id=j.user_id
+          WHERE j.user_id=$1 AND j.job_type='conversation_checkpoint'
+            AND j.payload->>'reason'='input_pressure'
+            AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)""", uid)
+        if through is None:
+            return False
+        require(type(through) is int and through > 0, "pressure_evidence_invalid")
+        self.pressure_boundaries[uid] = max(self.pressure_boundaries.get(uid, 0), through)
+        return True
+
+    async def raw_message_proofs(self, uid: uuid.UUID, ids: list[int]) -> dict[int, tuple[str, str, str]]:
+        rows = await self.db.fetch("""SELECT id,sender,kind,md5(COALESCE(content,'')) AS content_hash
+          FROM messages WHERE user_id=$1 AND id=ANY($2::bigint[]) ORDER BY id""", uid, ids)
+        require({row["id"] for row in rows} == set(ids), "recovery_raw_messages_missing")
+        return {row["id"]: (row["sender"], row["kind"], row["content_hash"]) for row in rows}
+
+    async def verify_recovery(self, uid: uuid.UUID) -> None:
+        """Read-only evidence of actual publication, source processing and raw preservation."""
+        row = await self.db.fetchrow("""SELECT cc.memory_generation AS generation,c.through_message_id,
+            c.validation_json->'processing_complete'='true'::jsonb AS processing_complete
+          FROM chat_contexts cc JOIN conversation_checkpoints c ON c.user_id=cc.user_id
+            AND c.memory_generation=cc.memory_generation
+          WHERE cc.user_id=$1 AND c.version='conversation-checkpoint-summary-v5'
+            AND c.publish_state='published'
+          ORDER BY c.through_message_id DESC,c.created_at DESC,c.id DESC LIMIT 1""", uid)
+        require(row is not None and row["processing_complete"] is True,
+                "recovery_checkpoint_not_published")
+        boundary = self.pressure_boundaries.get(uid, 0)
+        require(boundary > 0 and row["through_message_id"] >= boundary,
+                "recovery_checkpoint_coverage_missing")
+        complete = await self.db.fetchval("""WITH normal_source AS (
+            SELECT COALESCE(max(id),0) AS last_id,COALESCE(max(turn_seq),0) AS last_turn,
+              count(*) FILTER(WHERE sender='user' AND turn_seq IS NULL) AS unsequenced
+            FROM messages WHERE user_id=$1 AND id<=$3 AND kind='normal'
+          ) SELECT cc.memory_generation=$2 AND n.last_id>0
+            AND cc.contract_generation=$2 AND cc.contract_processed_through_message_id>=n.last_id
+            AND p.mode='v2' AND p.bootstrap_status='ready'
+            AND p.consolidated_through_turn_seq>=n.last_turn AND n.unsequenced=0
+            AND NOT EXISTS(SELECT 1 FROM mem0_ingest_candidates c WHERE c.user_id=$1
+              AND c.turn_seq<=n.last_turn AND c.status='planned')
+            AND NOT EXISTS(SELECT 1 FROM mem0_memory_registry r WHERE r.user_id=$1
+              AND r.source_turn_seq<=n.last_turn AND (r.semantic_status='pending'
+                OR (r.semantic_status='active' AND r.canonical_text IS NULL)))
+          FROM chat_contexts cc LEFT JOIN memory_pipeline_states p ON p.user_id=cc.user_id
+          CROSS JOIN normal_source n WHERE cc.user_id=$1""",
+          uid, row["generation"], row["through_message_id"])
+        require(complete is True, "recovery_source_processing_incomplete")
+        expected = self.raw_proofs.get(uid, {})
+        require(bool(expected), "recovery_raw_proof_missing")
+        actual = await self.raw_message_proofs(uid, sorted(expected))
+        require(actual == expected, "recovery_raw_messages_changed")
+
+    async def expedite_owned_ingest(self, uid: uuid.UUID) -> None:
+        """Skip the idle debounce only for this run's synthetic account.
+
+        Keep payload, retry backoff/budget and all other users' scheduling unchanged.
+        Call after the scenario, or an explicit wait, never between ordinary turns.
+        """
+        require(isinstance(self.run_tag, str) and bool(self.run_tag), "test_ownership_required")
+        await self.db.execute("""UPDATE async_jobs j SET available_at=LEAST(available_at,now())
+          WHERE j.user_id=$1 AND j.job_type='mem0_ingest' AND j.state='ready' AND j.attempt=0
+            AND EXISTS(SELECT 1 FROM auth.users u WHERE u.id=j.user_id
+              AND u.raw_user_meta_data->>'guard_context_replay'=$2)""", uid, self.run_tag)
 
     async def health(self) -> None:
         response = await self.client.get(f"{API}/health")
@@ -330,12 +416,14 @@ class Runner:
         return int(row["messages"]), int(row["tokens"])
 
     async def wait_processed(self, uid: uuid.UUID, through: int) -> None:
+        # Ordinary same-day conversations may have no contract job yet. Wait
+        # for facts here; wait_derived separately drains jobs actually scheduled.
+        # Published checkpoint coverage still requires contracts on the server.
         end = time.monotonic() + self.recovery_timeout
         while time.monotonic() < end:
+            if self.run_tag is not None:
+                await self.expedite_owned_ingest(uid)
             complete = await self.db.fetchval("""SELECT
-              cc.contract_generation=cc.memory_generation AND
-              cc.contract_processed_through_message_id >= COALESCE((SELECT max(id) FROM messages
-                WHERE user_id=$1 AND kind='normal' AND id<=$2),0) AND
               p.mode='v2' AND p.bootstrap_status='ready' AND
               NOT EXISTS(SELECT 1 FROM messages m WHERE m.user_id=$1 AND m.kind='normal'
                 AND m.id <= $2 AND (m.turn_seq > p.consolidated_through_turn_seq
@@ -353,14 +441,16 @@ class Runner:
             if complete is True:
                 return
             await asyncio.sleep(0.5)
-        raise ReplayError("fact_contract_processing_timeout")
+        raise ReplayError("fact_processing_timeout")
 
     async def wait_derived(self, uid: uuid.UUID) -> None:
+        await self.expedite_owned_ingest(uid)
         through = await self.db.fetchval("SELECT max(id) FROM messages WHERE user_id=$1 AND kind='normal'", uid)
         if through is not None:
             await self.wait_processed(uid, through)
         deadline = time.monotonic() + self.recovery_timeout
         while time.monotonic() < deadline:
+            await self.expedite_owned_ingest(uid)
             pending = await self.db.fetchval("""SELECT EXISTS(SELECT 1 FROM async_jobs
               WHERE user_id=$1 AND state IN ('ready','running'))""", uid)
             if not pending:
@@ -382,11 +472,13 @@ class Runner:
             # A pressure pause is not a completed turn. Retry exactly the same
             # key, never duplicate the current user message to force progress.
             require(step.get("allow_recovery", False) and response.status_code == 503,
-                    f"http_{response.status_code}")
+                    response_failure(response))
             require(await self.snapshot(uid) == before, "paused_request_committed_side_effects")
             pressure = await self.db.fetchval("""SELECT retention_pressure_through_message_id
               FROM chat_contexts WHERE user_id=$1""", uid)
             require(pressure is not None or recovered, "pressure_target_missing")
+            if pressure is not None:
+                self.pressure_boundaries[uid] = max(self.pressure_boundaries.get(uid, 0), int(pressure))
             recovered = True
             require(time.monotonic() < end, "pressure_recovery_timeout")
             await asyncio.sleep(0.5)
@@ -397,6 +489,8 @@ class Runner:
           WHERE user_id=$1 AND id=ANY($2::bigint[])""", uid, ids)
         require(len(rows) == 2 and {r["sender"] for r in rows} == {"user", "moly"}
                 and all(r["kind"] == step["kind"] for r in rows), "message_kinds_mismatch")
+        if scenario.get("require_recovery"):
+            self.raw_proofs.setdefault(uid, {}).update(await self.raw_message_proofs(uid, ids))
         after = await self.snapshot(uid)
         require(after[0] == before[0] + 2, "turn_message_count_mismatch")
         if step["kind"] != "normal":
@@ -406,7 +500,9 @@ class Runner:
             require(replay.status_code == 200 and replay.json() == payload, "idempotency_result_changed")
             require(await self.snapshot(uid) == after, "idempotency_side_effects_duplicated")
         if step.get("wait_processing"):
+            await self.expedite_owned_ingest(uid)
             await self.wait_processed(uid, max(ids))
+        recovered = await self.observed_pressure(uid) or recovered
         self.emit(report(scenario["number"], scenario["language"], step["kind"],
                          round((time.monotonic() - started) * 1000), None))
         return recovered
@@ -528,6 +624,22 @@ class Runner:
                     empty_checks[uid] = empty_checks.get(uid, 0) + 1 if clear else 0
                     if empty_checks[uid] >= 2:
                         pending.remove(uid)
+                    elif row["state"] == "deleting" and self.privacy_step is not None:
+                        # The ordinary deployed scheduler may run infrequently.
+                        # Run its SAME per-subject domain step for this exact
+                        # journal-owned, already deleted synthetic account only.
+                        barrier = await self.db.fetchrow("""SELECT b.operation_id,
+                          (SELECT count(*) FROM privacy_ledger_events e
+                            WHERE e.user_id=b.user_id AND e.operation_id=b.operation_id
+                              AND e.event='residual_sweep_empty' AND e.id>COALESCE((
+                                SELECT max(d.id) FROM privacy_ledger_events d
+                                WHERE d.user_id=b.user_id AND d.operation_id=b.operation_id
+                                  AND d.event='residual_sweep_deleted'),0)) AS empty_sweeps
+                          FROM privacy_subject_barriers b WHERE b.user_id=$1 AND b.state='deleting'
+                            AND NOT EXISTS(SELECT 1 FROM auth.users u WHERE u.id=b.user_id)
+                            AND NOT EXISTS(SELECT 1 FROM profiles p WHERE p.id=b.user_id)""", uid)
+                        if barrier is not None:
+                            await self.privacy_step(uid, barrier["operation_id"], int(barrier["empty_sweeps"]))
                 except Exception:
                     errors = True
             if pending:
@@ -548,6 +660,16 @@ async def execute(args: argparse.Namespace, scenarios: list[dict], *, checkout: 
 
     env = dict(dotenv_values(args.env_file, interpolate=False))
     dsn = validate_targets(env, args.expected_sha)
+    # Lazy domain imports only after the hard development target check. Reuse
+    # the existing per-subject privacy worker instead of duplicating its protocol.
+    os.environ["MOLY_ENV_FILE"] = str(Path(args.env_file).resolve())
+    sys.path.insert(0, str(checkout))
+    from db.envfile import configure_application_db
+    from app.core import db as application_db
+    selected_dsn = configure_application_db(str(Path(args.env_file).resolve()))
+    require(re.sub(r"^postgresql\+asyncpg://", "postgresql://", selected_dsn) == dsn,
+            "development_domain_target_mismatch")
+    from worker.privacy_sweep_jobs import _sweep_subject
     secret = env.get("SUPABASE_SECRET_KEY") or env["SUPABASE_SERVICE_ROLE_KEY"]
     public = env.get("SUPABASE_PUBLISHABLE_KEY") or env["SUPABASE_ANON_KEY"]
     if args.cleanup_state:
@@ -568,7 +690,7 @@ async def execute(args: argparse.Namespace, scenarios: list[dict], *, checkout: 
     success = True
     async with httpx.AsyncClient(timeout=45, follow_redirects=False, trust_env=False) as client:
         runner = Runner(db, client, {"apikey": secret, "Authorization": f"Bearer {secret}"},
-                        public, args.expected_sha, emit)
+                        public, args.expected_sha, emit, run_tag=state["run"], privacy_step=_sweep_subject)
         try:
             if not args.cleanup_state:
                 await runner.health()
@@ -578,29 +700,48 @@ async def execute(args: argparse.Namespace, scenarios: list[dict], *, checkout: 
 
                 async def run_scenario(scenario: dict, uid: uuid.UUID, token: str) -> bool:
                     async with semaphore:
+                        # asyncpg connections do not support overlapping commands.
+                        # Share HTTP pooling, never one DB protocol connection.
+                        scenario_db = None
+                        good = False
                         try:
+                            scenario_db = await asyncpg.connect(dsn, statement_cache_size=0, command_timeout=15)
+                            active = Runner(scenario_db, client, runner.admin, public,
+                                            args.expected_sha, emit, run_tag=state["run"])
                             recovered = False
                             for step in scenario["steps"]:
-                                recovered |= await runner.send(uid, token, scenario, step)
+                                recovered |= await active.send(uid, token, scenario, step)
                             require(not scenario.get("require_recovery") or recovered, "pressure_not_exercised")
-                            await runner.wait_derived(uid)
-                            await runner.derived_safety_sources(uid)
+                            await active.wait_derived(uid)
+                            if scenario.get("require_recovery"):
+                                await active.verify_recovery(uid)
+                            await active.derived_safety_sources(uid)
                             await asyncio.sleep(1.0)
-                            await runner.derived_safety_sources(uid)
-                            return True
+                            await active.derived_safety_sources(uid)
+                            good = True
                         except Exception as exc:
                             reason = str(exc) if isinstance(exc, ReplayError) else "unexpected_replay_failure"
                             emit(report(scenario["number"], scenario["language"], "unknown", 0, reason))
-                            return False
+                        finally:
+                            if scenario_db is not None:
+                                try:
+                                    await scenario_db.close()
+                                except Exception:
+                                    emit(report(scenario["number"], scenario["language"], "unknown", 0,
+                                                "scenario_connection_close_failed"))
+                                    good = False
+                        return good
 
                 outcomes = await asyncio.gather(*(run_scenario(s, uid, token)
-                    for s, (uid, token) in zip(scenarios, users, strict=True)))
-                success = all(outcomes)
+                    for s, (uid, token) in zip(scenarios, users, strict=True)), return_exceptions=True)
+                success = all(outcome is True for outcome in outcomes)
         finally:
             try:
                 success = await runner.cleanup(state, journal) and success
             finally:
                 await db.close()
+                if application_db._engine is not None:
+                    await application_db._engine.dispose()
     return success
 
 

@@ -625,6 +625,29 @@ def _require_completed_step(
 
 
 # --- 턴 실행 ---
+def _runtime_system(system: str | list[str]) -> list[str]:
+    return [system, _TOOL_DATA_RULE, _TOOL_WHEN_RULE] if isinstance(system, str) else [
+        *system, _TOOL_DATA_RULE, _TOOL_WHEN_RULE,
+    ]
+
+
+def foreground_budget_inputs(system, convo, *, user_text: str, registry=None):
+    """Preview the same first-hop wire, including runtime rules/response schema.
+
+    No tools execute here. Chat uses this before inference so pressure can be
+    reserved before the runtime's own final boundary check rejects the input.
+    """
+    registry = registry if registry is not None else _resolve_registry()
+    schemas = list(registry.wire_schemas()) if registry is not None else []
+    response_provider = getattr(registry, "final_response_schema", None)
+    response_schema = response_provider() if callable(response_provider) else None
+    if not schemas or _crisis(user_text):
+        schemas = []
+    elif response_schema is not None:
+        schemas.append(response_schema)
+    return [], llm.to_openai_messages(_runtime_system(system), _transcript(convo)), schemas
+
+
 def _ledger_ctx(user_id: uuid.UUID, activity_date: date) -> usage_ledger.LedgerContext:
     """도구 루프 호출의 원가 귀속. purpose는 step별로 generate_step이 덮어쓴다."""
     return usage_ledger.LedgerContext(
@@ -659,8 +682,7 @@ async def run_turn(
     그러하고(Phase 1이 read-only라 저장된 게 없다) 그래야 클린 재시도가 된다.
     """
     model = model or settings.model_chat
-    _rules = [_TOOL_DATA_RULE, _TOOL_WHEN_RULE]
-    system = [system, *_rules] if isinstance(system, str) else [*system, *_rules]
+    system = _runtime_system(system)
     deadline = deadline if deadline is not None else now() + config.turn_deadline_s
     transcript = _transcript(convo)
     registry = registry if registry is not None else _resolve_registry()
@@ -701,9 +723,9 @@ async def run_turn(
                 "이 답변은 짧은 한 문장으로만 완결하세요. 短い一文だけで答えてください。"
             )]
         if retention_enabled:
-            from app.services.context_retention import assert_input_budget
+            from app.services.context_retention import FOREGROUND_INPUT_LIMIT, assert_input_budget
             assert_input_budget([], llm.to_openai_messages(system, hop_transcript),
-                                tools=decide_schemas if with_tools else ())
+                                tools=decide_schemas if with_tools else (), input_limit=FOREGROUND_INPUT_LIMIT)
         return await llm.generate_step(
             system,
             hop_transcript,
@@ -858,9 +880,10 @@ async def run_turn(
         *results,
     ]
     if retention_enabled:
-        from app.services.context_retention import assert_input_budget
+        from app.services.context_retention import FOREGROUND_INPUT_LIMIT, assert_input_budget
         assert_input_budget([], llm.to_openai_messages(system, transcript2),
-                            tools=([response_schema] if response_schema is not None else control_schemas))
+                            tools=([response_schema] if response_schema is not None else control_schemas),
+                            input_limit=FOREGROUND_INPUT_LIMIT)
     step2 = await llm.generate_step(
         system,
         transcript2,

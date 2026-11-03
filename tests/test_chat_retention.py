@@ -5,7 +5,6 @@ import uuid
 
 import pytest
 
-from app.core.errors import AppError
 from app.services import chat
 from tests.test_chat import FakeSession, _Result
 
@@ -50,10 +49,9 @@ async def test_soft_threshold_requests_work_without_dropping_raw_history():
 
 
 async def test_unprocessed_raw_pressure_refuses_instead_of_publishing_a_short_tail():
-    with pytest.raises(AppError) as error:
-        await chat._context(Pages(messages(20, size=1000)), UID, 0,
+    with pytest.raises(chat._HistoryReadPressure):
+        await chat._context(Pages(messages(40, size=1000)), UID, 0,
                             retention_enabled=True, compact_crises=False)
-    assert error.value.code == "AI_UNAVAILABLE"
 
 
 async def test_v5_read_boundary_does_not_inherit_a_later_legacy_anchor():

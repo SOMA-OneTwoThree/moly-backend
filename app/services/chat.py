@@ -308,6 +308,7 @@ async def _context(
     retention_enabled: bool = False,
     memory_generation: int = 0,
     coverage: VerifiedCoverage | None = None,
+    normal_generation_projection: bool = False,
 ) -> ContextWindow:
     """Build a bounded window without removing an uncheckpointed head at normal resets.
 
@@ -419,18 +420,23 @@ async def _context(
                 new_anchor = rows[0].id
         if settings.context_checkpoint_enabled and anchor > 0:
             incomplete = incomplete or checkpoint_through is None or checkpoint_through < anchor - 1
+    # A normal generation may omit prior fixed safety dialogue. Keep the full
+    # source rows above/below for budgeting, scheduling and coverage; this view
+    # must also precede leading-assistant extraction to prevent a system bypass.
+    projection = [m for m in rows if not normal_generation_projection
+                  or m.kind not in crisis_guard.SAFETY_KINDS]
     convo = [
         {"role": "assistant" if m.sender == "moly" else "user", "content": m.content}
-        for m in rows
+        for m in projection
     ]
     lead: list[Message] = []
     while convo and convo[0]["role"] != "user":  # Anthropic: 첫 메시지 user 보장
-        lead.append(rows[len(lead)])  # 버리지 않고 회수 — system으로 넘긴다
+        lead.append(projection[len(lead)])  # 버리지 않고 회수 — system으로 넘긴다
         convo.pop(0)
-    kept = rows[len(lead):]  # convo와 정렬(같은 길이·순서) — 날짜 표식용
+    kept = projection[len(lead):]  # convo와 정렬(같은 길이·순서) — 날짜 표식용
     if not convo and current_text is None:  # 빈 배열=400. 폴백은 현재 턴이 없을 때만(그땐 append가 채움)
         lead = []
-        for m in reversed(rows):
+        for m in reversed(projection):
             if m.sender != "moly":
                 convo, kept = [{"role": "user", "content": m.content}], [m]
                 break
@@ -1614,6 +1620,8 @@ async def _post_message_impl(
             compact_crises=not guard_config.enabled,
             retention_enabled=retention_enabled,
             memory_generation=memory_generation, coverage=read_coverage,
+            normal_generation_projection=(guard_config.enabled and predecided is not None
+                                          and predecided.status == "ok" and predecided.route == "normal"),
         )
     except _HistoryReadPressure:
         await _pause_for_history_pressure(

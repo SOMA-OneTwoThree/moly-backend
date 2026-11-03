@@ -10,7 +10,10 @@ Input v1: {"schema":"guard-context-replay-v1","redaction_reviewed":true,
 origin may instead be "deidentified"; this provenance is retained in the private
 input, never relabelled as synthetic. Optional step fields: question
 (thought/meaning/method_thought/method_meaning), contains, absent,
-wait_processing, allow_recovery. Optional scenario: require_recovery.
+wait_processing, allow_recovery. Optional scenario: require_recovery (strict
+pressure evidence) or require_checkpoint (verified publication/continuity).
+Only explicitly model-labelled steps may opt into continuing after a fixed
+question-type disagreement; it remains a warning and a non-successful run.
 
 Run only after the proposed code and reviewed schema are on development:
   python scripts/replay_guard_context_dev.py --env-file /private/.../dev.env \
@@ -55,6 +58,12 @@ QUESTIONS = {
            "I can't tell you that."),
     "ja": ("何があったの？", "どういう意味か、もう少し教えてくれる？", "それは教えられないよ。"),
 }
+QUESTION_TYPES = {"thought", "meaning", "method_thought", "method_meaning"}
+QUESTION_DISAGREEMENTS = {
+    f"question_type_disagreement_expected_{expected}_actual_{actual}"
+    for expected, actual in (("thought", "meaning"), ("meaning", "thought"),
+                             ("method_thought", "method_meaning"), ("method_meaning", "method_thought"))
+}
 # Independent oracle: do not render expected text through the implementation.
 GUIDES = {
     "ko": "이 서비스는 의료 서비스가 아니며, 진단이나 치료를 제공하지 않습니다. "
@@ -92,7 +101,8 @@ def response_failure(response: Any) -> str:
     return f"http_{response.status_code}{suffix}"
 
 
-def report(number: int, language: str, route: str, latency: int, failure: str | None) -> dict:
+def report(number: int, language: str, route: str, latency: int, failure: str | None, *,
+           warning: str | None = None) -> dict:
     # All arguments except numeric latency are validated independently of source
     # labels, HTTP error bodies, SQL exceptions and generated model output.
     require(type(number) is int and number >= 0, "report_invalid")
@@ -100,8 +110,12 @@ def report(number: int, language: str, route: str, latency: int, failure: str | 
     require(route in KINDS | {"setup", "cleanup", "validation", "unknown"}, "report_invalid")
     require(failure is None or re.fullmatch(r"[a-z][a-z0-9_]{0,79}", failure) is not None,
             "report_invalid")
-    return {"scenario": number, "language": language, "route": route,
-            "latency_ms": max(0, int(latency)), "failure": failure}
+    require(warning is None or warning in QUESTION_DISAGREEMENTS, "report_invalid")
+    row = {"scenario": number, "language": language, "route": route,
+           "latency_ms": max(0, int(latency)), "failure": failure}
+    if warning is not None:
+        row["warning"] = warning
+    return row
 
 
 def private_file(path: Path, *, checkout: Path) -> Path:
@@ -141,6 +155,7 @@ def load_corpus(path: Path, *, checkout: Path) -> list[dict]:
         steps = scenario.get("steps")
         require(isinstance(steps, list) and 0 < len(steps) <= 100, "corpus_invalid")
         require(type(scenario.get("require_recovery", False)) is bool, "corpus_invalid")
+        require(type(scenario.get("require_checkpoint", False)) is bool, "corpus_invalid")
         for step in steps:
             require(isinstance(step, dict), "corpus_invalid")
             text = step.get("text")
@@ -150,6 +165,13 @@ def load_corpus(path: Path, *, checkout: Path) -> list[dict]:
             require(question in {None, "thought", "meaning", "method_thought", "method_meaning"},
                     "step_question_invalid")
             require(step["kind"] == "safety_check" or question is None, "step_question_invalid")
+            require(step.get("annotation_source") in {None, "model", "human", "golden"},
+                    "question_annotation_invalid")
+            require(type(step.get("continue_on_question_disagreement", False)) is bool,
+                    "question_annotation_invalid")
+            if step.get("continue_on_question_disagreement"):
+                require(step.get("annotation_source") == "model" and question in QUESTION_TYPES,
+                        "question_annotation_invalid")
             for key in ("replay", "wait_processing", "allow_recovery"):
                 require(type(step.get(key, False)) is bool, "corpus_invalid")
             for key in ("contains", "absent"):
@@ -223,7 +245,8 @@ def expected_question(language: str, question: str | None) -> set[str]:
     return {f"{refusal} {bare}" if question.startswith("method_") else bare}
 
 
-def check_reply(payload: dict, step: dict, language: str) -> None:
+def check_reply(payload: dict, step: dict, language: str) -> str | None:
+    warning = None
     try:
         reply = payload["reply"]["content"]
         require(isinstance(reply, str), "response_invalid")
@@ -233,13 +256,23 @@ def check_reply(payload: dict, step: dict, language: str) -> None:
         if step["kind"] == "safety":
             require(reply == GUIDES[language], "guide_text_mismatch")
         elif step["kind"] == "safety_check":
-            require(reply in expected_question(language, step.get("question")), "question_text_mismatch")
+            expected = step.get("question")
+            if reply not in expected_question(language, expected):
+                actual = next((kind for kind in QUESTION_TYPES
+                               if reply in expected_question(language, kind)), None)
+                advisory = (step.get("annotation_source") == "model"
+                    and step.get("continue_on_question_disagreement") is True
+                    and expected in QUESTION_TYPES and actual in QUESTION_TYPES
+                    and expected.startswith("method_") == actual.startswith("method_"))
+                require(advisory, "question_text_mismatch")
+                warning = f"question_type_disagreement_expected_{expected}_actual_{actual}"
         require(all(v.casefold() in reply.casefold() for v in step.get("contains", [])),
                 "expected_fact_missing")
         require(all(v.casefold() not in reply.casefold() for v in step.get("absent", [])),
                 "excluded_content_returned")
     except (KeyError, TypeError):
         raise ReplayError("response_invalid") from None
+    return warning
 
 
 def decode_json(value: Any) -> Any:
@@ -272,6 +305,7 @@ class Runner:
     privacy_step: Any = None
     pressure_boundaries: dict[uuid.UUID, int] = field(default_factory=dict)
     raw_proofs: dict[uuid.UUID, dict[int, tuple[str, str, str]]] = field(default_factory=dict)
+    question_disagreements: int = 0
 
     async def observed_pressure(self, uid: uuid.UUID) -> bool:
         through = await self.db.fetchval("""SELECT max((j.payload->>'through_message_id')::bigint)
@@ -291,8 +325,26 @@ class Runner:
         require({row["id"] for row in rows} == set(ids), "recovery_raw_messages_missing")
         return {row["id"]: (row["sender"], row["kind"], row["content_hash"]) for row in rows}
 
+    async def checkpoint_retry_evidence(self, uid: uuid.UUID, *, after_through: int) -> bool:
+        """A normal checkpoint pause is not evidence of input-pressure recovery."""
+        return await self.db.fetchval("""SELECT EXISTS(
+            SELECT 1 FROM async_jobs j JOIN chat_contexts cc ON cc.user_id=j.user_id
+            WHERE j.user_id=$1 AND j.job_type='conversation_checkpoint'
+              AND j.state IN ('ready','running') AND j.payload_redacted_at IS NULL
+              AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+          ) OR EXISTS(
+            SELECT 1 FROM conversation_checkpoints c JOIN chat_contexts cc ON cc.user_id=c.user_id
+            WHERE c.user_id=$1 AND c.memory_generation=cc.memory_generation
+              AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+              AND c.validation_json->'processing_complete'='true'::jsonb
+              AND c.through_message_id>$2)""", uid, after_through) is True
+
     async def verify_recovery(self, uid: uuid.UUID) -> None:
-        """Read-only evidence of actual publication, source processing and raw preservation."""
+        """Strict pressure evidence plus verified publication and raw preservation."""
+        await self.verify_checkpoint(uid, require_pressure=True)
+
+    async def verify_checkpoint(self, uid: uuid.UUID, *, require_pressure: bool = False) -> None:
+        """Read-only publication/processing proof; ordinary checkpoints need no pressure boundary."""
         row = await self.db.fetchrow("""SELECT cc.memory_generation AS generation,c.through_message_id,
             c.validation_json->'processing_complete'='true'::jsonb AS processing_complete
           FROM chat_contexts cc JOIN conversation_checkpoints c ON c.user_id=cc.user_id
@@ -302,9 +354,10 @@ class Runner:
           ORDER BY c.through_message_id DESC,c.created_at DESC,c.id DESC LIMIT 1""", uid)
         require(row is not None and row["processing_complete"] is True,
                 "recovery_checkpoint_not_published")
-        boundary = self.pressure_boundaries.get(uid, 0)
-        require(boundary > 0 and row["through_message_id"] >= boundary,
-                "recovery_checkpoint_coverage_missing")
+        if require_pressure:
+            boundary = self.pressure_boundaries.get(uid, 0)
+            require(boundary > 0 and row["through_message_id"] >= boundary,
+                    "recovery_checkpoint_coverage_missing")
         complete = await self.db.fetchval("""WITH normal_source AS (
             SELECT COALESCE(max(id),0) AS last_id,COALESCE(max(turn_seq),0) AS last_turn,
               count(*) FILTER(WHERE sender='user' AND turn_seq IS NULL) AS unsequenced
@@ -462,6 +515,12 @@ class Runner:
         headers = {"Authorization": f"Bearer {token}", "Idempotency-Key": f"guard-v2-{uuid.uuid4().hex}"}
         body = {"text": step["text"], "locale": scenario["language"]}
         before = await self.snapshot(uid)
+        checkpoint_before = 0
+        if step.get("allow_recovery"):
+            checkpoint_before = await self.db.fetchval("""SELECT COALESCE(max(c.through_message_id),0)
+              FROM conversation_checkpoints c JOIN chat_contexts cc ON cc.user_id=c.user_id
+              WHERE c.user_id=$1 AND c.memory_generation=cc.memory_generation
+                AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'""", uid)
         started = time.monotonic()
         recovered = False
         end = started + self.recovery_timeout
@@ -476,20 +535,23 @@ class Runner:
             require(await self.snapshot(uid) == before, "paused_request_committed_side_effects")
             pressure = await self.db.fetchval("""SELECT retention_pressure_through_message_id
               FROM chat_contexts WHERE user_id=$1""", uid)
-            require(pressure is not None or recovered, "pressure_target_missing")
+            checkpoint_pending = False
+            if pressure is None:
+                checkpoint_pending = await self.checkpoint_retry_evidence(uid, after_through=checkpoint_before)
+            require(pressure is not None or checkpoint_pending, "pressure_target_missing")
             if pressure is not None:
                 self.pressure_boundaries[uid] = max(self.pressure_boundaries.get(uid, 0), int(pressure))
-            recovered = True
+                recovered = True
             require(time.monotonic() < end, "pressure_recovery_timeout")
             await asyncio.sleep(0.5)
         payload = response.json()
-        check_reply(payload, step, scenario["language"])
+        warning = check_reply(payload, step, scenario["language"])
         ids = [int(payload["user_message"]["message_id"]), int(payload["reply"]["message_id"])]
         rows = await self.db.fetch("""SELECT sender,kind FROM messages
           WHERE user_id=$1 AND id=ANY($2::bigint[])""", uid, ids)
         require(len(rows) == 2 and {r["sender"] for r in rows} == {"user", "moly"}
                 and all(r["kind"] == step["kind"] for r in rows), "message_kinds_mismatch")
-        if scenario.get("require_recovery"):
+        if scenario.get("require_recovery") or scenario.get("require_checkpoint"):
             self.raw_proofs.setdefault(uid, {}).update(await self.raw_message_proofs(uid, ids))
         after = await self.snapshot(uid)
         require(after[0] == before[0] + 2, "turn_message_count_mismatch")
@@ -503,8 +565,9 @@ class Runner:
             await self.expedite_owned_ingest(uid)
             await self.wait_processed(uid, max(ids))
         recovered = await self.observed_pressure(uid) or recovered
+        self.question_disagreements += int(warning is not None)
         self.emit(report(scenario["number"], scenario["language"], step["kind"],
-                         round((time.monotonic() - started) * 1000), None))
+                         round((time.monotonic() - started) * 1000), None, warning=warning))
         return recovered
 
     async def derived_safety_sources(self, uid: uuid.UUID) -> None:
@@ -715,10 +778,14 @@ async def execute(args: argparse.Namespace, scenarios: list[dict], *, checkout: 
                             await active.wait_derived(uid)
                             if scenario.get("require_recovery"):
                                 await active.verify_recovery(uid)
+                            elif scenario.get("require_checkpoint"):
+                                await active.verify_checkpoint(uid)
                             await active.derived_safety_sources(uid)
                             await asyncio.sleep(1.0)
                             await active.derived_safety_sources(uid)
-                            good = True
+                            # Continue later turns to inspect their behavior, but
+                            # retain unresolved semantic disagreement as non-success.
+                            good = getattr(active, "question_disagreements", 0) == 0
                         except Exception as exc:
                             reason = str(exc) if isinstance(exc, ReplayError) else "unexpected_replay_failure"
                             emit(report(scenario["number"], scenario["language"], "unknown", 0, reason))

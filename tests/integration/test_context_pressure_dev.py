@@ -7,7 +7,7 @@ import uuid
 
 from sqlalchemy import text
 
-from app.services import checkpoint, checkpoint_repo as repo, context_retention
+from app.services import checkpoint, checkpoint_repo as repo, context_retention, memory_pipeline
 from tests.integration.test_checkpoint_continuity_dev import checkpoint_db as checkpoint_db
 from worker import memory_sweep_jobs as sweep
 
@@ -114,3 +114,102 @@ async def test_cursor_actual_cas_refuses_old_value_or_deleted_row(checkpoint_db)
         {"expected": json.dumps(old), "next": json.dumps(newer)})).first() is None
     assert (await session.execute(sweep._RESUME_CURSOR_WRITE,
         {"expected": "null", "next": json.dumps(newer)})).first() is not None
+
+
+async def seed_wake_dependency(session, uid):
+    ids = await seed(session, uid, turns=2)
+    await session.execute(text("UPDATE messages SET kind='normal' WHERE user_id=:u"), {"u": uid})
+    await session.execute(text("""
+      INSERT INTO memory_pipeline_states(user_id,mode,bootstrap_status,source_through_turn_seq,
+        ingest_through_turn_seq,consolidated_through_turn_seq,privacy_epoch,repair_generation)
+      VALUES(:u,'v2','ready',2,0,0,0,7)
+      ON CONFLICT(user_id) DO UPDATE SET mode='v2',bootstrap_status='ready',
+        source_through_turn_seq=2,ingest_through_turn_seq=0,consolidated_through_turn_seq=0,
+        privacy_epoch=0,repair_generation=7
+    """), {"u": uid})
+    job_id = (await session.execute(text("""
+      INSERT INTO async_jobs(queue,job_type,user_id,dedup_key,payload,state,attempt,max_attempts,
+        available_at,expires_at,payload_expires_at,payload_hash)
+      VALUES('memory','mem0_ingest',:u,:dedup,CAST(:payload AS jsonb),'ready',0,3,
+        now()+interval '180 seconds',now()+interval '1 day',now()+interval '1 day',:hash)
+      RETURNING id
+    """), {"u": uid, "dedup": memory_pipeline.ingest_dedup_key(uid, 0, generation=7),
+        "payload": json.dumps({"turn_seq": 1, "privacy_epoch": 0, "synthetic_marker": "preserve"}),
+        "hash": "a"*64})).scalar_one()
+    return ids, job_id
+
+
+async def wake_job_snapshot(session, job_id):
+    return dict((await session.execute(text("SELECT * FROM async_jobs WHERE id=:j"),
+                                      {"j": job_id})).mappings().one())
+
+
+async def test_checkpoint_wake_changes_only_exact_dependency_available_at(checkpoint_db):
+    session, (uid, other) = checkpoint_db
+    ids, identity = await seed_wake_dependency(session, uid)
+    _, foreign = await seed_wake_dependency(session, other)
+    # Both fixtures must remain explicitly adopted after the second setup.
+    await session.execute(text("UPDATE app_config SET value=CAST(:cohort AS jsonb) WHERE key='context_retention_ready_users'"),
+                          {"cohort": json.dumps([str(uid), str(other)])})
+    before, unrelated = await wake_job_snapshot(session, identity), await wake_job_snapshot(session, foreign)
+    assert await repo.wake_checkpoint_ingest(session, user_id=uid, generation=0, through_id=ids[-1])
+    after = await wake_job_snapshot(session, identity)
+    now = (await session.execute(text("SELECT now()"))).scalar_one()
+    assert before["available_at"] > now and after["available_at"] == now
+    assert {key: value for key, value in before.items() if key != "available_at"} == {
+        key: value for key, value in after.items() if key != "available_at"}
+    assert await wake_job_snapshot(session, foreign) == unrelated
+    assert not await repo.wake_checkpoint_ingest(session, user_id=uid, generation=0, through_id=ids[-1])
+
+
+async def test_checkpoint_wake_preserves_backoff_claimed_masked_expired_and_nonexact_jobs(checkpoint_db):
+    session, (uid, _) = checkpoint_db
+    ids, identity = await seed_wake_dependency(session, uid)
+    changes = (
+        "attempt=1",  # First failure's backoff must remain untouched.
+        "state='running',attempt=1,lease_owner='synthetic',lease_token=gen_random_uuid(),lease_until=now()+interval '1 minute'",
+        "state='dead',attempt=3",
+        "payload_redacted_at=now()",
+        "payload_expires_at=now()-interval '1 second'",
+        "expires_at=now()-interval '1 second'",
+        "dedup_key=dedup_key||'-synthetic-other-plan'",
+        "payload=payload||jsonb_build_object('turn_seq',99)",
+        "payload=payload||jsonb_build_object('privacy_epoch',1)",
+        "queue='content'",
+    )
+    for change in changes:
+        async with session.begin_nested() as savepoint:
+            # Fragments are the static synthetic cases above; no user-provided SQL.
+            await session.execute(text(f"UPDATE async_jobs SET {change} WHERE id=:j"), {"j": identity})
+            before = await wake_job_snapshot(session, identity)
+            assert not await repo.wake_checkpoint_ingest(session, user_id=uid, generation=0,
+                                                        through_id=ids[-1]), change
+            assert await wake_job_snapshot(session, identity) == before
+            await savepoint.rollback()
+
+
+async def test_checkpoint_wake_rejects_changed_generation_pipeline_and_privacy(checkpoint_db):
+    session, (uid, _) = checkpoint_db
+    ids, identity = await seed_wake_dependency(session, uid)
+    changes = (
+        "UPDATE chat_contexts SET memory_generation=1 WHERE user_id=:u",
+        "UPDATE memory_pipeline_states SET repair_generation=8 WHERE user_id=:u",
+        "UPDATE memory_pipeline_states SET privacy_epoch=1 WHERE user_id=:u",
+        "UPDATE privacy_subject_barriers SET epoch=1 WHERE user_id=:u",
+        "UPDATE privacy_subject_barriers SET state='deleting',operation_id=gen_random_uuid() WHERE user_id=:u",
+        "UPDATE memory_pipeline_states SET mode='shadow' WHERE user_id=:u",
+        "UPDATE memory_pipeline_states SET bootstrap_status='collecting' WHERE user_id=:u",
+        "UPDATE memory_pipeline_states SET source_through_turn_seq=0 WHERE user_id=:u",
+    )
+    for change in changes:
+        async with session.begin_nested() as savepoint:
+            await session.execute(text(change), {"u": uid})
+            before = await wake_job_snapshot(session, identity)
+            assert not await repo.wake_checkpoint_ingest(session, user_id=uid, generation=0,
+                                                        through_id=ids[-1]), change
+            assert await wake_job_snapshot(session, identity) == before
+            await savepoint.rollback()
+    before = await wake_job_snapshot(session, identity)
+    assert not await repo.wake_checkpoint_ingest(session, user_id=uid, generation=0,
+                                                through_id=ids[0]-1)
+    assert await wake_job_snapshot(session, identity) == before

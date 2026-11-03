@@ -373,6 +373,32 @@ def base_role_rule(language: str | None) -> str:
     return _ROLE[lang] + suffix[lang]
 
 
+_NORMAL_REPLY_INSTRUCTIONS = {
+    "ko": (
+        "[이번 답] 상대가 지금 꺼낸 주제를 따라 답해. 앞서 나온 무거운 이야기를 네가 먼저 "
+        "다시 꺼내거나 안전 확인 질문을 이어가지 마. 공개 상담 연락처를 지금 직접 요청하면 "
+        "그 요청에는 답해. 현재 질문을 이해하고 답하는 데 필요한 일반 대화 맥락은 사용해."
+    ),
+    "en": (
+        "[This reply] Follow the subject the person has brought up now. Do not bring up an earlier "
+        "heavy topic on your own or continue safety-check questions. If they directly ask for public "
+        "counseling contact information now, answer that request. Use relevant ordinary conversation "
+        "context to understand and answer their current message."
+    ),
+    "ja": (
+        "[今回の返事] 相手がいま持ち出した話題に沿って答えて。前に出た重い話を自分から"
+        "蒸し返したり、安全確認の質問を続けたりしないで。公開されている相談窓口の連絡先を"
+        "いま直接求められたら、その質問には答えて。いまの質問を理解して答えるために必要な"
+        "普段の会話の文脈は使って。"
+    ),
+}
+
+
+def normal_reply_instruction(language: str | None) -> str:
+    """Ephemeral reply guidance; contains no classifier result or source content."""
+    return _NORMAL_REPLY_INSTRUCTIONS[i18n.resolve(language)]
+
+
 _THOUGHT_QUESTION = {"ko": "무슨 일 있었어?", "en": "What happened?", "ja": "何があったの？"}
 _MEANING_QUESTION = {
     "ko": "어떤 뜻인지 조금만 더 얘기해줄래?",

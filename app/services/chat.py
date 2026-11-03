@@ -1527,6 +1527,14 @@ async def _post_message_impl(
             resident_block = ""
         context_ms = _ms(t_context0, time.monotonic())
 
+    normal_reply_instruction = (
+        crisis_guard.normal_reply_instruction(language)
+        if (predecided is not None and predecided.status == "ok"
+            and predecided.route == "normal"
+            and predecided.last_intervention in crisis_guard.SAFETY_KINDS)
+        else ""
+    )
+
     if retention_enabled:
         def budget_inputs(prompt_system, prompt_messages):
             if agent_runtime.should_run(agent_cfg, uid):
@@ -1542,6 +1550,8 @@ async def _post_message_impl(
                 language, nick, crisis_guard_enabled=guard_config.enabled,
             )
             essential_blocks = [time_block]
+            if normal_reply_instruction:
+                essential_blocks.append(normal_reply_instruction)
             if contract_text:
                 essential_blocks.append(naming.render(contract_text, nick))
             if required_facts:
@@ -1641,6 +1651,8 @@ async def _post_message_impl(
     # 대화가 그대로 캐시되고, 바뀐 이 블록과 현재 입력만 새로 쓴다.
     # role은 system이라 user 발화 권위를 갖지 않는다.
     volatile: list[str] = [time_block, mood_block]
+    if normal_reply_instruction:
+        volatile.append(normal_reply_instruction)
     if retention_enabled:
         if contract_text:
             volatile.append(naming.render(contract_text, nick))

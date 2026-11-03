@@ -412,6 +412,77 @@ class PressureReservation:
     job_id: uuid.UUID | None = None
 
 
+_WAKE_CHECKPOINT_INGEST = text("""
+WITH candidate AS (
+  SELECT j.id
+  FROM async_jobs j
+  JOIN chat_contexts cc ON cc.user_id=j.user_id
+  JOIN memory_pipeline_states p ON p.user_id=j.user_id
+  LEFT JOIN privacy_subject_barriers b ON b.user_id=j.user_id
+  WHERE j.user_id=:user_id AND cc.memory_generation=:generation
+    AND p.mode='v2' AND p.bootstrap_status='ready'
+    AND p.ingest_through_turn_seq=:cursor AND p.repair_generation=:repair_generation
+    AND p.privacy_epoch=:privacy_epoch
+    AND j.job_type='mem0_ingest' AND j.queue='memory'
+    AND j.dedup_key=:dedup_key
+    AND j.payload->'privacy_epoch'=to_jsonb(p.privacy_epoch)
+    AND j.state='ready' AND j.attempt=0 AND j.attempt<j.max_attempts
+    AND j.lease_owner IS NULL AND j.lease_token IS NULL AND j.lease_until IS NULL
+    AND j.payload_redacted_at IS NULL
+    AND (j.payload_expires_at IS NULL OR j.payload_expires_at>now())
+    AND (j.expires_at IS NULL OR j.expires_at>now())
+    AND j.available_at>now()
+    AND ((b.user_id IS NULL AND :allow_missing_barrier)
+      OR (b.state='active' AND b.epoch=p.privacy_epoch))
+    AND EXISTS (
+      SELECT 1 FROM messages m
+      WHERE m.user_id=j.user_id AND m.kind='normal' AND m.id<=:through_id
+        AND m.turn_seq>p.ingest_through_turn_seq
+        AND m.turn_seq<=p.source_through_turn_seq
+        AND j.payload->'turn_seq'=to_jsonb(m.turn_seq)
+    )
+  ORDER BY j.created_at,j.id
+  FOR UPDATE OF j SKIP LOCKED LIMIT 1
+)
+UPDATE async_jobs j SET available_at=LEAST(j.available_at,now())
+FROM candidate c WHERE j.id=c.id
+RETURNING j.id
+""")
+
+
+async def wake_checkpoint_ingest(session: AsyncSession, *, user_id, generation: int,
+                                 through_id: int) -> bool:
+    """Skip the ordinary idle delay only for an unattempted exact dependency.
+
+    Caller owns a separate short transaction outside checkpoint finalize/user
+    locks. This changes only available_at, never attempts, payload or job state.
+    A retry's backoff, a running claim, and exhausted work are not accelerated.
+    """
+    from app.services import context_retention, memory_pipeline
+    if type(generation) is not int or generation < 0 or type(through_id) is not int or through_id <= 0:
+        raise ValueError("checkpoint_ingest_boundary")
+    if not await context_retention.enabled_now(session, lock=True):
+        return False
+    if not await context_retention.adopted_user(session, user_id=user_id, lock=True):
+        return False
+    state = await memory_pipeline.load(session, user_id)
+    if (state.mode != "v2" or state.bootstrap_status != "ready"
+            or state.ingest_through_turn_seq >= state.source_through_turn_seq):
+        return False
+    params = {
+        "user_id": user_id, "generation": generation, "through_id": through_id,
+        "cursor": state.ingest_through_turn_seq, "repair_generation": state.repair_generation,
+        "privacy_epoch": state.privacy_epoch,
+        # Match privacy.authorize_job: missing rows are compatible during
+        # backfill, but never authorized after enforced mode is selected.
+        "allow_missing_barrier": settings.privacy_barrier_mode != "enforced",
+        "dedup_key": memory_pipeline.ingest_dedup_key(
+            user_id, state.ingest_through_turn_seq, generation=state.repair_generation,
+        ),
+    }
+    return (await session.execute(_WAKE_CHECKPOINT_INGEST, params)).first() is not None
+
+
 _PRESSURE_BOUNDARY = text("""
 SELECT m.id FROM messages m JOIN chat_contexts cc ON cc.user_id=m.user_id
 WHERE m.user_id=:user_id AND cc.memory_generation=:generation

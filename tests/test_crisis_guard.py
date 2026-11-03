@@ -251,6 +251,22 @@ def test_two_exact_rechecks_no_model_output_is_accepted(language, thought, meani
         assert not cg.validate_reask("untrusted generated text", language, case=case)
 
 
+@pytest.mark.parametrize("language,fragments", [
+    ("ko", ("지금 꺼낸 주제", "안전 확인 질문", "공개 상담 연락처", "일반 대화 맥락")),
+    ("en", ("subject the person has brought up now", "safety-check questions",
+            "public counseling contact information", "relevant ordinary conversation context")),
+    ("ja", ("いま持ち出した話題", "安全確認の質問", "公開されている相談窓口の連絡先", "普段の会話の文脈")),
+])
+def test_normal_reply_guidance_has_equivalent_scope_without_classification_metadata(language, fragments):
+    instruction = cg.normal_reply_instruction(language)
+    assert all(fragment in instruction for fragment in fragments)
+    assert not any(value in instruction for value in (
+        "not_applicable", "self_thought", "self_intent_plan", "self_preparation_action",
+        "meaning_unclear", "normal", "probability", "confidence",
+    ))
+    assert cg.normal_reply_instruction(language + "-" + language.upper()) == instruction
+
+
 @pytest.mark.parametrize("language,service", [("ko", "이 서비스는 의료 서비스가 아니며"),
     ("en", "This is not a medical service"), ("ja", "本サービスは医療サービスではなく")])
 def test_unknown_country_formal_text_has_no_name_or_emergency_instruction(language, service):

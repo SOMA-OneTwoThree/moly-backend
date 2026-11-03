@@ -697,3 +697,187 @@ async def test_required_recovery_proves_publication_full_processing_and_preserve
     else:
         await active.verify_recovery(uid)
     assert all("UPDATE " not in query and "INSERT " not in query and "DELETE " not in query for query in queries)
+
+
+async def test_ordinary_verified_checkpoint_needs_no_pressure_boundary():
+    uid = uuid.uuid4()
+    class DB:
+        async def fetchrow(self, sql, *args):
+            return {"generation": 0, "through_message_id": 2, "processing_complete": True}
+        async def fetchval(self, sql, *args):
+            assert args == (uid, 0, 2)
+            return True
+        async def fetch(self, sql, *args):
+            return [{"id": 1, "sender": "user", "kind": "normal", "content_hash": "a"*32},
+                    {"id": 2, "sender": "moly", "kind": "normal", "content_hash": "b"*32}]
+    active = runner(DB())
+    active.raw_proofs[uid] = {1: ("user", "normal", "a"*32), 2: ("moly", "normal", "b"*32)}
+    await active.verify_checkpoint(uid)
+    assert not active.pressure_boundaries
+    with pytest.raises(replay.ReplayError, match="recovery_checkpoint_coverage_missing"):
+        await active.verify_recovery(uid)
+
+
+async def test_require_checkpoint_runs_publication_verification_without_claiming_pressure(parallel_execution, monkeypatch):
+    e = parallel_execution
+    e.scenarios[0]["require_checkpoint"] = True
+    async def verify(self, uid):
+        await self.db.query("verify_checkpoint")
+    monkeypatch.setattr(replay.Runner, "verify_checkpoint", verify, raising=False)
+    assert await replay.execute(e.args, e.scenarios, checkout=e.checkout)
+    connection = next(number for number, label in e.events if label == "verify_checkpoint")
+    assert e.events.index((connection, "wait_derived")) < e.events.index((connection, "verify_checkpoint"))
+
+
+@pytest.mark.parametrize(("evidence", "permitted"), [
+    ("active_current", True), ("new_publication", True),
+    ("old_publication", False), ("active_other_generation", False), ("none", False),
+])
+async def test_503_retry_requires_checkpoint_evidence_without_becoming_pressure(evidence, permitted, monkeypatch):
+    from unittest.mock import AsyncMock
+    uid = uuid.uuid4()
+    payload = {"user_message": {"message_id": "1"}, "reply": {"message_id": "2", "content": "합성 답변"}}
+    calls = []
+    async def fetchval(sql, *args):
+        calls.append(sql)
+        if "COALESCE(max(c.through_message_id),0)" in sql:
+            return 6
+        if "SELECT retention_pressure_through_message_id" in sql:
+            return None
+        if "SELECT EXISTS(" in sql:
+            assert args == (uid, 6)
+            assert "j.payload->'memory_generation'=to_jsonb(cc.memory_generation)" in sql
+            assert "j.state IN ('ready','running')" in sql and "c.through_message_id>$2" in sql
+            return permitted
+        assert "j.payload->>'reason'='input_pressure'" in sql
+        return None
+    db = SimpleNamespace(fetchval=fetchval, fetchrow=AsyncMock(side_effect=[
+        {"messages": 0, "tokens": 0}, {"messages": 0, "tokens": 0}, {"messages": 2, "tokens": 0}]),
+        fetch=AsyncMock(side_effect=[[{"sender": "user", "kind": "normal"}, {"sender": "moly", "kind": "normal"}],
+            [{"id": 1, "sender": "user", "kind": "normal", "content_hash": "a"*32},
+             {"id": 2, "sender": "moly", "kind": "normal", "content_hash": "b"*32}]]))
+    client = SimpleNamespace(post=AsyncMock(side_effect=[
+        SimpleNamespace(status_code=503, json=lambda: {"code": "AI_UNAVAILABLE"}),
+        SimpleNamespace(status_code=200, json=lambda: payload)]))
+    async def sleep(seconds):
+        pass
+    monkeypatch.setattr(replay.asyncio, "sleep", sleep)
+    active = runner(db, client)
+    active.recovery_timeout = 150
+    args = (uid, "synthetic-token", {"number": 1, "language": "ko", "require_checkpoint": True},
+            {"text": "합성", "kind": "normal", "allow_recovery": True})
+    if permitted:
+        assert await active.send(*args) is False
+        assert client.post.await_count == 2 and active.raw_proofs[uid]
+        assert not active.pressure_boundaries
+        assert client.post.await_args_list[0].kwargs["headers"] == client.post.await_args_list[1].kwargs["headers"]
+    else:
+        with pytest.raises(replay.ReplayError, match="pressure_target_missing"):
+            await active.send(*args)
+        assert client.post.await_count == 1
+
+
+@pytest.mark.parametrize("language", ["ko", "en", "ja"])
+@pytest.mark.parametrize(("expected", "actual"), [
+    ("meaning", "thought"), ("thought", "meaning"),
+    ("method_meaning", "method_thought"), ("method_thought", "method_meaning"),
+])
+def test_model_annotation_advisory_preserves_expected_type_and_reports_only_enums(language, expected, actual):
+    step = {"kind": "safety_check", "question": expected, "annotation_source": "model",
+            "continue_on_question_disagreement": True}
+    reply = next(iter(replay.expected_question(language, actual)))
+    warning = replay.check_reply({"reply": {"content": reply}}, step, language)
+    assert step["question"] == expected
+    assert warning == f"question_type_disagreement_expected_{expected}_actual_{actual}"
+    row = replay.report(1, language, "safety_check", 1, None, warning=warning)
+    assert reply not in json.dumps(row, ensure_ascii=False) and len(warning) <= 79
+
+
+@pytest.mark.parametrize("source,flag", [(None, False), ("model", False), ("human", True), ("golden", True)])
+def test_question_annotation_is_strict_without_both_model_opt_in_fields(source, flag):
+    step = {"kind": "safety_check", "question": "meaning", "annotation_source": source,
+            "continue_on_question_disagreement": flag}
+    with pytest.raises(replay.ReplayError, match="question_text_mismatch"):
+        replay.check_reply({"reply": {"content": replay.QUESTIONS["ko"][0]}}, step, "ko")
+
+
+@pytest.mark.parametrize("expected,actual", [("method_meaning", "thought"), ("meaning", "method_thought")])
+def test_advisory_never_softens_refusal_prefix_difference(expected, actual):
+    step = {"kind": "safety_check", "question": expected, "annotation_source": "model",
+            "continue_on_question_disagreement": True}
+    with pytest.raises(replay.ReplayError, match="question_text_mismatch"):
+        replay.check_reply({"reply": {"content": next(iter(replay.expected_question("ko", actual)))}}, step, "ko")
+
+
+def test_deidentified_origin_does_not_implicitly_enable_advisory_and_invalid_opt_in_is_rejected(tmp_path):
+    data = corpus()
+    step = data["scenarios"][0]["steps"][0]
+    step.update(kind="safety_check", question="meaning", continue_on_question_disagreement=True)
+    with pytest.raises(replay.ReplayError, match="question_annotation_invalid"):
+        replay.load_corpus(private(tmp_path, data=data), checkout=tmp_path / "checkout")
+    step["annotation_source"] = "model"
+    assert replay.load_corpus(private(tmp_path, data=data), checkout=tmp_path / "checkout")
+
+
+async def test_advisory_keeps_later_turns_and_drain_but_does_not_make_whole_run_success(parallel_execution, monkeypatch):
+    e = parallel_execution
+    e.scenarios[0]["steps"] = [{}, {}]
+    original = replay.Runner.send
+    async def send(self, uid, *args):
+        result = await original(self, uid, *args)
+        if uid.int == 1:
+            self.question_disagreements = 1
+        return result
+    monkeypatch.setattr(replay.Runner, "send", send)
+    assert not await replay.execute(e.args, e.scenarios, checkout=e.checkout)
+    assert sum(label == "send_snapshot" for _, label in e.events) == 4
+    assert sum(label == "wait_derived" for _, label in e.events) == 3
+    assert all(connection.closed for connection in e.connections)
+
+
+@pytest.mark.parametrize(("failure", "reason"), [
+    (None, None), ("kind", "message_kinds_mismatch"), ("quota", "fixed_reply_charged"),
+])
+async def test_advisory_send_does_not_soften_kind_or_quota_failures(failure, reason):
+    from unittest.mock import AsyncMock
+    uid, emitted = uuid.uuid4(), []
+    payload = {"user_message": {"message_id": "1"},
+               "reply": {"message_id": "2", "content": replay.QUESTIONS["ko"][0]}}
+    kind = "normal" if failure == "kind" else "safety_check"
+    db = SimpleNamespace(fetchrow=AsyncMock(side_effect=[{"messages": 0, "tokens": 0},
+        {"messages": 2, "tokens": 1 if failure == "quota" else 0}]),
+        fetch=AsyncMock(return_value=[{"sender": "user", "kind": kind}, {"sender": "moly", "kind": kind}]),
+        fetchval=AsyncMock(return_value=None))
+    client = SimpleNamespace(post=AsyncMock(return_value=SimpleNamespace(status_code=200, json=lambda: payload)))
+    active = runner(db, client, emitted.append)
+    step = {"text": "합성", "kind": "safety_check", "question": "meaning", "annotation_source": "model",
+            "continue_on_question_disagreement": True}
+    args = (uid, "synthetic", {"number": 1, "language": "ko", "origin": "deidentified"}, step)
+    if reason:
+        with pytest.raises(replay.ReplayError, match=reason):
+            await active.send(*args)
+        assert not emitted
+    else:
+        assert await active.send(*args) is False
+        assert active.question_disagreements == 1
+        assert emitted[0]["warning"] == "question_type_disagreement_expected_meaning_actual_thought"
+
+
+@pytest.mark.parametrize("reply", ["합성 자유 문장?", "무슨 일 있었어?\n추가 질문?", "그건 알려 줄 수 없어.무슨 일 있었어?"])
+def test_advisory_never_accepts_nonfixed_questions(reply):
+    step = {"kind": "safety_check", "question": "meaning", "annotation_source": "model",
+            "continue_on_question_disagreement": True}
+    with pytest.raises(replay.ReplayError, match="question_text_mismatch"):
+        replay.check_reply({"reply": {"content": reply}}, step, "ko")
+
+
+@pytest.mark.parametrize("value", [True, False, 1, "true"])
+def test_require_checkpoint_is_an_explicit_boolean(tmp_path, value):
+    data = corpus()
+    data["scenarios"][0]["require_checkpoint"] = value
+    path = private(tmp_path, data=data)
+    if type(value) is bool:
+        assert replay.load_corpus(path, checkout=tmp_path / "checkout")
+    else:
+        with pytest.raises(replay.ReplayError, match="corpus_invalid"):
+            replay.load_corpus(path, checkout=tmp_path / "checkout")

@@ -198,6 +198,21 @@ async def _load_sources(
     return messages
 
 
+async def _wake_ingest_dependency(req: _Request) -> None:
+    """No checkpoint finalize/job lock or original read transaction is held."""
+    try:
+        async with get_sessionmaker()() as session:
+            await checkpoint_repo.wake_checkpoint_ingest(
+                session, user_id=req.user_id, generation=req.memory_generation,
+                through_id=req.through_message_id,
+            )
+            await session.commit()
+    except Exception as exc:
+        # Keep the durable target and dependency deferral. A transient wake
+        # failure must not spend the checkpoint's actual model retry budget.
+        _log.warning("checkpoint_dependency_wake_failed error=%s", type(exc).__name__)
+
+
 async def handle_checkpoint(job: ClaimedJob) -> JobResult:
     if (job.payload or {}).get("mode") == "reverify":
         return await _handle_retention_reverify(job)
@@ -252,6 +267,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             await context_retention.enqueue_contract_processing(session, user_id=req.user_id,
                 generation=req.memory_generation, through_id=req.through_message_id)
             await session.commit()
+            await _wake_ingest_dependency(req)
             raise JobDeferred("checkpoint_source_processing_pending", delay_s=5)
 
         # 잊어줘가 닫은 메시지 검사는 없다 — 대화형 망각이 제거되면서 `memory_recall_suppressions`

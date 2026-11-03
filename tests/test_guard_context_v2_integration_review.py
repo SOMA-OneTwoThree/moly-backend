@@ -66,6 +66,88 @@ def request(text="합성 검증 입력", **kwargs):
     return SimpleNamespace(text=text, greeting_id=None, **kwargs)
 
 
+@pytest.mark.parametrize("language,reply", [
+    ("ko", "오늘 하늘이 맑구나."), ("en", "The sky is clear today."), ("ja", "今日は晴れているんだね。"),
+])
+@pytest.mark.parametrize("intervention", ["safety", "safety_check"])
+async def test_normal_after_intervention_keeps_history_and_uses_only_ephemeral_guidance(
+    setup, monkeypatch, language, reply, intervention,
+):
+    gate, _ = setup
+    gate.profile.language = language
+    prior_user, prior_reply, current = "synthetic earlier user subject", "synthetic earlier fixed reply", "synthetic current weather"
+    recent = [crisis_guard.GuardMessage("user", prior_user, kind=intervention, message_id=1),
+              crisis_guard.GuardMessage("assistant", prior_reply, kind=intervention, message_id=2)]
+    chat._guard_recent.return_value = recent
+    monkeypatch.setattr(chat, "_context", AsyncMock(return_value=chat.ContextWindow(
+        conversation=[{"role": "user", "content": prior_user},
+                      {"role": "assistant", "content": prior_reply},
+                      {"role": "user", "content": current}],
+        new_anchor=None, lead=[], checkpoint_keep_from=None, incomplete=False,
+    )))
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", route="normal", case="not_applicable", last_intervention=intervention)))
+    chat.llm.generate.return_value = llm.LLMResult(reply, 10, 20, finish_reason="stop")
+    session = Session()
+    await chat.post_message(session, UID, request(current), "normal-after-intervention")
+    chat.llm.generate.assert_awaited_once()
+    system, messages = chat.llm.generate.await_args.args[:2]
+    instruction = crisis_guard.normal_reply_instruction(language)
+    assert instruction not in "\n".join(system)
+    assert sum(instruction in message["content"] for message in messages) == 1
+    assert messages[-2]["role"] == "system" and instruction in messages[-2]["content"]
+    assert messages[-1] == {"role": "user", "content": current}
+    assert any(message["content"] == prior_user for message in messages)
+    assert any(message["content"] == prior_reply for message in messages)
+    assert all(instruction not in item.content and item.kind == "normal"
+               for item in session.added if isinstance(item, Message))
+    assert chat._accumulate_tokens.await_args.args[-1] > 0
+
+
+@pytest.mark.parametrize("status,intervention", [
+    ("ok", None), ("timeout", "safety"), ("error", "safety"), ("refusal", "safety"),
+    ("invalid", "safety_check"), ("conflict", "safety_check"),
+])
+async def test_normal_guidance_does_not_restrict_fault_fallback_or_no_intervention(
+    setup, monkeypatch, status, intervention,
+):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        status, route="normal", case="not_applicable" if status == "ok" else None,
+        last_intervention=intervention)))
+    await chat.post_message(Session(), UID, request(), "normal-without-instruction")
+    system, messages = chat.llm.generate.await_args.args[:2]
+    instruction = crisis_guard.normal_reply_instruction("ko")
+    assert instruction not in "\n".join(system)
+    assert all(instruction not in message["content"] for message in messages)
+
+
+@pytest.mark.parametrize("boundary", ["raw", "assembled"])
+async def test_history_recovery_budget_includes_the_same_normal_reply_guidance(setup, monkeypatch, boundary):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", route="normal", case="not_applicable", last_intervention="safety")))
+    instruction = crisis_guard.normal_reply_instruction("ko")
+    checked = []
+
+    def essential_budget(system, messages, **kwargs):
+        checked.append(messages)
+        assert sum(instruction in message["content"] for message in messages) == 1
+        return True
+
+    monkeypatch.setattr(chat.context_retention, "fits_input_budget", essential_budget)
+    if boundary == "raw":
+        monkeypatch.setattr(chat, "_context", AsyncMock(side_effect=chat._HistoryReadPressure))
+    else:
+        def assembled_budget(system, messages, **kwargs):
+            assert sum(instruction in message["content"] for message in messages) == 1
+            raise chat.context_retention.RetentionError("context_input_budget")
+        monkeypatch.setattr(chat.context_retention, "assert_input_budget", assembled_budget)
+    with pytest.raises(errors.AppError) as caught:
+        await chat.post_message(Session(), UID, request(), "guidance-budget")
+    assert caught.value.code == "AI_UNAVAILABLE" and len(checked) == 1
+    chat.llm.generate.assert_not_awaited()
+    chat.checkpoint_repo.request_pressure.assert_awaited_once()
+
+
 @pytest.mark.parametrize("language", ["ko", "en", "ja"])
 @pytest.mark.parametrize("usage_v2", [False, True])
 async def test_fixed_guidance_bypasses_all_normal_state_and_charges_zero(setup, monkeypatch, language, usage_v2):

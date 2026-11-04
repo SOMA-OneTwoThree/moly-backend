@@ -2114,18 +2114,23 @@ async def _post_message_impl(
     if retention_enabled:
         retention_writes_enabled = await context_retention.enabled_now(session, lock=True)
         if not correction_pending:
+            validation_failed = False
+            validation_stage = "required"
             try:
                 current_required = await context_retention.load_required_facts(
                     session, user_id=uid, generation=memory_generation,
                 )
+                validation_stage = "contract"
                 current_contract = await contract_repo.published_text(
                     session, user_id=uid, locale=i18n.resolve(language),
                     retention_enabled=True, generation=memory_generation, activity_date=ad,
                     current_text=req.text,
                 )
             except (context_retention.RetentionError, ValueError):
+                validation_failed = True
                 current_required, current_contract = None, None
             recall_changed = False
+            recall_validation_failed = False
             if recalled_registry_snapshot:
                 ids = [row[0] for row in recalled_registry_snapshot]
                 current_rows = (await session.execute(select(
@@ -2146,9 +2151,22 @@ async def _post_message_impl(
                         )
                     except context_retention.RetentionError:
                         recall_changed = True
+                        recall_validation_failed = True
             if (current_required != required_facts or current_contract != contract_text
                     or recall_changed):
-                raise errors.ai_unavailable() from None
+                failure = errors.ai_unavailable()
+                if settings.environment == "development":
+                    # Development diagnostics contain no identifiers or source text.
+                    # The public code, message, retry policy and production body stay unchanged.
+                    failure.details["context_changed"] = {
+                        "required": current_required != required_facts,
+                        "contract": current_contract != contract_text,
+                        "recall": recall_changed,
+                        "validation_failed": validation_failed,
+                        "validation_stage": validation_stage if validation_failed else None,
+                        "recall_validation_failed": recall_validation_failed,
+                    }
+                raise failure from None
     if fortune_snapshot is not None:
         phase2_now = datetime.now(timezone.utc)
         fresh_account = await session.get(type(g.profile), uid, populate_existing=True)

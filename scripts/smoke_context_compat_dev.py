@@ -510,7 +510,11 @@ async def run(args):
             await app_db._engine.dispose()
     summary = {"schema": "context-compat-dev-smoke-v1", "success": success and cleaned,
         "failure": failure, "cleanup": cleaned, "accounts": len(clients),
-        "expected_completed_turns": 35, "completed_turn_checks": sum(r["failure"] is None for r in reports),
+        "expected_completed_turns": 35,
+        "completed_turn_checks": sum(r["failure"] is None and r.get("scenario", 0) > 0
+                                     and r.get("route") in replay.KINDS for r in reports),
+        "completed_api_turns": len({item["response"]["user_message"]["message_id"]
+                                    for item in responses if item["http"] == 200}),
         "http_attempts": len(responses), "global_guard": True, "global_retention": True,
         "active_preparation": None, "retention_off_read_compatibility_accounts": 4,
         "legacy_null_canonical_real_vector_fixture": True,

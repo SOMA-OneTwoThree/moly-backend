@@ -581,6 +581,7 @@ async def _recall_memory_v2(
     generation: int = 0,
     registry_snapshot: list[Any] | None = None,
     query_embedding_cache: dict | None = None,
+    mandatory_facts: str = "",
 ) -> str:
     """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
 
@@ -591,7 +592,7 @@ async def _recall_memory_v2(
     if not getattr(state, "serves_v2", False):
         return ""
     try:
-        from app.services import mem0_recall, memory_embeddings, provided_memory
+        from app.services import mem0_recall, memory, memory_embeddings, provided_memory
 
         from app.core.db import get_sessionmaker
 
@@ -638,12 +639,6 @@ async def _recall_memory_v2(
                 verified = {str(row[1]): row for row in verified_rows}
                 legacy_texts = {row[0]: item.text for item in items
                     if (row := verified.get(item.provider_memory_id)) is not None and row[4] is None}
-                if verified_rows:
-                    await context_retention.load_required_facts(
-                        s2, user_id=user_id, generation=generation,
-                        referenced_ids=tuple(row[0] for row in verified_rows),
-                        canonical_overrides=legacy_texts,
-                    )
                 validated_items = []
                 for item in items:
                     row = verified.get(item.provider_memory_id)
@@ -657,6 +652,14 @@ async def _recall_memory_v2(
                         language=language, today=today, tz_name=tz_name,
                         canonical_overrides={identity: body for identity, body in legacy_texts.items()
                                              if identity in optional_ids})
+                    # Required facts were already certified in normal phase 1
+                    # and are checked again at publication. Optional capture
+                    # proves these exact hits and their sources more strictly;
+                    # do not fetch the same registry/evidence rows twice.
+                    combined = '\n'.join(filter(None, [mandatory_facts,
+                        *(memory.sanitize_text(proof.canonical_text) for proof in proofs)]))
+                    if context_retention.token_upper_bound(combined) > 2_048:
+                        raise provided_memory.ProvidedMemoryError('provided_memory_budget')
                     by_provider = {str(proof.provider_memory_id): proof for proof in proofs}
                     validated_items = [replace(item,
                         text=by_provider[item.provider_memory_id].canonical_text,
@@ -1765,7 +1768,8 @@ async def _post_message_impl(
                     uid, query=req.text, state=pipeline_state, language=language,
                     today=local_calendar_date, tz_name=account_timezone, trace=recall_trace,
                     **({"retention_enabled": True, "generation": memory_generation,
-                        "registry_snapshot": recalled_registry_snapshot} if retention_enabled else {}),
+                        "registry_snapshot": recalled_registry_snapshot,
+                        "mandatory_facts": required_facts} if retention_enabled else {}),
                     **({"query_embedding_cache": query_embedding_cache} if query_embedding_cache is not None else {}),
                 )
 

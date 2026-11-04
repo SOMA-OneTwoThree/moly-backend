@@ -64,6 +64,34 @@ async def test_raw_pressure_reprepares_without_reacquiring_reclassifying_or_doub
     assert wait.await_args.args[2].model_reserve == 4.25
 
 
+@pytest.mark.parametrize('projection', [None, 'a1a721c8-184c-4c39-8f8a-5b5b51fce63b'])
+async def test_online_projection_metadata_does_not_invalidate_unchanged_resume_policy(handoff, monkeypatch, projection):
+    from app.services import retention_release_read
+
+    _, config, decision, acquire, finish, _, wait = handoff
+
+    async def selected_settings(session, keys):
+        return {key: value for key, value in config.items() if key in keys}
+
+    async def captured_controls(session, raw):
+        # Real online controls add this nullable identity after the initial read.
+        # The resume SELECT returns only its explicit policy keys, as PostgreSQL does.
+        return {**raw, "context_retention_active_preparation": projection}, None
+
+    monkeypatch.setattr(chat.config_store, 'get_config_values', selected_settings)
+    monkeypatch.setattr(retention_release_read, 'capture_controls', captured_controls)
+    session = ResumableSession()
+    await execute(session)
+
+    state = wait.await_args.args[2]
+    assert 'context_retention_active_preparation' not in state.config_keys
+    decision.assert_awaited_once()
+    acquire.assert_awaited_once()
+    finish.assert_awaited_once()
+    chat.llm.generate.assert_awaited_once()
+    assert len([item for item in session.added if isinstance(item, Message)]) == 2
+
+
 async def test_assembled_pressure_reloads_memory_and_preserves_one_embedding_cache(handoff, monkeypatch):
     _, _, decision, _, _, contexts, wait = handoff
     # Avoid the raw pressure and exercise the later assembled-input boundary.
@@ -107,12 +135,14 @@ async def test_failed_resume_never_publishes_or_charges(handoff, monkeypatch, ou
     assert wait.await_count <= 1
 
 
-@pytest.mark.parametrize('change', ['config', 'timezone', 'language', 'day', 'recent', 'barrier'])
+@pytest.mark.parametrize('change', ['config', 'config_deleted', 'timezone', 'language', 'day', 'recent', 'barrier'])
 async def test_changed_context_between_pause_and_resume_cancels(handoff, monkeypatch, change):
     gate, config, _, _, _, _, wait = handoff
     async def changed(*args):
         if change == 'config':
             config['crisis_guard_policy_version'] = 'changed'
+        elif change == 'config_deleted':
+            config.pop('crisis_guard_policy_version')
         elif change == 'timezone':
             gate.profile.timezone = 'UTC'
         elif change == 'language':

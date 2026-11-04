@@ -678,7 +678,8 @@ async def _recall_memory_v2(
     except Exception as error:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
         if registry_snapshot is not None:
             registry_snapshot.clear()
-        _log.warning("v2 회상 블록 생성 실패 error_type=%s", type(error).__name__)
+        _log.warning("v2 회상 블록 생성 실패 subject=%s error_type=%s",
+                     hashlib.sha256(str(user_id).encode()).hexdigest(), type(error).__name__)
         return _memory_unavailable_notice(language)
 
 
@@ -1960,6 +1961,23 @@ async def _post_message_impl(
             except asyncio.CancelledError:
                 recall_task.cancel()
                 raise
+
+            if retention_enabled:
+                recall_state = (
+                    "not_enabled" if not pipeline_state.serves_v2
+                    else "unavailable" if memory_v2_block == _memory_unavailable_notice(language)
+                    else "provided" if recalled_registry_snapshot and memory_v2_block
+                    else "empty"
+                )
+                try:
+                    _log.info(
+                        "context_recall_outcome subject=%s state=%s provided=%d elapsed=%.3fs stages=%s",
+                        hashlib.sha256(str(uid).encode()).hexdigest(), recall_state,
+                        len(recalled_registry_snapshot) if recall_state == "provided" else 0,
+                        time.monotonic() - t_recall0, recall_trace,
+                    )
+                except Exception:
+                    pass  # Observation failure must not fail a completed normal preparation.
 
             def system_with_history(earlier_lead):
                 return _build_system(

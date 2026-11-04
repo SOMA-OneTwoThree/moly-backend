@@ -1081,6 +1081,7 @@ class _PressureResume:
     request_hash: str
     request_identity: Any
     baseline_through: int = 0
+    required_through: int = 0
     resumed: bool = False
 
 
@@ -1127,7 +1128,8 @@ async def _wait_for_context_progress(session, uid, state) -> bool:
                 coverage = await checkpoint_repo.coverage_for_checkpoint(session, user_id=uid,
                     generation=state.generation, value=value)
                 await session.commit()
-                if coverage is not None and coverage.through_message_id > state.baseline_through:
+                if (coverage is not None and coverage.through_message_id > state.baseline_through
+                        and coverage.through_message_id >= state.required_through):
                     return True
         except TimeoutError:
             await session.rollback()
@@ -1164,11 +1166,13 @@ async def _pause_for_history_pressure(
             if _guard_source_proof(current_sources) != _guard_source_proof(recent):
                 raise errors.AppError("CHAT_TURN_STALE", 409,
                                       "답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.")
-        await checkpoint_repo.request_pressure(
+        reserved = await checkpoint_repo.request_pressure(
             session, user_id=uid, generation=memory_generation,
         )
         if (resume is not None and not resume.resumed and owner is not None
                 and owner.get("pressure_timeout") is not None
+                and type(reserved.through_message_id) is int and reserved.through_message_id > 0
+                and reserved.status in {"queued", "pending", "covered"}
                 and await context_retention.enabled_now(session, lock=True)
                 and time.monotonic() + resume.model_reserve < resume.deadline):
             barrier = await privacy.load_barrier(session, uid)
@@ -1176,6 +1180,7 @@ async def _pause_for_history_pressure(
                 raise errors.AppError("CHAT_TURN_STALE", 409, "대화 근거가 바뀌었어요. 새 요청으로 다시 시도해 주세요.")
             if resume.recent_proof is None:
                 resume.recent_proof = _guard_source_proof(await _guard_recent(session, uid, history_limit))
+            resume.required_through = reserved.through_message_id
             await session.commit()
             raise _ContextPressureReady()
     await chat_turns.release(session, user_id=uid, lease=lease)

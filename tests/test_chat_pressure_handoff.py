@@ -39,6 +39,7 @@ def handoff(setup, monkeypatch):
     monkeypatch.setattr(chat, '_context', context)
     wait = AsyncMock(return_value=True)
     monkeypatch.setattr(chat, '_wait_for_context_progress', wait)
+    chat.checkpoint_repo.request_pressure.return_value = chat.checkpoint_repo.PressureReservation('pending', 400)
     return gate, config, decision, acquire, finish, calls, wait
 
 
@@ -228,3 +229,12 @@ async def test_disabled_writers_do_not_enter_inline_wait(handoff):
     with pytest.raises(errors.AppError):
         await execute()
     handoff[-1].assert_not_awaited()
+
+
+@pytest.mark.parametrize('status', ['disabled', 'not_adopted', 'no_source', 'stale_generation'])
+async def test_reservation_without_a_valid_target_never_waits(handoff, status):
+    chat.checkpoint_repo.request_pressure.return_value = chat.checkpoint_repo.PressureReservation(status)
+    with pytest.raises(errors.AppError):
+        await execute()
+    handoff[-1].assert_not_awaited()
+    chat._accumulate_tokens.assert_not_awaited()

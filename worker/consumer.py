@@ -419,7 +419,11 @@ async def queue_loop(queue: str, worker_id: str, stop: asyncio.Event) -> None:
             await _sleep_or_stop(stop, idle)
             continue
         if not claimed:
-            woken = await _sleep_stop_or_wake(stop, wake, delay)
+            # API producers cannot signal this process's Event. Only empty
+            # context queues poll within 1s; full slots and actual job retry
+            # schedules keep their existing policy and connection limits.
+            empty_delay = min(delay, 1.0) if queue in (jobs.QUEUE_MEMORY, jobs.QUEUE_CONTENT) else delay
+            woken = await _sleep_stop_or_wake(stop, wake, empty_delay)
             delay = idle if woken else min(delay * 2, idle_max)
             continue
         delay = idle

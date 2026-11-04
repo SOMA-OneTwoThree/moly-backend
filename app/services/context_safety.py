@@ -323,3 +323,31 @@ def compact_checkpoint_summary(
         and not _SAFETY_REPLY[lang].search(sentence)
     ]
     return " ".join(kept)
+
+
+def compact_legacy_context(entries: Sequence[ContextEntry], *, current_text: str | None,
+                           current_date: date | None, language: str | None) -> CompactionResult:
+    """Read-only compatibility projection, including an orphaned manual lead.
+
+    Raw rows, classifier input and checkpoint evidence remain unchanged. This
+    function grants no coverage. A current distress signal keeps every entry.
+    """
+    lang = _lang(language)
+    original = tuple(entries)
+    if current_text is not None and is_continuing_distress(current_text, lang):
+        return CompactionResult(original)
+    projected = compact_historical_crises(original, current_text=current_text,
+        current_date=current_date, language=lang)
+    if not _has_clear_neutral_tail(projected.entries, current_text=current_text, language=lang):
+        return projected
+    kept = []
+    leading = True
+    removed = False
+    for entry in projected.entries:
+        if entry.role == 'user':
+            leading = False
+        if leading and entry.role == 'assistant' and _SAFETY_REPLY[lang].search(entry.content or ''):
+            removed = True
+            continue
+        kept.append(entry)
+    return CompactionResult(tuple(kept), projected.compacted_episodes + int(removed))

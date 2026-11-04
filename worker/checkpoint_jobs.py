@@ -169,6 +169,9 @@ async def _persist_packing_control(job, before: dict, after: dict) -> None:
         req = _parse(job)
         if not await _writable_privacy_epoch(session, req, before):
             raise JobCancelled("checkpoint_privacy_changed")
+        if not await checkpoint_repo.compat_binding_matches(session, user_id=req.user_id,
+                generation=req.memory_generation, binding=req.baseline_binding):
+            raise JobCancelled("checkpoint_baseline_changed")
         row = (await session.execute(text("""
           UPDATE async_jobs j SET payload=CAST(:payload AS jsonb),payload_hash=:payload_hash
           WHERE j.id=:job_id AND j.user_id=:user_id AND j.state='running'
@@ -177,12 +180,16 @@ async def _persist_packing_control(job, before: dict, after: dict) -> None:
             AND j.payload=CAST(:before AS jsonb) AND j.payload_redacted_at IS NULL
             AND (j.payload_expires_at IS NULL OR j.payload_expires_at>now())
             AND EXISTS(SELECT 1 FROM chat_contexts c WHERE c.user_id=j.user_id
-                       AND c.memory_generation=:generation)
+                       AND c.memory_generation=:generation
+                       AND (:skip_baseline OR COALESCE(c.retention_compat_json,'null'::jsonb)
+                            =CAST(:baseline_binding AS jsonb)))
           RETURNING j.id
         """), {"payload": wire, "payload_hash": hashlib.sha256(wire.encode()).hexdigest(),
                 "before": json.dumps(before, sort_keys=True, separators=(",", ":")),
                 "job_id": job.id, "user_id": job.user_id, "owner": job.lease_owner,
-                "token": job.lease_token, "generation": req.memory_generation})).first()
+                "token": job.lease_token, "generation": req.memory_generation,
+                "baseline_binding": json.dumps(req.baseline_binding),
+                "skip_baseline": retention_release.binding() is not None})).first()
         if row is None:
             raise JobCancelled("checkpoint_packing_snapshot_changed")
         await session.commit()
@@ -206,6 +213,7 @@ class _Request:
     previous_id: str | None
     previous_through_message_id: int | None
     memory_generation: int
+    baseline_binding: dict | None = None
 
 
 def _int_field(payload: dict, key: str) -> int:
@@ -254,6 +262,15 @@ def _parse(job: ClaimedJob) -> _Request:
         isinstance(prev_through, bool) or not isinstance(prev_through, int)
     ):
         raise JobFatal("invalid_payload")
+    baseline = payload.get("baseline_binding")
+    if baseline is not None and (not isinstance(baseline, dict)
+            or version != checkpoint.RETENTION_SUMMARIZER_VERSION
+            or type(baseline.get("source_after")) is not int or baseline["source_after"] < 0
+            or type(baseline.get("generation")) is not int
+            or baseline["generation"] != _generation_field(payload)
+            or baseline.get("privacy_epoch") != payload.get("privacy_epoch")
+            or any(identity <= baseline["source_after"] for identity in ids)):
+        raise JobFatal("invalid_baseline_binding")
     return _Request(
         user_id=job.user_id,
         through_message_id=_int_field(payload, "through_message_id"),
@@ -263,6 +280,7 @@ def _parse(job: ClaimedJob) -> _Request:
         previous_id=prev_id,
         previous_through_message_id=prev_through,
         memory_generation=_generation_field(payload),
+        baseline_binding=baseline,
     )
 
 
@@ -302,6 +320,9 @@ async def _still_applicable(
     # previous=None이 되는데, 그 상태가 "첫 요약"과 구분이 안 돼 체인 검사만으로는 통과한다.
     if not await _generation_matches(session, req):
         return False, None
+    if req.version == checkpoint.RETENTION_SUMMARIZER_VERSION and not await checkpoint_repo.compat_binding_matches(
+            session, user_id=req.user_id, generation=req.memory_generation, binding=req.baseline_binding):
+        return False, None
     previous = (await checkpoint_repo.load_latest(session, req.user_id, retention_enabled=True)
                 if req.version == checkpoint.RETENTION_SUMMARIZER_VERSION
                 else await checkpoint_repo.load_latest(session, req.user_id))
@@ -330,6 +351,12 @@ async def _load_sources(
     `source_changed`로 끝내게 한다.
     """
     from_id = req.source_message_ids[0]
+    if req.baseline_binding is not None:
+        after = previous.through_message_id if previous is not None else req.baseline_binding["source_after"]
+        if from_id <= after:
+            return []
+    else:
+        after = from_id - 1
     if previous is not None and from_id <= previous.through_message_id:
         # 이전 checkpoint가 이미 덮은 구간과 겹친다 = 같은 대화를 두 번 요약하게 된다.
         return []
@@ -338,7 +365,7 @@ async def _load_sources(
     messages = await checkpoint_repo.load_range(
         session,
         req.user_id,
-        after_id=from_id - 1,  # 열린 하한 → `[from_id, through]` 닫힌 구간
+        after_id=after,
         through_id=req.through_message_id,
         max_rows=len(req.source_message_ids) + 1,  # +1 = 초과분(사이에 낀 새 행) 탐지용
         **range_options,
@@ -372,6 +399,8 @@ def _completed_binding(req: _Request, payload: dict) -> str:
              "reason": payload.get("reason"),
              "privacy_epoch": payload.get("privacy_epoch"),
              "proof": payload.get("completed_proof")}
+    if req.baseline_binding is not None:
+        fixed["baseline_binding"] = req.baseline_binding
     if _packing_version(payload) is not None:
         fixed["packing_version"] = payload["packing_version"]
         fixed["packing_chunk_cap"] = payload.get("packing_chunk_cap")
@@ -382,6 +411,9 @@ def _completed_binding(req: _Request, payload: dict) -> str:
 def _validate_completed(req, payload, sources, previous, language):
     if payload.get("completed_binding") != _completed_binding(req, payload):
         raise checkpoint.CheckpointError("progress_completed_binding")
+    if req.baseline_binding != payload.get("baseline_binding"):
+        raise checkpoint.CheckpointError("compat_baseline_changed")
+    checkpoint_repo.validate_compat_state(payload.get("completed_state"), req.baseline_binding)
     allowed = [message for message in sources if message.kind not in SUMMARY_EXCLUDED_MESSAGE_KINDS]
     return checkpoint.validate_completed_progress(messages=allowed, previous=previous,
         language=language, state=payload.get("completed_state"), proof=payload.get("completed_proof"),
@@ -406,6 +438,9 @@ WHERE id=:job_id AND user_id=:user_id AND job_type='conversation_checkpoint'
   AND (payload_expires_at IS NULL OR payload_expires_at>now())
   AND payload->>'source_hash'=:source_hash
   AND payload->'privacy_epoch'=to_jsonb(CAST(:privacy_epoch AS bigint))
+  AND (:skip_baseline OR EXISTS (SELECT 1 FROM chat_contexts cc
+    WHERE cc.user_id=:user_id AND cc.memory_generation=:generation
+      AND COALESCE(cc.retention_compat_json,'null'::jsonb)=CAST(:baseline_binding AS jsonb)))
 RETURNING id
 """)
 
@@ -421,6 +456,9 @@ async def _store_completed_parent(session, job, payload) -> bool:
         "job_id": job.id, "user_id": job.user_id, "payload": wire,
         "payload_hash": hashlib.sha256(wire.encode("utf-8")).hexdigest(),
         "source_hash": job.payload["source_hash"], "privacy_epoch": job.payload["privacy_epoch"],
+        "generation": payload["memory_generation"],
+        "baseline_binding": json.dumps(payload.get("baseline_binding")),
+        "skip_baseline": retention_release.binding() is not None,
     })).first()
     return row is not None
 
@@ -458,7 +496,8 @@ async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
         _, language = user
         sources = await _load_sources(session, req, previous)
         if not sources or checkpoint.source_hash(previous=previous, messages=sources,
-                version=req.version, preparation_id=retention_release.preparation_id()) != req.source_hash:
+                version=req.version, preparation_id=retention_release.preparation_id(),
+                baseline_binding=req.baseline_binding) != req.source_hash:
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
         try:
             summary = _validate_completed(req, payload, sources, previous, language)
@@ -486,7 +525,8 @@ async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
             return
         current = await _load_sources(session, req, fresh_parent)
         if not current or checkpoint.source_hash(previous=fresh_parent, messages=current,
-                version=req.version, preparation_id=retention_release.preparation_id()) != req.source_hash:
+                version=req.version, preparation_id=retention_release.preparation_id(),
+                baseline_binding=req.baseline_binding) != req.source_hash:
             return
         _validate_completed(req, payload, current, fresh_parent, language)
         await context_retention.validate_progress_sources(session, user_id=req.user_id,
@@ -510,6 +550,7 @@ async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
                 "completed_proof": payload["completed_proof"],
                 "completed_binding": payload["completed_binding"],
                 "privacy_epoch": payload["privacy_epoch"],
+                **({"baseline_binding": req.baseline_binding} if req.baseline_binding is not None else {}),
             }, previous_id=fresh_parent.id if fresh_parent else None,
             coverage_from=req.source_message_ids[0])
         if inserted is None:
@@ -523,7 +564,9 @@ async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
                 payload={"mode": "reverify", "schema_version": checkpoint.SCHEMA_VERSION,
                     "summarizer_version": checkpoint.RETENTION_SUMMARIZER_VERSION,
                     "memory_generation": req.memory_generation, "checkpoint_id": str(inserted),
-                    "through_message_id": req.through_message_id, "after_message_id": 0,
+                    "through_message_id": req.through_message_id,
+                    "after_message_id": req.baseline_binding["source_after"] if req.baseline_binding else 0,
+                    **({"baseline_binding": req.baseline_binding} if req.baseline_binding is not None else {}),
                     "privacy_epoch": payload["privacy_epoch"], "manifests": []}, max_attempts=2)
         else:
             await checkpoint_repo.reserve_remaining_pressure(session, user_id=req.user_id,
@@ -590,7 +633,8 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
         if checkpoint.source_hash(
             previous=previous, messages=messages, version=req.version,
-         preparation_id=retention_release.preparation_id()) != req.source_hash:
+         preparation_id=retention_release.preparation_id(),
+                baseline_binding=req.baseline_binding) != req.source_hash:
             # 같은 id 목록이라도 본문이 바뀌었다 = 이 요약의 전제가 깨졌다.
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
 
@@ -765,10 +809,12 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             )
             return
         if retention:
+            checkpoint_repo.validate_compat_state(state_json, req.baseline_binding)
             fresh_sources = await _load_sources(session, req, previous)
             if not fresh_sources or checkpoint.source_hash(
                 previous=previous, messages=fresh_sources, version=req.version,
-             preparation_id=retention_release.preparation_id()) != req.source_hash:
+             preparation_id=retention_release.preparation_id(),
+                baseline_binding=req.baseline_binding) != req.source_hash:
                 return
             await context_retention.validate_progress_sources(session, user_id=req.user_id,
                 state=state_json)
@@ -836,6 +882,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             **({"state_json": state_json, "validation_json": {
                 "source_message_ids": list(req.source_message_ids), "processing_complete": True,
                 "policy_excluded_ids": [m.id for m in messages if m.kind in SUMMARY_EXCLUDED_MESSAGE_KINDS],
+                **({"baseline_binding": req.baseline_binding} if req.baseline_binding is not None else {}),
             }, "previous_id": previous.id if previous else None,
                 "coverage_from": req.source_message_ids[0]} if retention else {}),
         )
@@ -849,7 +896,9 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 payload={"mode": "reverify", "schema_version": checkpoint.SCHEMA_VERSION,
                     "summarizer_version": checkpoint.RETENTION_SUMMARIZER_VERSION,
                     "memory_generation": req.memory_generation, "checkpoint_id": str(inserted_id),
-                    "through_message_id": req.through_message_id, "after_message_id": 0,
+                    "through_message_id": req.through_message_id,
+                    "after_message_id": req.baseline_binding["source_after"] if req.baseline_binding else 0,
+                    **({"baseline_binding": req.baseline_binding} if req.baseline_binding is not None else {}),
                     "manifests": []}, max_attempts=2)
 
     return JobResult(
@@ -875,6 +924,12 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
     generation = payload.get("memory_generation")
     after = payload.get("after_message_id", 0)
     through = payload.get("through_message_id")
+    baseline = payload.get("baseline_binding")
+    if baseline is not None and (not isinstance(baseline, dict)
+            or type(baseline.get("source_after")) is not int or baseline["source_after"] < 0
+            or baseline.get("generation") != generation
+            or type(after) is not int or after < baseline["source_after"]):
+        raise JobFatal("invalid_baseline_binding")
     if any(type(value) is not int for value in (generation, after, through)) or generation < 0 or after < 0 or through <= after:
         raise JobFatal("invalid_reverify_payload")
     async with get_sessionmaker()() as session:
@@ -886,6 +941,12 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
             return JobResult(result_code=RESULT_DISABLED)
         if await checkpoint_repo.read_memory_generation(session, job.user_id) != generation:
             return JobResult(result_code=RESULT_STALE_GENERATION)
+        if not await checkpoint_repo.compat_binding_matches(session, user_id=job.user_id,
+                generation=generation, binding=baseline):
+            return JobResult(result_code=RESULT_SOURCE_CHANGED)
+        if baseline is not None and not await context_retention.privacy_epoch_matches(
+                session, user_id=job.user_id, privacy_epoch=payload.get("privacy_epoch")):
+            raise JobCancelled("checkpoint_privacy_changed")
         current = await checkpoint_repo.load_latest(session, job.user_id, retention_enabled=True)
         if current is None or str(current.id) != payload.get("checkpoint_id") or current.through_message_id != through:
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
@@ -902,7 +963,8 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
     working = context_retention.validate_state(payload.get("draft_state", current.state_json))
     allowed = [message for message in page if message.kind not in SUMMARY_EXCLUDED_MESSAGE_KINDS]
     page_hash = checkpoint.source_hash(previous=None, messages=page,
-                                       version=checkpoint.RETENTION_SUMMARIZER_VERSION, preparation_id=retention_release.preparation_id())
+        version=checkpoint.RETENTION_SUMMARIZER_VERSION, preparation_id=retention_release.preparation_id(),
+        baseline_binding=baseline)
     continuation = None
     if allowed:
         reviewed = checkpoint.Checkpoint(current.id, current.through_message_id, current.summary,
@@ -946,6 +1008,16 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
             return
         if await checkpoint_repo.read_memory_generation(session, job.user_id) != generation:
             return
+        if not await checkpoint_repo.compat_binding_matches(session, user_id=job.user_id,
+                generation=generation, binding=baseline):
+            return
+        if baseline is not None and not await context_retention.privacy_epoch_matches(
+                session, user_id=job.user_id, privacy_epoch=payload.get("privacy_epoch"), lock=True):
+            if await context_retention.privacy_epoch_matches(session, user_id=job.user_id,
+                    privacy_epoch=payload.get("privacy_epoch")):
+                raise _PrivacyLockBusy()
+            return
+        checkpoint_repo.validate_compat_state(working, baseline)
         # 직전 페이지와 완료 시 모든 실제 입력 페이지의 현재 지문을 다시 대조한다.
         checks = manifests if completed else manifests[-1:]
         for manifest in checks:
@@ -953,7 +1025,8 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
                 after_id=manifest["after"], through_id=manifest["through"], max_rows=121,
                 include_excluded=True)
             digest = checkpoint.source_hash(previous=None, messages=sources,
-                                             version=checkpoint.RETENTION_SUMMARIZER_VERSION, preparation_id=retention_release.preparation_id())
+                version=checkpoint.RETENTION_SUMMARIZER_VERSION, preparation_id=retention_release.preparation_id(),
+                baseline_binding=baseline)
             if digest != manifest["hash"]:
                 return
         if continuation is not None:
@@ -985,7 +1058,9 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
             summary=context_retention.render_state(working), source_hash=digest,
             expected_generation=generation, version=checkpoint.RETENTION_SUMMARIZER_VERSION,
             state_json=working, validation_json={"processing_complete": True, "reverified": True,
-                "page_manifests": manifests}, previous_id=current.id, coverage_from=1)
+                "page_manifests": manifests,
+                **({"baseline_binding": baseline} if baseline is not None else {})},
+            previous_id=current.id, coverage_from=baseline["source_after"]+1 if baseline else 1)
         if inserted is not None:
             await checkpoint_repo.reserve_remaining_pressure(session, user_id=job.user_id,
                 generation=generation, published_through_id=through,

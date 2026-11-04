@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import hashlib
 from datetime import datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 from time import monotonic
@@ -267,6 +268,9 @@ async def _emit(now: datetime, counts: dict) -> None:
                 f"rc_{env.lower()}", bool(data["failed"] + data["pending"]), data["fingerprint"],
                 rc_line(env, data, now), recovery=f"RC {env} 미해결 0건 재관측",
             ), now)
+    # Existing payment/privacy/platform observations run first. Summary proof
+    # cannot consume their monitoring budget or delay their immediate alerts.
+    await _summary_observation(now)
     if now.astimezone(_KST).hour >= 13:
         # 날짜는 고정 key의 값에만 저장한다. 전송 실패 시 다음 tick에 다시 시도한다.
         await monitoring_state.publish(monitoring_state.Observation(
@@ -278,3 +282,41 @@ async def _emit(now: datetime, counts: dict) -> None:
 def failure_tier(count: int) -> int:
     """tick당 영향 건수를 보수적인 구간으로 묶어 count 흔들림의 알림 폭주를 막는다."""
     return 3 if count >= 20 else 2 if count >= 5 else 1
+
+
+async def _summary_observation(now: datetime) -> None:
+    """One persistent aggregate signal, not a Slack message per dead row."""
+    from app.services import summary_recovery
+    observation = None
+    try:
+        async with asyncio.timeout(3):
+            async with get_sessionmaker()() as session:
+                await session.execute(text("SET LOCAL statement_timeout='2500ms'"))
+                observation = await summary_recovery.snapshot(session, now=now)
+                await summary_recovery.persist_receipts(session, observation.new_receipts)
+                await session.commit()
+    except Exception as exc:
+        observation = None
+        _log.warning("summary_recovery_observation_unavailable error_type=%s", type(exc).__name__)
+    unknown = observation is None or not observation.complete
+    await monitoring_state.publish(monitoring_state.Observation(
+        "summary_observation", unknown, "unavailable" if unknown else "available",
+        "요약 상태 확인 필요 — 복구 검증 범위나 자료가 부족합니다.\n"
+        "상태: 미복구 여부 관측 불가. 조치: 실패 입력과 후속 요약 게시 상태를 확인하세요. 자동 재실행·원문 삭제는 하지 않습니다.",
+        recovery="요약 복구 상태를 다시 검증할 수 있습니다 (미복구 건수는 별도 집계).",
+        recovery_requires_notification=True,
+    ), now)
+    if unknown:
+        return
+    pending = observation.pending
+    state = True if pending else None if observation.waiting else False
+    fingerprint = hashlib.sha256("|".join(sorted(str(job["id"]) for job in pending)).encode()).hexdigest()
+    await monitoring_state.publish(monitoring_state.Observation(
+        "worker_summary", state, fingerprint,
+        f"대화 요약 갱신 확인 필요 — 미복구 {len(pending)}건.\n"
+        "영향: 일부 대화의 요약 갱신이 지연됩니다. 상태: 재시도 소진 후 새 요약의 입력 포함 여부를 검증 중입니다.\n"
+        "필요 조치: 지속되면 원인과 후속 게시 상태를 확인하세요. 실패 기록·원문은 지우지 않고 재시도 예산도 초기화하지 않습니다.",
+        recovery="대화 요약 복구 확인 — 이전 미복구 입력 전체를 포함한 정상 요약 게시를 검증했습니다.\n"
+        "현재 상태: 미복구 0건. 필요한 조치: 없음. 과거 실패 기록은 보존합니다.",
+        importance=failure_tier(len(pending)), recovery_requires_notification=True,
+    ), now)

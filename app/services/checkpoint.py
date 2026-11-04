@@ -117,6 +117,7 @@ class CheckpointPlan:
     memory_generation: int = 0
     reason: str | None = None
     privacy_epoch: int | None = None
+    baseline_binding: dict | None = None
 
     def dedup_key(self, user_id: uuid.UUID | str) -> str:
         return dedup_key(
@@ -141,6 +142,8 @@ class CheckpointPlan:
             payload["reason"] = self.reason
         if self.privacy_epoch is not None:
             payload["privacy_epoch"] = self.privacy_epoch
+        if self.baseline_binding is not None:
+            payload["baseline_binding"] = json.loads(json.dumps(self.baseline_binding))
         return payload
 
 
@@ -171,6 +174,7 @@ def source_hash(
     *, previous: Checkpoint | None, messages: Sequence[SourceMessage],
     version: str = SUMMARIZER_VERSION,
     preparation_id: uuid.UUID | None = None,
+    baseline_binding: dict | None = None,
 ) -> str:
     """`(이전 checkpoint id, 이전 source_hash)` + 이번 원본 메시지의 길이-prefix SHA-256 hex.
 
@@ -181,6 +185,11 @@ def source_hash(
     h = hashlib.sha256()
     if preparation_id is not None:
         h.update(_length_prefixed("retention-preparation-v1", str(uuid.UUID(str(preparation_id)))))
+    if baseline_binding is not None:
+        if version != RETENTION_SUMMARIZER_VERSION or preparation_id is not None:
+            raise CheckpointError("compat_baseline_namespace")
+        h.update(_length_prefixed("retention-compat-v1", json.dumps(
+            baseline_binding, sort_keys=True, ensure_ascii=False, separators=(",", ":"))))
     # 개수 성분은 넣지 않는다 — 길이-prefix 직렬화가 이미 파트별 자기서술적이라(각 필드가 자기
     # 길이를 들고 있고 메시지당 필드 수가 버전별로 고정) 바이트열에서 파트 분해가 유일하다. 개수를
     # 더해도 구분력이 늘지 않는다.
@@ -273,6 +282,7 @@ def plan(
     through_message_id: int | None = None,
     reason: str | None = None,
     preparation_id: uuid.UUID | None = None,
+    baseline_binding: dict | None = None,
 ) -> CheckpointPlan | None:
     """이번 세그먼트로 만들 checkpoint 계획. 만들 게 없으면 None.
 
@@ -299,6 +309,15 @@ def plan(
     """
     ordered = normalize_messages(messages)
     retention_enabled = version == RETENTION_SUMMARIZER_VERSION
+    if baseline_binding is not None:
+        after = baseline_binding.get("source_after") if isinstance(baseline_binding, dict) else None
+        if (not retention_enabled or preparation_id is not None or type(after) is not int or after < 0
+                or type(baseline_binding.get("generation")) is not int
+                or baseline_binding.get("generation") != memory_generation):
+            raise CheckpointError("compat_baseline_binding")
+        if previous is not None and (previous.validation_json or {}).get("baseline_binding") != baseline_binding:
+            raise CheckpointError("compat_baseline_parent")
+        ordered = tuple(message for message in ordered if message.id > after)
     pressure = reason == "input_pressure"
     if reason not in {None, "input_pressure"} or (pressure and not retention_enabled):
         raise CheckpointError("checkpoint_reason")
@@ -328,12 +347,14 @@ def plan(
     return CheckpointPlan(
         through_message_id=head[-1].id,
         source_message_ids=tuple(m.id for m in head),
-        source_hash=source_hash(previous=previous, messages=head, version=version, preparation_id=preparation_id),
+        source_hash=source_hash(previous=previous, messages=head, version=version,
+                                preparation_id=preparation_id, baseline_binding=baseline_binding),
         previous_id=previous.id if previous is not None else None,
         previous_through_message_id=(
             previous.through_message_id if previous is not None else None
         ),
         memory_generation=memory_generation,
+        baseline_binding=baseline_binding,
         reason=reason,
         version=version,
     )

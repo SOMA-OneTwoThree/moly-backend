@@ -151,13 +151,55 @@ RETURNING user_id
 """)
 
 
-async def enroll(session: AsyncSession, user_id: uuid.UUID) -> bool:
-    """기억 파이프라인에 처음 등록한다. 이미 행이 있으면 False(아무것도 안 함).
+class EnrollmentOriginError(ValueError):
+    """A message-ID boundary cannot safely be represented as a turn origin."""
 
-    커밋은 호출측 소유 — 첫 turn과 같은 transaction에 묶는다.
+
+_ENROLL_AT_ORIGIN = text("""
+WITH existing AS MATERIALIZED (
+ SELECT user_id FROM memory_pipeline_states WHERE user_id=:user_id
+), origin AS MATERIALIZED (
+ SELECT COALESCE(MAX(turn_seq),0) AS turn_seq FROM messages
+ WHERE user_id=:user_id AND kind='normal' AND id<=:source_after
+), checked AS MATERIALIZED (
+ SELECT o.turn_seq,EXISTS(SELECT 1 FROM messages m WHERE m.user_id=:user_id
+   AND m.kind='normal' AND m.id>:source_after AND m.turn_seq<=o.turn_seq) AS crosses_boundary
+ FROM origin o
+), inserted AS (
+ INSERT INTO memory_pipeline_states(user_id,mode,bootstrap_status,historical_upper_turn_seq,
+   source_through_turn_seq,ingest_through_turn_seq,consolidated_through_turn_seq,privacy_epoch)
+ SELECT :user_id,'v2','ready',0,c.turn_seq,c.turn_seq,c.turn_seq,:privacy_epoch
+ FROM checked c WHERE NOT c.crosses_boundary AND NOT EXISTS(SELECT 1 FROM existing)
+ ON CONFLICT(user_id) DO NOTHING RETURNING user_id
+)
+SELECT CASE WHEN EXISTS(SELECT 1 FROM inserted) THEN 'created'
+            WHEN EXISTS(SELECT 1 FROM existing) THEN 'existing'
+            WHEN (SELECT crosses_boundary FROM checked) THEN 'crossed'
+            ELSE 'existing' END
+""")
+
+
+async def enroll(session: AsyncSession, user_id: uuid.UUID, *,
+                 source_after_message_id: int | None = None, privacy_epoch: int = 0) -> bool:
+    """Create a missing pipeline only; existing pipelines are never repositioned.
+
+    A compatibility prefix is an initial read origin, not an ingestion receipt.
+    Old unsequenced rows stay unchanged outside that prefix; unsequenced suffix
+    rows remain subject to the ordinary processing-complete checks.
     """
-    row = (await session.execute(_ENROLL, {"user_id": user_id})).first()
-    return row is not None
+    if (source_after_message_id is not None and
+            (type(source_after_message_id) is not int or source_after_message_id < 0)):
+        raise EnrollmentOriginError("memory_origin_boundary")
+    if type(privacy_epoch) is not int or privacy_epoch < 0:
+        raise EnrollmentOriginError("memory_origin_epoch")
+    if source_after_message_id is None and privacy_epoch == 0:
+        row = (await session.execute(_ENROLL, {"user_id": user_id})).first()
+        return row is not None
+    row = (await session.execute(_ENROLL_AT_ORIGIN, {"user_id": user_id,
+        "source_after": source_after_message_id or 0, "privacy_epoch": privacy_epoch})).first()
+    if row is not None and row[0] == "crossed":
+        raise EnrollmentOriginError("memory_origin_crossed_turn")
+    return row is not None and row[0] == "created"
 
 
 _MAX_TURN = text("""

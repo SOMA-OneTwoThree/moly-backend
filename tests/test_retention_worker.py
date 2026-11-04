@@ -45,6 +45,9 @@ def environment(monkeypatch):
     state = {"messages": [checkpoint.SourceMessage(1, "user", "normal", "hello")],
              "complete": True, "models": 0, "inserts": [], "enqueued": [], "enabled": True,
              "adopted": True}
+    async def no_compat_baseline(*args, **kwargs):
+        return None
+    monkeypatch.setattr(checkpoint_repo, "load_compat_baseline", no_compat_baseline)
     session = Session()
     monkeypatch.setattr(checkpoint_jobs, "get_sessionmaker", lambda: lambda: session)
     async def config(*args):

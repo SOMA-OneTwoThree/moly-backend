@@ -74,6 +74,29 @@ _CHECK_REVISION = text("""
 SELECT revision, privacy_epoch FROM memory_pipeline_states WHERE user_id = :user_id
 """)
 
+# Foreground publication locks chat_contexts before supplied memory rows. Take
+# that same lock before a destructive transition; waiting on it after the
+# registry UPDATE would invert publication's order. No advisory lock is added:
+# worker finalization already owns its job row, which foreground may enqueue.
+_LOCK_COMPAT_SUMMARY = text("""
+SELECT user_id FROM chat_contexts
+WHERE user_id=:user_id AND retention_compat_json IS NOT NULL
+  AND retention_compat_json->>'user_id'=user_id::text
+  AND retention_compat_json->'generation'=to_jsonb(memory_generation)
+FOR UPDATE
+""")
+
+_INVALIDATE_COMPAT_SUMMARY = text("""
+UPDATE chat_contexts SET retention_compat_summary_invalidated_revision=COALESCE(
+  retention_compat_summary_invalidated_revision,GREATEST(context_revision,0)+1)
+WHERE user_id=:user_id AND retention_compat_json IS NOT NULL
+  AND retention_compat_json->>'user_id'=user_id::text
+  AND retention_compat_json->'generation'=to_jsonb(memory_generation)
+RETURNING user_id
+""")
+
+_DESTRUCTIVE_STATUSES = frozenset({"superseded", "excluded"})
+
 _PROPAGATE_REQUIRED = text("""
 UPDATE mem0_memory_registry winner
 SET context_priority='required',
@@ -153,6 +176,12 @@ async def apply_transitions(
         raise StaleConsolidation(
             f"pipeline revision이 바뀌었다: 기대 {expected_revision} / 실제 {row[0] if row else None}"
         )
+    compat_locked = False
+    if any(t.semantic_status in _DESTRUCTIVE_STATUSES for t in transitions):
+        compat_locked = (await session.execute(
+            _LOCK_COMPAT_SUMMARY, {"user_id": user_id}
+        )).first() is not None
+    compat_invalidated = False
     changed = 0
     for t in transitions:
         got = (
@@ -172,6 +201,18 @@ async def apply_transitions(
         ).first()
         if got is not None:
             changed += 1
+            if (compat_locked and not compat_invalidated
+                    and t.semantic_status in _DESTRUCTIVE_STATUSES):
+                # Record only an actually applied semantic retirement. A
+                # terminal/no-op or a duplicate compaction must not quarantine
+                # otherwise usable historical context. The context lock is
+                # already held, so this cannot add registry -> context waiting.
+                invalidated = (await session.execute(
+                    _INVALIDATE_COMPAT_SUMMARY, {"user_id": user_id}
+                )).first()
+                if invalidated is None:
+                    raise StaleConsolidation("compatibility binding changed")
+                compat_invalidated = True
     linked = [transition.registry_id for transition in transitions
               if transition.duplicate_of is not None or transition.superseded_by is not None]
     if linked:

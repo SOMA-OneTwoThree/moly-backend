@@ -94,6 +94,7 @@ async def test_sticky_retention_reader_never_runs_legacy_compaction_or_loses_unc
     (checkpoint.LEGACY_SUMMARIZER_VERSION, True, False),
 ])
 async def test_coverage_uses_only_existing_current_generation_processing_gate(monkeypatch, version, processing, authorized):
+    monkeypatch.setattr(checkpoint_repo, "load_compat_baseline", AsyncMock(return_value=None))
     value = checkpoint.Checkpoint(uuid.UUID(int=9), 2, "summary", version,
         "a" * 64, {"items": []}, {"processing_complete": True})
     check = AsyncMock(return_value=processing)

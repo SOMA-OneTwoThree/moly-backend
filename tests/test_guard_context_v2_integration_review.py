@@ -57,6 +57,15 @@ def setup(monkeypatch):
     monkeypatch.setattr(chat.context_retention, "fits_input_budget", lambda *a, **kw: True)
     monkeypatch.setattr(chat.checkpoint_repo, "load_latest", AsyncMock(return_value=None))
     monkeypatch.setattr(chat.checkpoint_repo, "request_pressure", AsyncMock())
+    # These existing chat cases exercise an already initialized, empty suffix.
+    # Dedicated compatibility tests keep the real baseline capture/CAS path.
+    from app.services.context_compat import Baseline
+    baseline = Baseline(str(uuid.UUID(int=301)), str(UID), 0, 0, 0, 0,
+        None, 0, None, None, None, 0, None, None)
+    monkeypatch.setattr(chat.context_compat, "load", AsyncMock(return_value=baseline))
+    monkeypatch.setattr(chat.context_compat, "legacy_summary", AsyncMock(return_value=""))
+    monkeypatch.setattr(chat.context_compat, "matches_current", AsyncMock(return_value=True))
+    monkeypatch.setattr(chat.context_compat, "invalidate_legacy_summary", AsyncMock())
     monkeypatch.setattr(chat, "_recall_memory_v2", AsyncMock(return_value=""))
     monkeypatch.setattr(chat, "_record_memory_v2", AsyncMock())
     monkeypatch.setattr(chat.llm, "generate", AsyncMock(return_value=llm.LLMResult(

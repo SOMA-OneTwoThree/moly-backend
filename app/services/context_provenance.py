@@ -51,16 +51,19 @@ class VerifiedCoverage:
     # The repository grants an interval. The assembler binds only actual fetched
     # original rows; runtime permission is exact SourceRef membership, not <= N.
     source_refs: frozenset[SourceRef] = frozenset()
+    after_message_id: int = 0
 
     def __post_init__(self):
         if (not isinstance(self.user_id, uuid.UUID) or not isinstance(self.checkpoint_id, uuid.UUID)
                 or type(self.memory_generation) is not int or self.memory_generation < 0
                 or type(self.through_message_id) is not int or self.through_message_id <= 0
+                or type(self.after_message_id) is not int
+                or not 0 <= self.after_message_id < self.through_message_id
                 or not isinstance(self.source_hash, str) or len(self.source_hash) != 64
                 or any(c not in "0123456789abcdef" for c in self.source_hash)
                 or not isinstance(self.source_refs, frozenset)
                 or not isinstance(self.policy_excluded_ids, frozenset)
-                or any(type(i) is not int or i <= 0 or i > self.through_message_id
+                or any(type(i) is not int or i <= self.after_message_id or i > self.through_message_id
                        for i in self.policy_excluded_ids)):
             raise ProvenanceError("invalid_coverage_identity")
 
@@ -72,14 +75,15 @@ class VerifiedCoverage:
             raise ProvenanceError("stale_source_identity")
         if type(source.message_id) is not int or source.message_id <= 0:
             raise ProvenanceError("invalid_source_identity")
-        return source in self.source_refs and source.message_id <= self.through_message_id
+        return (source in self.source_refs
+                and self.after_message_id < source.message_id <= self.through_message_id)
 
     def bind_sources(self, sources) -> VerifiedCoverage:
         exact = []
         for source in sources:
             # Validate owner/generation even for uncheckpointed rows.
             self.covers(source)
-            if source.message_id <= self.through_message_id:
+            if self.after_message_id < source.message_id <= self.through_message_id:
                 exact.append(source)
         return replace(self, source_refs=frozenset(exact))
 

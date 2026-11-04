@@ -13,6 +13,7 @@ NOW = datetime(2026, 10, 12, 4, tzinfo=timezone.utc)
 
 @pytest.fixture
 def observe(monkeypatch):
+    monkeypatch.setattr(monitoring, "_summary_observation", AsyncMock())
     @asynccontextmanager
     async def session():
         result = SimpleNamespace(mappings=lambda: SimpleNamespace(one=lambda: {"late": 0, "expired": 0}),

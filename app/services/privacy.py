@@ -34,6 +34,8 @@ RETURNING high_watermark
 _LOAD_BARRIER = text(
     "SELECT state, epoch, operation_id FROM privacy_subject_barriers WHERE user_id=:user_id"
 )
+_LOAD_BARRIER_NONBLOCKING = text(str(_LOAD_BARRIER) + " FOR SHARE SKIP LOCKED")
+_HAS_BARRIER = text("SELECT EXISTS(SELECT 1 FROM privacy_subject_barriers WHERE user_id=:user_id)")
 
 # ─────────────────────────────────────────────────────────────
 # 삭제 장벽 상태 — status(active|deleting|deleted) + epoch.
@@ -88,6 +90,21 @@ class Authorization:
 async def load_barrier(session: AsyncSession, user_id: uuid.UUID) -> BarrierState:
     row = (await session.execute(_LOAD_BARRIER, {"user_id": user_id})).first()
     if row is None:
+        return BarrierState(status=STATUS_MISSING, epoch=0, operation_id=None)
+    return BarrierState(status=row[0], epoch=int(row[1] or 0), operation_id=row[2])
+
+
+async def load_barrier_nonblocking(session: AsyncSession, user_id: uuid.UUID) -> BarrierState | None:
+    """Share-lock an available barrier; None means busy, not compatibility missing.
+
+    Finalizers already hold job rows and must never wait on deletion/user work.
+    The existence read only distinguishes SKIP LOCKED from actual absence; all
+    authorization still belongs to authorize_job's state/epoch policy.
+    """
+    row = (await session.execute(_LOAD_BARRIER_NONBLOCKING, {"user_id": user_id})).first()
+    if row is None:
+        if await session.scalar(_HAS_BARRIER, {"user_id": user_id}):
+            return None
         return BarrierState(status=STATUS_MISSING, epoch=0, operation_id=None)
     return BarrierState(status=row[0], epoch=int(row[1] or 0), operation_id=row[2])
 

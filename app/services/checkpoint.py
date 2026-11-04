@@ -21,10 +21,11 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import uuid
-from collections.abc import Sequence
-from dataclasses import dataclass
+from collections.abc import Awaitable, Callable, Sequence
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 
 from app.config import settings
@@ -39,6 +40,8 @@ JOB_CONVERSATION_CHECKPOINT = "conversation_checkpoint"
 SCHEMA_VERSION = "conversation-checkpoint-payload-v2"
 LEGACY_SUMMARIZER_VERSION = "conversation-checkpoint-summary-v3"
 SUMMARIZER_VERSION = "conversation-checkpoint-summary-v4"
+RETENTION_SUMMARIZER_VERSION = "conversation-checkpoint-summary-v5"
+RETENTION_SOFT_SOURCE_BYTES = 4_096
 # Enable only after every consumer understands v4; missing/invalid config stays on v3.
 TEMPORAL_CONFIG_KEY = "context_checkpoint_temporal_enabled"
 
@@ -81,6 +84,9 @@ class SourceMessage:
     kind: str     # normal | greeting
     content: str
     created_at: datetime | None = None
+    start_utf8: int = 0
+    end_utf8: int | None = None
+    source_hash: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,6 +98,8 @@ class Checkpoint:
     summary: str
     version: str
     source_hash: str
+    state_json: dict | None = None
+    validation_json: dict | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -107,6 +115,8 @@ class CheckpointPlan:
     # 잡을 만든 시점의 `chat_contexts.memory_generation`. forget이 이 값을 +1 하므로, 늦게 실행된
     # 잡은 핸들러에서 세대 불일치로 끊긴다(잊어달라고 한 대화가 요약으로 되살아나지 못한다).
     memory_generation: int = 0
+    reason: str | None = None
+    privacy_epoch: int | None = None
 
     def dedup_key(self, user_id: uuid.UUID | str) -> str:
         return dedup_key(
@@ -117,7 +127,7 @@ class CheckpointPlan:
         )
 
     def payload(self) -> dict:
-        return {
+        payload = {
             "schema_version": SCHEMA_VERSION,
             "through_message_id": self.through_message_id,
             "source_message_ids": list(self.source_message_ids),
@@ -127,6 +137,11 @@ class CheckpointPlan:
             "previous_through_message_id": self.previous_through_message_id,
             "memory_generation": self.memory_generation,
         }
+        if self.reason is not None:
+            payload["reason"] = self.reason
+        if self.privacy_epoch is not None:
+            payload["privacy_epoch"] = self.privacy_epoch
+        return payload
 
 
 # ─────────────────────────────────────────────────────────────
@@ -174,8 +189,11 @@ def source_hash(
     )
     for m in ordered:
         h.update(_length_prefixed(str(m.id), m.sender, m.kind, m.content or ""))
-        if version == SUMMARIZER_VERSION:
+        if version in {SUMMARIZER_VERSION, RETENTION_SUMMARIZER_VERSION}:
             h.update(_length_prefixed(_source_time(m)))
+    if version == RETENTION_SUMMARIZER_VERSION and previous is not None:
+        h.update(_length_prefixed(json.dumps(previous.state_json, sort_keys=True,
+                                             ensure_ascii=False, separators=(",", ":"))))
     return h.hexdigest()
 
 
@@ -201,20 +219,36 @@ def dedup_key(
 # ─────────────────────────────────────────────────────────────
 # 트리거·범위 — 현행 앵커 리셋과 **같은 설정값**을 쓴다(모듈 docstring 4).
 # ─────────────────────────────────────────────────────────────
-def should_checkpoint(messages: Sequence[SourceMessage]) -> bool:
+def should_checkpoint(
+    messages: Sequence[SourceMessage], *, retention_enabled: bool | None = None,
+) -> bool:
     """세그먼트가 리셋 트리거(`context_reset_messages` 또는 `context_reset_chars`)에 닿았나."""
+    enabled = (settings.context_retention_v2_enabled if retention_enabled is None
+               else retention_enabled)
+    if enabled:
+        from app.services.context_retention import source_tokens
+        return source_tokens(messages) >= RETENTION_SOFT_SOURCE_BYTES
     if len(messages) >= settings.context_reset_messages:
         return True
     return sum(len(m.content or "") for m in messages) >= settings.context_reset_chars
 
 
-def keep_tail(messages: Sequence[SourceMessage]) -> tuple[SourceMessage, ...]:
+def keep_tail(
+    messages: Sequence[SourceMessage], *, retention_enabled: bool = False,
+) -> tuple[SourceMessage, ...]:
     """뒤에서부터 `context_keep_messages`·`context_keep_chars`를 **둘 다** 만족하는 최신 tail.
 
     `chat._keep_window`와 같은 규칙이다(상한에 닿으면 더 담지 않는다). 그 함수를 import하지 않는 건
     순환 import를 만들지 않기 위해서다 — 값은 같은 설정에서 읽으므로 갈라지지 않는다.
     """
     kept: list[SourceMessage] = []
+    if retention_enabled:
+        from app.services.context_retention import source_tokens
+        for message in reversed(normalize_messages(messages)):
+            kept.append(message)
+            if source_tokens(kept) >= 2_048 and message.sender == "user":
+                break
+        return tuple(reversed(kept))
     chars = 0
     for m in reversed(normalize_messages(messages)):
         if len(kept) >= settings.context_keep_messages or chars >= settings.context_keep_chars:
@@ -233,6 +267,8 @@ def plan(
     memory_generation: int = 0,
     reset_triggered: bool = False,
     version: str = SUMMARIZER_VERSION,
+    through_message_id: int | None = None,
+    reason: str | None = None,
 ) -> CheckpointPlan | None:
     """이번 세그먼트로 만들 checkpoint 계획. 만들 게 없으면 None.
 
@@ -258,18 +294,33 @@ def plan(
     로직만 보는 호출(단위 테스트)용이다.
     """
     ordered = normalize_messages(messages)
-    if not reset_triggered and not should_checkpoint(ordered):
+    retention_enabled = version == RETENTION_SUMMARIZER_VERSION
+    pressure = reason == "input_pressure"
+    if reason not in {None, "input_pressure"} or (pressure and not retention_enabled):
+        raise CheckpointError("checkpoint_reason")
+    if pressure and (type(through_message_id) is not int or through_message_id <= 0
+                     or through_message_id not in {m.id for m in ordered}):
+        raise CheckpointError("pressure_source_boundary")
+    if through_message_id is not None and not pressure:
+        raise CheckpointError("unexpected_source_boundary")
+    if not pressure and not reset_triggered and not should_checkpoint(ordered, retention_enabled=retention_enabled):
         return None
-    if keep_from_message_id is not None:
+    if pressure:
+        head = tuple(m for m in ordered if m.id <= through_message_id)
+    elif keep_from_message_id is not None:
         head = tuple(m for m in ordered if m.id < keep_from_message_id)
     else:
-        tail = keep_tail(ordered)
+        tail = keep_tail(ordered, retention_enabled=retention_enabled)
         head = ordered[: len(ordered) - len(tail)]
     if previous is not None:  # 이전 checkpoint가 이미 덮은 구간은 다시 요약하지 않는다
         head = tuple(m for m in head if m.id > previous.through_message_id)
     if not head:
         # tail 하나가 세그먼트 전체이거나(초장문 1건) 이전 checkpoint가 이미 여기까지 덮었다.
         return None
+    if retention_enabled and not pressure:
+        from app.services.context_retention import source_tokens
+        if source_tokens(head) < 1_024:
+            return None
     return CheckpointPlan(
         through_message_id=head[-1].id,
         source_message_ids=tuple(m.id for m in head),
@@ -279,6 +330,7 @@ def plan(
             previous.through_message_id if previous is not None else None
         ),
         memory_generation=memory_generation,
+        reason=reason,
         version=version,
     )
 
@@ -359,7 +411,9 @@ def mask_summary(text: str, nickname: str | None) -> str:
         raise NameLeakError("요약에 마스킹되지 않은 실명이 남았다")
     if not masked:
         raise CheckpointError("마스킹·살균 후 요약이 비었다")
-    return masked[:SUMMARY_MAX_CHARS]
+    if len(masked) > SUMMARY_MAX_CHARS:
+        raise CheckpointError("요약 길이 초과 — 원문을 절단해 저장하지 않는다")
+    return masked
 
 
 async def summarize(
@@ -391,6 +445,7 @@ async def summarize(
         timeout=timeout if timeout is not None else settings.llm_timeout_s,
         ledger=usage_ledger.with_purpose(ledger, "context_summary"),
     )
+    llm.require_completed_text(result.text, result.finish_reason)
     call = llm.LlmCall(
         provider=llm.provider_for(result.model or used_model),
         model=result.model or used_model,
@@ -406,3 +461,530 @@ async def summarize(
         len(ordered), bool(previous_summary), call.input_tokens, call.output_tokens, call.billable,
     )
     return mask_summary(result.text, nickname), call
+
+
+BACKGROUND_INPUT_LIMIT = 16_384
+BACKGROUND_SEGMENT_BYTES = 2_048
+PACKING_VERSION = "packed-v1"
+
+
+class ProgressContinuation(CheckpointError):
+    """중간 결과는 게시하지 않고 같은 원문·부모의 다음 작업으로 넘긴다."""
+
+    def __init__(self, *, state: dict, next_chunk: int, manifest: str, billable: int,
+                 page_proof: dict | None = None, before_state: dict | None = None,
+                 page_start: int | None = None):
+        super().__init__("progress_continuation")
+        self.state, self.next_chunk, self.manifest, self.billable = state, next_chunk, manifest, billable
+        self.page_proof, self.before_state, self.page_start = page_proof, before_state, page_start
+
+
+class ExpandedProgressLength(CheckpointError):
+    """No delta was applied; the fenced worker may persist a cap-one fallback."""
+    def __init__(self, *, start_chunk, next_chunk, before_state, manifest, packing_chunk_cap, billable):
+        super().__init__("packed_output_length")
+        self.start_chunk, self.next_chunk = start_chunk, next_chunk
+        self.consumed_atoms = next_chunk - start_chunk
+        self.before_state, self.manifest = before_state, manifest
+        self.packing_version, self.packing_chunk_cap = PACKING_VERSION, packing_chunk_cap
+        self.billable = billable
+
+
+@dataclass(frozen=True, slots=True)
+class PackedProgressResult:
+    summary: str
+    state: dict
+    call: llm.LlmCall
+    page_proof: dict
+    before_state: dict
+    page_start: int
+
+    def __iter__(self):
+        return iter((self.summary, self.state, self.call))
+
+
+@dataclass(frozen=True, slots=True)
+class PackedBatch:
+    messages: tuple[SourceMessage, ...]
+    start_chunk: int
+    next_chunk: int
+
+
+def source_segments(message: SourceMessage, *, max_bytes: int = BACKGROUND_SEGMENT_BYTES) -> tuple[SourceMessage, ...]:
+    """본문을 UTF-8 경계에서 연속 분할하고 전체 원문 지문·원본 오프셋을 보존한다."""
+    if type(max_bytes) is not int or max_bytes < 4:
+        raise CheckpointError("source_segment_budget")
+    body = (message.content or "").encode("utf-8")
+    origin = message.start_utf8
+    if type(origin) is not int or origin < 0 or (origin and message.source_hash is None):
+        raise CheckpointError("source_segment_origin")
+    if message.end_utf8 is not None and message.end_utf8 != origin + len(body):
+        raise CheckpointError("source_segment_extent")
+    digest = message.source_hash or hashlib.sha256(body).hexdigest()
+    if not isinstance(digest, str) or len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+        raise CheckpointError("source_segment_hash")
+    if not body:
+        return (replace(message, start_utf8=origin, end_utf8=origin, source_hash=digest),)
+    result = []
+    cursor = 0
+    while cursor < len(body):
+        end = min(cursor + max_bytes, len(body))
+        try:
+            piece = body[cursor:end].decode("utf-8")
+        except UnicodeDecodeError as exc:
+            end = cursor + exc.start
+            piece = body[cursor:end].decode("utf-8")
+        if end <= cursor:
+            raise CheckpointError("source_segment_utf8")
+        result.append(replace(message, content=piece, start_utf8=origin + cursor,
+                              end_utf8=origin + end, source_hash=digest))
+        cursor = end
+    return tuple(result)
+
+
+def progress_batches(
+    messages: Sequence[SourceMessage], *, previous: Checkpoint | None,
+    language: str | None, input_limit: int = BACKGROUND_INPUT_LIMIT,
+) -> tuple[tuple[SourceMessage, ...], ...]:
+    """원문을 자른 뒤 성공으로 간주하지 않는다. 모든 구간을 고정된 호출 계획에 포함한다."""
+    from app.services import context_retention as retention
+
+    system = retention.build_delta_system(language)
+    state = previous.state_json if previous else None
+    parent = previous.id if previous else None
+    batches: list[tuple[SourceMessage, ...]] = []
+    pending: list[SourceMessage] = []
+    for message in normalize_messages(messages):
+        for segment in source_segments(message):
+            candidate = [*pending, segment]
+            body = retention.build_delta_input(previous_state=state, previous_id=parent, messages=candidate)
+            try:
+                retention.assert_input_budget(system, [{"role": "user", "content": body}],
+                    input_limit=input_limit, output_reserve=SUMMARY_MAX_OUTPUT_TOKENS)
+                fits = True
+            except retention.RetentionError:
+                fits = False
+            if pending and (not fits or any(m.id == segment.id for m in pending)
+                            or sum(len(m.content.encode()) for m in candidate)>BACKGROUND_SEGMENT_BYTES):
+                batches.append(tuple(pending))
+                pending = []
+                body = retention.build_delta_input(previous_state=state, previous_id=parent, messages=[segment])
+                try:
+                    retention.assert_input_budget(system, [{"role": "user", "content": body}],
+                        input_limit=input_limit, output_reserve=SUMMARY_MAX_OUTPUT_TOKENS)
+                    fits = True
+                except retention.RetentionError:
+                    fits = False
+            if not fits:
+                raise CheckpointError("progress_background_budget")
+            pending.append(segment)
+    if pending:
+        batches.append(tuple(pending))
+    return tuple(batches)
+
+
+def _progress_manifest(batches, *, previous: Checkpoint | None, language: str | None) -> str:
+    state_hash = hashlib.sha256(json.dumps(previous.state_json if previous else None,
+        sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+    plan = {"parent": str(previous.id) if previous else None, "state_hash": state_hash,
+            "language": language, "model": settings.model_utility,
+            "batches": [[{"id": m.id, "sender": m.sender, "kind": m.kind,
+                "start_utf8": m.start_utf8, "end_utf8": m.end_utf8,
+                "source_hash": m.source_hash, "chunk_hash": hashlib.sha256(m.content.encode()).hexdigest(),
+                "created_at": _source_time(m)} for m in batch] for batch in batches]}
+    return hashlib.sha256(json.dumps(plan, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _digest(value) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
+                                     separators=(",", ":")).encode()).hexdigest()
+
+
+def _packing_options(version, cap) -> None:
+    if version not in (None, PACKING_VERSION):
+        raise CheckpointError("progress_packing_version")
+    if cap is not None and (version is None or type(cap) is not int or cap < 1):
+        raise CheckpointError("progress_packing_cap")
+
+
+def _packed_delta_system(language) -> str:
+    from app.services import context_retention as retention
+    return retention.build_delta_system(language) + (
+        " 현재 대화에서 진행 중인 지칭 대상의 이름이나 별칭이 명시적으로 바뀌면 reference 변경으로 처리한다. "
+        "같은 대상을 새 이름으로 지칭하는 연결을 유지한다. 비슷한 이름이라는 이유만으로 같은 대상으로 추정하지 않는다. "
+        "이전 이름은 과거 이력이나 근거로 남길 수 있지만 현재 이름으로 유지하지 않는다. "
+        "영구 사용자 프로필이나 응답 선호를 대신 기록하지 않는다."
+    )
+
+
+def _packed_manifest(atoms, *, previous, language) -> str:
+    return _digest({"packing_version": PACKING_VERSION,
+        "atomic_manifest": _progress_manifest(atoms, previous=previous, language=language),
+        "system_hash": hashlib.sha256(_packed_delta_system(language).encode()).hexdigest(),
+        "input_limit": BACKGROUND_INPUT_LIMIT, "output_reserve": SUMMARY_MAX_OUTPUT_TOKENS,
+        "atomic_bytes": BACKGROUND_SEGMENT_BYTES})
+
+
+def _coalesce_atoms(atoms) -> tuple[SourceMessage, ...]:
+    """Merge only adjacent original spans with identical source metadata."""
+    merged = []
+    for atom in atoms:
+        if (not atom or len({m.id for m in atom}) != len(atom)
+                or sum(len(m.content.encode("utf-8")) for m in atom) > BACKGROUND_SEGMENT_BYTES):
+            raise CheckpointError("packed_atomic_plan")
+        for message in atom:
+            if type(message.id) is not int or message.id <= 0 or message.source_hash is None or message.end_utf8 is None:
+                raise CheckpointError("packed_source_extent")
+            # source_segments checks the full hash, absolute extent and UTF-8.
+            checked = source_segments(message)
+            if not checked:
+                raise CheckpointError("packed_source_extent")
+            if merged and message.id < merged[-1].id:
+                raise CheckpointError("packed_source_order")
+            if merged and message.id == merged[-1].id:
+                last = merged[-1]
+                if ((last.sender, last.kind, str(last.created_at), last.source_hash)
+                        != (message.sender, message.kind, str(message.created_at), message.source_hash)
+                        or last.end_utf8 != message.start_utf8):
+                    raise CheckpointError("packed_source_contiguity")
+                merged[-1] = replace(last, content=last.content + message.content,
+                                     end_utf8=message.end_utf8)
+            else:
+                merged.append(message)
+    return tuple(merged)
+
+
+def packed_progress_batch(atoms, *, previous: Checkpoint | None, language: str | None,
+                          state: dict, start_chunk: int, packing_chunk_cap: int | None = None) -> PackedBatch:
+    """Largest consecutive atomic range fitting the actual working-state wire."""
+    from app.services import context_retention as retention
+    _packing_options(PACKING_VERSION, packing_chunk_cap)
+    if type(start_chunk) is not int or not 0 <= start_chunk < len(atoms):
+        raise CheckpointError("progress_packing_bounds")
+    valid = retention.validate_state(state)
+    stop = min(len(atoms), start_chunk + packing_chunk_cap) if packing_chunk_cap is not None else len(atoms)
+    chosen = None
+    for end in range(start_chunk + 1, stop + 1):
+        messages = _coalesce_atoms(atoms[start_chunk:end])
+        system = _packed_delta_system(language)
+        convo = [{"role": "user", "content": retention.build_delta_input(
+            previous_state=valid, previous_id=previous.id if previous else None,
+            messages=messages, compact_previous=start_chunk == 0)}]
+        try:
+            retention.assert_input_budget(system, convo, input_limit=BACKGROUND_INPUT_LIMIT,
+                                          output_reserve=SUMMARY_MAX_OUTPUT_TOKENS)
+        except retention.RetentionError as exc:
+            if chosen is None:
+                raise CheckpointError("progress_background_budget") from exc
+            break
+        chosen = PackedBatch(messages, start_chunk, end)
+    return chosen
+
+
+def _packed_sources_hash(messages) -> str:
+    return _digest([{"id": m.id, "sender": m.sender, "kind": m.kind,
+        "created_at": str(m.created_at), "start_utf8": m.start_utf8, "end_utf8": m.end_utf8,
+        "source_hash": m.source_hash, "content_hash": hashlib.sha256(m.content.encode()).hexdigest()}
+        for m in messages])
+
+
+def _packed_page_proof(*, batch, before, after, manifest, total, cap):
+    proof = {"packing_version": PACKING_VERSION, "manifest": manifest,
+        "start_chunk": batch.start_chunk, "next_chunk": batch.next_chunk, "total_chunks": total,
+        "packing_chunk_cap": cap, "before_state": before, "before_state_hash": _digest(before),
+        "after_state_hash": _digest(after), "source_span_hash": _packed_sources_hash(batch.messages)}
+    return {**proof, "proof_hash": _digest(proof)}
+
+
+_PACKED_PAGE_KEYS = frozenset(("packing_version", "manifest", "start_chunk", "next_chunk", "total_chunks",
+    "packing_chunk_cap", "before_state", "before_state_hash", "after_state_hash", "source_span_hash", "proof_hash"))
+
+
+def _check_packed_page_shape(proof, *, manifest, total):
+    from app.services import context_retention as retention
+    if (not isinstance(proof, dict) or set(proof) != _PACKED_PAGE_KEYS
+            or proof.get("packing_version") != PACKING_VERSION or proof.get("manifest") != manifest
+            or type(proof.get("total_chunks")) is not int or proof["total_chunks"] != total
+            or any(type(proof.get(k)) is not int for k in ("start_chunk", "next_chunk"))
+            or not 0 <= proof["start_chunk"] < proof["next_chunk"] <= total
+            or proof.get("proof_hash") != _digest({k: v for k, v in proof.items() if k != "proof_hash"})):
+        raise CheckpointError("progress_page_proof")
+    _packing_options(PACKING_VERSION, proof.get("packing_chunk_cap"))
+    try:
+        before = retention.validate_state(proof["before_state"])
+    except retention.RetentionError as exc:
+        raise CheckpointError("progress_page_state") from exc
+    if proof["before_state"] is None or _digest(before) != proof["before_state_hash"]:
+        raise CheckpointError("progress_page_proof")
+
+
+def _validate_packed_page(*, atoms, previous, language, state, previous_state,
+                          start_chunk, next_chunk, manifest, page_proof, cap, completed=False):
+    from app.services import context_retention as retention
+    expected_manifest = _packed_manifest(atoms, previous=previous, language=language)
+    _check_packed_page_shape(page_proof, manifest=expected_manifest, total=len(atoms))
+    if (type(start_chunk) is not int or type(next_chunk) is not int
+            or manifest != expected_manifest or page_proof["start_chunk"] != start_chunk
+            or page_proof["next_chunk"] != next_chunk
+            or (next_chunk == len(atoms)) != completed):
+        raise CheckpointError("progress_page_proof")
+    before = retention.validate_state(previous_state)
+    after = retention.validate_state(state)
+    parent_sequence = retention.validate_state(previous.state_json if previous else None)["sequence"]
+    if before["sequence"] != parent_sequence or after["sequence"] != parent_sequence + completed:
+        raise CheckpointError("progress_page_sequence")
+    if start_chunk == 0 and before != retention.validate_state(previous.state_json if previous else None):
+        raise CheckpointError("progress_page_origin")
+    batch = packed_progress_batch(atoms, previous=previous, language=language, state=before,
+                                  start_chunk=start_chunk, packing_chunk_cap=cap)
+    expected = _packed_page_proof(batch=batch, before=before, after=after,
+                                  manifest=expected_manifest, total=len(atoms), cap=cap)
+    if batch.next_chunk != next_chunk or page_proof != expected:
+        raise CheckpointError("progress_page_proof")
+
+
+def completed_progress_proof(*, messages: Sequence[SourceMessage], previous: Checkpoint | None,
+                             language: str | None, state: dict, packing_version: str | None = None,
+                             packing_chunk_cap: int | None = None, page_proof: dict | None = None,
+                             previous_state: dict | None = None, start_chunk: int = 0) -> dict:
+    """Bind an unpublished, completed draft to its entire deterministic chunk plan."""
+    from app.services import context_retention as retention
+
+    _packing_options(packing_version, packing_chunk_cap)
+    valid = retention.validate_state(state)
+    batches = progress_batches(messages, previous=previous, language=language)
+    if packing_version == PACKING_VERSION:
+        manifest = _packed_manifest(batches, previous=previous, language=language)
+        if batches:
+            _validate_packed_page(atoms=batches, previous=previous, language=language, state=valid,
+                previous_state=previous_state, start_chunk=start_chunk, next_chunk=len(batches),
+                manifest=manifest, page_proof=page_proof, cap=packing_chunk_cap, completed=True)
+        elif (page_proof is not None or type(start_chunk) is not int or start_chunk != 0
+                or valid != retention.validate_state(previous.state_json if previous else None)
+                or (previous_state is not None and retention.validate_state(previous_state) != valid)):
+            raise CheckpointError("progress_completed_empty")
+        retention.render_state(valid)
+        return {"packing_version": PACKING_VERSION, "packing_chunk_cap": packing_chunk_cap,
+                "manifest": manifest, "total_chunks": len(batches), "completed_chunks": len(batches),
+                "state_hash": _digest(valid), "page_proof": page_proof}
+    if page_proof is not None:
+        raise CheckpointError("progress_packing_version")
+    parent_sequence = retention.validate_state(previous.state_json if previous else None)["sequence"]
+    if valid["sequence"] != parent_sequence + bool(batches):
+        raise CheckpointError("progress_completed_sequence")
+    # Render now as well as at publication: malformed/oversized drafts never become ready.
+    retention.render_state(valid)
+    return {"manifest": _progress_manifest(batches, previous=previous, language=language),
+            "total_chunks": len(batches), "completed_chunks": len(batches),
+            "state_hash": hashlib.sha256(json.dumps(valid, sort_keys=True, ensure_ascii=False,
+                                                    separators=(",", ":")).encode()).hexdigest()}
+
+
+def validate_progress_page(*, messages: Sequence[SourceMessage], previous: Checkpoint | None,
+                           language: str | None, state: dict, next_chunk: int,
+                           manifest: str, start_chunk: int, packing_version: str | None = None,
+                           packing_chunk_cap: int | None = None, previous_state: dict | None = None,
+                           page_proof: dict | None = None) -> None:
+    """A durable intermediate page must match the frozen plan and exactly one completed call."""
+    from app.services import context_retention as retention
+    _packing_options(packing_version, packing_chunk_cap)
+    batches = progress_batches(messages, previous=previous, language=language)
+    if packing_version == PACKING_VERSION:
+        _validate_packed_page(atoms=batches, previous=previous, language=language, state=state,
+            previous_state=previous_state, start_chunk=start_chunk, next_chunk=next_chunk,
+            manifest=manifest, page_proof=page_proof, cap=packing_chunk_cap)
+        return
+    if page_proof is not None:
+        raise CheckpointError("progress_packing_version")
+    parent_sequence = retention.validate_state(previous.state_json if previous else None)["sequence"]
+    if (type(next_chunk) is not int or next_chunk != start_chunk + 1
+            or not 0 < next_chunk < len(batches)
+            or manifest != _progress_manifest(batches, previous=previous, language=language)
+            or retention.validate_state(state)["sequence"] != parent_sequence):
+        raise CheckpointError("progress_page_proof")
+
+
+def validate_completed_progress(*, messages: Sequence[SourceMessage], previous: Checkpoint | None,
+                                language: str | None, state: dict, proof: dict,
+                                packing_version: str | None = None, packing_chunk_cap: int | None = None,
+                                page_proof: dict | None = None, previous_state: dict | None = None,
+                                start_chunk: int = 0) -> str:
+    """Publication uses no model and accepts neither a partial draft nor a changed proof."""
+    expected = completed_progress_proof(messages=messages, previous=previous, language=language,
+        state=state, packing_version=packing_version, packing_chunk_cap=packing_chunk_cap,
+        page_proof=page_proof, previous_state=previous_state, start_chunk=start_chunk)
+    if (not isinstance(proof, dict) or set(proof) != set(expected)
+            or type(proof.get("total_chunks")) is not int
+            or type(proof.get("completed_chunks")) is not int or proof != expected):
+        raise CheckpointError("progress_completed_proof")
+    from app.services import context_retention as retention
+    return retention.render_state(retention.validate_state(state))
+
+
+async def summarize_progress(
+    *, messages: Sequence[SourceMessage], previous: Checkpoint | None,
+    language: str | None, nickname: str | None,
+    ledger: usage_ledger.LedgerContext | None = None,
+    timeout: float | None = None,
+    continuation_state: dict | None = None,
+    start_chunk: int = 0,
+    continuation_manifest: str | None = None,
+    max_batches: int = 1,
+    packing_version: str | None = None,
+    packing_chunk_cap: int | None = None,
+    continuation_proof: dict | None = None,
+    before_call: Callable[[], Awaitable[None]] | None = None,
+) -> tuple[str, dict, llm.LlmCall] | PackedProgressResult:
+    """v5: 이전 상태를 통째로 재작성하지 않고 검증된 변경만 합친다."""
+    from app.services import context_retention as retention
+
+    _packing_options(packing_version, packing_chunk_cap)
+    if packing_version == PACKING_VERSION:
+        return await _summarize_packed(messages=messages, previous=previous, language=language,
+            nickname=nickname, ledger=ledger, timeout=timeout, continuation_state=continuation_state,
+            start_chunk=start_chunk, continuation_manifest=continuation_manifest, max_batches=max_batches,
+            packing_chunk_cap=packing_chunk_cap, continuation_proof=continuation_proof, before_call=before_call)
+    if continuation_proof is not None:
+        raise CheckpointError("progress_packing_version")
+    ordered = normalize_messages(messages)
+    if not ordered:
+        raise CheckpointError("요약할 허용 메시지가 없다")
+    if previous is not None and previous.version != RETENTION_SUMMARIZER_VERSION:
+        raise CheckpointError("구형 줄글을 구조화 상태의 원본으로 승격할 수 없다")
+    if type(start_chunk) is not int or start_chunk < 0 or type(max_batches) is not int or max_batches < 1:
+        raise CheckpointError("progress_continuation_bounds")
+    previous_state = previous.state_json if previous else None
+    previous_id = previous.id if previous else None
+    batches = progress_batches(ordered, previous=previous, language=language)
+    manifest = _progress_manifest(batches, previous=previous, language=language)
+    if start_chunk >= len(batches) or (start_chunk and (continuation_state is None or continuation_manifest != manifest)):
+        raise CheckpointError("progress_continuation_manifest")
+    if not start_chunk and (continuation_state is not None or continuation_manifest is not None):
+        raise CheckpointError("progress_continuation_origin")
+    state = retention.validate_state(continuation_state if start_chunk else previous_state)
+    initial_sequence = retention.validate_state(previous_state)["sequence"]
+    if state["sequence"] != initial_sequence:
+        raise CheckpointError("progress_continuation_sequence")
+    totals = dict(input_tokens=0, output_tokens=0, cache_read_tokens=0, cache_write_tokens=0, billable=0)
+    model = settings.model_utility
+    stop = min(len(batches), start_chunk + max_batches)
+    for index in range(start_chunk, stop):
+        batch = batches[index]
+        system = retention.build_delta_system(language)
+        convo = [{"role": "user", "content": retention.build_delta_input(
+            previous_state=state, previous_id=previous_id, messages=batch,
+            compact_previous=index == 0,
+        )}]
+        try:
+            # 실제 draft 상태를 포함한 전체 입력을 매 호출 직전에 다시 검사한다.
+            retention.assert_input_budget(system, convo, input_limit=BACKGROUND_INPUT_LIMIT,
+                                          output_reserve=SUMMARY_MAX_OUTPUT_TOKENS)
+        except retention.RetentionError as exc:
+            raise CheckpointError("progress_background_budget") from exc
+        if before_call is not None:
+            await before_call()
+        result = await llm.generate(system, convo, model=settings.model_utility,
+            reasoning_effort="none", max_tokens=SUMMARY_MAX_OUTPUT_TOKENS,
+            timeout=timeout if timeout is not None else settings.llm_timeout_s,
+            ledger=usage_ledger.with_purpose(ledger, "context_summary"))
+        llm.require_completed_text(result.text, result.finish_reason)
+        try:
+            state = retention.apply_delta(result.text, previous_state=state, previous_id=previous_id,
+                messages=batch, nickname=nickname, compact_previous=index == 0,
+                advance_checkpoint=index == len(batches)-1)
+        except retention.RetentionError as exc:
+            raise CheckpointError(str(exc)) from exc
+        model = result.model or settings.model_utility
+        for key in ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens"):
+            totals[key] += getattr(result, key)
+        totals["billable"] += llm.billable_tokens(result)
+    if stop < len(batches):
+        raise ProgressContinuation(state=state, next_chunk=stop, manifest=manifest, billable=totals["billable"])
+    call = llm.LlmCall(provider=llm.provider_for(model), model=model, purpose=PURPOSE_CHECKPOINT, **totals)
+    return retention.render_state(state), state, call
+
+
+async def _summarize_packed(*, messages, previous, language, nickname, ledger, timeout,
+                            continuation_state, start_chunk, continuation_manifest, max_batches,
+                            packing_chunk_cap, continuation_proof, before_call):
+    from app.services import context_retention as retention
+
+    ordered = normalize_messages(messages)
+    if not ordered:
+        raise CheckpointError("요약할 허용 메시지가 없다")
+    if previous is not None and previous.version != RETENTION_SUMMARIZER_VERSION:
+        raise CheckpointError("구형 줄글을 구조화 상태의 원본으로 승격할 수 없다")
+    if type(start_chunk) is not int or start_chunk < 0 or type(max_batches) is not int or max_batches < 1:
+        raise CheckpointError("progress_continuation_bounds")
+    parent_state = previous.state_json if previous else None
+    atoms = progress_batches(ordered, previous=previous, language=language)
+    manifest = _packed_manifest(atoms, previous=previous, language=language)
+    if start_chunk >= len(atoms):
+        raise CheckpointError("progress_continuation_manifest")
+    state = retention.validate_state(continuation_state if start_chunk else parent_state)
+    if state["sequence"] != retention.validate_state(parent_state)["sequence"]:
+        raise CheckpointError("progress_continuation_sequence")
+    if start_chunk:
+        if continuation_state is None or continuation_manifest != manifest:
+            raise CheckpointError("progress_continuation_manifest")
+        _check_packed_page_shape(continuation_proof, manifest=manifest, total=len(atoms))
+        _validate_packed_page(atoms=atoms, previous=previous, language=language, state=state,
+            previous_state=continuation_proof["before_state"], start_chunk=continuation_proof["start_chunk"],
+            next_chunk=start_chunk, manifest=manifest, page_proof=continuation_proof,
+            cap=continuation_proof["packing_chunk_cap"])
+        if (continuation_proof["next_chunk"] != start_chunk
+                or continuation_proof["after_state_hash"] != _digest(state)
+                or continuation_proof["source_span_hash"] != _packed_sources_hash(_coalesce_atoms(
+                    atoms[continuation_proof["start_chunk"]:start_chunk]))):
+            raise CheckpointError("progress_continuation_proof")
+        previous_cap = continuation_proof["packing_chunk_cap"]
+        if previous_cap is not None and (packing_chunk_cap is None or packing_chunk_cap > previous_cap):
+            raise CheckpointError("progress_packing_cap_increased")
+    elif continuation_state is not None or continuation_manifest is not None or continuation_proof is not None:
+        raise CheckpointError("progress_continuation_origin")
+
+    totals = dict(input_tokens=0, output_tokens=0, cache_read_tokens=0, cache_write_tokens=0, billable=0)
+    model, index, calls = settings.model_utility, start_chunk, 0
+    while index < len(atoms) and calls < max_batches:
+        before = retention.validate_state(state)
+        batch = packed_progress_batch(atoms, previous=previous, language=language, state=before,
+            start_chunk=index, packing_chunk_cap=packing_chunk_cap)
+        system = _packed_delta_system(language)
+        convo = [{"role": "user", "content": retention.build_delta_input(
+            previous_state=before, previous_id=previous.id if previous else None,
+            messages=batch.messages, compact_previous=index == 0)}]
+        try:
+            retention.assert_input_budget(system, convo, input_limit=BACKGROUND_INPUT_LIMIT,
+                                          output_reserve=SUMMARY_MAX_OUTPUT_TOKENS)
+        except retention.RetentionError as exc:
+            raise CheckpointError("progress_background_budget") from exc
+        if before_call is not None:
+            await before_call()
+        result = await llm.generate(system, convo, model=settings.model_utility,
+            reasoning_effort="none", max_tokens=SUMMARY_MAX_OUTPUT_TOKENS,
+            timeout=timeout if timeout is not None else settings.llm_timeout_s,
+            ledger=usage_ledger.with_purpose(ledger, "context_summary"))
+        if result.finish_reason == "length" and batch.next_chunk - index > 1:
+            raise ExpandedProgressLength(start_chunk=index, next_chunk=batch.next_chunk,
+                before_state=before, manifest=manifest, packing_chunk_cap=packing_chunk_cap,
+                billable=totals["billable"] + llm.billable_tokens(result))
+        llm.require_completed_text(result.text, result.finish_reason)
+        try:
+            state = retention.apply_delta(result.text, previous_state=before,
+                previous_id=previous.id if previous else None, messages=batch.messages,
+                nickname=nickname, compact_previous=index == 0,
+                advance_checkpoint=batch.next_chunk == len(atoms))
+        except retention.RetentionError as exc:
+            raise CheckpointError(str(exc)) from exc
+        page_proof = _packed_page_proof(batch=batch, before=before, after=state,
+            manifest=manifest, total=len(atoms), cap=packing_chunk_cap)
+        model = result.model or settings.model_utility
+        for key in ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens"):
+            totals[key] += getattr(result, key)
+        totals["billable"] += llm.billable_tokens(result)
+        index, calls = batch.next_chunk, calls + 1
+    if index < len(atoms):
+        raise ProgressContinuation(state=state, next_chunk=index, manifest=manifest,
+            billable=totals["billable"], page_proof=page_proof, before_state=before, page_start=batch.start_chunk)
+    call = llm.LlmCall(provider=llm.provider_for(model), model=model, purpose=PURPOSE_CHECKPOINT, **totals)
+    return PackedProgressResult(retention.render_state(state), state, call, page_proof, before, batch.start_chunk)

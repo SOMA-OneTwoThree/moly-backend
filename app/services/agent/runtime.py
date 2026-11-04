@@ -36,11 +36,12 @@ import logging
 import time
 import uuid
 import weakref
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import date
 from math import ceil
 from typing import Any, Protocol
+from app.services.context_provenance import VerifiedCoverage, ProvenanceError, without_covered
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -226,14 +227,15 @@ def _transcript(convo: Sequence[Mapping[str, str]]) -> list[TranscriptItem]:
     for m in convo:
         text = m.get("content") or ""
         role = m.get("role")
+        source = getattr(m, "source_ref", None)
         if role == "user":
-            items.append(UserText(text))
+            items.append(UserText(text, source_ref=source))
         elif role == "system":
             # ⚠️ 예전엔 여기서 AssistantText로 떨어뜨렸다. 그러면 서버 정본(요약·기억·장비)이
             # **캐피가 과거에 한 말**이 되어, 대화 속 옛 정보와 같은 무게로 경쟁한다.
-            items.append(SystemText(text))
+            items.append(SystemText(text, source_ref=source))
         else:
-            items.append(AssistantText(text))
+            items.append(AssistantText(text, source_ref=source))
     return items
 
 
@@ -625,6 +627,29 @@ def _require_completed_step(
 
 
 # --- 턴 실행 ---
+def _runtime_system(system: str | list[str]) -> list[str]:
+    return [system, _TOOL_DATA_RULE, _TOOL_WHEN_RULE] if isinstance(system, str) else [
+        *system, _TOOL_DATA_RULE, _TOOL_WHEN_RULE,
+    ]
+
+
+def foreground_budget_inputs(system, convo, *, user_text: str, registry=None):
+    """Preview the same first-hop wire, including runtime rules/response schema.
+
+    No tools execute here. Chat uses this before inference so pressure can be
+    reserved before the runtime's own final boundary check rejects the input.
+    """
+    registry = registry if registry is not None else _resolve_registry()
+    schemas = list(registry.wire_schemas()) if registry is not None else []
+    response_provider = getattr(registry, "final_response_schema", None)
+    response_schema = response_provider() if callable(response_provider) else None
+    if not schemas or _crisis(user_text):
+        schemas = []
+    elif response_schema is not None:
+        schemas.append(response_schema)
+    return [], llm.to_openai_messages(_runtime_system(system), _transcript(convo)), schemas
+
+
 def _ledger_ctx(user_id: uuid.UUID, activity_date: date) -> usage_ledger.LedgerContext:
     """도구 루프 호출의 원가 귀속. purpose는 step별로 generate_step이 덮어쓴다."""
     return usage_ledger.LedgerContext(
@@ -650,6 +675,9 @@ async def run_turn(
     now: Callable[[], float] = time.monotonic,
     deadline: float | None = None,
     local_calendar_date: date | None = None,
+    before_tools: Callable[[], Awaitable[bool]] | None = None,
+    retention_enabled: bool = False,
+    retention_coverage: VerifiedCoverage | None = None,
 ) -> AgentTurn:
     """한 턴을 끝까지 돌려 최종 텍스트와 그 턴의 LLM 호출 목록을 돌려준다.
 
@@ -657,10 +685,15 @@ async def run_turn(
     그러하고(Phase 1이 read-only라 저장된 게 없다) 그래야 클린 재시도가 된다.
     """
     model = model or settings.model_chat
-    _rules = [_TOOL_DATA_RULE, _TOOL_WHEN_RULE]
-    system = [system, *_rules] if isinstance(system, str) else [*system, *_rules]
+    system = _runtime_system(system)
     deadline = deadline if deadline is not None else now() + config.turn_deadline_s
     transcript = _transcript(convo)
+    if retention_enabled and convo and getattr(convo[-1], "source_ref", None) is not None:
+        raise ProvenanceError("current_input_has_source")
+    if retention_coverage is not None and not retention_enabled:
+        raise ValueError("retention_coverage_disabled")
+    without_covered(transcript, retention_coverage)
+    covered_omitted = False
     registry = registry if registry is not None else _resolve_registry()
     schemas = list(registry.wire_schemas()) if registry is not None else []
     input_models = dict(registry.input_models()) if registry is not None else {}
@@ -686,6 +719,27 @@ async def run_turn(
 
     use_tools = skipped is None
 
+    def _bounded_transcript(items, *, tools):
+        nonlocal transcript, covered_omitted
+        if not retention_enabled:
+            return items
+        from app.services.context_retention import FOREGROUND_INPUT_LIMIT, RetentionError, assert_input_budget
+        try:
+            assert_input_budget([], llm.to_openai_messages(system, items), tools=tools,
+                                input_limit=FOREGROUND_INPUT_LIMIT)
+            return items
+        except RetentionError as exc:
+            if str(exc) != "context_input_budget" or retention_coverage is None or covered_omitted:
+                raise
+        shortened = without_covered(items, retention_coverage)
+        if len(shortened) == len(items):
+            raise RetentionError("context_input_budget")
+        assert_input_budget([], llm.to_openai_messages(system, shortened), tools=tools,
+                            input_limit=FOREGROUND_INPUT_LIMIT)
+        transcript = without_covered(transcript, retention_coverage)
+        covered_omitted = True
+        return shortened
+
     async def _hop1(with_tools: bool, *, recover_length: bool = False):
         hop_transcript = transcript
         if recover_length:
@@ -698,6 +752,8 @@ async def run_turn(
                 "Preserve safety and factual uncertainty. Do not mention retries, limits, or tools. "
                 "이 답변은 짧은 한 문장으로만 완결하세요. 短い一文だけで答えてください。"
             )]
+        hop_transcript = _bounded_transcript(hop_transcript,
+                                            tools=decide_schemas if with_tools else ())
         return await llm.generate_step(
             system,
             hop_transcript,
@@ -813,6 +869,11 @@ async def run_turn(
             skipped=skipped or "no_tool_calls",
         )
 
+    # The parallel Decisions check must resolve before tool preparation or execution.
+    # The caller replaces this speculative result when the selected route is not normal.
+    if before_tools is not None and not await before_tools():
+        return AgentTurn(text="", calls=calls, skipped="safety")
+
     # 남은 시간이 최종 호출 예약분보다 적으면 도구를 **시작하지 않는다**. 그래도 호출된 call_id는
     # 전부 닫아야 step 2 transcript가 성립한다(실행 전 취소 = cancelled).
     t_tools = time.monotonic()
@@ -846,6 +907,8 @@ async def run_turn(
         AssistantToolCalls(calls=tuple(step1.tool_calls)),
         *results,
     ]
+    transcript2 = _bounded_transcript(transcript2,
+        tools=([response_schema] if response_schema is not None else control_schemas))
     step2 = await llm.generate_step(
         system,
         transcript2,

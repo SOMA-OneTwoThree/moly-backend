@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import inspect
+import ast
+import textwrap
 import copy
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -14,7 +16,7 @@ from pydantic import ValidationError
 
 from app.core import errors
 from app.models.fortune import DailyFortune, FortuneProfile
-from app.models.message import Message
+from app.models.message import Message, SUMMARY_EXCLUDED_MESSAGE_KINDS
 from app.schemas.chat import PostMessageRequest
 from app.services import chat, chat_turns, fortune_chat, fortune_ephemeris
 from app.services import gating as gating_module
@@ -232,13 +234,32 @@ async def test_revalidate_fails_closed_when_chat_flag_turns_off(monkeypatch):
 
 
 def test_crisis_check_precedes_fortune_fetch_in_chat_source():
-    source = inspect.getsource(chat.post_message)
-    crisis = source.index("crisis_now = context_safety.is_continuing_distress")
-    fetch = source.index("fortune_snapshot = await fortune_chat.load_snapshot")
-    assert crisis < fetch
-    assert "and not crisis_now" in source[crisis:fetch]
-    continuation = source.index("elif settings.fortune_chat_enabled")
-    assert "and not crisis_now" in source[continuation: continuation + 100]
+    tree = ast.parse(textwrap.dedent(inspect.getsource(chat._post_message_impl)))
+    crisis = next(node for node in ast.walk(tree) if isinstance(node, ast.Assign)
+        and any(isinstance(target, ast.Name) and target.id == "crisis_now" for target in node.targets))
+    expression = compile(ast.Expression(crisis.value), "<legacy-crisis>", "eval")
+    detected = []
+    for enabled in (False, True):
+        detected.clear()
+        value = eval(expression, {"guard_config": SimpleNamespace(enabled=enabled),
+            "req": SimpleNamespace(text="synthetic distress"), "language": "ko",
+            "context_safety": SimpleNamespace(is_continuing_distress=lambda *args: detected.append(args) or True)})
+        assert value is (not enabled)
+        assert bool(detected) is (not enabled)  # 새 가드가 켜지면 단어 판정에 맡기지 않는다.
+    fetch = next(node for node in ast.walk(tree) if isinstance(node, ast.Call)
+                 and ast.unparse(node.func) == "fortune_chat.load_snapshot")
+    assert crisis.lineno < fetch.lineno
+    fetch_branch = next(node for node in ast.walk(tree) if isinstance(node, ast.If)
+        and any(child is fetch for statement in node.body for child in ast.walk(statement))
+        and any(isinstance(child, ast.UnaryOp) and isinstance(child.op, ast.Not)
+                and isinstance(child.operand, ast.Name) and child.operand.id == "crisis_now"
+                for child in ast.walk(node.test)))
+    assert fetch_branch.lineno < fetch.lineno
+    continuation = next(node for node in ast.walk(tree) if isinstance(node, ast.If)
+        and "settings.fortune_chat_enabled" in ast.unparse(node.test))
+    assert any(isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not)
+        and isinstance(node.operand, ast.Name) and node.operand.id == "crisis_now"
+        for node in ast.walk(continuation.test))
 
 
 @pytest.mark.asyncio
@@ -305,15 +326,25 @@ def test_fortune_message_kinds_are_allowed_by_database_schema():
     assert "fortune_derived" in schema
 
 
-def test_long_lived_derivations_filter_fortune_message_kinds():
+async def test_long_lived_derivations_filter_fortune_message_kinds(monkeypatch):
     from app.services import checkpoint_repo, diary_generation
     from worker import contract_jobs, mem0_jobs
 
-    checkpoint_source = inspect.getsource(chat._enqueue_checkpoint)
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "context_checkpoint_enabled", True)
+    rows = [SimpleNamespace(id=index, sender="user", kind=kind, content="Synthetic source")
+            for index, kind in enumerate(("normal", "greeting", *sorted(SUMMARY_EXCLUDED_MESSAGE_KINDS)), 1)]
+    captured = []
+    async def enqueue(session, **kwargs):
+        captured.extend(kwargs["messages"])
+    monkeypatch.setattr(checkpoint_repo, "maybe_enqueue", enqueue)
+    await chat._enqueue_checkpoint(FakeSession(execute_items=rows), UID, anchor=0, keep_from=3)
+    assert [message.kind for message in captured] == ["normal", "greeting"]
+    assert {"fortune_context_root", "fortune_derived", "safety", "safety_check"} <= SUMMARY_EXCLUDED_MESSAGE_KINDS
     checkpoint_reload = str(checkpoint_repo._RANGE_SQL)
     diary_source = inspect.getsource(diary_generation._day_messages)
-    assert "fortune_context_root" in checkpoint_source and "fortune_derived" in checkpoint_source
-    assert "fortune_context_root" in checkpoint_reload and "fortune_derived" in checkpoint_reload
+    assert all(kind in checkpoint_reload for kind in SUMMARY_EXCLUDED_MESSAGE_KINDS)
     assert 'Message.kind == "normal"' in diary_source
     assert "kind = 'normal'" in str(mem0_jobs._SOURCE_MESSAGES)
     assert "kind = 'normal'" in str(contract_jobs._MESSAGES)

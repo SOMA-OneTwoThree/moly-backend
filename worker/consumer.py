@@ -51,6 +51,14 @@ class JobRetry(Exception):
         self.retry_after_s = retry_after_s  # provider Retry-After(있으면 그보다 이르게 재시도 안 함)
 
 
+class JobDeferred(Exception):
+    """모델·도메인 실행 전 선행 작업 대기. 실패 시도 횟수를 소모하지 않는다."""
+
+    def __init__(self, reason: str, *, delay_s: float = 5.0) -> None:
+        super().__init__(reason)
+        self.reason, self.delay_s = reason, delay_s
+
+
 class JobFatal(Exception):
     """재시도 불가(스키마 검증 실패·미지원 payload) — 즉시 dead."""
 
@@ -83,6 +91,26 @@ class JobLeaseLost(Exception):
 Handler = Callable[[ClaimedJob], Awaitable[JobResult | None]]
 
 _REGISTRY: dict[str, Handler] = {}
+PostAttemptHook = Callable[[ClaimedJob], Awaitable[None]]
+_POST_ATTEMPT_HOOKS: dict[str, list[PostAttemptHook]] = {}
+_POST_ATTEMPT_TIMEOUT_S = 1.0
+
+
+def register_post_attempt(types: tuple[str, ...], callback: PostAttemptHook) -> None:
+    """Register bounded hints, never transaction-success notifications."""
+    for job_type in types:
+        hooks = _POST_ATTEMPT_HOOKS.setdefault(job_type, [])
+        if callback not in hooks:
+            hooks.append(callback)
+
+
+async def _post_attempt(job: ClaimedJob) -> None:
+    for callback in tuple(_POST_ATTEMPT_HOOKS.get(job.job_type, ())):
+        try:
+            await asyncio.wait_for(callback(job), timeout=_POST_ATTEMPT_TIMEOUT_S)
+        except Exception as exc:  # cancellation must propagate, ordinary hint failures must not
+            _log.warning("post_attempt_hint_failed job_type=%s error_type=%s",
+                         job.job_type, type(exc).__name__)
 
 
 def register(job_type: str, handler: Handler) -> None:
@@ -107,9 +135,17 @@ async def _finalize(what: str, job: ClaimedJob, fn: Callable[[Any], Awaitable[An
         # 경로를 막는다(13.2절). 이 시간은 lease 안에 예약돼 있다.
         async def _run() -> None:
             async with get_sessionmaker()() as session:
-                await fn(session)
+                try:
+                    await fn(session)
+                except JobDeferred:
+                    # Domain apply ran after the success fencing UPDATE. Undo
+                    # both before deferring this SAME running lease in a new TX.
+                    await session.rollback()
+                    raise
 
         await asyncio.wait_for(_run(), timeout=settings.job_finalize_timeout_s)
+    except JobDeferred:
+        raise
     except (asyncio.TimeoutError, TimeoutError):
         _log.warning(
             "잡 %s 확정 시간초과(%.1fs, lease 만료 후 reaper 회수) — job_id=%s",
@@ -245,6 +281,14 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
         )
         await _finalize_retry(job, "timeout")
         await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_TIMEOUT, "timeout")
+    except JobDeferred as exc:
+        deferred_reason, deferred_delay = exc.reason, exc.delay_s
+        await _finalize("선행 처리 대기", job, lambda s: jobs.finalize_deferred(
+            s, job, reason=deferred_reason, delay_s=deferred_delay,
+        ))
+        await job_telemetry.record_outcome(
+            job, get_sessionmaker, job_telemetry.OUTCOME_RETRYABLE, exc.reason,
+        )
     except JobRetry as exc:
         await _finalize_retry(job, exc.error_code, exc.retry_after_s)
         await job_telemetry.record_outcome(
@@ -266,14 +310,24 @@ async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
         )
     else:
         res = result or JobResult()
-        await _finalize(
-            "성공", job,
-            lambda s: jobs.finalize_success(
-                s, job, result_code=res.result_code, result_detail=res.result_detail,
-                apply_domain=res.apply_domain,
-            ),
-        )
-        await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_SUCCEEDED, res.result_code)
+        try:
+            await _finalize(
+                "성공", job,
+                lambda s: jobs.finalize_success(
+                    s, job, result_code=res.result_code, result_detail=res.result_detail,
+                    apply_domain=res.apply_domain,
+                ),
+            )
+        except JobDeferred as exc:
+            reason, delay = exc.reason, exc.delay_s
+            await _finalize("선행 처리 대기", job, lambda s: jobs.finalize_deferred(
+                s, job, reason=reason, delay_s=delay,
+            ))
+            await job_telemetry.record_outcome(
+                job, get_sessionmaker, job_telemetry.OUTCOME_RETRYABLE, reason,
+            )
+        else:
+            await job_telemetry.record_outcome(job, get_sessionmaker, job_telemetry.OUTCOME_SUCCEEDED, res.result_code)
 
 
 async def _sleep_or_stop(stop: asyncio.Event, seconds: float) -> None:
@@ -326,6 +380,9 @@ async def _run_job_then_wake(job: ClaimedJob, cfg: QueueConfig) -> None:
     """run_job 후 전 큐 웨이크업 — finalize 커밋이 끝난 뒤라 후속 잡이 claim에 보인다."""
     try:
         await run_job(job, cfg)
+        # run_job can return after a failed finalize. Hooks must re-read current
+        # state; they cannot infer commit success from this callback.
+        await _post_attempt(job)
     finally:
         _wake_queues()
 
@@ -362,7 +419,11 @@ async def queue_loop(queue: str, worker_id: str, stop: asyncio.Event) -> None:
             await _sleep_or_stop(stop, idle)
             continue
         if not claimed:
-            woken = await _sleep_stop_or_wake(stop, wake, delay)
+            # API producers cannot signal this process's Event. Only empty
+            # context queues poll within 1s; full slots and actual job retry
+            # schedules keep their existing policy and connection limits.
+            empty_delay = min(delay, 1.0) if queue in (jobs.QUEUE_MEMORY, jobs.QUEUE_CONTENT) else delay
+            woken = await _sleep_stop_or_wake(stop, wake, empty_delay)
             delay = idle if woken else min(delay * 2, idle_max)
             continue
         delay = idle
@@ -372,7 +433,8 @@ async def queue_loop(queue: str, worker_id: str, stop: asyncio.Event) -> None:
         await asyncio.gather(*list(slots.tasks), return_exceptions=True)
 
 
-async def reaper_loop(stop: asyncio.Event, queues: tuple[str, ...] = jobs.QUEUES) -> None:
+async def reaper_loop(stop: asyncio.Event, queues: tuple[str, ...] = jobs.QUEUES, *,
+                      global_cleanup: bool = True) -> None:
     """모든 큐에 대해 주기적으로 reaper 3단계. 한 큐의 실패가 다른 큐를 막지 않는다."""
     while not stop.is_set():
         for queue in queues:
@@ -381,21 +443,22 @@ async def reaper_loop(stop: asyncio.Event, queues: tuple[str, ...] = jobs.QUEUES
                     await jobs.reap_queue(session, queue)
             except Exception as e:  # noqa: BLE001
                 _log.warning("reaper 실패(queue=%s): %r", queue, e)
-        try:
-            async with get_sessionmaker()() as session:
-                await jobs.scrub_expired_payloads(session)
-        except Exception as e:  # noqa: BLE001
-            _log.warning("retention scrub 실패: %r", e)
-        try:
-            async with get_sessionmaker()() as session:
-                await fortune_ads.cleanup_expired_sessions(session)
-        except Exception as e:  # noqa: BLE001
-            _log.warning("fortune ad session cleanup 실패: %r", e)
-        try:
-            async with get_sessionmaker()() as session:
-                await ads.cleanup_expired_sessions(session)
-        except Exception as e:  # noqa: BLE001
-            _log.warning("hay ad session cleanup 실패: %r", e)
+        if global_cleanup:
+            try:
+                async with get_sessionmaker()() as session:
+                    await jobs.scrub_expired_payloads(session)
+            except Exception as e:  # noqa: BLE001
+                _log.warning("retention scrub 실패: %r", e)
+            try:
+                async with get_sessionmaker()() as session:
+                    await fortune_ads.cleanup_expired_sessions(session)
+            except Exception as e:  # noqa: BLE001
+                _log.warning("fortune ad session cleanup 실패: %r", e)
+            try:
+                async with get_sessionmaker()() as session:
+                    await ads.cleanup_expired_sessions(session)
+            except Exception as e:  # noqa: BLE001
+                _log.warning("hay ad session cleanup 실패: %r", e)
         await _sleep_or_stop(stop, settings.job_reaper_interval_s)
 
 
@@ -409,6 +472,7 @@ async def run_consumer(
     worker_id: str | None = None,
     queues: tuple[str, ...] = jobs.QUEUES,
     stop: asyncio.Event | None = None,
+    global_cleanup: bool = True,
 ) -> None:
     """큐 루프 + reaper 루프를 함께 돈다. stop이 set되면 드레인 후 반환."""
     _register_handlers()
@@ -426,7 +490,7 @@ async def run_consumer(
     try:
         await asyncio.gather(
             *(queue_loop(q, wid, stop) for q in queues),
-            reaper_loop(stop, queues),
+            reaper_loop(stop, queues, global_cleanup=global_cleanup),
         )
     finally:
         flusher_stop.set()

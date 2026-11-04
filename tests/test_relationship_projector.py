@@ -58,7 +58,7 @@ def test_relationship_start_is_not_duplicated_into_state():
 
 def test_chat_reads_the_render_without_aggregating():
     """매 턴 전체 event를 세면 대화 지연이 이력 길이에 비례해 늘어난다."""
-    src = inspect.getsource(chat.post_message)
+    src = inspect.getsource(chat._post_message_impl)
     assert "relationship_projector.prompt_text(" in src
     assert "relationship_projector.project(" not in src
 

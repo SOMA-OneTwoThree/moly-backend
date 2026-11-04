@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 from math import ceil
 from time import monotonic, perf_counter
 from typing import Literal
+from app.services.context_provenance import SourceRef
 
 from pydantic import BaseModel, ValidationError
 
@@ -399,6 +400,8 @@ async def generate(
     오류만 같은 timeout 안에서 한 번 더 부른다(`_no_retry`·`_create_in_budget` 참조). OpenAI 경로만
     해당하고, 워커·일기는 마감이 없으니 기본(SDK 재시도 켬) 그대로 둔다.
     """
+    from app.services.context_provenance import wire_messages
+    convo = wire_messages(convo)
     model = model or settings.model_chat
     provider = provider_for(model)
     if foreground_deadline is not None:
@@ -586,11 +589,13 @@ def _openai_usage(u: object, model: str) -> LLMResult:
 @dataclass(frozen=True)
 class UserText:
     text: str
+    source_ref: "SourceRef | None" = None
 
 
 @dataclass(frozen=True)
 class AssistantText:
     text: str
+    source_ref: "SourceRef | None" = None
 
 
 @dataclass(frozen=True)
@@ -606,6 +611,7 @@ class SystemText:
     """
 
     text: str
+    source_ref: "SourceRef | None" = None
 
 
 @dataclass

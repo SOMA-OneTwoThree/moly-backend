@@ -11,13 +11,21 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.db import Base
 
 
+SAFETY_MESSAGE_KINDS = frozenset({"safety_check", "safety"})
+# 최근 원문 대화에는 남기되 요약·재점검의 모델 입력에는 보내지 않는 종류.
+SUMMARY_EXCLUDED_MESSAGE_KINDS = frozenset(
+    {"fortune_context_root", "fortune_derived", *SAFETY_MESSAGE_KINDS}
+)
+
+
 class Message(Base):
     __tablename__ = "messages"
     # 모든 파생/참조 테이블은 user_id를 FK에 함께 태워 tenant 경계를 DB에서도 강제한다.
     # sender까지 포함한 키는 memory_evidence가 user 발화만 근거로 삼도록 하는 FK 대상이다.
     __table_args__ = (
         CheckConstraint(
-            "kind IN ('normal','greeting','fortune_context_root','fortune_derived','topic_opening')",
+            "kind IN ('normal','greeting','fortune_context_root','fortune_derived',"
+            "'topic_opening','safety_check','safety')",
             name="messages_kind_check",
         ),
         UniqueConstraint("user_id", "id", name="messages_user_id_id_uq"),
@@ -27,7 +35,7 @@ class Message(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     sender: Mapped[str] = mapped_column(String)  # user | moly
-    # fortune_*는 원문 대화에는 보이되 기억·일기·관계 같은 파생 파이프라인에서 제외한다.
+    # fortune_*·safety*는 원문 대화에는 보이되 기억·일기·관계 같은 파생에서 제외한다.
     kind: Mapped[str] = mapped_column(String, server_default=text("'normal'"))
     turn_seq: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     turn_position: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)

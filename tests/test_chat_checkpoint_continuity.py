@@ -70,6 +70,27 @@ async def test_pending_history_is_append_only(enabled):
     assert second.conversation[:len(first.conversation)] == first.conversation
 
 
+async def test_retention_history_above_old_16k_is_preserved_below_foreground_32k():
+    rows = segment(10, size=1800)
+    for row in rows:
+        row.kind = "normal"
+    window = await chat._context(
+        FakeSession(execute_items=rows), UID, 0,
+        current_text="Synthetic current", retention_enabled=True,
+    )
+    assert len(window.conversation) == 11
+    assert window.conversation[0]["content"].endswith("x" * 1800)
+    assert window.new_anchor is None and not window.incomplete
+
+
+async def test_retention_raw_overflow_does_not_drop_any_source_or_move_anchor():
+    session = FakeSession(execute_items=segment(20, size=1800))
+    with pytest.raises(chat._HistoryReadPressure):
+        await chat._context(session, UID, 0,
+                            current_text="Synthetic current", retention_enabled=True)
+    assert session.added == [] and not session.committed
+
+
 async def test_message_pressure_is_bounded_and_marked(enabled):
     session = FakeSession(execute_items=segment(121))
     window = await chat._context(session, UID, 0)

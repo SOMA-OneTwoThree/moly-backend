@@ -60,10 +60,12 @@ baseline 실행을 거부한다. **`schema.sql`은 기존 DB를 갱신하는 스
 
 1. 관련 커밋과 서비스 사용 경로를 확인한 뒤 `schema.sql`을 수정한다. NULL·기본값·권한 변경도
    정책 변경이므로 단순 정리로 처리하지 않는다.
-2. 빈 로컬 DB에서 baseline과 검증 계약을 재생성하고 테스트한다.
+2. 허용된 검증 환경에서 baseline과 검증 계약을 재생성하고 테스트한다. 기존 개발 DB로만
+   검증하라는 작업에서는 로컬 DB를 새로 띄우지 않는다. 아래 제한된 개발 메타데이터 갱신 절차를 쓴다.
 3. 기존 DB에 필요한 차이만 담은 SQL을 리뷰 산출물로 준비한다. 대상·예상 행 수·잠금·혼합 버전
    호환·되돌리기 방법을 함께 검토한다. SQL 파일을 마이그레이션 디렉터리에 누적하지 않는다.
-4. 검토한 SQL을 dev에 적용하고 검증한 뒤, 같은 절차로 prod를 적용한다. 자동 배포는 DB를 변경하지 않는다.
+4. 검토한 SQL을 허용된 환경에 적용하고 검증한다. 개발 작업 완료가 운영 적용 승인을 뜻하지 않는다.
+   운영 반영은 별도 작업이며 자동 배포는 DB를 변경하지 않는다.
 
 ```bash
 uv run python -m db.apply /path/to/reviewed.sql --env dev
@@ -84,6 +86,23 @@ query parameter나 fragment가 있는 주소는 dev 쓰기 대상으로 승인�
 않고 rollback 후 한가한 시점에 재시도한다. `CREATE/DROP INDEX CONCURRENTLY`와 `VACUUM`은
 트랜잭션 실행기에 넣지 않는다. 별도 검토한 절차로 실행하고 `indisvalid`·`indisready`와 구조
 계약을 사후 확인한다. `IF NOT EXISTS`만으로 깨진 인덱스가 정상이라는 결론을 내리지 않는다.
+
+### 제한된 개발 메타데이터 갱신
+
+`--refresh-from-dev`는 이번 `db/changes/crisis_guardrails.sql`의 추가 컬럼 7개·CHECK 3개만
+허용한다. 변경 전 `schema.sql`과 기존 계약의 해시, 검토한 SQL 해시, 허용 개발 프로젝트 ref를
+모두 확인한다. 개발 DB를 읽기 전용으로 비교하고 관계없는 구조 차이가 있으면 파일을 갱신하지 않는다.
+SQL을 먼저 검토·적용한 뒤 이 모드를 실행하고 `db.verify --env dev`로 다시 확인한다.
+
+```bash
+uv run python -m db.schema_contract --refresh-from-dev --env dev \
+  --expected-project-ref wywzjslvxwttxkecbyis \
+  --reviewed-sql db/changes/crisis_guardrails.sql \
+  --expected-sha256 <검토한-SHA256> --baseline-schema <변경-전-schema.sql>
+uv run python -m db.verify --env dev
+```
+
+다른 릴리스의 차이를 자동으로 허용하지 않는다. 새 구조 변경에서는 허용 목록과 검증을 별도로 검토한다.
 
 ## 로컬 재생성과 검증
 

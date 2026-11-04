@@ -95,6 +95,12 @@ erDiagram
 소유권·lease·generation·삭제 장벽은 발행 직전 다시 확인한다. 메시지 ID만으로 다른 사용자 원문을
 연결하지 않는다. 자세한 처리 순서는 [대화·기억](ARCHITECTURE.md)을 따른다.
 
+`messages.kind`의 `safety_check`·`safety`는 위기 재질문·고정 안내 턴이다. 양쪽 발화 모두 같은
+종류로 저장하며 최근 원문 읽기에 남기고 파생 입력에서 제외한다. v5 checkpoint는 `state_json`에
+구조화된 진행 상태, `validation_json`에 원문 근거 검증 결과를 저장한다. `chat_contexts`의
+`contract_processed_through_message_id`·`contract_generation`은 대화 약속 처리가 끝난 범위를
+나타낸다. 현재 세대 v5 게시 여부는 기존 checkpoint 조회로 계산하고 별도 컬럼을 만들지 않는다.
+
 ## 기억과 사용자별 상태
 
 | 테이블 | 책임·주요 제약 |
@@ -106,6 +112,10 @@ erDiagram
 | `user_interaction_contracts`, `user_interaction_contract_items` | 구조화된 대화 약속과 발화 근거 |
 | `relationship_events`, `user_relationship_states`, `relationship_profile_renders` | 관계 이벤트·결정적 상태·언어별 표시 |
 | `user_schedules` | 사용자 일정 상태 |
+
+새 보존 경로는 registry의 `canonical_text`를 검증한 사실 본문으로 사용한다.
+후보와 registry의 `context_priority`는 `related`·`required`를 구분하고, `required` 사실은
+벡터 검색 결과와 별도로 프롬프트에 넣는다. 원문 근거·현재 의미 상태 검증을 생략하지 않는다.
 
 공급자 벡터 삭제가 늦어져도 registry에서 배제한 기억은 검색 결과에서 제외한다. 기억과 요약의
 시점·출처·불확실성을 지우거나 저장 시각을 현재 사건의 증거로 취급하지 않는다.

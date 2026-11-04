@@ -74,6 +74,39 @@ _CHECK_REVISION = text("""
 SELECT revision, privacy_epoch FROM memory_pipeline_states WHERE user_id = :user_id
 """)
 
+_PROPAGATE_REQUIRED = text("""
+UPDATE mem0_memory_registry winner
+SET context_priority='required',
+    canonical_text=CASE WHEN winner.canonical_text IS NULL
+      AND old.duplicate_of_registry_id=winner.id AND old.content_hash=winner.content_hash
+      THEN old.canonical_text ELSE winner.canonical_text END,
+    revision=winner.revision+1,updated_at=now()
+FROM mem0_memory_registry old
+WHERE winner.user_id=:user_id AND old.user_id=winner.user_id
+  AND old.context_priority='required'
+  AND old.id=ANY(CAST(:ids AS uuid[]))
+  AND winner.semantic_status='active'
+  AND ((old.semantic_status='duplicate' AND old.duplicate_of_registry_id=winner.id)
+    OR (old.semantic_status='superseded' AND old.superseded_by_registry_id=winner.id))
+""")
+
+_COPY_DUPLICATE_SOURCES = text("""
+INSERT INTO mem0_memory_sources
+ (registry_id,user_id,source_turn_seq,source_message_id,source_sender,evidence_start_utf8,
+  evidence_end_utf8,source_content_hash,source_occurred_at,source_activity_date,
+  authority,confidence,extractor_version)
+SELECT winner.id,s.user_id,s.source_turn_seq,s.source_message_id,s.source_sender,
+       s.evidence_start_utf8,s.evidence_end_utf8,s.source_content_hash,s.source_occurred_at,
+       s.source_activity_date,s.authority,s.confidence,s.extractor_version
+FROM mem0_memory_registry old
+JOIN mem0_memory_registry winner ON winner.id=old.duplicate_of_registry_id AND winner.user_id=old.user_id
+JOIN mem0_memory_sources s ON s.registry_id=old.id AND s.user_id=old.user_id
+WHERE old.user_id=:user_id AND old.id=ANY(CAST(:ids AS uuid[]))
+  AND old.semantic_status='duplicate' AND old.context_priority='required'
+  AND winner.semantic_status='active' AND winner.content_hash=old.content_hash
+ON CONFLICT DO NOTHING
+""")
+
 
 class StaleConsolidation(RuntimeError):
     """판정 중 사용자 상태가 바뀌었다 — publish하지 않고 다시 판정한다."""
@@ -139,4 +172,9 @@ async def apply_transitions(
         ).first()
         if got is not None:
             changed += 1
+    linked = [transition.registry_id for transition in transitions
+              if transition.duplicate_of is not None or transition.superseded_by is not None]
+    if linked:
+        await session.execute(_PROPAGATE_REQUIRED, {"user_id": user_id, "ids": linked})
+        await session.execute(_COPY_DUPLICATE_SOURCES, {"user_id": user_id, "ids": linked})
     return changed

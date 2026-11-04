@@ -46,7 +46,7 @@ def create_app() -> FastAPI:
     # 프로세스 종료 때 유실돼 reconciler(24h)까지 unknown으로 밀린다).
     @contextlib.asynccontextmanager
     async def _lifespan(app: FastAPI):
-        from app.services import training_catalog, usage_ledger
+        from app.services import crisis_chat, training_catalog, usage_ledger
         from app.services.banner_catalog import BannerCatalog
         from app.services.topic_catalog import TopicCatalog
 
@@ -67,6 +67,7 @@ def create_app() -> FastAPI:
         try:
             yield
         finally:
+            await crisis_chat.drain_cost_tasks()
             stop.set()
             with contextlib.suppress(Exception):
                 await asyncio.wait_for(flusher, timeout=10.0)

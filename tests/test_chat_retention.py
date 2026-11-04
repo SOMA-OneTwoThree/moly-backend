@@ -1,0 +1,112 @@
+"""원문은 완료된 v5 범위만 제외하고 개수 제한으로 자르지 않는다."""
+from datetime import date
+from types import SimpleNamespace
+import uuid
+
+import pytest
+
+from app.services import chat
+from app.services.context_provenance import VerifiedCoverage, without_covered
+from tests.test_chat import FakeSession, _Result
+
+
+UID = uuid.UUID("11111111-1111-1111-1111-111111111111")
+
+
+def coverage(through):
+    return VerifiedCoverage(UID, 0, uuid.UUID(int=2), through, "a" * 64)
+
+
+def messages(count, size=1, start=1):
+    return [SimpleNamespace(
+        id=i, sender="user" if i % 2 else "moly", content="x" * size,
+        kind="normal", activity_date=date(2026, 11, 2), created_at=None,
+    ) for i in range(start, start + count)]
+
+
+class Pages(FakeSession):
+    def __init__(self, rows):
+        super().__init__()
+        descending = list(reversed(rows))
+        self.pages = [descending[i:i + 120] for i in range(0, len(rows), 120)]
+        self.queries = []
+
+    async def execute(self, statement, params=None):
+        self.queries.append(statement.compile().params)
+        return _Result(self.pages.pop(0) if self.pages else [])
+
+
+async def test_small_messages_continue_across_query_page_limit():
+    session = Pages(messages(121))
+    result = await chat._context(session, UID, 0, retention_enabled=True, compact_crises=False)
+    assert len(result.conversation) == 121
+    assert len(session.queries) == 2
+    assert result.new_anchor is None
+    assert not result.incomplete
+
+
+async def test_soft_threshold_requests_work_without_dropping_raw_history():
+    rows = messages(40, size=100)
+    result = await chat._context(Pages(rows), UID, 0, retention_enabled=True, compact_crises=False)
+    assert len(result.conversation) == 40
+    assert result.checkpoint_keep_from is not None
+    assert result.new_anchor is None
+
+
+async def test_unprocessed_raw_pressure_refuses_instead_of_publishing_a_short_tail():
+    with pytest.raises(chat._HistoryReadPressure):
+        await chat._context(Pages(messages(40, size=1000)), UID, 0,
+                            retention_enabled=True, compact_crises=False)
+
+
+async def test_v5_read_boundary_does_not_inherit_a_later_legacy_anchor():
+    session = Pages(messages(4, start=7))
+    result = await chat._context(session, UID, 1000, checkpoint_through=6, coverage=coverage(6),
+                                 retention_enabled=True, compact_crises=False)
+    assert len(result.conversation) == 4
+    assert 7 in session.queries[0].values()
+
+
+async def test_new_guard_keeps_safety_messages_in_recent_raw_history():
+    rows = messages(2)
+    rows[0].kind = "safety"
+    rows[1].kind = "safety_check"
+    result = await chat._context(Pages(rows), UID, 0, retention_enabled=True, compact_crises=False)
+    assert len(result.conversation) == 2
+
+
+async def test_early_published_snapshot_keeps_recent_exact_raw_without_rescheduling_it():
+    rows = messages(2, size=1300)
+    class Covered(FakeSession):
+        def __init__(self):
+            super().__init__()
+            self.calls = 0
+        async def execute(self, statement, params=None):
+            self.calls += 1
+            return _Result([] if self.calls == 1 else list(reversed(rows)))
+    session = Covered()
+    result = await chat._context(session, UID, 3, checkpoint_through=2, coverage=coverage(2),
+        current_text="new input", retention_enabled=True, compact_crises=False)
+    assert all(slot["content"].endswith(m.content)
+               for slot, m in zip(result.conversation[:-1], rows, strict=True))
+    assert result.conversation[-1]["content"].endswith("new input")
+    assert len(result.conversation) - len(without_covered(result.conversation, result.coverage)) == 2
+    assert result.retention_source_bytes == 0 and result.checkpoint_keep_from is None
+    assert result.new_anchor is None  # The saved anchor is already after this coverage.
+
+
+async def test_protected_covered_tail_is_unique_and_never_removes_uncovered_messages():
+    old, uncovered = messages(2, size=1300), messages(4, start=3)
+    class Combined(FakeSession):
+        def __init__(self):
+            super().__init__()
+            self.calls = 0
+        async def execute(self, statement, params=None):
+            self.calls += 1
+            return _Result(list(reversed(uncovered if self.calls == 1 else [*old, uncovered[0]])))
+    result = await chat._context(Combined(), UID, 3, checkpoint_through=2, coverage=coverage(2),
+        retention_enabled=True, compact_crises=False)
+    assert len(result.conversation) == 6
+    assert len(result.conversation) - len(without_covered(result.conversation, result.coverage)) == 2
+    assert result.retention_source_bytes == chat.context_retention.source_tokens(uncovered)
+    assert result.checkpoint_keep_from is None

@@ -160,6 +160,33 @@ RETURNING id
 """)
 
 
+_PREPARATION_JOB_TYPES = frozenset(("conversation_checkpoint", "contract_compile"))
+
+
+def _bound_enqueue(job_type, payload, dedup_key, priority):
+    from app.services.retention_preparation_context import current_binding
+    binding = current_binding()
+    if binding is None:
+        return payload, dedup_key, priority
+    if binding.building and job_type not in _PREPARATION_JOB_TYPES:
+        # Public fact ingestion keeps running independently. A private build must
+        # never make its own provider-memory writes or unrelated domain jobs.
+        return None
+    if job_type not in _PREPARATION_JOB_TYPES:
+        return payload, dedup_key, priority
+    body = dict(payload or {})
+    identity = body.get("retention_preparation_id")
+    if identity is not None and identity != str(binding.preparation_id):
+        raise ValueError("preparation_job_identity_changed")
+    if ("retention_preparation_building" in body
+            and body["retention_preparation_building"] is not binding.building):
+        raise ValueError("preparation_job_phase_changed")
+    body.update(retention_preparation_id=str(binding.preparation_id),
+                retention_preparation_building=binding.building)
+    from app.services import retention_release
+    return body, retention_release.dedup_key(dedup_key), max(priority, 500) if binding.building else priority
+
+
 async def enqueue(
     session: AsyncSession,
     *,
@@ -178,6 +205,10 @@ async def enqueue(
     **커밋하지 않는다** — 호출측 트랜잭션 경계에 합류시켜 도메인 변경과 원자적으로 등록되게 한다
     (finalize 안에서 후속 잡을 거는 경로가 이 성질에 의존한다).
     """
+    bound = _bound_enqueue(job_type, payload, dedup_key, priority)
+    if bound is None:
+        return None
+    payload, dedup_key, priority = bound
     cfg = queue_config(queue)
     payload_wire = json.dumps(payload or {}, sort_keys=True, separators=(",", ":"))
     row = (
@@ -235,6 +266,10 @@ async def enqueue_many(
     cfg = queue_config(queue)
     user_ids, dedup_keys, payloads, hashes, versions = [], [], [], [], []
     for user_id, dedup_key, payload in items:
+        bound = _bound_enqueue(job_type, payload, dedup_key, priority)
+        if bound is None:
+            return 0
+        payload, dedup_key, priority = bound
         wire = json.dumps(payload or {}, sort_keys=True, separators=(",", ":"))
         user_ids.append(user_id)
         dedup_keys.append(dedup_key)
@@ -334,6 +369,12 @@ WITH candidate AS (
   SELECT id FROM async_jobs
   WHERE queue=:queue AND state='ready' AND available_at <= now()
     AND attempt < max_attempts AND (expires_at IS NULL OR expires_at > now())
+    AND ((CAST(:preparation_id AS text) IS NULL
+          AND COALESCE(payload->>'retention_preparation_building','false') <> 'true')
+      OR (CAST(:preparation_id AS text) IS NOT NULL
+          AND payload->>'retention_preparation_id'=CAST(:preparation_id AS text)
+          AND payload->>'retention_preparation_building'='true'
+          AND job_type IN ('conversation_checkpoint','contract_compile')))
   ORDER BY priority ASC, available_at ASC, created_at ASC
   FOR UPDATE SKIP LOCKED LIMIT :batch_size
 )
@@ -353,6 +394,7 @@ async def claim(
     worker_id: str,
     batch_size: int | None = None,
     lease_s: float | None = None,
+    preparation_id: uuid.UUID | None = None,
 ) -> list[ClaimedJob]:
     """`ready` 잡을 batch_size만큼 claim(FOR UPDATE SKIP LOCKED → 소비자 간 중복 0).
 
@@ -367,6 +409,7 @@ async def claim(
                 "batch_size": cfg.claim_batch if batch_size is None else batch_size,
                 "worker_id": worker_id,
                 "lease_seconds": cfg.lease_s if lease_s is None else lease_s,
+                "preparation_id": str(preparation_id) if preparation_id is not None else None,
             },
         )
     ).mappings().all()
@@ -402,6 +445,16 @@ async def freeze_job_payload(session: AsyncSession, *, job_id: uuid.UUID, patch:
 # finalize — 전부 fencing(불변식 3). 0행이면 도메인 반영 없이 rollback.
 # ─────────────────────────────────────────────────────────────
 _FENCE = "WHERE id=:id AND state='running' AND lease_owner=:worker_id AND lease_token=:lease_token"
+
+_DEFER_SQL = text(f"""
+UPDATE async_jobs
+SET state='ready', available_at=:available_at, max_attempts=max_attempts+1,
+    lease_owner=NULL, lease_token=NULL, lease_until=NULL,
+    result_code=:reason, finished_at=NULL
+{_FENCE}
+  AND lease_until>now()
+RETURNING id
+""")
 
 _SUCCESS_SQL = text(f"""
 UPDATE async_jobs
@@ -575,6 +628,30 @@ async def finalize_retryable(
     if state == "dead":  # 경보는 commit 이후 — 전송 실패가 상태를 되돌리지 않게(불변식 6)
         await notify_dead(job, error_code=error_code)
     return state
+
+
+async def finalize_deferred(
+    session: AsyncSession, job: ClaimedJob, *, reason: str, delay_s: float = 5.0,
+) -> bool:
+    """Checkpoint 선행 처리 또는 fenced 확정의 단기 잠금 경합 대기.
+
+    물리 claim 번호·telemetry는 보존하며 max_attempts를 같은 양 늘려 실패
+    재시도 잔여 예산을 유지한다. 확정 중의 경합은 성공 fencing과 도메인
+    변경을 먼저 rollback한 동일 lease에만 적용한다. 모델/provider 오류나
+    일반 도메인 실패를 이 경로로 바꿔 실패 예산을 우회하면 안 된다.
+    """
+    if job.job_type != "conversation_checkpoint":
+        raise ValueError("defer is only supported before checkpoint model execution")
+    available_at = datetime.now(timezone.utc) + timedelta(seconds=max(1.0, min(delay_s, 60.0)))
+    row = (await session.execute(_DEFER_SQL, {
+        **_fence_params(job), "available_at": available_at, "reason": reason,
+    })).first()
+    if row is None:
+        await session.rollback()
+        _lost_lease(job, "선행 처리 대기")
+        return False
+    await session.commit()
+    return True
 
 
 async def finalize_terminal(

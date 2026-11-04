@@ -48,6 +48,7 @@ class PlannedCandidate:
     # `restored_evidence`로 넘겨준다 — 안 넘기면 근거 시각이 없는 기억이 만들어진다.
     candidate: mi.Candidate | None = None
     restored_evidence: tuple = ()
+    context_priority: str = "related"
 
     @property
     def evidence(self) -> tuple:
@@ -100,6 +101,7 @@ def plan(
                 text=mi.normalize(c.text),
                 category=c.category,
                 candidate=c,
+                context_priority=c.context_priority,
             )
         )
     return out

@@ -36,10 +36,17 @@ def _barrier_predicates(text: str) -> list[str]:
 
     UPDATE SET의 컬럼 참조(`privacy_subject_barriers.epoch + 1`)는 쓰기라 대상이 아니다.
     """
-    return [
-        text[m.start(): m.start() + 260]
-        for m in re.finditer(r"FROM privacy_subject_barriers", text)
-    ]
+    fragments = []
+    for match in re.finditer(r"FROM privacy_subject_barriers", text):
+        start = match.start()
+        # Include this SQL SELECT's columns: directly loading state/epoch is
+        # different from treating the existence of a barrier row as a block.
+        prefix = text[max(0, start - 250):start]
+        projection = re.search(r"\bSELECT\b[^\"']*$", prefix)
+        if projection is not None:
+            start = max(0, match.start() - 250) + projection.start()
+        fragments.append(text[start:match.start() + 260])
+    return fragments
 
 
 def test_every_barrier_predicate_filters_by_state():
@@ -93,3 +100,10 @@ def test_scanner_catches_a_planted_violation(tmp_path):
     bad = "SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id = x.user_id"
     frags = _barrier_predicates(bad)
     assert frags and "state" not in frags[0]
+
+
+def test_scanner_recognizes_direct_state_projection():
+    fragment, = _barrier_predicates(
+        "SELECT b.user_id,b.state,b.epoch FROM privacy_subject_barriers b WHERE b.user_id=:u"
+    )
+    assert "b.state" in fragment

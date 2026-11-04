@@ -16,7 +16,7 @@ from worker import consumer, contract_jobs
 
 def test_contract_is_read_in_the_chat_path():
     """읽는 곳이 없으면 발행해도 아무 일이 없다."""
-    src = inspect.getsource(chat.post_message)
+    src = inspect.getsource(chat._post_message_impl)
     assert "contract_repo.published_text(" in src
 
 

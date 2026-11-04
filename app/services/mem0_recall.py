@@ -139,6 +139,7 @@ class Recalled:
     distance: float                  # cosine 거리 — **낮을수록 관련 있다**
     occurred_at: datetime | None     # 사건 시각(있으면). ambiguous 판단 근거로 보여준다
     conflict_group_id: uuid.UUID | None
+    provider_memory_id: str | None = None
 
     @property
     def uncertain(self) -> bool:
@@ -265,7 +266,7 @@ async def recall(
             continue
         out.append(Recalled(
             text=str(body), status=str(status), distance=float(hit.distance or 0.0),
-            occurred_at=occurred_at, conflict_group_id=group,
+            occurred_at=occurred_at, conflict_group_id=group, provider_memory_id=pid,
         ))
 
     # 거리 **오름차순** — 가까운 것이 먼저다. 같은 거리면 최근 사건을 앞에 둔다.

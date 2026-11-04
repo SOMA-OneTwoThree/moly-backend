@@ -90,6 +90,9 @@ class Mem0IngestCandidate(Base):
     normalizer_version: Mapped[str] = mapped_column(String, nullable=False)
     provider_memory_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     candidate_text: Mapped[str] = mapped_column(String, nullable=False)
+    context_priority: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=text("'related'")
+    )
     temporal_proposal_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     event_started_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     event_ended_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
@@ -142,6 +145,10 @@ class Mem0MemoryRegistry(Base):
     provider_memory_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     source_turn_seq: Mapped[int] = mapped_column(BigInteger, nullable=False)
     content_hash: Mapped[str] = mapped_column(String, nullable=False)
+    canonical_text: Mapped[str | None] = mapped_column(String, nullable=True)
+    context_priority: Mapped[str] = mapped_column(
+        String, nullable=False, server_default=text("'related'")
+    )
     event_started_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     event_ended_at: Mapped[datetime | None] = mapped_column(_TZ, nullable=True)
     event_time_precision: Mapped[str | None] = mapped_column(String, nullable=True)

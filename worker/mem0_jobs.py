@@ -33,6 +33,7 @@ from app.services import (
     mem0_pipeline,
     memory_pipeline,
     usage_ledger,
+    config_store,
 )
 from app.services.jobs import ClaimedJob
 from app.services.mem0_budget import (
@@ -76,13 +77,13 @@ ORDER BY id
 _STAGE_CANDIDATES_BATCH = text("""
 INSERT INTO mem0_ingest_candidates
   (user_id, turn_seq, candidate_hash, schema_version, extractor_version, normalizer_version,
-   provider_memory_id, candidate_text, status, repair_generation, category)
+   provider_memory_id, candidate_text, status, repair_generation, category, context_priority)
 SELECT :user_id, :turn_seq, t.candidate_hash, :schema_version, :extractor_version,
        :normalizer_version, t.provider_memory_id, t.candidate_text, 'planned', :generation,
-       t.category
+       t.category, t.context_priority
 FROM unnest(:hashes ::text[], :provider_memory_ids ::uuid[], :texts ::text[],
-            :categories ::text[])
-     AS t(candidate_hash, provider_memory_id, candidate_text, category)
+            :categories ::text[], :priorities ::text[])
+     AS t(candidate_hash, provider_memory_id, candidate_text, category, context_priority)
 ON CONFLICT (user_id, turn_seq, candidate_hash, schema_version, repair_generation) DO NOTHING
 """)
 
@@ -151,7 +152,7 @@ SELECT c.provider_memory_id, c.candidate_hash, c.candidate_text, c.category,
            ) ORDER BY s.source_message_id, s.evidence_start_utf8
          ) FILTER (WHERE s.candidate_id IS NOT NULL),
          '[]'::json
-       ) AS evidence
+       ) AS evidence, c.context_priority
 FROM mem0_ingest_candidates c
 LEFT JOIN mem0_ingest_candidate_sources s
        ON s.candidate_id = c.id AND s.user_id = c.user_id
@@ -159,7 +160,7 @@ WHERE c.user_id = :user_id AND c.turn_seq = :turn_seq
   AND c.schema_version = :schema_version
   AND c.repair_generation = :generation
   AND c.status IN ('planned', 'committed')
-GROUP BY c.provider_memory_id, c.candidate_hash, c.candidate_text, c.category
+GROUP BY c.provider_memory_id, c.candidate_hash, c.candidate_text, c.category, c.context_priority
 ORDER BY c.candidate_hash
 """)
 
@@ -172,11 +173,12 @@ WHERE user_id = :user_id AND source_turn_seq = :turn_seq AND semantic_status = '
 _REGISTER_PENDING_BATCH = text("""
 INSERT INTO mem0_memory_registry
   (user_id, provider, collection_version, provider_memory_id, source_turn_seq,
-   content_hash, semantic_status, schema_version, category)
+   content_hash, semantic_status, schema_version, category, canonical_text, context_priority)
 SELECT :user_id, 'mem0', :collection_version, t.provider_memory_id, :turn_seq,
-       t.content_hash, 'pending', :schema_version, t.category
-FROM unnest(:provider_memory_ids ::uuid[], :content_hashes ::text[], :categories ::text[])
-     AS t(provider_memory_id, content_hash, category)
+       t.content_hash, 'pending', :schema_version, t.category, t.canonical_text, t.context_priority
+FROM unnest(:provider_memory_ids ::uuid[], :content_hashes ::text[], :categories ::text[],
+            :texts ::text[], :priorities ::text[])
+     AS t(provider_memory_id, content_hash, category, canonical_text, context_priority)
 ON CONFLICT (user_id, provider, collection_version, provider_memory_id) DO NOTHING
 """)
 
@@ -247,6 +249,12 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
 
     # ── 짧은 read: 상태·원문 확인 후 세션을 닫는다 ──
     async with get_sessionmaker()() as session:
+        raw_config = await config_store.get_config_values(session,
+            ["context_retention_v2_enabled"])
+        from app.services import context_retention
+        retention_enabled = (raw_config.get("context_retention_v2_enabled",
+            settings.context_retention_v2_enabled) is True
+            and await context_retention.adopted_user(session, user_id=uid, config=raw_config))
         state = await memory_pipeline.load(session, uid)
         if not state.records_v2:
             raise JobCancelled("not_v2_user")
@@ -292,6 +300,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
         resumed = [
             mem0_pipeline.PlannedCandidate(
                 provider_memory_id=r[0], candidate_hash=r[1], text=r[2], category=r[3],
+                context_priority=r[5] if len(r) > 5 else "related",
                 restored_evidence=tuple(
                     mem0_ingest.EvidenceSpan(
                         message_id=int(e["message_id"]), sender=e["sender"],
@@ -317,6 +326,8 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
     ]
     nickname = profile[0] if profile else None
     language = profile[1] if profile else None
+    extractor_version = (mem0_extractor.RETENTION_EXTRACTOR_VERSION if retention_enabled
+                         else mem0_extractor.EXTRACTOR_VERSION)
 
     budget = memory_ingest_budget(total_s=settings.job_memory_timeout_s)
     ledger = usage_ledger.LedgerContext(
@@ -327,7 +338,8 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
     # ── 외부 호출: DB 커넥션 0 ──
     async def _extract(timeout: float):
         result = await llm.generate(
-            mem0_extractor.build_system(language),
+            (mem0_extractor.build_system(language, retention_enabled=True) if retention_enabled
+             else mem0_extractor.build_system(language)),
             [{"role": "user", "content": mem0_extractor.render_conversation(messages)}],
             model=mem0_extractor.EXTRACTOR_MODEL,
             max_tokens=mem0_extractor.MAX_OUTPUT_TOKENS,
@@ -356,6 +368,8 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             # 사슬을 멈춰 그 사람의 이후 기억을 전부 잃는 것보다 낫다.
             _log.warning("한 턴이 출력 상한을 넘었다 — 기억 없이 넘긴다 (job=%s 턴 %s)",
                          job.id, to_seq)
+            if retention_enabled:
+                raise JobRetry("output_truncated_unprocessed") from e
             return []
         except mem0_extractor.ExtractionSchemaError as e:
             # 계약 위반 — 다음 샘플은 통과할 수 있으니 재시도.
@@ -402,13 +416,14 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
             await session.execute(_STAGE_CANDIDATES_BATCH, {
                 "user_id": uid, "turn_seq": turn_seq,
                 "schema_version": mem0_ingest.SCHEMA_VERSION,
-                "extractor_version": mem0_extractor.EXTRACTOR_VERSION,
+                "extractor_version": extractor_version,
                 "normalizer_version": mem0_ingest.NORMALIZER_VERSION,
                 "generation": generation,
                 "hashes": [p.candidate_hash for p in planned],
                 "provider_memory_ids": [p.provider_memory_id for p in planned],
                 "texts": [p.text for p in planned],
                 "categories": [p.category for p in planned],
+                "priorities": [p.context_priority for p in planned],
             })
             ev_arrays = _evidence_arrays(planned)
             if ev_arrays["e_message_ids"]:
@@ -428,6 +443,8 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                 "provider_memory_ids": [p.provider_memory_id for p in planned],
                 "content_hashes": [p.candidate_hash for p in planned],
                 "categories": [p.category for p in planned],
+                "texts": [p.text for p in planned],
+                "priorities": [p.context_priority for p in planned],
             })
             # registry가 생긴 뒤에야 계획을 닫는다(9.2절) — 한 트랜잭션이라 원자성은 동일하고,
             # 문장 순서도 registry → sources → commit 을 유지한다.
@@ -436,7 +453,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
                 await session.execute(
                     _MEMORY_SOURCES_BATCH, {
                         "user_id": uid, "turn_seq": turn_seq,
-                        "extractor_version": mem0_extractor.EXTRACTOR_VERSION,
+                        "extractor_version": extractor_version,
                         **ev_arrays,
                     }
                 )

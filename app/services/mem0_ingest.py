@@ -73,6 +73,7 @@ class Candidate:
     text: str
     evidence: tuple[EvidenceSpan, ...]
     category: str
+    context_priority: str = "related"
 
 
 def normalize(text: str) -> str:
@@ -187,6 +188,8 @@ def check_eligibility(
 ) -> None:
     """통과하면 조용히 반환, 아니면 `Ineligible`. provider 호출 **전에** 부른다."""
     text = normalize(candidate.text)
+    if candidate.context_priority not in {"related", "required"}:
+        raise Ineligible("invalid_context_priority")
     if not text:
         raise Ineligible("empty")
 

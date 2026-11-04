@@ -33,7 +33,10 @@ def reviewed_sql(path: Path, expected_sha256: str | None) -> str:
 
 
 async def apply(path: Path, env: str, *, commit: bool = False,
-                allow_prod: bool = False, expected_sha256: str | None = None) -> None:
+                allow_prod: bool = False, expected_sha256: str | None = None,
+                statement_timeout_ms: int = 60_000) -> None:
+    if type(statement_timeout_ms) is not int or statement_timeout_ms <= 0:
+        raise ValueError('statement timeout must be a positive integer')
     sql = reviewed_sql(path, expected_sha256)
     dsn = load_conn(env)
     announce(env, dsn, commit=commit)
@@ -49,7 +52,9 @@ async def apply(path: Path, env: str, *, commit: bool = False,
     try:
         await transaction.start()
         await conn.execute("SET LOCAL lock_timeout = '2s'")
-        await conn.execute("SET LOCAL statement_timeout = '60s'")
+        # Configure the timer before the outer DO starts. SET LOCAL inside the
+        # reviewed body cannot establish a deadline for that already-running DO.
+        await conn.execute(f"SET LOCAL statement_timeout = '{statement_timeout_ms}ms'")
         await conn.execute("SET LOCAL idle_in_transaction_session_timeout = '60s'")
         # SPI forbids transaction control even inside nested DO/CALL statements.
         # Executing reviewed SQL this way keeps an inline COMMIT/END from escaping
@@ -78,14 +83,26 @@ def main() -> int:
     parser.add_argument('--commit', action='store_true')
     parser.add_argument('--allow-prod', action='store_true')
     parser.add_argument('--expected-sha256')
+    parser.add_argument('--statement-timeout-ms', type=_positive_timeout, default=60_000)
     args = parser.parse_args()
     try:
         asyncio.run(apply(args.path, args.env, commit=args.commit,
-                          allow_prod=args.allow_prod, expected_sha256=args.expected_sha256))
+                          allow_prod=args.allow_prod, expected_sha256=args.expected_sha256,
+                          statement_timeout_ms=args.statement_timeout_ms))
     except Exception as exc:
         print(f'SQL apply failed ({type(exc).__name__}); transaction rolled back')
         return 1
     return 0
+
+
+def _positive_timeout(value: str) -> int:
+    try:
+        result = int(value)
+    except (TypeError, ValueError) as exc:
+        raise argparse.ArgumentTypeError('statement timeout must be a positive integer') from exc
+    if result <= 0:
+        raise argparse.ArgumentTypeError('statement timeout must be a positive integer')
+    return result
 
 
 if __name__ == '__main__':

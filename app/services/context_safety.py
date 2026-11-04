@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 from app.services import i18n
+from app.services.context_provenance import SourceRef
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,6 +21,7 @@ class ContextEntry:
     content: str
     activity_date: date | None = None
     created_at: datetime | None = None
+    source_ref: SourceRef | None = None
 
 
 @dataclass(frozen=True, slots=True)

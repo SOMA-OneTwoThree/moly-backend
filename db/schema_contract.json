@@ -1090,6 +1090,22 @@
         "not_null": true,
         "type": "bigint"
       },
+      "public.chat_contexts.contract_generation": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.chat_contexts.contract_processed_through_message_id": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
       "public.chat_contexts.last_active_at": {
         "collation": null,
         "default": null,
@@ -1176,6 +1192,14 @@
         "generated": "",
         "identity": "",
         "not_null": true,
+        "type": "bigint"
+      },
+      "public.chat_contexts.retention_pressure_through_message_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
         "type": "bigint"
       },
       "public.chat_contexts.updated_at": {
@@ -1498,6 +1522,14 @@
         "not_null": true,
         "type": "bigint"
       },
+      "public.conversation_checkpoints.preparation_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "uuid"
+      },
       "public.conversation_checkpoints.previous_checkpoint_id": {
         "collation": null,
         "default": null,
@@ -1554,6 +1586,14 @@
         "not_null": false,
         "type": "timestamp with time zone"
       },
+      "public.conversation_checkpoints.state_json": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
+      },
       "public.conversation_checkpoints.summary": {
         "collation": "\"default\"",
         "default": null,
@@ -1577,6 +1617,14 @@
         "identity": "",
         "not_null": true,
         "type": "uuid"
+      },
+      "public.conversation_checkpoints.validation_json": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
       },
       "public.conversation_checkpoints.version": {
         "collation": "\"default\"",
@@ -3002,6 +3050,14 @@
         "not_null": false,
         "type": "text"
       },
+      "public.mem0_ingest_candidates.context_priority": {
+        "collation": "\"default\"",
+        "default": "'related'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
       "public.mem0_ingest_candidates.created_at": {
         "collation": null,
         "default": "now()",
@@ -3138,6 +3194,14 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.mem0_memory_registry.canonical_text": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "text"
+      },
       "public.mem0_memory_registry.category": {
         "collation": "\"default\"",
         "default": null,
@@ -3173,6 +3237,14 @@
       "public.mem0_memory_registry.content_hash": {
         "collation": "\"default\"",
         "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.mem0_memory_registry.context_priority": {
+        "collation": "\"default\"",
+        "default": "'related'::text",
         "generated": "",
         "identity": "",
         "not_null": true,
@@ -4681,6 +4753,246 @@
         "identity": "",
         "not_null": true,
         "type": "uuid"
+      },
+      "public.retention_preparation_revision_events.id": {
+        "collation": null,
+        "default": "nextval('public.retention_preparation_revision_events_id_seq'::regclass)",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.retention_preparation_revision_events.preparation_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_preparation_revision_events.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_preparation_revision_events_id_seq.is_called": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "boolean"
+      },
+      "public.retention_preparation_revision_events_id_seq.last_value": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.retention_preparation_revision_events_id_seq.log_cnt": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.retention_preparation_revisions.preparation_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_preparation_revisions.revision": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.retention_preparation_revisions.through_message_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.retention_preparation_revisions.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_preparations.code_sha": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_preparations.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.retention_preparations.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_preparations.manifest_json": {
+        "collation": null,
+        "default": "'{}'::jsonb",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.retention_preparations.state": {
+        "collation": "\"default\"",
+        "default": "'building'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_preparations.updated_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.retention_prepared_contracts.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.retention_prepared_contracts.document_json": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.retention_prepared_contracts.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_prepared_contracts.locale": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_prepared_contracts.memory_generation": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.retention_prepared_contracts.preparation_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_prepared_contracts.processed_through_message_id": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.retention_prepared_contracts.published_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.retention_prepared_contracts.render_hash": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_prepared_contracts.rendered_text": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_prepared_contracts.status": {
+        "collation": "\"default\"",
+        "default": "'ready'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_prepared_contracts.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_prepared_contracts.validation_json": {
+        "collation": null,
+        "default": "'{}'::jsonb",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.retention_prepared_contracts.version": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
       },
       "public.revenuecat_events.attempts": {
         "collation": null,
@@ -7186,6 +7498,13 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.chat_contexts.chat_contexts_retention_pressure_positive_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK (((retention_pressure_through_message_id IS NULL) OR (retention_pressure_through_message_id > 0)))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.chat_contexts.chat_contexts_user_id_fkey": {
         "deferrable": false,
         "deferred": false,
@@ -7354,6 +7673,18 @@
         "deferred": false,
         "definition": "PRIMARY KEY (id)",
         "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.conversation_checkpoints.conversation_checkpoints_preparation_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id)",
+        "enforcement_triggers": [
+          "public.conversation_checkpoints:17:O",
+          "public.conversation_checkpoints:5:O",
+          "public.retention_preparations:17:O",
+          "public.retention_preparations:9:O"
+        ],
         "validated": true
       },
       "public.conversation_checkpoints.conversation_checkpoints_publish_state_check": {
@@ -8144,6 +8475,13 @@
         ],
         "validated": true
       },
+      "public.mem0_ingest_candidates.mem0_ingest_candidates_context_priority_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((context_priority = ANY (ARRAY['related'::text, 'required'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
       "public.mem0_ingest_candidates.mem0_ingest_candidates_id_user_id_key": {
         "deferrable": false,
         "deferred": false,
@@ -8181,6 +8519,13 @@
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, turn_seq, candidate_hash, schema_version, repair_generation)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.mem0_memory_registry.mem0_memory_registry_context_priority_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((context_priority = ANY (ARRAY['related'::text, 'required'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -8396,7 +8741,7 @@
       "public.messages.messages_kind_check": {
         "deferrable": false,
         "deferred": false,
-        "definition": "CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text, 'topic_opening'::text])))",
+        "definition": "CHECK ((kind = ANY (ARRAY['normal'::text, 'greeting'::text, 'fortune_context_root'::text, 'fortune_derived'::text, 'topic_opening'::text, 'safety_check'::text, 'safety'::text])))",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -8865,6 +9210,197 @@
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, prompt_revision, profile_relationship_revision, locale, renderer_version)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparation_revision_events.retention_preparation_revision_events_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparation_revision_events.retention_preparation_revision_events_preparation_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id)",
+        "enforcement_triggers": [
+          "public.retention_preparation_revision_events:17:O",
+          "public.retention_preparation_revision_events:5:O",
+          "public.retention_preparations:17:O",
+          "public.retention_preparations:9:O"
+        ],
+        "validated": true
+      },
+      "public.retention_preparation_revision_events.retention_preparation_revision_events_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.retention_preparation_revision_events:17:O",
+          "public.retention_preparation_revision_events:5:O"
+        ],
+        "validated": true
+      },
+      "public.retention_preparation_revisions.retention_preparation_revisions_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (preparation_id, user_id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparation_revisions.retention_preparation_revisions_preparation_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id)",
+        "enforcement_triggers": [
+          "public.retention_preparation_revisions:17:O",
+          "public.retention_preparation_revisions:5:O",
+          "public.retention_preparations:17:O",
+          "public.retention_preparations:9:O"
+        ],
+        "validated": true
+      },
+      "public.retention_preparation_revisions.retention_preparation_revisions_revision_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((revision >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparation_revisions.retention_preparation_revisions_through_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((through_message_id >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparation_revisions.retention_preparation_revisions_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.retention_preparation_revisions:17:O",
+          "public.retention_preparation_revisions:5:O"
+        ],
+        "validated": true
+      },
+      "public.retention_preparations.retention_preparations_code_sha_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((code_sha ~ '^[0-9a-f]{40}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparations.retention_preparations_manifest_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((jsonb_typeof(manifest_json) = 'object'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparations.retention_preparations_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparations.retention_preparations_state_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((state = ANY (ARRAY['building'::text, 'prepared'::text, 'active'::text, 'aborted'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_generation_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((memory_generation >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_locale_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((locale = ANY (ARRAY['ko'::text, 'en'::text, 'ja'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_preparation_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id)",
+        "enforcement_triggers": [
+          "public.retention_preparations:17:O",
+          "public.retention_preparations:9:O",
+          "public.retention_prepared_contracts:17:O",
+          "public.retention_prepared_contracts:5:O"
+        ],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_render_hash_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((render_hash ~ '^[0-9a-f]{64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_status_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((status = ANY (ARRAY['ready'::text, 'published'::text, 'superseded'::text, 'draft'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_through_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((processed_through_message_id >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.retention_prepared_contracts:17:O",
+          "public.retention_prepared_contracts:5:O"
+        ],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_validation_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((jsonb_typeof(validation_json) = 'object'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_version_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((version > 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_version_uq": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "UNIQUE (preparation_id, user_id, memory_generation, locale, version)",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -10151,6 +10687,10 @@
         "definition": "CREATE OR REPLACE FUNCTION public.bootstrap_user(p_user_id uuid, p_created_at timestamp with time zone DEFAULT now())\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_required_count integer;\n  v_signup_trial_until timestamptz;\nBEGIN\n  SELECT count(*) INTO v_required_count\n  FROM public.products\n  WHERE product_type = 'cosmetic' AND is_active = true\n    AND (\n      (public_id = 'theme_default' AND slot = 'theme')\n      OR (public_id = 'head_sunglasses' AND slot = 'glasses')\n    );\n  IF v_required_count <> 2 THEN\n    RAISE EXCEPTION 'appearance bootstrap products are not ready';\n  END IF;\n\n  SELECT (value #>> '{}')::timestamptz INTO v_signup_trial_until\n  FROM public.app_config WHERE key = 'signup_trial_until';\n\n  INSERT INTO public.profiles (id, trial_ends_at)\n  VALUES (p_user_id, CASE WHEN v_signup_trial_until IS NULL OR p_created_at < v_signup_trial_until\n    THEN p_created_at + interval '48 hours' END)\n  ON CONFLICT (id) DO NOTHING;\n\n  INSERT INTO public.user_items (user_id, product_id, source)\n  SELECT p_user_id, p.id, 'admin_grant'\n  FROM public.products p\n  WHERE p.product_type = 'cosmetic' AND p.is_active = true\n    AND (\n      (p.public_id = 'theme_default' AND p.slot = 'theme')\n      OR (p.public_id = 'head_sunglasses' AND p.slot = 'glasses')\n    )\n  ON CONFLICT (user_id, product_id) DO NOTHING;\n\n  UPDATE public.user_items default_item\n  SET equipped_slot = 'theme', equipped_at = COALESCE(default_item.equipped_at, now())\n  FROM public.products default_product\n  WHERE default_item.user_id = p_user_id\n    AND default_item.product_id = default_product.id\n    AND default_product.public_id = 'theme_default'\n    AND NOT EXISTS (\n      SELECT 1 FROM public.user_items equipped\n      WHERE equipped.user_id = p_user_id AND equipped.equipped_slot = 'theme'\n    );\nEND;\n$function$\n",
         "owner": "postgres"
       },
+      "public.bump_retention_preparation_revision()": {
+        "definition": "CREATE OR REPLACE FUNCTION public.bump_retention_preparation_revision()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n    old_row jsonb;\n    new_row jsonb;\n    old_owner uuid;\n    new_owner uuid;\n    owner_id uuid;\n    ignored_change boolean := false;\n    fence_value jsonb;\n    clock_entry record;\n    locked_through bigint;\n    mutating boolean;\nBEGIN\n    SELECT value INTO fence_value FROM public.app_config\n     WHERE key = 'context_retention_revision_fence' FOR SHARE;\n    IF NOT FOUND THEN\n        RAISE EXCEPTION USING ERRCODE = '40001', MESSAGE = 'retention_revision_fence_missing';\n    END IF;\n    IF NOT EXISTS (SELECT 1 FROM public.retention_preparations\n                   WHERE state IN ('building','prepared')) THEN\n        RETURN NULL;\n    END IF;\n    IF TG_OP <> 'INSERT' THEN old_row := to_jsonb(OLD); END IF;\n    IF TG_OP <> 'DELETE' THEN new_row := to_jsonb(NEW); END IF;\n    IF TG_TABLE_NAME = 'profiles' THEN\n        old_owner := (old_row->>'id')::uuid;\n        new_owner := (new_row->>'id')::uuid;\n    ELSE\n        old_owner := (old_row->>'user_id')::uuid;\n        new_owner := (new_row->>'user_id')::uuid;\n    END IF;\n    IF TG_OP = 'UPDATE' AND old_owner IS NOT DISTINCT FROM new_owner THEN\n        IF TG_TABLE_NAME = 'profiles'\n           AND old_row->'language' IS NOT DISTINCT FROM new_row->'language'\n           AND old_row->'timezone' IS NOT DISTINCT FROM new_row->'timezone' THEN\n            ignored_change := true;\n        ELSIF TG_TABLE_NAME = 'chat_contexts'\n           AND old_row->'memory_generation' IS NOT DISTINCT FROM new_row->'memory_generation' THEN\n            ignored_change := true;\n        ELSIF TG_TABLE_NAME = 'memory_pipeline_states'\n           AND old_row->'mode' IS NOT DISTINCT FROM new_row->'mode'\n           AND old_row->'bootstrap_status' IS NOT DISTINCT FROM new_row->'bootstrap_status'\n           AND old_row->'privacy_epoch' IS NOT DISTINCT FROM new_row->'privacy_epoch'\n           AND old_row->'repair_generation' IS NOT DISTINCT FROM new_row->'repair_generation'\n           AND COALESCE((new_row->>'source_through_turn_seq')::bigint,0) >= COALESCE((old_row->>'source_through_turn_seq')::bigint,0)\n           AND COALESCE((new_row->>'ingest_through_turn_seq')::bigint,0) >= COALESCE((old_row->>'ingest_through_turn_seq')::bigint,0)\n           AND COALESCE((new_row->>'consolidated_through_turn_seq')::bigint,0) >= COALESCE((old_row->>'consolidated_through_turn_seq')::bigint,0) THEN\n            ignored_change := true;\n        ELSIF TG_TABLE_NAME = 'privacy_subject_barriers'\n           AND old_row->'state' IS NOT DISTINCT FROM new_row->'state'\n           AND old_row->'epoch' IS NOT DISTINCT FROM new_row->'epoch' THEN\n            ignored_change := true;\n        END IF;\n    END IF;\n    FOR owner_id IN SELECT DISTINCT owner FROM unnest(ARRAY[old_owner,new_owner]) AS owner\n        WHERE owner IS NOT NULL ORDER BY owner\n    LOOP\n        -- A newly eligible/unregistered writer participates in the registry fence.\n        -- This never enrolls it or changes the approved source boundary.\n        PERFORM p.id FROM public.retention_preparations p\n         WHERE p.state IN ('building','prepared') AND NOT ignored_change\n           AND NOT EXISTS (SELECT 1 FROM public.retention_preparation_revisions r\n                WHERE r.preparation_id = p.id AND r.user_id = owner_id)\n           AND (TG_TABLE_NAME NOT IN ('conversation_checkpoints','retention_prepared_contracts')\n                OR (old_owner = owner_id AND (old_row->>'preparation_id')::uuid = p.id)\n                OR (new_owner = owner_id AND (new_row->>'preparation_id')::uuid = p.id))\n         ORDER BY p.id FOR KEY SHARE OF p;\n        FOR clock_entry IN\n            SELECT r.preparation_id,r.through_message_id\n              FROM public.retention_preparation_revisions r\n              JOIN public.retention_preparations p ON p.id = r.preparation_id\n             WHERE p.state IN ('building','prepared') AND r.user_id = owner_id\n               AND (TG_TABLE_NAME NOT IN ('conversation_checkpoints','retention_prepared_contracts')\n                    OR (old_owner = owner_id AND (old_row->>'preparation_id')::uuid = r.preparation_id)\n                    OR (new_owner = owner_id AND (new_row->>'preparation_id')::uuid = r.preparation_id))\n             ORDER BY r.preparation_id\n        LOOP\n            mutating := NOT ignored_change AND CASE WHEN TG_TABLE_NAME = 'messages' THEN\n                COALESCE(old_owner = owner_id AND (old_row->>'id')::bigint <= clock_entry.through_message_id,false)\n                OR COALESCE(new_owner = owner_id AND (new_row->>'id')::bigint <= clock_entry.through_message_id,false)\n                ELSE true END;\n            BEGIN\n                IF mutating THEN\n                    SELECT r.through_message_id INTO locked_through\n                      FROM public.retention_preparation_revisions r\n                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id\n                     FOR UPDATE NOWAIT;\n                ELSE\n                    SELECT r.through_message_id INTO locked_through\n                      FROM public.retention_preparation_revisions r\n                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id\n                     FOR SHARE NOWAIT;\n                END IF;\n                IF locked_through IS NULL THEN CONTINUE; END IF;\n                mutating := NOT ignored_change AND CASE WHEN TG_TABLE_NAME = 'messages' THEN\n                    COALESCE(old_owner = owner_id AND (old_row->>'id')::bigint <= locked_through,false)\n                    OR COALESCE(new_owner = owner_id AND (new_row->>'id')::bigint <= locked_through,false)\n                    ELSE true END;\n                IF mutating THEN\n                    -- A shared read can see a newly extended boundary. Upgrade\n                    -- only NOWAIT; concurrent upgrades fall back to events.\n                    PERFORM 1 FROM public.retention_preparation_revisions r\n                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id\n                     FOR UPDATE NOWAIT;\n                    UPDATE public.retention_preparation_revisions r SET revision = r.revision + 1\n                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id;\n                END IF;\n            EXCEPTION WHEN lock_not_available THEN\n                -- Never wait for another writer's clock while owning source rows.\n                -- Registry sharing orders both semantic events and ignored tails\n                -- against promotion; the clock itself is not an event FK target.\n                PERFORM p.id FROM public.retention_preparations p\n                 WHERE p.id = clock_entry.preparation_id AND p.state IN ('building','prepared')\n                 FOR KEY SHARE OF p;\n                IF NOT FOUND THEN CONTINUE; END IF;\n                SELECT r.through_message_id INTO locked_through\n                  FROM public.retention_preparation_revisions r\n                 WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id;\n                mutating := locked_through IS NOT NULL AND NOT ignored_change\n                    AND CASE WHEN TG_TABLE_NAME = 'messages' THEN\n                        COALESCE(old_owner = owner_id AND (old_row->>'id')::bigint <= locked_through,false)\n                        OR COALESCE(new_owner = owner_id AND (new_row->>'id')::bigint <= locked_through,false)\n                        ELSE true END;\n                IF mutating THEN\n                    INSERT INTO public.retention_preparation_revision_events(preparation_id,user_id)\n                    VALUES (clock_entry.preparation_id,owner_id);\n                END IF;\n            END;\n        END LOOP;\n    END LOOP;\n    RETURN NULL;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
       "public.claim_subscription_offer(uuid,text,text)": {
         "definition": "CREATE OR REPLACE FUNCTION public.claim_subscription_offer(p_user_id uuid, p_platform text, p_plan text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_config jsonb;\n  v_offer jsonb;\n  v_claim public.subscription_offer_claims%ROWTYPE;\nBEGIN\n  IF p_platform IS DISTINCT FROM 'android' THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  IF p_plan IS NULL OR p_plan NOT IN ('monthly', 'yearly') THEN RAISE EXCEPTION 'invalid offer selection'; END IF;\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  PERFORM 1 FROM public.profiles WHERE id = p_user_id AND nickname IS NOT NULL FOR UPDATE;\n  IF NOT FOUND THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  SELECT value INTO v_config FROM public.app_config WHERE key = 'subscription_launch';\n  IF (public.subscription_launch_access(p_user_id)->'legacy_offer_eligible') IS DISTINCT FROM 'true'::jsonb\n    THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  SELECT * INTO v_claim FROM public.subscription_offer_claims WHERE user_id = p_user_id;\n  IF FOUND AND (v_claim.platform <> p_platform OR v_claim.campaign_id <> v_config->>'campaign_id'\n    OR v_claim.redeemed_at IS NOT NULL) THEN RAISE EXCEPTION 'offer already selected'; END IF;\n  IF (public.subscription_offer_status(p_user_id)->'android_offer_ready') IS DISTINCT FROM 'true'::jsonb\n    THEN RAISE EXCEPTION 'offer unavailable'; END IF;\n  v_offer := v_config #> ARRAY['offers', 'android', p_plan];\n  IF v_claim.user_id IS NOT NULL THEN\n    UPDATE public.subscription_offer_claims SET plan = p_plan, product_id = v_offer->>'product_id',\n      base_plan_id = v_offer->>'base_plan_id', offer_id = v_offer->>'offer_id'\n    WHERE user_id = p_user_id RETURNING * INTO v_claim;\n  ELSE\n    INSERT INTO public.subscription_offer_claims(user_id, campaign_id, platform, plan, product_id, base_plan_id, offer_id)\n    VALUES(p_user_id, v_config->>'campaign_id', 'android', p_plan,\n      v_offer->>'product_id', v_offer->>'base_plan_id', v_offer->>'offer_id') RETURNING * INTO v_claim;\n  END IF;\n  RETURN jsonb_build_object('platform', 'android', 'plan', p_plan, 'product_id', v_claim.product_id,\n    'base_plan_id', v_claim.base_plan_id, 'offer_id', v_claim.offer_id);\nEND;\n$function$\n",
         "owner": "postgres"
@@ -10181,6 +10721,14 @@
       },
       "public.normalize_profile_language()": {
         "definition": "CREATE OR REPLACE FUNCTION public.normalize_profile_language()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nBEGIN\n  NEW.language := public.normalize_content_language(NEW.language);\n  RETURN NEW;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
+      "public.reset_retention_pressure_generation()": {
+        "definition": "CREATE OR REPLACE FUNCTION public.reset_retention_pressure_generation()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nBEGIN\n  IF NEW.memory_generation IS DISTINCT FROM OLD.memory_generation THEN\n    NEW.retention_pressure_through_message_id := NULL;\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n",
+        "owner": "postgres"
+      },
+      "public.reset_retention_pressure_privacy()": {
+        "definition": "CREATE OR REPLACE FUNCTION public.reset_retention_pressure_privacy()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  IF NEW.state <> 'active' OR (TG_OP = 'UPDATE' AND NEW.epoch IS DISTINCT FROM OLD.epoch) THEN\n    UPDATE public.chat_contexts SET retention_pressure_through_message_id = NULL\n    WHERE user_id = NEW.user_id AND retention_pressure_through_message_id IS NOT NULL;\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n",
         "owner": "postgres"
       },
       "public.set_updated_at()": {
@@ -10516,8 +11064,17 @@
         "unique": true,
         "valid": true
       },
+      "public.conversation_checkpoints_prepared_window_uq": {
+        "definition": "CREATE UNIQUE INDEX conversation_checkpoints_prepared_window_uq ON public.conversation_checkpoints USING btree (preparation_id, user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text) AND (preparation_id IS NOT NULL))",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.conversation_checkpoints",
+        "unique": true,
+        "valid": true
+      },
       "public.conversation_checkpoints_published_window_uq": {
-        "definition": "CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text))",
+        "definition": "CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text) AND (preparation_id IS NULL))",
         "exclusion": false,
         "options": [],
         "ready": true,
@@ -11521,6 +12078,87 @@
         "options": [],
         "ready": true,
         "table_name": "public.relationship_profile_renders",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_preparation_revision_events_pkey": {
+        "definition": "CREATE UNIQUE INDEX retention_preparation_revision_events_pkey ON public.retention_preparation_revision_events USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_preparation_revision_events",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_preparation_revision_events_subject_idx": {
+        "definition": "CREATE INDEX retention_preparation_revision_events_subject_idx ON public.retention_preparation_revision_events USING btree (preparation_id, user_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_preparation_revision_events",
+        "unique": false,
+        "valid": true
+      },
+      "public.retention_preparation_revisions_pkey": {
+        "definition": "CREATE UNIQUE INDEX retention_preparation_revisions_pkey ON public.retention_preparation_revisions USING btree (preparation_id, user_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_preparation_revisions",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_preparation_revisions_user_idx": {
+        "definition": "CREATE INDEX retention_preparation_revisions_user_idx ON public.retention_preparation_revisions USING btree (user_id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_preparation_revisions",
+        "unique": false,
+        "valid": true
+      },
+      "public.retention_preparations_one_active_uq": {
+        "definition": "CREATE UNIQUE INDEX retention_preparations_one_active_uq ON public.retention_preparations USING btree (state) WHERE (state = 'active'::text)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_preparations",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_preparations_pkey": {
+        "definition": "CREATE UNIQUE INDEX retention_preparations_pkey ON public.retention_preparations USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_preparations",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_prepared_contracts_live_uq": {
+        "definition": "CREATE UNIQUE INDEX retention_prepared_contracts_live_uq ON public.retention_prepared_contracts USING btree (preparation_id, user_id, memory_generation, locale) WHERE (status = ANY (ARRAY['ready'::text, 'published'::text]))",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_prepared_contracts",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_prepared_contracts_pkey": {
+        "definition": "CREATE UNIQUE INDEX retention_prepared_contracts_pkey ON public.retention_prepared_contracts USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_prepared_contracts",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_prepared_contracts_version_uq": {
+        "definition": "CREATE UNIQUE INDEX retention_prepared_contracts_version_uq ON public.retention_prepared_contracts USING btree (preparation_id, user_id, memory_generation, locale, version)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_prepared_contracts",
         "unique": true,
         "valid": true
       },
@@ -14788,6 +15426,81 @@
       "public.relationship_profile_renders:service_role:UPDATE": {
         "grantable": false
       },
+      "public.retention_preparation_revision_events:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.retention_preparation_revisions:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.retention_preparation_revisions:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.retention_preparation_revisions:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.retention_preparation_revisions:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.retention_preparation_revisions:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.retention_preparation_revisions:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.retention_preparation_revisions:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.retention_preparation_revisions:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:UPDATE": {
+        "grantable": false
+      },
       "public.revenuecat_events:anon:DELETE": {
         "grantable": false
       },
@@ -16201,6 +16914,15 @@
         "start": 1,
         "type": "bigint"
       },
+      "public.retention_preparation_revision_events_id_seq": {
+        "cache": 1,
+        "cycle": false,
+        "increment": 1,
+        "max": 9223372036854775807,
+        "min": 1,
+        "start": 1,
+        "type": "bigint"
+      },
       "public.routine_completions_id_seq": {
         "cache": 1,
         "cycle": false,
@@ -16571,6 +17293,34 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.retention_preparation_revision_events": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.retention_preparation_revisions": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.retention_preparations": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.retention_prepared_contracts": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.revenuecat_events": {
         "options": [],
         "owner": "postgres",
@@ -16793,6 +17543,38 @@
         "definition": "CREATE TRIGGER chat_contexts_normalized_snapshot_guard BEFORE INSERT OR UPDATE ON public.chat_contexts FOR EACH ROW EXECUTE FUNCTION public.guard_normalized_memory_snapshot()",
         "enabled": "O"
       },
+      "public.chat_contexts.chat_contexts_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER chat_contexts_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.chat_contexts FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
+        "enabled": "O"
+      },
+      "public.chat_contexts.chat_contexts_retention_pressure_generation": {
+        "definition": "CREATE TRIGGER chat_contexts_retention_pressure_generation BEFORE UPDATE OF memory_generation ON public.chat_contexts FOR EACH ROW EXECUTE FUNCTION public.reset_retention_pressure_generation()",
+        "enabled": "O"
+      },
+      "public.conversation_checkpoints.conversation_checkpoints_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER conversation_checkpoints_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.conversation_checkpoints FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
+        "enabled": "O"
+      },
+      "public.mem0_ingest_candidates.mem0_ingest_candidates_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER mem0_ingest_candidates_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.mem0_ingest_candidates FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
+        "enabled": "O"
+      },
+      "public.mem0_memory_registry.mem0_memory_registry_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER mem0_memory_registry_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.mem0_memory_registry FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
+        "enabled": "O"
+      },
+      "public.mem0_memory_sources.mem0_memory_sources_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER mem0_memory_sources_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.mem0_memory_sources FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
+        "enabled": "O"
+      },
+      "public.memory_pipeline_states.memory_pipeline_states_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER memory_pipeline_states_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.memory_pipeline_states FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
+        "enabled": "O"
+      },
+      "public.messages.messages_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER messages_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.messages FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
+        "enabled": "O"
+      },
       "public.orders.orders_set_updated_at": {
         "definition": "CREATE TRIGGER orders_set_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.set_updated_at()",
         "enabled": "O"
@@ -16801,8 +17583,20 @@
         "definition": "CREATE CONSTRAINT TRIGGER payments_cleanup_unowned_subscription AFTER DELETE ON public.payments DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION public.cleanup_unowned_subscription()",
         "enabled": "O"
       },
+      "public.privacy_subject_barriers.privacy_subject_barriers_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER privacy_subject_barriers_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.privacy_subject_barriers FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
+        "enabled": "O"
+      },
+      "public.privacy_subject_barriers.privacy_subject_barriers_retention_pressure": {
+        "definition": "CREATE TRIGGER privacy_subject_barriers_retention_pressure AFTER INSERT OR UPDATE OF state, epoch ON public.privacy_subject_barriers FOR EACH ROW EXECUTE FUNCTION public.reset_retention_pressure_privacy()",
+        "enabled": "O"
+      },
       "public.profiles.profiles_create_privacy_barrier": {
         "definition": "CREATE TRIGGER profiles_create_privacy_barrier AFTER INSERT ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.create_privacy_barrier_for_profile()",
+        "enabled": "O"
+      },
+      "public.profiles.profiles_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER profiles_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
         "enabled": "O"
       },
       "public.profiles.profiles_set_updated_at": {
@@ -16811,6 +17605,10 @@
       },
       "public.profiles.trg_normalize_profile_language": {
         "definition": "CREATE TRIGGER trg_normalize_profile_language BEFORE INSERT OR UPDATE OF language ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.normalize_profile_language()",
+        "enabled": "O"
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_retention_preparation_revision": {
+        "definition": "CREATE TRIGGER retention_prepared_contracts_retention_preparation_revision AFTER INSERT OR DELETE OR UPDATE ON public.retention_prepared_contracts FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()",
         "enabled": "O"
       },
       "public.routines.routines_set_updated_at": {
@@ -16827,5 +17625,5 @@
       }
     }
   },
-  "schema_sha256": "e5929c8dc95a01842822ff94be432d8df791244ffdbf91820310d3f94a403e7a"
+  "schema_sha256": "db5e2a88d9d291e08e650ec7dd330a5c554e4d94edbc9bfbc27c78cf4d690dfd"
 }

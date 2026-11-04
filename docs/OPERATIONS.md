@@ -589,7 +589,8 @@ JSON 데이터가 저장된 뒤에는 컬럼을 삭제하거나 이 컬럼을 �
 `49f1f9940a49f2315414d8bff3beea9836cf62af`의 가드레일·맥락 변경과 무중단 준비 경로를
 통합한다. 구독 환불, 루틴, 일상 연습, 교정 원고, OpenAPI와 기존 배포 workflow는 보존한다.
 사용자별 기능 목록, 노출 비율, A/B 적용은 없다. 준비 자료를 검증한 뒤 전역 포인터와 설정을
-한 트랜잭션에서 바꾸며, 이후 새 요청부터 전체 사용자가 같은 활성 자료를 읽는다.
+한 트랜잭션에서 바꾸며, 이후 새 요청부터 전체 사용자가 같은 활성 자료를 읽는다. 준비 자료의
+행별 일괄 상태 변경을 최종 전환에 넣지 않고, 준비 단계에서 검증 가능한 checkpoint를 seal한다.
 
 **준비 중에도 공개 대화·일반 worker·결제/환불 webhook·인증·스케줄러를 계속 운영한다.**
 기존 공개 계약과 요약을 준비 자료로 덮어쓰거나 공개 원문을 줄이지 않는다. 준비 계약과 요약은
@@ -613,6 +614,9 @@ reader의 기능 허용 목록이 아니다. 개인정보 삭제 중/완료 계�
 | `db/changes/guard_context_online.sql` | metadata에 포함된 무중단 준비 구조. 최초 운영 도입 시 중복 실행하지 않음 |
 | `db/changes/guard_context_online_proof.sql` | 이전 online 구조가 이미 있는 개발 DB에 `validation_json` 한 컬럼과 object CHECK만 추가. 최초 운영 metadata에는 이미 포함 |
 | `db/changes/guard_context_online_indexes.sql` | 이미 online 구조가 있는 개발 DB의 게시 unique를 기존 NULL 준비 영역/각 준비 ID 영역으로 분리. 최초 운영 metadata에는 이미 포함 |
+| `db/changes/guard_context_online_revision_fence.sql` | 이벤트 보완 전 sentinel 도입의 검토 참조. 최신 DB에 이전 함수를 재적용하지 않음 |
+| `db/changes/guard_context_online_revision_events.sql` | 이미 revision/sentinel이 있는 개발 DB에 이벤트 테이블과 최신 NOWAIT 함수를 추가. 기존 clock/trigger/원문은 유지 |
+| `db/changes/guard_context_online_revisions.sql` | 준비 subject의 변경 revision과 원 writer TX의 잠금 fence. 최초 metadata와 기존 개발 DB 추가에 같은 정의 사용 |
 | `db/changes/guard_context_release_disable.sql` | 두 쓰기 기능 OFF. 활성 준비 포인터와 읽기 호환성·기존 자료는 유지 |
 | `scripts/prepare_guard_context_release.py` | `plan`·`start`·`catch-up`·`audit`·`activate`·`abort`. 모델/provider 호출 없이 준비 예약·감사·원자 전환 수행 |
 | `scripts/run_guard_context_preparation_worker.py` | 지정한 준비 ID의 building 계약/checkpoint만 처리. 일반 소비자와 별도 실행 |
@@ -641,29 +645,38 @@ JSON null이며, 이미 있는 포인터는 DDL로 덮어쓰지 않는다.
   1초 제한을 쓴다. 실제 전체 규모에서 이 제한 안에 끝나는지는 별도 측정 대상이다.
   제한을 늘리거나 검사 항목을 빼서 성공시키지 않는다.
 
-기존 개발 DB에서는 최초 online DDL의 신규 테이블·제약·index·권한이 예상 catalog와 일치했다.
-proof addon을 포함한 최신 전체 계약, 무중단 경합·운영 규모·운영 API 검증의 완료 여부는 각
-검사 산출물로 확인한다. 이전 후보의 단위 검사나 유지보수 방식 시험을 새 승격 경로의 증명으로
-대신하지 않는다. 2026-11-04 운영 metadata 읽기 점검은 당시 main 계약과 차이가 없었으나,
-실제 적용 직전에 새 metadata와 원문 처리 경계를 다시 확인한다.
+최종 개발 DB catalog에서 이번 가드 변경의 컬럼 39개, 제약 28개, 함수 3개, 인덱스 11개,
+권한 25개, sequence 1개, 테이블 4개와 trigger 12개가 후보 계약과 일치했다. 기존 dev/main의
+일상 연습 테이블 부재와 구독 함수 차이는 별도로 남겨 전체 catalog 일치로 처리하지 않았다.
+이번 변경을 위해 그 기능의 개발 DB 구조를 임의로 바꾸지 않는다. 2026-11-04 운영 metadata
+읽기 점검은 당시 main 계약과 차이가 없었으나 실제 적용 직전에 현재 metadata와 원문 처리
+경계를 다시 확인한다.
 
-### 현재 검증 판정 (2026-11-04 16:45 KST)
+### 현재 검증 판정 (2026-11-04)
 
-**운영 배포 보류.** 단위 검사 5,334개, 개발 DB의 원문/계약/처리 완료 경계 43개,
-분리 DDL 잠금 검사 2개는 통과했다. 준비와 전환의 충돌에서는 전환을 rollback하며
-공개 대화를 정지하지 않는다. 첫 SQL shape 오류와 원인 미확정 실패·잠금 충돌은
-최신 통과 결과에 합쳐 지우지 않고 별도로 보존했다.
+단위 검사 5,388개, 개발 DB의 온라인 승격·비공개 읽기·분리 DDL 잠금 검사 34개와
+revision/event·동시 작성자·등록 경계 검사 36개를 통과했다. 별도 에이전트가 최종 잠금 순서,
+원문/출처/계약/요약 검증의 유지, 최초 감사 기한과 재시도 제한을 다시 검토했다.
+Ruff·diff 검사와 전체 후보 134개 파일의 비밀값 검사도 통과했다. 구독·루틴·일상 연습·훈련의
+제품 코드, OpenAPI와 기존 배포 workflow는 운영 기준 main64와 동일하다.
 
 최종 규모 시험은 합성 사용자 3,207명, 기억/근거 각각 43,000행, 원문 6,414행,
-요약/계약 각각 3,207행으로 수행했다. 행 증명 잠금 712ms와 처리 완료 확인 153ms는
-개선됐지만, 전체 활성화는 1초 제한에서 timeout으로 rollback됐다. 활성화 commit과
-운영 변경은 0회이며 합성 auth 잔여는 0건이다. 전체 감사 대신 성능용 token을 사용한
-시험이므로 운영 자료의 준비 완료를 증명하지 않는다. 실제 원문 규모를 축소하거나,
-서비스를 멈추거나, 시간 제한을 늘려 통과로 처리하지 않는다.
+요약/계약 각각 3,207행으로 수행했다. 전환 직전의 전체 자료 재해시는 없애고, 준비 단계에서
+전체 근거를 감사한 뒤 원 writer 트랜잭션의 변경번호/이벤트로 변경 여부를 증명한다.
+검증·잠금·전역 게시·caller의 savepoint commit까지 같은 1초 안에 측정한다.
+연결 확보·metadata payload 업로드·비공개 seal은 전환 잠금 전에 별도로 수행한다.
+동일 제품 코드로 세 번 측정해 **947.51ms, 922.57ms, 703.35ms**로 모두 통과했다.
+최대값은 947.51ms이며 네트워크/부하 변화에서도 항상 1초 내 성공한다는 보장은 아니다.
+제한 초과 시 전환만 rollback하고 공개 서비스는 유지한다. 이전 전체 재해시 방식의 timeout
+기록도 보존하며 최신 성공 결과로 덮어쓰지 않는다.
 
-전환 순간의 전체 행 검증 비용이 남은 차단 사유다. 이 판정이 해소되기 전에는
-후보를 운영 배포 가능으로 승인하지 않는다. 앞선 유지보수 방식 검사나 작은 fixture의
-성공을 전체 규모 전환의 성공으로 대신하지 않는다.
+성능용 token과 8명 표본 감사를 사용한 합성 시험은 운영 전체 자료의 감사 완료나 실제
+운영 commit/WAL 내구성·실제 원문량의 대표성을 증명하지 않는다. 전역 실 commit·운영 변경은
+0회이며 시험 뒤 합성 auth 잔여도 0건이다. 실제 배포 때 같은 SHA의 전체 감사와 현재 상태
+확인, 운영 API 점검을 아래 순서대로 수행해야 한다. 운영 PR·push·배포는 실행하지 않았다.
+현재 개발 API 배포 SHA는 dev49이며 이 운영 후보 이미지의 API 배포 검증을 대신하지 않는다.
+이번 세션의 개발 `/health/ready` 외부 요청은 timeout으로 확인하지 못했으므로, 정상 응답으로
+기록하지 않았다. 실제 이미지 배포 시 health/API 확인은 별도로 수행한다.
 
 ### 준비와 원자 전환 순서
 
@@ -690,10 +703,29 @@ proof addon을 포함한 최신 전체 계약, 무중단 경합·운영 규모·
    갱신한다. 같은 준비 ID를 유지한다. 새 경계의 작업이 끝나면 `audit`로 전체 처리 근거와
    durable 계약 chain, 요약 원자/해시, 현재 세대·권한·미처리 tail의 입력 예산을 검사한다.
    `async_jobs` payload가 만료됐다고 처리 근거를 잃지 않도록 계약 행의 증명을 사용한다.
-6. `activate`는 긴 감사를 다시 수행하고, 마지막 1초 트랜잭션에서 감사 대상 행·현재 tail·처리
-   완료를 재확인한다. 준비 계약/요약 게시와 registry active, 전역 포인터·guard/retention
-   설정을 함께 commit한다. 기존 공개 자료는 수정하지 않는다. 봉인 경계 뒤에 붙은 대화는
-   삭제하지 않고 미처리 원문으로 유지한다.
+6. `activate`는 먼저 비공개 준비 checkpoint의 완성 증명 형태를 확인해 `activation_sealed`
+   표시를 저장·commit한다. 이 seal만으로 자료가 공개되지는 않는다. 이어서 새 **REPEATABLE
+   READ READ ONLY 감사**에서 전체 원문·기억 근거·계약 durable chain·요약 proof와 처리 완료를
+   검증하고 같은 snapshot의 등록 경계와 유효 revision을 읽는다. 변경된 subject의 재감사도
+   RR 읽기 전용으로 수행하며 원래 token 기한과 재시도 제한을 늘리지 않는다.
+   마지막 1초 전환 TX는 **READ COMMITTED**로 실행한다. registry FOR UPDATE NOWAIT를 먼저
+   잡고, 등록 clock을 사용자 순서로 FOR UPDATE NOWAIT 잠근 뒤 유효 revision과 대상/경계를
+   비교한다. 유효 번호는 base revision+COUNT(events)이며 sequence MAX는 쓰지 않는다.
+   이 단계에서 전체 기억/근거를 재해시하거나 source 전체 테이블을 SHARE로 잠그지 않는다.
+   권한·인구 metadata, 현재 >T tail과 입력 예산은 최신 상태로 확인하며 필요한 tail 행 잠금은
+   유지한다. 서로 다른 snapshot을 묶지 않도록 최종 TX에서 RR은 거부한다.
+   원 writer는 clock을 기다리며 source 행을 보유하지 않는다. semantic 변경은 clock UPDATE
+   NOWAIT 성공 시 번호를 올리고, 경합 시 append-only event를 넣는다. ignored 변경/>T append는
+   clock SHARE NOWAIT를 쓰고 경합하면 번호/event 변경 없이 registry KEY SHARE로 우회한다.
+   미등록 subject의 의미 변경도 registry KEY SHARE에 참여한다. event의 registry FK와 이
+   SHARE가 최종 registry UPDATE와 변경 전/후를 직렬화하며 clock 복합 FK는 두지 않는다.
+   모든 source writer는 기술 sentinel을 SHARE로 잡고, 신규 등록/경계 확장은 같은 행을 UPDATE해
+   등록 전 writer와 직렬화한다. 오래된 RR writer snapshot은 40001로 거부한다. 준비가 없을 때도
+   sentinel 잠금에 참여하되 원문 JSON 복사는 건너뛴다.
+   최종 commit은 registry active, 전역 포인터·guard/retention 설정과 남은 준비 작업 취소만
+   함께 반영한다. seal한 checkpoint와 준비 계약의 ready 행을 대량 UPDATE하지 않는다. 활성
+   reader는 같은 준비 ID의 sealed ready/published checkpoint와 ready/published 계약을 읽으며
+   draft 계약은 읽지 않는다. 기존 공개 자료와 봉인 경계 뒤에 붙은 미처리 원문은 유지한다.
 7. 경합·원문 변경·시간 초과가 나면 전체 승격을 rollback하여 기존 공개 경로를 그대로 유지한다.
    새 출력 경로로 원인을 확인한 뒤 필요한 `catch-up`·감사를 다시 수행한다. 부분 승격이나
    활성화 SQL 직접 실행으로 우회하지 않는다. 성공 시 준비 worker를 SIGTERM으로 드레인하고
@@ -722,7 +754,7 @@ CHECK가 모두 있어야 하며, 이미 swap이 완료됐다면 최종 이름/�
 ```bash
 # 각 파일은 먼저 rollback으로 검사하고, 같은 파일/SHA의 실반영에만 --commit --allow-prod를 추가한다.
 # metadata를 실제 commit한 다음에만 네 검증 파일을 순서대로 각각 실행한다.
-uv run python -m db.apply db/changes/guard_context_release_metadata.sql --env "$GUARD_ENV" --statement-timeout-ms 750 --expected-sha256 ac301fa19843b80862857a50c76bf53bd3728001b964d03fd696b30fa3e21893
+uv run python -m db.apply db/changes/guard_context_release_metadata.sql --env "$GUARD_ENV" --statement-timeout-ms 750 --expected-sha256 bdbd5dbb558e851d95625cd8c93f7353c888627228e7e0c7832e99f2a8e832e7
 uv run python -m db.apply db/changes/guard_context_release_validate_messages.sql --env "$GUARD_ENV" --statement-timeout-ms 60000 --expected-sha256 a409e9b06001a0f0c6b131bcde9b0b918049aaf7cf9f035a0c947636e21f8f89
 uv run python -m db.apply db/changes/guard_context_release_validate_registry.sql --env "$GUARD_ENV" --statement-timeout-ms 60000 --expected-sha256 a6edfd65a9e844f342a7516dc7d4330a0d6b3a65e52a5724eadc012e540d0061
 uv run python -m db.apply db/changes/guard_context_release_validate_candidates.sql --env "$GUARD_ENV" --statement-timeout-ms 60000 --expected-sha256 c54834fb758936b6559ff6950fce63b4ddc1c6797c734187f21140af97265507

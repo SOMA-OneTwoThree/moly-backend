@@ -400,3 +400,193 @@ async def _prepare_bound(session, expected, monkeypatch):
     monkeypatch.setattr(retention_release, "require_binding", AsyncMock())
     with use_binding(Binding(identity, True)):
         return await tool.prepare_user(session, expected, preparation_id=identity)
+
+
+@pytest.mark.parametrize('failure_stage', [None, 'warm', 'prepare'])
+async def test_cli_connection_warmup_precedes_critical_deadline_without_publication_locks(monkeypatch, failure_stage, capsys):
+    import asyncio
+    import time
+    import sqlalchemy.ext.asyncio
+
+    events = []
+    class SessionContext:
+        def __init__(self, final=False):
+            self.final = final
+            self.commit = AsyncMock(side_effect=lambda: events.append(('commit', time.monotonic())))
+            self.rollback = AsyncMock()
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            return None
+        async def execute(self, statement, params=None):
+            query = str(statement)
+            if self.final:
+                assert query == 'SELECT 1'  # No source, registry or control lock/query.
+                await asyncio.sleep(.08)
+                if failure_stage == 'warm':
+                    raise RuntimeError('synthetic_warmup_failure')
+                events.append(('warm_done', time.monotonic()))
+            return Result([])
+    seal, audit, final = SessionContext(), SessionContext(), SessionContext(True)
+    seal.commit = AsyncMock(side_effect=lambda: events.append(('seal_commit', time.monotonic())))
+    sessions = iter([seal, audit, final])
+    engine = SimpleNamespace(dispose=AsyncMock())
+    monkeypatch.setattr(sqlalchemy.ext.asyncio, 'create_async_engine', lambda *a, **kw: engine)
+    monkeypatch.setattr(sqlalchemy.ext.asyncio, 'async_sessionmaker', lambda *a, **kw: lambda: next(sessions))
+    identity, sha = uuid.uuid4(), 'a'*40
+    report = {'ready': True, 'preparation_id': str(identity)}
+    token = SimpleNamespace(report=report, created_monotonic=time.monotonic())
+    monkeypatch.setattr(promotion, 'registry', AsyncMock(return_value={'state': 'prepared',
+        'code_sha': sha, 'manifest_json': {'project_ref': DEV}}))
+    async def seal_private(session, value):
+        assert session is seal and value == identity
+        events.append(('seal', time.monotonic()))
+        return 1
+    monkeypatch.setattr(promotion, 'seal_preparation', AsyncMock(side_effect=seal_private))
+    async def full_audit(session, value):
+        assert session is audit and value == identity
+        seal.commit.assert_awaited_once()
+        events.append(('audit', time.monotonic()))
+        return token
+    monkeypatch.setattr(promotion, 'audit_preparation', AsyncMock(side_effect=full_audit))
+    from app.services import retention_activation_db
+    prepared_value = object()
+    async def prepare(session, value):
+        assert session is final and value is token
+        assert events[-1][0] == 'warm_done'
+        await asyncio.sleep(.08)
+        if failure_stage == 'prepare':
+            raise RuntimeError('synthetic_prepare_failure')
+        events.append(('prepared', time.monotonic()))
+        return prepared_value
+    preparation = AsyncMock(side_effect=prepare)
+    monkeypatch.setattr(retention_activation_db, 'prepare_envelope', preparation)
+    async def activate(session, value, *, deadline, prepared):
+        prepare_done = next(at for name, at in events if name == 'prepared')
+        assert deadline-prepare_done >= .99  # Neither connection nor payload setup consumes the window.
+        assert prepared is prepared_value
+        assert 0 < deadline-time.monotonic() <= 1
+        assert session is final and value is token
+        events.append(('activate', time.monotonic()))
+        return report
+    publication = AsyncMock(side_effect=activate)
+    monkeypatch.setattr(promotion, 'activate', publication)
+    monkeypatch.setattr(tool, 'write_private', lambda *args: None)
+    args = SimpleNamespace(action='activate', preparation_id=identity,
+        expected_code_sha=sha, expected_project_ref=DEV)
+    if failure_stage is not None:
+        with pytest.raises(RuntimeError, match='synthetic_(warmup|prepare)_failure'):
+            await tool._run(args, dsn(), object())
+        publication.assert_not_awaited()
+        final.commit.assert_not_awaited()
+        final.rollback.assert_awaited_once()
+        if failure_stage == 'warm':
+            preparation.assert_not_awaited()
+    else:
+        assert await tool._run(args, dsn(), object()) == 0
+        assert [name for name, _ in events] == ['seal', 'seal_commit', 'audit', 'warm_done', 'prepared', 'activate', 'commit']
+        final.commit.assert_awaited_once()
+        assert json.loads(capsys.readouterr().out)['ready'] is True
+    engine.dispose.assert_awaited_once()
+
+
+async def test_cli_basic_audit_never_seals_or_commits(monkeypatch, capsys):
+    import sqlalchemy.ext.asyncio
+    class ReadOnlySession:
+        def __init__(self):
+            self.execute = AsyncMock(return_value=Result([]))
+            self.rollback = AsyncMock()
+            self.commit = AsyncMock(side_effect=AssertionError('audit_must_not_commit'))
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            return None
+    session = ReadOnlySession()
+    engine = SimpleNamespace(dispose=AsyncMock())
+    monkeypatch.setattr(sqlalchemy.ext.asyncio, 'create_async_engine', lambda *a, **kw: engine)
+    monkeypatch.setattr(sqlalchemy.ext.asyncio, 'async_sessionmaker', lambda *a, **kw: lambda: session)
+    seal = AsyncMock(side_effect=AssertionError('audit_must_not_seal'))
+    monkeypatch.setattr(promotion, 'seal_preparation', seal)
+    sha, identity = 'a'*40, uuid.uuid4()
+    monkeypatch.setattr(promotion, 'registry', AsyncMock(return_value={'state': 'prepared',
+        'code_sha': sha, 'manifest_json': {'project_ref': DEV}}))
+    monkeypatch.setattr(promotion, 'audit_preparation', AsyncMock(return_value=SimpleNamespace(report={'ready':True})))
+    monkeypatch.setattr(tool, 'write_private', lambda *args: None)
+    args = SimpleNamespace(action='audit', preparation_id=identity, expected_code_sha=sha,
+        expected_project_ref=DEV)
+    assert await tool._run(args, dsn(), object()) == 0
+    assert 'READ ONLY' in str(session.execute.await_args.args[0])
+    seal.assert_not_awaited()
+    session.commit.assert_not_awaited()
+    session.rollback.assert_awaited_once()
+    capsys.readouterr()
+
+
+@pytest.mark.parametrize('dirty_attempts,success', [(1, True), (3, False)])
+async def test_cli_refreshes_only_dirty_subjects_after_rollback_with_three_attempt_limit(monkeypatch, dirty_attempts, success, capsys):
+    import time
+    import sqlalchemy.ext.asyncio
+    from app.services import retention_activation_db
+    sessions = []
+    class OwnedSession:
+        def __init__(self):
+            self.closed = False
+            self.execute = AsyncMock(return_value=Result([]))
+            self.rollback, self.commit = AsyncMock(), AsyncMock()
+            sessions.append(self)
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            self.closed = True
+    engine = SimpleNamespace(dispose=AsyncMock())
+    monkeypatch.setattr(sqlalchemy.ext.asyncio, 'create_async_engine', lambda *a, **kw: engine)
+    monkeypatch.setattr(sqlalchemy.ext.asyncio, 'async_sessionmaker', lambda *a, **kw: OwnedSession)
+    identity, subject, sha = uuid.uuid4(), uuid.uuid4(), 'a'*40
+    created = time.monotonic()
+    report = {'ready':True, 'preparation_id':str(identity)}
+    initial = SimpleNamespace(report=report, created_monotonic=created, revision=0)
+    monkeypatch.setattr(promotion, 'registry', AsyncMock(return_value={'state':'prepared',
+        'code_sha':sha,'manifest_json':{'project_ref':DEV}}))
+    monkeypatch.setattr(promotion, 'seal_preparation', AsyncMock(return_value=0))
+    audit = AsyncMock(return_value=initial)
+    monkeypatch.setattr(promotion, 'audit_preparation', audit)
+    prepared_values = []
+    async def prepare(session, token):
+        value = object()
+        prepared_values.append(value)
+        return value
+    monkeypatch.setattr(retention_activation_db, 'prepare_envelope', AsyncMock(side_effect=prepare))
+    seen = []
+    async def activate(session, token, *, deadline, prepared):
+        assert token.created_monotonic == created
+        assert prepared is prepared_values[-1]
+        assert 0 < deadline-time.monotonic() <= 1
+        seen.append(token)
+        if len(seen) <= dirty_attempts:
+            raise promotion.AuditRefreshRequired([subject])
+        return report
+    monkeypatch.setattr(promotion, 'activate', AsyncMock(side_effect=activate))
+    async def refresh(maker, token, subjects):
+        assert subjects == (subject,)
+        assert sessions[-1].closed  # Entire failed publication TX released first.
+        sessions[-1].rollback.assert_awaited_once()
+        sessions[-1].commit.assert_not_awaited()
+        return SimpleNamespace(report=report, created_monotonic=created, revision=token.revision+1)
+    refresher = AsyncMock(side_effect=refresh)
+    monkeypatch.setattr(promotion, 'refresh_audit_subjects', refresher)
+    monkeypatch.setattr(tool, 'write_private', lambda *args: None)
+    args = SimpleNamespace(action='activate', preparation_id=identity,
+        expected_code_sha=sha, expected_project_ref=DEV)
+    if success:
+        assert await tool._run(args, dsn(), object()) == 0
+        assert len(seen) == 2 and seen[1].revision == 1
+        sessions[-1].commit.assert_awaited_once()
+        assert json.loads(capsys.readouterr().out)['ready'] is True
+    else:
+        with pytest.raises(promotion.AuditRefreshRequired):
+            await tool._run(args, dsn(), object())
+        assert len(seen) == 3
+        assert all(s.commit.await_count == 0 for s in sessions[2:])
+    assert refresher.await_count == (1 if success else 2)
+    audit.assert_awaited_once()  # No automatic full-population audit loop.
+    engine.dispose.assert_awaited_once()

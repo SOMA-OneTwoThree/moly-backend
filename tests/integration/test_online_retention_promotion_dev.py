@@ -96,6 +96,7 @@ async def online_promotion_db(monkeypatch):
             await s.execute(text("INSERT INTO retention_preparations(id,state,code_sha,manifest_json) "
                 "VALUES(:p,'building',:sha,CAST(:m AS jsonb))"),
                 {'p': identity, 'sha': 'a'*40, 'm': json.dumps(manifest)})
+            await promotion.enroll_source_revisions(s, identity, manifest)
             # An old public row proves the OFF reader is unchanged by preparation.
             with use_binding(None):
                 old = await repo.insert(s, user_id=uid, through_message_id=plan.through,
@@ -158,6 +159,9 @@ class SimpleFixture:
 
     async def audit(self):
         async with self.maker() as s:
+            await promotion.seal_preparation(s, self.identity)
+            await s.commit()  # Only private completion metadata, never the global pointer.
+        async with self.maker() as s:
             await s.execute(text('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY'))
             token = await promotion.audit_preparation(s, self.identity)
             await s.rollback()
@@ -172,6 +176,17 @@ class SimpleFixture:
                           {'c': self.staged}) == 'ready', 'checkpoint_not_rolled_back')
 
 
+async def prepare_activation(session, token):
+    from app.services.retention_activation_db import prepare_envelope
+    await session.execute(text('SELECT 1'))
+    return await prepare_envelope(session, token)
+
+
+async def activate_prepared(session, token):
+    prepared = await prepare_activation(session, token)
+    return await promotion.activate(session, token, deadline=time.monotonic()+1, prepared=prepared)
+
+
 class ActivationDiagnostic(Exception):
     def __init__(self, kind, sqlstate, stage):
         self.kind, self.sqlstate, self.stage = kind, sqlstate, stage
@@ -179,6 +194,8 @@ class ActivationDiagnostic(Exception):
 
 def sql_stage(statement):
     sql = str(statement)
+    if 'WITH checkpoint_publication AS' in sql:
+        return 'publication'
     if 'locked_0' in sql:
         return 'row_snapshot'
     if 'SELECT user_id,id,sender' in sql:
@@ -207,6 +224,12 @@ def sql_stage(statement):
 async def activate_traced(session, token, *, label):
     steps = []
     class SessionTrace:
+        def in_transaction(self):
+            return session.in_transaction()
+
+        async def connection(self):
+            return await session.connection()
+
         async def call(self, method, sql, params=None):
             entry = {'stage': sql_stage(sql), 'completed': False}
             steps.append(entry)
@@ -221,10 +244,15 @@ async def activate_traced(session, token, *, label):
             return await self.call('execute', sql, params)
         async def scalar(self, sql, params=None):
             return await self.call('scalar', sql, params)
+    trace = SessionTrace()
+    setup_started = time.monotonic()
+    prepared = await prepare_activation(trace, token)
+    setup_ms = round((time.monotonic()-setup_started)*1000, 2)
+    steps.clear()
     result, failure = None, None
     started = time.monotonic()
     try:
-        result = await promotion.activate(SessionTrace(), token, deadline=started+1)
+        result = await promotion.activate(trace, token, deadline=started+1, prepared=prepared)
     except Exception as exc:
         original = getattr(exc, 'orig', None)
         state = getattr(original, 'sqlstate', None)
@@ -233,7 +261,7 @@ async def activate_traced(session, token, *, label):
     directory = Path('/private/tmp/moly-online-promotion-dev-20261104')
     target = directory / 'activation-traces.json'
     previous = json.loads(target.read_text()) if target.exists() else []
-    previous.append({'case': label, 'success': failure is None,
+    previous.append({'case': label, 'success': failure is None, 'setup_ms': setup_ms,
         'milliseconds': round((time.monotonic()-started)*1000, 2), 'steps': steps,
         'error_type': failure.kind if failure else None,
         'sqlstate': failure.sqlstate if failure else None})
@@ -273,7 +301,7 @@ async def test_actual_atomic_activation_rollback_and_off_reader(online_promotion
                 await require(await repo.load_latest(s, f.uid, retention_enabled=True) is None,
                               'private_stage_leaked_before_activation')
             await s.rollback()
-            await promotion.activate(s, token, deadline=time.monotonic()+1)
+            await activate_prepared(s, token)
             await require(await s.scalar(text('SELECT value FROM app_config WHERE key=:k'),
                           {'k': 'context_retention_active_preparation'}) == str(f.identity), 'new_pointer_not_atomic')
             with use_binding(Binding(f.identity, False)):
@@ -298,7 +326,7 @@ async def test_actual_append_after_audit_is_preserved_and_can_activate(online_pr
             await writer.execute(text('UPDATE chat_contexts SET last_committed_turn_seq=2 WHERE user_id=:u'), {'u': f.uid})
             await writer.commit()
         async with f.maker() as s:
-            await promotion.activate(s, token, deadline=time.monotonic()+1)
+            await activate_prepared(s, token)
             await require(await s.scalar(text('SELECT count(*) FROM messages WHERE user_id=:u AND turn_seq=2'),
                           {'u': f.uid}) == 2, 'appended_raw_was_lost')
             await s.rollback()
@@ -316,7 +344,7 @@ async def test_actual_prefix_edit_after_audit_rejects_before_publish(online_prom
         rejected = False
         async with f.maker() as s:
             try:
-                await promotion.activate(s, token, deadline=time.monotonic()+1)
+                await activate_prepared(s, token)
             except promotion.Blocked:
                 rejected = True
             finally:
@@ -336,9 +364,10 @@ async def test_actual_share_lock_conflict_is_bounded_and_rolls_back(online_promo
                 await holder.execute(text('SELECT id FROM retention_preparations WHERE id=:p FOR SHARE'), {'p': f.identity})
             else:
                 await holder.execute(text("SELECT key FROM app_config WHERE key='context_retention_active_preparation' FOR SHARE"))
+            prepared = await prepare_activation(s, token)
             started, rejected = time.monotonic(), False
             try:
-                await promotion.activate(s, token, deadline=started+1)
+                await promotion.activate(s, token, deadline=started+1, prepared=prepared)
             except Exception:
                 rejected = True
             finally:
@@ -383,8 +412,9 @@ async def test_actual_public_nonnull_coverage_can_coexist_with_promoted_stage(on
         async with f.maker() as s:
             await activate_traced(s, token, label='nonnull_legacy_coverage')
             rows = (await s.execute(text("SELECT preparation_id FROM conversation_checkpoints WHERE user_id=:u "
-                "AND coverage_through_message_id=:through AND publish_state='published'"),
-                {'u': f.uid, 'through': through})).all()
+                "AND coverage_through_message_id=:through AND (publish_state='published' "
+                "OR (preparation_id=:p AND publish_state='ready' AND validation_json->'activation_sealed'='true'::jsonb))"),
+                {'u': f.uid, 'through': through, 'p': f.identity})).all()
             ok = len(rows) == 2 and sum(row[0] is None for row in rows) == 1
             await require(ok, 'prepared_and_legacy_same_boundary_conflicted')
             with use_binding(None):

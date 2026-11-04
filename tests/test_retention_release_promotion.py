@@ -24,7 +24,7 @@ def manifest(uid):
 def token(uid, identity):
     m = manifest(uid)
     return manager.AuditToken(identity, manager.digest(m), SHA, time.monotonic(), (), {}, {},
-                              manager.public_report(m, preparation_id=identity, ready=True))
+                              manager.public_report(m, preparation_id=identity, ready=True), m, '1', {})
 
 
 def test_public_report_never_serializes_internal_subjects_or_raw():
@@ -113,53 +113,56 @@ async def test_active_preparation_is_never_aborted(monkeypatch):
 
 @pytest.mark.parametrize('fault', ['manifest', 'active', 'rows', 'processing'])
 async def test_activation_rejects_before_any_public_write(monkeypatch, fault):
+    from app.services import retention_activation_db
     uid, identity = uuid.uuid4(), uuid.uuid4()
-    m, t = manifest(uid), token(uid, identity)
-    if fault == 'manifest':
-        m['users'][str(uid)]['fingerprint'] = 'changed'
-    row = {'id': identity, 'state': 'prepared', 'code_sha': SHA, 'manifest_json': m}
-    monkeypatch.setattr(manager, 'registry', AsyncMock(return_value=row))
-    monkeypatch.setattr(manager, 'row_versions', AsyncMock(return_value={'changed': []} if fault == 'rows' else {}))
-    monkeypatch.setattr(manager, 'processing_set_complete', AsyncMock(return_value=fault != 'processing'))
-    session = SimpleNamespace(scalar=AsyncMock(return_value=uuid.uuid4() if fault == 'active' else None),
-        execute=AsyncMock(return_value=Result([])))
+    t = token(uid, identity)
+    receipt = dict(registry={'state':'prepared'}, controls=[], new_users=[], tail=[],
+                   verified_revisions=fault != 'processing', revision_rows=[])
+    envelope = AsyncMock(return_value=receipt)
+    if fault == 'rows':
+        receipt['dirty_subjects'] = [str(uid)]
+    if fault in {'manifest','active'}:
+        envelope.side_effect = manager.Blocked('preparation_changed_since_audit')
+    monkeypatch.setattr(retention_activation_db, 'validation_envelope', envelope)
+    session = SimpleNamespace(scalar=AsyncMock(return_value=True), execute=AsyncMock())
     with pytest.raises(manager.Blocked):
-        await manager.activate(session, t, deadline=time.monotonic()+1)
-    assert not any('UPDATE conversation_checkpoints' in str(c.args[0]) for c in session.execute.await_args_list)
+        await manager.activate(session, t, deadline=time.monotonic()+1, prepared=object())
+    session.execute.assert_not_awaited()
 
 
 async def test_atomic_promotion_uses_tail_only_and_set_proof(monkeypatch):
+    from app.services import retention_activation_db
     uid, identity = uuid.uuid4(), uuid.uuid4()
-    t, m = token(uid, identity), manifest(uid)
-    monkeypatch.setattr(manager, 'registry', AsyncMock(return_value={
-        'id': identity, 'state': 'prepared', 'code_sha': SHA, 'manifest_json': m}))
-    monkeypatch.setattr(manager, 'row_versions', AsyncMock(return_value={}))
-    processing = AsyncMock(return_value=True)
-    monkeypatch.setattr(manager, 'processing_set_complete', processing)
-    session = SimpleNamespace(scalar=AsyncMock(return_value=None), execute=AsyncMock(return_value=Result([])))
-    await manager.activate(session, t, deadline=time.monotonic()+1)
-    sql = '\n'.join(str(c.args[0]) for c in session.execute.await_args_list)
-    assert 'id>COALESCE' in sql and 'FOR SHARE NOWAIT' in sql
-    values = next(c.args[1]['values'] for c in session.execute.await_args_list if 'jsonb_each' in str(c.args[0]))
-    assert 'crisis_guard_history_messages' in values
-    assert 'crisis_guard_recent_messages' not in values
+    t = token(uid, identity)
+    envelope = AsyncMock(return_value=dict(registry={'state':'prepared'}, controls=[],
+        new_users=[],tail=[],verified_revisions=True,revision_rows=[]))
+    monkeypatch.setattr(retention_activation_db, 'validation_envelope', envelope)
+    session = SimpleNamespace(scalar=AsyncMock(return_value=True), execute=AsyncMock(
+        return_value=Result([{'preparations_activated':1,'controls_written':6}])))
+    prepared = object()
+    await manager.activate(session, t, deadline=time.monotonic()+1, prepared=prepared)
+    envelope.assert_awaited_once_with(session, t, prepared)
+    session.execute.assert_awaited_once()
+    statement, params = session.execute.await_args.args
+    sql = str(statement)
+    assert 'WITH job_cancellation AS' in sql and 'jsonb_each' in sql
+    assert 'UPDATE conversation_checkpoints' not in sql
+    assert 'UPDATE retention_prepared_contracts' not in sql
+    assert 'crisis_guard_history_messages' in params['values']
     assert 'FOR UPDATE SKIP LOCKED' in sql
-    cancel = next(str(c.args[0]) for c in session.execute.await_args_list if 'UPDATE async_jobs' in str(c.args[0]))
-    assert 'updated_at' not in cancel and 'finished_at=now()' in cancel
-    assert 'lease_owner=NULL' in cancel and 'payload_expires_at=COALESCE' in cancel
-    assert "UPDATE conversation_checkpoints SET publish_state='published'" in sql
+    assert 'CROSS JOIN preparation_activation' in sql
+    assert '(SELECT count(*) FROM job_cancellation)>=0' in sql
     assert 'UPDATE user_interaction_contracts' not in sql
-    processing.assert_awaited_once()
     assert not hasattr(session, 'commit')
 
 
 async def test_expired_token_executes_no_sql():
     t = token(uuid.uuid4(), uuid.uuid4())
     t = manager.AuditToken(t.preparation_id, t.manifest_hash, t.code_sha,
-        time.monotonic()-61, (), {}, {}, t.report)
+        time.monotonic()-61, (), {}, {}, t.report, t.manifest, t.registry_version, t.source_revisions)
     session = SimpleNamespace(execute=AsyncMock())
     with pytest.raises(manager.Blocked, match='audit_token_expired'):
-        await manager.activate(session, t, deadline=time.monotonic()+1)
+        await manager.activate(session, t, deadline=time.monotonic()+1, prepared=object())
     session.execute.assert_not_awaited()
 
 
@@ -188,6 +191,8 @@ async def test_row_version_transfer_is_fixed_size_but_locks_the_real_rows():
         assert 'ORDER BY to_jsonb' not in sql and 'row_to_json(locked_' in sql
         assert 'ORDER BY locked_6.registry_id,locked_6.source_message_id' in sql
         assert 'FOR UPDATE OF s NOWAIT' in sql
+        assert 'JOIN locked_5 r ON r.id=s.registry_id AND r.owner_id=s.user_id' in sql
+        assert 'r.user_id AS owner_id' in sql
         assert "concat_ws('|',locked_4.id::text,locked_4.version::text)" in sql
         assert "concat_ws('|',locked_6.registry_id::text,locked_6.source_message_id::text,locked_6.evidence_start_utf8::text,locked_6.evidence_end_utf8::text,locked_6.version::text)" in sql
         assert 'row_to_json(locked_0)::text' in sql
@@ -263,10 +268,10 @@ async def test_prefix_identity_ignores_live_derived_transitions_but_not_source_l
 
 
 async def test_dead_family_suffix_has_no_accidental_sqlalchemy_literal_binds():
-    session = SimpleNamespace(execute=AsyncMock(return_value=Result([])), scalar=AsyncMock(return_value=False))
+    session = SimpleNamespace(execute=AsyncMock(return_value=Result([])), scalar=AsyncMock(side_effect=[False,0]))
     await manager.new_preparation(session, plans=[], excluded=[], project_ref='synthetic', code_sha=SHA)
     for call in session.execute.await_args_list:
-        assert set(call.args[0]._bindparams) <= {'id', 'sha', 'manifest'}
+        assert set(call.args[0]._bindparams) <= {'id', 'sha', 'manifest', 'targets', 'next_value', 'ids'}
 
 
 async def test_later_complete_normal_append_preserves_the_sealed_prefix():
@@ -309,7 +314,7 @@ async def test_audit_also_requires_canonical_for_new_tail_derived_memories(monke
     monkeypatch.setattr(manager, 'registry', AsyncMock(return_value={'state': 'building',
         'code_sha': SHA, 'manifest_json': manifest(user['user_id'])}))
     monkeypatch.setattr(manager, 'collect', AsyncMock(return_value=([plan], {}, 1, [])))
-    session = SimpleNamespace(scalar=AsyncMock(return_value='repeatable read'))
+    session = SimpleNamespace(scalar=AsyncMock(side_effect=['repeatable read','on']))
     with pytest.raises(manager.Blocked, match='canonical_backfill_incomplete'):
         await manager.audit_preparation(session, identity)
 
@@ -340,3 +345,164 @@ async def test_excluded_only_prefix_requires_no_prepared_contract_head(monkeypat
     session.execute = AsyncMock(return_value=Result([record]))
     assert await manager.audit_user(session, plan)
     assert proof.await_args.kwargs['through_id'] == 0
+
+
+@pytest.mark.parametrize('acquired', [False, None, 1, 'true'])
+async def test_activation_lock_busy_or_invalid_never_enters_publication(acquired):
+    session = SimpleNamespace(scalar=AsyncMock(return_value=acquired), execute=AsyncMock())
+    with pytest.raises(manager.Blocked, match='activation_busy'):
+        await manager.activate(session, token(uuid.uuid4(), uuid.uuid4()), deadline=time.monotonic()+1, prepared=object())
+    session.scalar.assert_awaited_once()
+    session.execute.assert_not_awaited()
+
+
+async def test_activation_lock_configures_then_tries_same_key_in_one_roundtrip():
+    session = SimpleNamespace(scalar=AsyncMock(return_value=True))
+    await manager.acquire_activation_lock(session)
+    session.scalar.assert_awaited_once()
+    sql = str(session.scalar.await_args.args[0])
+    assert 'configured AS MATERIALIZED' in sql
+    assert "set_config('lock_timeout','150ms',true)" in sql
+    assert "set_config('work_mem','16MB',true)" in sql
+    assert 'pg_try_advisory_xact_lock(743021149)' in sql
+    assert sql.index('set_config') < sql.index('pg_try_advisory_xact_lock')
+    assert 'FROM configured' in sql
+    assert not hasattr(session, 'commit')
+
+
+async def test_activation_deadline_also_covers_initial_setup_query():
+    import asyncio
+    async def pending(*args):
+        await asyncio.Event().wait()
+    session = SimpleNamespace(scalar=AsyncMock(side_effect=pending), execute=AsyncMock())
+    with pytest.raises(TimeoutError):
+        await manager.activate(session, token(uuid.uuid4(), uuid.uuid4()), deadline=time.monotonic()+0.01, prepared=object())
+    session.execute.assert_not_awaited()
+
+
+async def test_activation_fence_excludes_dml_without_blocking_normal_reads():
+    session = SimpleNamespace(execute=AsyncMock())
+    await manager.fence_activation_sources(session)
+    session.execute.assert_awaited_once()
+    sql = str(session.execute.await_args.args[0])
+    assert 'IN SHARE MODE NOWAIT' in sql
+    for table in ('profiles', 'memory_pipeline_states', 'chat_contexts',
+                  'privacy_subject_barriers', 'messages', 'mem0_memory_registry',
+                  'mem0_memory_sources', 'mem0_ingest_candidates',
+                  'conversation_checkpoints', 'retention_prepared_contracts'):
+        assert 'public.' + table in sql
+    assert 'ACCESS EXCLUSIVE' not in sql and 'async_jobs' not in sql
+
+
+async def test_unlocked_source_signature_preserves_owner_filter_with_set_join():
+    scopes = ('profiles','pipelines','contexts','barriers','messages','memories','sources','checkpoints','contracts')
+    session = SimpleNamespace(execute=AsyncMock(return_value=Result([
+        {'scope':scope,'count':1,'signature':'a'*64} for scope in scopes])))
+    await manager.row_versions(session, uuid.uuid4(), [], lock=False)
+    sql = str(session.execute.await_args.args[0])
+    assert 'joined_sources AS MATERIALIZED' in sql
+    assert 'FULL JOIN locked_5 r ON r.id=s.registry_id AND r.owner_id=s.user_id' in sql
+    assert 'matching_owner IS NOT NULL AND registry_id IS NOT NULL' in sql
+    assert 'FOR UPDATE' not in sql
+
+
+@pytest.mark.parametrize('change', [None, 'version', 'code', 'format'])
+async def test_compact_registry_binds_exact_audited_snapshot(change):
+    t = token(uuid.uuid4(), uuid.uuid4())
+    row = dict(id=t.preparation_id,state='building',code_sha=t.code_sha,
+        format=manager.FORMAT,bound_code_sha=t.code_sha,row_version=t.registry_version,active_id=None)
+    if change:
+        row[{'version':'row_version','code':'code_sha','format':'format'}[change]] = 'changed'
+    session = SimpleNamespace(execute=AsyncMock(return_value=Result([row])))
+    if change:
+        with pytest.raises(manager.Blocked):
+            await manager.lock_audited_registry(session, t)
+    else:
+        result = await manager.lock_audited_registry(session, t)
+        assert result['manifest_json'] is t.manifest
+    sql = str(session.execute.await_args.args[0])
+    assert 'xmin::text AS row_version' in sql and 'FOR UPDATE NOWAIT' in sql
+    assert 'code_sha,manifest_json,' not in sql
+
+
+async def test_audit_requires_readonly_even_when_isolation_is_repeatable_read():
+    session = SimpleNamespace(scalar=AsyncMock(side_effect=['repeatable read','off']),execute=AsyncMock())
+    with pytest.raises(manager.Blocked, match='readonly_audit_snapshot_required'):
+        await manager.audit_preparation(session, uuid.uuid4())
+    session.execute.assert_not_awaited()
+
+
+@pytest.mark.parametrize('complete', [True, False])
+async def test_activation_snapshot_preserves_both_builders_in_one_query(complete):
+    identity, uid = uuid.uuid4(), uuid.uuid4()
+    m = manifest(uid)
+    plan = manager.UserPlan({'user_id': uid}, [], [], {}, 2, '')
+    signatures, signature_params = manager.row_versions_statement(identity, [plan])
+    completion, completion_params = manager.processing_statement(identity, m)
+    scopes = ('profiles','pipelines','contexts','barriers','messages','memories','sources','checkpoints','contracts')
+    rows = [{'scope': scope, 'count': 1, 'signature': 'a'*64,
+             'processing_complete': complete} for scope in scopes]
+    session = SimpleNamespace(execute=AsyncMock(return_value=Result(rows)))
+    versions, actual = await manager.activation_snapshot(session, identity, [plan], m)
+    assert actual is complete and set(versions) == set(scopes)
+    session.execute.assert_awaited_once()
+    sql, params = session.execute.await_args.args
+    assert signatures in str(sql) and completion in str(sql)
+    assert 'signatures AS MATERIALIZED' in str(sql)
+    assert 'completion(value) AS MATERIALIZED' in str(sql)
+    assert params == {**signature_params, **completion_params}
+    assert set(json.loads(params['targets'])[0]) == {'user_id','through','generation','epoch'}
+    assert 'fingerprint' not in params['targets']
+
+
+@pytest.mark.parametrize('fault', ['missing', 'duplicate', 'null', 'mixed'])
+async def test_activation_snapshot_rejects_incomplete_or_ambiguous_result(fault):
+    scopes = ('profiles','pipelines','contexts','barriers','messages','memories','sources','checkpoints','contracts')
+    rows = [{'scope': scope, 'count': 0, 'signature': 'a'*64,
+             'processing_complete': True} for scope in scopes]
+    if fault == 'missing':
+        rows.pop()
+    elif fault == 'duplicate':
+        rows.append(dict(rows[0]))
+    else:
+        rows[-1]['processing_complete'] = None if fault == 'null' else False
+    session = SimpleNamespace(execute=AsyncMock(return_value=Result(rows)))
+    with pytest.raises(manager.Blocked, match='snapshot_metadata_unavailable'):
+        await manager.activation_snapshot(session, uuid.uuid4(), [], {'users': {}})
+
+
+@pytest.mark.parametrize('state', ['building', 'prepared', 'active', None])
+async def test_seal_only_complete_private_ready_artifacts_and_preserve_public_state(state):
+    session = SimpleNamespace(scalar=AsyncMock(side_effect=[state, 3]))
+    identity = uuid.uuid4()
+    if state in {'building', 'prepared'}:
+        assert await manager.seal_preparation(session, identity) == 3
+        sql = str(session.scalar.await_args.args[0])
+        assert "publish_state='ready'" in sql and 'preparation_id=:id' in sql
+        assert "jsonb_typeof(validation_json->'completed_proof')='object'" in sql
+        assert "OR (validation_json->'reverified'='true'::jsonb" in sql
+        assert "jsonb_typeof(validation_json->'page_manifests')='array'" in sql
+        assert "validation_json->'page_manifests'<>'[]'::jsonb" in sql
+        assert "validation_json->'processing_complete'='true'::jsonb" in sql
+        assert "validation_json->'activation_sealed' IS DISTINCT FROM 'true'::jsonb" in sql
+        assert 'SET publish_state' not in sql and 'UPDATE retention_prepared_contracts' not in sql
+        assert not hasattr(session, 'commit')
+    else:
+        with pytest.raises(manager.Blocked, match='preparation_not_building'):
+            await manager.seal_preparation(session, identity)
+        assert session.scalar.await_count == 1
+
+
+async def test_seal_statement_has_only_preparation_id_binding():
+    session = SimpleNamespace(scalar=AsyncMock(side_effect=['building',1]))
+    await manager.seal_preparation(session, uuid.uuid4())
+    statement = session.scalar.await_args.args[0]
+    assert set(statement.compile().params) == {'id'}
+
+
+async def test_revision_registration_bumps_only_private_start_fence_under_nowait():
+    session = SimpleNamespace(scalar=AsyncMock(return_value=2),execute=AsyncMock())
+    await manager.fence_revision_registration(session)
+    assert 'FOR UPDATE NOWAIT' in str(session.scalar.await_args.args[0])
+    assert session.execute.await_args.args[1] == {'next_value':3}
+    assert 'context_retention_revision_fence' in str(session.execute.await_args.args[0])

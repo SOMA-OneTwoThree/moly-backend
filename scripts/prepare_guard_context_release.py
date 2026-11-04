@@ -169,6 +169,22 @@ async def _run(args, dsn, output):
                 report = await promotion.abort(session, identity)
                 await session.commit()
         else:
+            if args.action == "activate":
+                # Private-only metadata is sealed before a fresh source audit.
+                # Already-active retries keep their existing idempotent path.
+                async with maker() as session:
+                    try:
+                        row = await promotion.registry(session, identity)
+                        if row["code_sha"] != args.expected_code_sha or row["manifest_json"]["project_ref"] != args.expected_project_ref:
+                            raise Blocked("preparation_target_changed")
+                        if row["state"] != "active":
+                            await promotion.seal_preparation(session, identity)
+                            await session.commit()
+                        else:
+                            await session.rollback()
+                    except BaseException:
+                        await session.rollback()
+                        raise
             async with maker() as session:
                 await session.execute(text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY"))
                 row = await promotion.registry(session, identity)
@@ -186,15 +202,29 @@ async def _run(args, dsn, output):
                     report = token.report
                 await session.rollback()
             if args.action == "activate" and token is not None:
-                async with maker() as session:
-                    try:
-                        deadline = time.monotonic()+1
-                        async with asyncio.timeout_at(deadline):
-                            report = await promotion.activate(session, token, deadline=deadline)
-                            await session.commit()
-                    except BaseException:
-                        await session.rollback()
-                        raise
+                original_created = token.created_monotonic
+                for attempt in range(3):
+                    async with maker() as session:
+                        try:
+                            await session.execute(text('SELECT 1'))  # Connection/BEGIN only; no publication locks.
+                            from app.services.retention_activation_db import prepare_envelope
+                            prepared = await prepare_envelope(session, token)  # Bound metadata only; no public locks.
+                            deadline = time.monotonic()+1
+                            async with asyncio.timeout_at(deadline):
+                                report = await promotion.activate(session, token, deadline=deadline, prepared=prepared)
+                                await session.commit()
+                            break
+                        except promotion.AuditRefreshRequired as changed:
+                            await session.rollback()
+                            if attempt == 2 or time.monotonic()-original_created >= 60:
+                                raise
+                            subjects = changed.subjects
+                        except BaseException:
+                            await session.rollback()
+                            raise
+                    # No publication transaction/connection is retained while
+                    # rechecking the exact changed subjects, never the full population.
+                    token = await promotion.refresh_audit_subjects(maker, token, subjects)
         write_private(output, report)
         print(json.dumps({"action": args.action, "ready": report["ready"],
                           "preparation_id": report.get("preparation_id"),

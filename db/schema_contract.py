@@ -102,6 +102,9 @@ REVIEWED_GUARD_CONTEXT_SQL = Path(__file__).with_name('changes') / 'guard_contex
 REVIEWED_ONLINE_SQL = Path(__file__).with_name('changes') / 'guard_context_online.sql'
 REVIEWED_ONLINE_PROOF_SQL = Path(__file__).with_name('changes') / 'guard_context_online_proof.sql'
 REVIEWED_ONLINE_INDEXES_SQL = Path(__file__).with_name('changes') / 'guard_context_online_indexes.sql'
+REVIEWED_ONLINE_REVISIONS_SQL = Path(__file__).with_name('changes') / 'guard_context_online_revisions.sql'
+REVIEWED_ONLINE_REVISION_FENCE_SQL = Path(__file__).with_name('changes') / 'guard_context_online_revision_fence.sql'
+REVIEWED_ONLINE_REVISION_EVENTS_SQL = Path(__file__).with_name('changes') / 'guard_context_online_revision_events.sql'
 
 
 def _column(sql_type: str, *, not_null: bool = False, default: str | None = None) -> dict:
@@ -374,6 +377,212 @@ CREATE UNIQUE INDEX conversation_checkpoints_prepared_window_uq
 -- 기존 설정은 덮어쓰지 않고 전역 전환용 행 잠금을 항상 잡을 수 있게 한다.
 INSERT INTO public.app_config (key, value) VALUES ('context_retention_active_preparation', 'null'::jsonb)
 ON CONFLICT (key) DO NOTHING;
+
+-- 준비 중에만 변경을 기록한다. 기존 자료·처리 커서·공개 설정은 바꾸지 않는다.
+-- 최초 도입과 기존 online 개발 DB 추가에 같은 SQL을 쓴다. db.apply의 단일 TX로 적용한다.
+CREATE TABLE public.retention_preparation_revisions (
+    preparation_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    through_message_id bigint NOT NULL,
+    revision bigint DEFAULT 0 NOT NULL,
+    CONSTRAINT retention_preparation_revisions_pkey PRIMARY KEY (preparation_id,user_id),
+    CONSTRAINT retention_preparation_revisions_preparation_id_fkey FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id),
+    CONSTRAINT retention_preparation_revisions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE,
+    CONSTRAINT retention_preparation_revisions_through_check CHECK (through_message_id >= 0),
+    CONSTRAINT retention_preparation_revisions_revision_check CHECK (revision >= 0)
+);
+CREATE INDEX retention_preparation_revisions_user_idx ON public.retention_preparation_revisions USING btree (user_id);
+ALTER TABLE public.retention_preparation_revisions ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.retention_preparation_revisions FROM PUBLIC,anon,authenticated,service_role;
+GRANT ALL ON public.retention_preparation_revisions TO service_role;
+
+-- 기술 metadata 행이며 사용자 기능 flag가 아니다. 기존 번호는 초기화하지 않는다.
+INSERT INTO public.app_config (key,value)
+VALUES ('context_retention_revision_fence','0'::jsonb) ON CONFLICT (key) DO NOTHING;
+
+-- clock 경합은 source writer를 실패시키지 않고 추가 이벤트로 기록한다.
+CREATE TABLE public.retention_preparation_revision_events (
+    id bigserial NOT NULL,
+    preparation_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    CONSTRAINT retention_preparation_revision_events_pkey PRIMARY KEY (id),
+    CONSTRAINT retention_preparation_revision_events_preparation_id_fkey FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id),
+    CONSTRAINT retention_preparation_revision_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE
+);
+CREATE INDEX retention_preparation_revision_events_subject_idx ON public.retention_preparation_revision_events USING btree (preparation_id,user_id);
+ALTER TABLE public.retention_preparation_revision_events ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.retention_preparation_revision_events FROM PUBLIC,anon,authenticated,service_role;
+GRANT SELECT ON public.retention_preparation_revision_events TO service_role;
+REVOKE ALL ON SEQUENCE public.retention_preparation_revision_events_id_seq FROM PUBLIC,anon,authenticated,service_role;
+
+CREATE FUNCTION public.bump_retention_preparation_revision() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+    old_row jsonb;
+    new_row jsonb;
+    old_owner uuid;
+    new_owner uuid;
+    owner_id uuid;
+    ignored_change boolean := false;
+    fence_value jsonb;
+    clock_entry record;
+    locked_through bigint;
+    mutating boolean;
+BEGIN
+    SELECT value INTO fence_value FROM public.app_config
+     WHERE key = 'context_retention_revision_fence' FOR SHARE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION USING ERRCODE = '40001', MESSAGE = 'retention_revision_fence_missing';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.retention_preparations
+                   WHERE state IN ('building','prepared')) THEN
+        RETURN NULL;
+    END IF;
+    IF TG_OP <> 'INSERT' THEN old_row := to_jsonb(OLD); END IF;
+    IF TG_OP <> 'DELETE' THEN new_row := to_jsonb(NEW); END IF;
+    IF TG_TABLE_NAME = 'profiles' THEN
+        old_owner := (old_row->>'id')::uuid;
+        new_owner := (new_row->>'id')::uuid;
+    ELSE
+        old_owner := (old_row->>'user_id')::uuid;
+        new_owner := (new_row->>'user_id')::uuid;
+    END IF;
+    IF TG_OP = 'UPDATE' AND old_owner IS NOT DISTINCT FROM new_owner THEN
+        IF TG_TABLE_NAME = 'profiles'
+           AND old_row->'language' IS NOT DISTINCT FROM new_row->'language'
+           AND old_row->'timezone' IS NOT DISTINCT FROM new_row->'timezone' THEN
+            ignored_change := true;
+        ELSIF TG_TABLE_NAME = 'chat_contexts'
+           AND old_row->'memory_generation' IS NOT DISTINCT FROM new_row->'memory_generation' THEN
+            ignored_change := true;
+        ELSIF TG_TABLE_NAME = 'memory_pipeline_states'
+           AND old_row->'mode' IS NOT DISTINCT FROM new_row->'mode'
+           AND old_row->'bootstrap_status' IS NOT DISTINCT FROM new_row->'bootstrap_status'
+           AND old_row->'privacy_epoch' IS NOT DISTINCT FROM new_row->'privacy_epoch'
+           AND old_row->'repair_generation' IS NOT DISTINCT FROM new_row->'repair_generation'
+           AND COALESCE((new_row->>'source_through_turn_seq')::bigint,0) >= COALESCE((old_row->>'source_through_turn_seq')::bigint,0)
+           AND COALESCE((new_row->>'ingest_through_turn_seq')::bigint,0) >= COALESCE((old_row->>'ingest_through_turn_seq')::bigint,0)
+           AND COALESCE((new_row->>'consolidated_through_turn_seq')::bigint,0) >= COALESCE((old_row->>'consolidated_through_turn_seq')::bigint,0) THEN
+            ignored_change := true;
+        ELSIF TG_TABLE_NAME = 'privacy_subject_barriers'
+           AND old_row->'state' IS NOT DISTINCT FROM new_row->'state'
+           AND old_row->'epoch' IS NOT DISTINCT FROM new_row->'epoch' THEN
+            ignored_change := true;
+        END IF;
+    END IF;
+    FOR owner_id IN SELECT DISTINCT owner FROM unnest(ARRAY[old_owner,new_owner]) AS owner
+        WHERE owner IS NOT NULL ORDER BY owner
+    LOOP
+        -- A newly eligible/unregistered writer participates in the registry fence.
+        -- This never enrolls it or changes the approved source boundary.
+        PERFORM p.id FROM public.retention_preparations p
+         WHERE p.state IN ('building','prepared') AND NOT ignored_change
+           AND NOT EXISTS (SELECT 1 FROM public.retention_preparation_revisions r
+                WHERE r.preparation_id = p.id AND r.user_id = owner_id)
+           AND (TG_TABLE_NAME NOT IN ('conversation_checkpoints','retention_prepared_contracts')
+                OR (old_owner = owner_id AND (old_row->>'preparation_id')::uuid = p.id)
+                OR (new_owner = owner_id AND (new_row->>'preparation_id')::uuid = p.id))
+         ORDER BY p.id FOR KEY SHARE OF p;
+        FOR clock_entry IN
+            SELECT r.preparation_id,r.through_message_id
+              FROM public.retention_preparation_revisions r
+              JOIN public.retention_preparations p ON p.id = r.preparation_id
+             WHERE p.state IN ('building','prepared') AND r.user_id = owner_id
+               AND (TG_TABLE_NAME NOT IN ('conversation_checkpoints','retention_prepared_contracts')
+                    OR (old_owner = owner_id AND (old_row->>'preparation_id')::uuid = r.preparation_id)
+                    OR (new_owner = owner_id AND (new_row->>'preparation_id')::uuid = r.preparation_id))
+             ORDER BY r.preparation_id
+        LOOP
+            mutating := NOT ignored_change AND CASE WHEN TG_TABLE_NAME = 'messages' THEN
+                COALESCE(old_owner = owner_id AND (old_row->>'id')::bigint <= clock_entry.through_message_id,false)
+                OR COALESCE(new_owner = owner_id AND (new_row->>'id')::bigint <= clock_entry.through_message_id,false)
+                ELSE true END;
+            BEGIN
+                IF mutating THEN
+                    SELECT r.through_message_id INTO locked_through
+                      FROM public.retention_preparation_revisions r
+                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id
+                     FOR UPDATE NOWAIT;
+                ELSE
+                    SELECT r.through_message_id INTO locked_through
+                      FROM public.retention_preparation_revisions r
+                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id
+                     FOR SHARE NOWAIT;
+                END IF;
+                IF locked_through IS NULL THEN CONTINUE; END IF;
+                mutating := NOT ignored_change AND CASE WHEN TG_TABLE_NAME = 'messages' THEN
+                    COALESCE(old_owner = owner_id AND (old_row->>'id')::bigint <= locked_through,false)
+                    OR COALESCE(new_owner = owner_id AND (new_row->>'id')::bigint <= locked_through,false)
+                    ELSE true END;
+                IF mutating THEN
+                    -- A shared read can see a newly extended boundary. Upgrade
+                    -- only NOWAIT; concurrent upgrades fall back to events.
+                    PERFORM 1 FROM public.retention_preparation_revisions r
+                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id
+                     FOR UPDATE NOWAIT;
+                    UPDATE public.retention_preparation_revisions r SET revision = r.revision + 1
+                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id;
+                END IF;
+            EXCEPTION WHEN lock_not_available THEN
+                -- Never wait for another writer's clock while owning source rows.
+                -- Registry sharing orders both semantic events and ignored tails
+                -- against promotion; the clock itself is not an event FK target.
+                PERFORM p.id FROM public.retention_preparations p
+                 WHERE p.id = clock_entry.preparation_id AND p.state IN ('building','prepared')
+                 FOR KEY SHARE OF p;
+                IF NOT FOUND THEN CONTINUE; END IF;
+                SELECT r.through_message_id INTO locked_through
+                  FROM public.retention_preparation_revisions r
+                 WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id;
+                mutating := locked_through IS NOT NULL AND NOT ignored_change
+                    AND CASE WHEN TG_TABLE_NAME = 'messages' THEN
+                        COALESCE(old_owner = owner_id AND (old_row->>'id')::bigint <= locked_through,false)
+                        OR COALESCE(new_owner = owner_id AND (new_row->>'id')::bigint <= locked_through,false)
+                        ELSE true END;
+                IF mutating THEN
+                    INSERT INTO public.retention_preparation_revision_events(preparation_id,user_id)
+                    VALUES (clock_entry.preparation_id,owner_id);
+                END IF;
+            END;
+        END LOOP;
+    END LOOP;
+    RETURN NULL;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.bump_retention_preparation_revision() FROM PUBLIC,anon,authenticated,service_role;
+
+CREATE TRIGGER profiles_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.profiles
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
+CREATE TRIGGER chat_contexts_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.chat_contexts
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
+CREATE TRIGGER privacy_subject_barriers_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.privacy_subject_barriers
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
+CREATE TRIGGER memory_pipeline_states_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.memory_pipeline_states
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
+CREATE TRIGGER messages_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.messages
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
+CREATE TRIGGER mem0_memory_registry_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.mem0_memory_registry
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
+CREATE TRIGGER mem0_memory_sources_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.mem0_memory_sources
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
+CREATE TRIGGER conversation_checkpoints_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.conversation_checkpoints
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
+CREATE TRIGGER retention_prepared_contracts_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.retention_prepared_contracts
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
+CREATE TRIGGER mem0_ingest_candidates_retention_preparation_revision
+AFTER INSERT OR UPDATE OR DELETE ON public.mem0_ingest_candidates
+FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
 """
 
 
@@ -475,7 +684,7 @@ def reviewed_online_catalog_upgrade(baseline: dict) -> dict:
             if key in expected[section] and expected[section][key] != definition:
                 raise ValueError('conflicting online preparation object')
             expected[section][key] = deepcopy(definition)
-    return reviewed_online_indexes_catalog_upgrade(expected)
+    return reviewed_preparation_revisions_catalog_upgrade(reviewed_online_indexes_catalog_upgrade(expected))
 
 
 def reviewed_online_proof_catalog_upgrade(baseline: dict) -> dict:
@@ -519,6 +728,94 @@ def reviewed_online_indexes_catalog_upgrade(baseline: dict) -> dict:
             and expected['indexes'][_ONLINE_PREPARED_WINDOW_INDEX] != prepared):
         raise ValueError('conflicting prepared window index')
     expected['indexes'][_ONLINE_PREPARED_WINDOW_INDEX] = prepared
+    return expected
+
+
+_PREPARATION_REVISION_BODY = "DECLARE\n    old_row jsonb;\n    new_row jsonb;\n    old_owner uuid;\n    new_owner uuid;\n    owner_id uuid;\n    ignored_change boolean := false;\n    fence_value jsonb;\n    clock_entry record;\n    locked_through bigint;\n    mutating boolean;\nBEGIN\n    SELECT value INTO fence_value FROM public.app_config\n     WHERE key = 'context_retention_revision_fence' FOR SHARE;\n    IF NOT FOUND THEN\n        RAISE EXCEPTION USING ERRCODE = '40001', MESSAGE = 'retention_revision_fence_missing';\n    END IF;\n    IF NOT EXISTS (SELECT 1 FROM public.retention_preparations\n                   WHERE state IN ('building','prepared')) THEN\n        RETURN NULL;\n    END IF;\n    IF TG_OP <> 'INSERT' THEN old_row := to_jsonb(OLD); END IF;\n    IF TG_OP <> 'DELETE' THEN new_row := to_jsonb(NEW); END IF;\n    IF TG_TABLE_NAME = 'profiles' THEN\n        old_owner := (old_row->>'id')::uuid;\n        new_owner := (new_row->>'id')::uuid;\n    ELSE\n        old_owner := (old_row->>'user_id')::uuid;\n        new_owner := (new_row->>'user_id')::uuid;\n    END IF;\n    IF TG_OP = 'UPDATE' AND old_owner IS NOT DISTINCT FROM new_owner THEN\n        IF TG_TABLE_NAME = 'profiles'\n           AND old_row->'language' IS NOT DISTINCT FROM new_row->'language'\n           AND old_row->'timezone' IS NOT DISTINCT FROM new_row->'timezone' THEN\n            ignored_change := true;\n        ELSIF TG_TABLE_NAME = 'chat_contexts'\n           AND old_row->'memory_generation' IS NOT DISTINCT FROM new_row->'memory_generation' THEN\n            ignored_change := true;\n        ELSIF TG_TABLE_NAME = 'memory_pipeline_states'\n           AND old_row->'mode' IS NOT DISTINCT FROM new_row->'mode'\n           AND old_row->'bootstrap_status' IS NOT DISTINCT FROM new_row->'bootstrap_status'\n           AND old_row->'privacy_epoch' IS NOT DISTINCT FROM new_row->'privacy_epoch'\n           AND old_row->'repair_generation' IS NOT DISTINCT FROM new_row->'repair_generation'\n           AND COALESCE((new_row->>'source_through_turn_seq')::bigint,0) >= COALESCE((old_row->>'source_through_turn_seq')::bigint,0)\n           AND COALESCE((new_row->>'ingest_through_turn_seq')::bigint,0) >= COALESCE((old_row->>'ingest_through_turn_seq')::bigint,0)\n           AND COALESCE((new_row->>'consolidated_through_turn_seq')::bigint,0) >= COALESCE((old_row->>'consolidated_through_turn_seq')::bigint,0) THEN\n            ignored_change := true;\n        ELSIF TG_TABLE_NAME = 'privacy_subject_barriers'\n           AND old_row->'state' IS NOT DISTINCT FROM new_row->'state'\n           AND old_row->'epoch' IS NOT DISTINCT FROM new_row->'epoch' THEN\n            ignored_change := true;\n        END IF;\n    END IF;\n    FOR owner_id IN SELECT DISTINCT owner FROM unnest(ARRAY[old_owner,new_owner]) AS owner\n        WHERE owner IS NOT NULL ORDER BY owner\n    LOOP\n        -- A newly eligible/unregistered writer participates in the registry fence.\n        -- This never enrolls it or changes the approved source boundary.\n        PERFORM p.id FROM public.retention_preparations p\n         WHERE p.state IN ('building','prepared') AND NOT ignored_change\n           AND NOT EXISTS (SELECT 1 FROM public.retention_preparation_revisions r\n                WHERE r.preparation_id = p.id AND r.user_id = owner_id)\n           AND (TG_TABLE_NAME NOT IN ('conversation_checkpoints','retention_prepared_contracts')\n                OR (old_owner = owner_id AND (old_row->>'preparation_id')::uuid = p.id)\n                OR (new_owner = owner_id AND (new_row->>'preparation_id')::uuid = p.id))\n         ORDER BY p.id FOR KEY SHARE OF p;\n        FOR clock_entry IN\n            SELECT r.preparation_id,r.through_message_id\n              FROM public.retention_preparation_revisions r\n              JOIN public.retention_preparations p ON p.id = r.preparation_id\n             WHERE p.state IN ('building','prepared') AND r.user_id = owner_id\n               AND (TG_TABLE_NAME NOT IN ('conversation_checkpoints','retention_prepared_contracts')\n                    OR (old_owner = owner_id AND (old_row->>'preparation_id')::uuid = r.preparation_id)\n                    OR (new_owner = owner_id AND (new_row->>'preparation_id')::uuid = r.preparation_id))\n             ORDER BY r.preparation_id\n        LOOP\n            mutating := NOT ignored_change AND CASE WHEN TG_TABLE_NAME = 'messages' THEN\n                COALESCE(old_owner = owner_id AND (old_row->>'id')::bigint <= clock_entry.through_message_id,false)\n                OR COALESCE(new_owner = owner_id AND (new_row->>'id')::bigint <= clock_entry.through_message_id,false)\n                ELSE true END;\n            BEGIN\n                IF mutating THEN\n                    SELECT r.through_message_id INTO locked_through\n                      FROM public.retention_preparation_revisions r\n                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id\n                     FOR UPDATE NOWAIT;\n                ELSE\n                    SELECT r.through_message_id INTO locked_through\n                      FROM public.retention_preparation_revisions r\n                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id\n                     FOR SHARE NOWAIT;\n                END IF;\n                IF locked_through IS NULL THEN CONTINUE; END IF;\n                mutating := NOT ignored_change AND CASE WHEN TG_TABLE_NAME = 'messages' THEN\n                    COALESCE(old_owner = owner_id AND (old_row->>'id')::bigint <= locked_through,false)\n                    OR COALESCE(new_owner = owner_id AND (new_row->>'id')::bigint <= locked_through,false)\n                    ELSE true END;\n                IF mutating THEN\n                    -- A shared read can see a newly extended boundary. Upgrade\n                    -- only NOWAIT; concurrent upgrades fall back to events.\n                    PERFORM 1 FROM public.retention_preparation_revisions r\n                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id\n                     FOR UPDATE NOWAIT;\n                    UPDATE public.retention_preparation_revisions r SET revision = r.revision + 1\n                     WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id;\n                END IF;\n            EXCEPTION WHEN lock_not_available THEN\n                -- Never wait for another writer's clock while owning source rows.\n                -- Registry sharing orders both semantic events and ignored tails\n                -- against promotion; the clock itself is not an event FK target.\n                PERFORM p.id FROM public.retention_preparations p\n                 WHERE p.id = clock_entry.preparation_id AND p.state IN ('building','prepared')\n                 FOR KEY SHARE OF p;\n                IF NOT FOUND THEN CONTINUE; END IF;\n                SELECT r.through_message_id INTO locked_through\n                  FROM public.retention_preparation_revisions r\n                 WHERE r.preparation_id = clock_entry.preparation_id AND r.user_id = owner_id;\n                mutating := locked_through IS NOT NULL AND NOT ignored_change\n                    AND CASE WHEN TG_TABLE_NAME = 'messages' THEN\n                        COALESCE(old_owner = owner_id AND (old_row->>'id')::bigint <= locked_through,false)\n                        OR COALESCE(new_owner = owner_id AND (new_row->>'id')::bigint <= locked_through,false)\n                        ELSE true END;\n                IF mutating THEN\n                    INSERT INTO public.retention_preparation_revision_events(preparation_id,user_id)\n                    VALUES (clock_entry.preparation_id,owner_id);\n                END IF;\n            END;\n        END LOOP;\n    END LOOP;\n    RETURN NULL;\nEND;\n"
+_PREPARATION_REVISION_TABLES = ('profiles', 'chat_contexts', 'privacy_subject_barriers', 'memory_pipeline_states', 'messages', 'mem0_memory_registry', 'mem0_memory_sources', 'conversation_checkpoints', 'retention_prepared_contracts', 'mem0_ingest_candidates')
+
+
+def reviewed_preparation_revisions_catalog_upgrade(baseline: dict) -> dict:
+    expected = deepcopy(baseline)
+    table = 'public.retention_preparation_revisions'
+    changes = {section: {} for section in baseline}
+    changes['tables'][table] = deepcopy(baseline['tables']['public.chat_active_turns'])
+    for key, value in baseline['relation_grants'].items():
+        if key.startswith('public.chat_active_turns:'):
+            changes['relation_grants'][table + key[len('public.chat_active_turns'):]] = deepcopy(value)
+    changes['columns'] = {f'{table}.{key}': value for key, value in {
+        'preparation_id': _column('uuid', not_null=True),
+        'user_id': _column('uuid', not_null=True),
+        'through_message_id': _column('bigint', not_null=True),
+        'revision': _column('bigint', not_null=True, default='0'),
+    }.items()}
+    changes['constraints'] = {
+        f'{table}.retention_preparation_revisions_pkey': _constraint('PRIMARY KEY (preparation_id, user_id)'),
+        f'{table}.retention_preparation_revisions_through_check': _constraint('CHECK ((through_message_id >= 0))'),
+        f'{table}.retention_preparation_revisions_revision_check': _constraint('CHECK ((revision >= 0))'),
+    }
+    for column, target, cascade in (('preparation_id', 'public.retention_preparations', False),
+                                    ('user_id', 'public.profiles', True)):
+        definition = _constraint(f'FOREIGN KEY ({column}) REFERENCES {target}(id)' + (' ON DELETE CASCADE' if cascade else ''))
+        definition['enforcement_triggers'] = sorted([f'{table}:17:O', f'{table}:5:O', f'{target}:17:O', f'{target}:9:O'])
+        changes['constraints'][f'{table}.retention_preparation_revisions_{column}_fkey'] = definition
+    for name, fields, unique in (('retention_preparation_revisions_pkey', 'preparation_id, user_id', True),
+                                 ('retention_preparation_revisions_user_idx', 'user_id', False)):
+        changes['indexes'][f'public.{name}'] = {
+            'definition': f"CREATE {'UNIQUE ' if unique else ''}INDEX {name} ON {table} USING btree ({fields})",
+            'exclusion': False, 'options': [], 'ready': True, 'table_name': table,
+            'unique': unique, 'valid': True}
+    function = 'public.bump_retention_preparation_revision()'
+    changes['functions'][function] = {
+        'definition': "CREATE OR REPLACE FUNCTION public.bump_retention_preparation_revision()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n" + _PREPARATION_REVISION_BODY + '$function$\n',
+        'owner': baseline['tables']['public.chat_active_turns']['owner']}
+    for name in _PREPARATION_REVISION_TABLES:
+        trigger = f'{name}_retention_preparation_revision'
+        changes['triggers'][f'public.{name}.{trigger}'] = {
+            'definition': f'CREATE TRIGGER {trigger} AFTER INSERT OR DELETE OR UPDATE ON public.{name} FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision()',
+            'enabled': 'O'}
+    for key in expected['function_grants']:
+        if key.startswith(function + ':'):
+            raise ValueError('unexpected preparation revision function grant')
+    for section, entries in changes.items():
+        for key, definition in entries.items():
+            if key in expected[section] and expected[section][key] != definition:
+                raise ValueError('conflicting preparation revision object')
+            expected[section][key] = deepcopy(definition)
+    return reviewed_preparation_revision_events_catalog_upgrade(expected)
+
+
+
+def reviewed_preparation_revision_events_catalog_upgrade(baseline: dict) -> dict:
+    expected = deepcopy(baseline)
+    table = 'public.retention_preparation_revision_events'
+    sequence = table + '_id_seq'
+    changes = {section: {} for section in baseline}
+    changes['tables'][table] = deepcopy(baseline['tables']['public.chat_active_turns'])
+    changes['relation_grants'][table + ':service_role:SELECT'] = {'grantable': False}
+    fields = {'id': _column('bigint', not_null=True, default=f"nextval('{sequence}'::regclass)"),
+              'preparation_id': _column('uuid', not_null=True), 'user_id': _column('uuid', not_null=True)}
+    changes['columns'] = {f'{table}.{key}': value for key, value in fields.items()}
+    for field, kind in (('last_value', 'bigint'), ('log_cnt', 'bigint'), ('is_called', 'boolean')):
+        changes['columns'][sequence + '.' + field] = _column(kind, not_null=True)
+    changes['sequences'][sequence] = deepcopy(baseline['sequences']['public.messages_id_seq'])
+    changes['constraints'][table + '.retention_preparation_revision_events_pkey'] = _constraint('PRIMARY KEY (id)')
+    for field, target, cascade in (('preparation_id', 'public.retention_preparations', False),
+                                    ('user_id', 'public.profiles', True)):
+        value = _constraint(f'FOREIGN KEY ({field}) REFERENCES {target}(id)' + (' ON DELETE CASCADE' if cascade else ''))
+        value['enforcement_triggers'] = sorted([f'{table}:17:O', f'{table}:5:O', f'{target}:17:O', f'{target}:9:O'])
+        changes['constraints'][f'{table}.retention_preparation_revision_events_{field}_fkey'] = value
+    for name, fields, unique in (('retention_preparation_revision_events_pkey', 'id', True),
+                                 ('retention_preparation_revision_events_subject_idx', 'preparation_id, user_id', False)):
+        changes['indexes'][f'public.{name}'] = {
+            'definition': f"CREATE {'UNIQUE ' if unique else ''}INDEX {name} ON {table} USING btree ({fields})",
+            'exclusion': False, 'options': [], 'ready': True, 'table_name': table,
+            'unique': unique, 'valid': True}
+    for section, entries in changes.items():
+        for key, value in entries.items():
+            if key in expected[section] and expected[section][key] != value:
+                raise ValueError('conflicting preparation revision event object')
+            expected[section][key] = deepcopy(value)
     return expected
 
 
@@ -596,9 +893,12 @@ GUARD_BASELINE_CONTRACT_SHA256 = '769d36eb70564f841364b23dbe11ccd63a2b8b075beda1
 _GUARD_SQL_DIGESTS = {
     'crisis_guardrails.sql': 'c587c3524e186a8a031c69d5e6769851819ed2a13c4990958f5ebe5466c3da13',
     'guard_context_v2.sql': 'e4c58f65889444430868e676e6d37702733bd30ff0c407c95686937e58145bb6',
-    'guard_context_online.sql': 'a7e50156064ceefd40cb9ed491d34c860f61c6a119f53e76c005b44d88bb6cf2',
+    'guard_context_online.sql': '55a9a01050eb0a2329ad1428840cf795a49fc424ea55facf887ec13c2a2a1ac9',
     'guard_context_online_proof.sql': '2c203ba8e192733a1efc60cb75ce269ab8bdded6cdb01ef2d77940048309f54a',
     'guard_context_online_indexes.sql': '3ea78345283bc99647f8aceee60329e69e60e92a6d6712f853391d87c04a6276',
+    'guard_context_online_revisions.sql': 'fb1a72780ad5802bd9afde7c2ee5fabb8a240d9f452d1f1eaaac638a0cd5d8e3',
+    'guard_context_online_revision_fence.sql': '42b3ac96c08e668068800ae18b5eb048bb282b4431c18aa01fb15252a78fab13',
+    'guard_context_online_revision_events.sql': '8cbfd822e48c99fa44de18b60fb935a9344f67aad371a65764ffcea9307ff227',
 }
 
 

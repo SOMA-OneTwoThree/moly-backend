@@ -48,7 +48,11 @@ def test_all_checkpoint_reads_use_exact_release_and_visibility(building, state, 
         parameters = release.params()
     assert "c.preparation_id=CAST(:preparation_id AS uuid)" in sql
     assert "c.preparation_id IS NULL" not in sql
-    assert "c.publish_state='published'" not in sql and "c.publish_state = 'published'" not in sql
+    if building:
+        assert "c.publish_state='published'" not in sql and "c.publish_state = 'published'" not in sql
+    else:
+        assert "c.publish_state='published' OR (c.publish_state='ready'" in sql
+        assert "c.validation_json->'activation_sealed'='true'::jsonb" in sql
     assert parameters == {"preparation_id": value.preparation_id, "preparation_state": state,
                           "preparation_building": "true" if building else "false"}
 

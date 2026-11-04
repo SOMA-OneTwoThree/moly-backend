@@ -70,8 +70,11 @@ def checkpoint_sql(statement):
     sql = str(statement).replace(" AND c.preparation_id IS NULL", "")
     for alias in ("c", "latest"):
         for condition in (f"{alias}.publish_state='published'", f"{alias}.publish_state = 'published'"):
+            visibility = (f"{alias}.publish_state=:preparation_state" if value.building else
+                f"({alias}.publish_state='published' OR ({alias}.publish_state='ready' "
+                f"AND {alias}.validation_json->'activation_sealed'='true'::jsonb))")
             sql = sql.replace(condition, f"({alias}.preparation_id=CAST(:preparation_id AS uuid) "
-                              f"AND {alias}.publish_state=:preparation_state)")
+                              f"AND {visibility})")
     return text(sql)
 
 
@@ -116,6 +119,8 @@ async def contract_row(session, *, user_id, generation, lock=False):
       FROM retention_prepared_contracts WHERE preparation_id=:preparation_id
        AND user_id=:user_id AND memory_generation=:generation AND status=:preparation_state
       ORDER BY version DESC,id DESC LIMIT 1""" + (" FOR UPDATE" if lock else ""))
+    if not value.building:
+        sql = text(str(sql).replace("status=:preparation_state", "status IN ('ready','published')"))
     return (await session.execute(sql, params({"user_id": user_id, "generation": generation}))).first()
 
 
@@ -129,19 +134,22 @@ async def store_contract(session, *, user_id, generation, locale, items, rendere
     value = await require_binding(session, lock=True)
     if value is None:
         raise ReleaseError("retention_preparation_required")
-    parent = (await session.execute(text("""SELECT document_json,processed_through_message_id,
+    head_condition = "status=:preparation_state" if value.building else "status IN ('ready','published')"
+    parent_sql = text("""SELECT document_json,processed_through_message_id,
       render_hash,id,validation_json FROM retention_prepared_contracts
       WHERE preparation_id=:preparation_id AND user_id=:user_id AND memory_generation=:generation
-       AND status=:preparation_state ORDER BY version DESC,id DESC LIMIT 1 FOR UPDATE"""),
+       AND status=:preparation_state ORDER BY version DESC,id DESC LIMIT 1 FOR UPDATE""")
+    parent = (await session.execute(text(str(parent_sql).replace("status=:preparation_state", head_condition)),
        params({"user_id": user_id, "generation": generation}))).first()
     proof = contract_proof(value, generation=generation, locale=locale, after=after,
         through=through, rows=source_rows, document_hash=digest, parent=parent)
     parameters = params({"user_id": user_id, "generation": generation, "locale": locale,
         "document": json.dumps(items, ensure_ascii=False), "rendered": rendered,
         "digest": digest, "through": through, "validation": json.dumps(proof, sort_keys=True)})
-    await session.execute(text("""UPDATE retention_prepared_contracts SET status='superseded'
+    supersede = text("""UPDATE retention_prepared_contracts SET status='superseded'
       WHERE preparation_id=:preparation_id AND user_id=:user_id AND memory_generation=:generation
-        AND status=:preparation_state"""), parameters)
+        AND status=:preparation_state""")
+    await session.execute(text(str(supersede).replace("status=:preparation_state", head_condition)), parameters)
     insert_sql = text("""INSERT INTO retention_prepared_contracts
       (preparation_id,user_id,memory_generation,locale,version,document_json,rendered_text,
        render_hash,status,processed_through_message_id,published_at,validation_json)
@@ -233,7 +241,7 @@ async def validate_contract_chain(session, *, user_id, generation, through_id):
             AND status IN ('ready','published','superseded') ORDER BY version DESC,id DESC"""),
           params({"user_id": user_id, "generation": generation}))).all()
         indexed = {str(row[0]): row for row in rows}
-        heads = [row for row in rows if row[5] == ("ready" if value.building else "published")]
+        heads = [row for row in rows if row[5] in ({"ready"} if value.building else {"ready", "published"})]
         if not heads:
             return through_id == 0
         if len(heads) != 1 or int(heads[0][4]) < through_id:

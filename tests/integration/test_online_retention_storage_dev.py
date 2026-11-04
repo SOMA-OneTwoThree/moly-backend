@@ -162,3 +162,47 @@ async def test_bulk_completion_never_accepts_missing_context_and_null_generation
     await session.execute(text('DELETE FROM chat_contexts WHERE user_id=:u'), {'u':uid})
     manifest = {'users': {str(uid): {'through':plan.through,'generation':None,'epoch':0}}}
     assert not await promotion.processing_set_complete(session, identity, manifest)
+
+
+async def test_sealed_ready_checkpoint_stays_private_and_is_readable_after_pointer_activation(checkpoint_db):
+    session, (uid, _) = checkpoint_db
+    from tests.integration.test_provided_memory_dev import CANONICAL
+    rid, _, plan = await seed_release(session, uid)
+    await session.execute(text('UPDATE mem0_memory_registry SET canonical_text=:body WHERE id=:r'),
+                          {'r':rid,'body':CANONICAL})
+    identity = await preparation(session)
+    staged = await prepared_checkpoint(session, uid, identity, plan)
+    await session.execute(text("UPDATE retention_preparations SET manifest_json=CAST(:m AS jsonb) WHERE id=:p"),
+        {'p':identity,'m':json.dumps(promotion.live_manifest([plan],[],project_ref='synthetic',code_sha='a'*40))})
+    await promotion.seal_preparation(session, identity)
+    assert await session.scalar(text("SELECT publish_state FROM conversation_checkpoints WHERE id=:c"),{'c':staged}) == 'ready'
+    with use_binding(None):
+        assert await repo.load_latest(session,uid,retention_enabled=True) is None
+    await session.execute(text("UPDATE retention_preparations SET state='active' WHERE id=:p"),{'p':identity})
+    with use_binding(Binding(identity,False)):
+        latest = await repo.load_latest(session,uid,retention_enabled=True)
+        assert latest.id == staged
+        coverage = await repo.coverage_for_checkpoint(session,user_id=uid,generation=0,value=latest)
+        assert coverage is not None and coverage.through_message_id == plan.through
+        assert await storage.contract_cursor(session,user_id=uid,generation=0) == plan.through
+        assert await storage.validate_contract_chain(session,user_id=uid,generation=0,through_id=plan.through)
+
+
+async def test_first_live_contract_atomically_supersedes_private_ready_head(checkpoint_db):
+    session, (uid, _) = checkpoint_db
+    _, _, plan = await seed_release(session, uid)
+    identity = await preparation(session)
+    await prepared_checkpoint(session, uid, identity, plan)
+    await session.execute(text("UPDATE retention_preparations SET state='active' WHERE id=:p"),{'p':identity})
+    await session.execute(text("""INSERT INTO messages(user_id,sender,kind,content,activity_date,turn_seq,turn_position)
+      VALUES(:u,'user','normal','New synthetic preference',CURRENT_DATE,2,1),
+            (:u,'moly','normal','Synthetic acknowledgement',CURRENT_DATE,2,2)"""), {'u':uid})
+    sources = (await session.execute(text("SELECT id,sender,content,activity_date FROM messages WHERE user_id=:u AND id>:after ORDER BY id"),
+        {'u':uid,'after':plan.through})).all()
+    with use_binding(Binding(identity,False)):
+        await storage.store_contract(session,user_id=uid,generation=0,locale=plan.user['language'],
+            items=[],rendered='',digest=interaction_contract.document_hash('[]'),through=sources[-1][0],
+            source_rows=sources,after=plan.through)
+        assert await storage.validate_contract_chain(session,user_id=uid,generation=0,through_id=sources[-1][0])
+    states = (await session.execute(text("SELECT status,count(*) FROM retention_prepared_contracts WHERE preparation_id=:p AND status<>'draft' GROUP BY status"),{'p':identity})).all()
+    assert dict(states) == {'superseded':1,'published':1}

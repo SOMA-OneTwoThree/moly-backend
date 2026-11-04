@@ -27,10 +27,20 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
     # extension. Do not call the implementation's upgrade/manifest for this check.
     expected_main_catalog = "446d522a19e3f2930e58a56740adedb7726cd68926f0eb1a9b4984697480fe96"
     expected_main_source = "e5929c8dc95a01842822ff94be432d8df791244ffdbf91820310d3f94a403e7a"
-    expected_guard_source = "9a2b592fbc176ab3b80a216fb5cf393422ac09726539e898fbb9256b42f4fee1"
+    expected_guard_source = "db5e2a88d9d291e08e650ec7dd330a5c554e4d94edbc9bfbc27c78cf4d690dfd"
     online_allowed = {
         "columns": {
             "public.conversation_checkpoints.preparation_id": "c4f1490fc6d384dab674435fc78c16215a2a60f21cf6351cca866cb3792a0f56",
+            "public.retention_preparation_revision_events.id": "790e277742cb2c9f6e98b8f8b61658a7aed6fbf6f857aa909ad246f77d5c09af",
+            "public.retention_preparation_revision_events.preparation_id": "edd812d45f5919458976c71690d34d25df87d6b100a3d63c71677d4903db4bdf",
+            "public.retention_preparation_revision_events.user_id": "edd812d45f5919458976c71690d34d25df87d6b100a3d63c71677d4903db4bdf",
+            "public.retention_preparation_revision_events_id_seq.is_called": "780bccea0c60abce7a8bd456e93d67c0ca3da2f7febbe3018454cf6c977909f4",
+            "public.retention_preparation_revision_events_id_seq.last_value": "a6c1fd558c79447671e756190f21ffd35afa00ab3f50a604f6cf0cdc97c77aa5",
+            "public.retention_preparation_revision_events_id_seq.log_cnt": "a6c1fd558c79447671e756190f21ffd35afa00ab3f50a604f6cf0cdc97c77aa5",
+            "public.retention_preparation_revisions.preparation_id": "edd812d45f5919458976c71690d34d25df87d6b100a3d63c71677d4903db4bdf",
+            "public.retention_preparation_revisions.revision": "477f2bf1d5266fef2bbb4ff76b497bd75ed4f82caf70001405888cc0317673ef",
+            "public.retention_preparation_revisions.through_message_id": "a6c1fd558c79447671e756190f21ffd35afa00ab3f50a604f6cf0cdc97c77aa5",
+            "public.retention_preparation_revisions.user_id": "edd812d45f5919458976c71690d34d25df87d6b100a3d63c71677d4903db4bdf",
             "public.retention_preparations.code_sha": "f7658eafcb0f767c30344f02926cda2c6ff8b738eab2fa07b9e47945a439237b",
             "public.retention_preparations.created_at": "d8a14a0a4476b0b493873be944da9d18ca66792820059eed4c47d0eb07b24b88",
             "public.retention_preparations.id": "6acbcac2652344e14be611fc356eab967d6a5ccb26c6342ec16bcb7b16db876c",
@@ -54,6 +64,14 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
         },
         "constraints": {
             "public.conversation_checkpoints.conversation_checkpoints_preparation_id_fkey": "074ecad4c7cbaba044b1af48fb8b3c2b0977324d6ab5a8bf7948015d97ec0cac",
+            "public.retention_preparation_revision_events.retention_preparation_revision_events_pkey": "161d9b21602c97ee02b13ed65b36b3f89e2590daf1c40f13f3cf607dc1400baf",
+            "public.retention_preparation_revision_events.retention_preparation_revision_events_preparation_id_fkey": "cd80991f807c3f084d30f00f6acfe7c7e90d7f65a16c3fe5fcd06b6aaab0c9d2",
+            "public.retention_preparation_revision_events.retention_preparation_revision_events_user_id_fkey": "7421a87a289982aaa64f43654ee4cd4d00368e444dc4fc78b5b6aea04c306e04",
+            "public.retention_preparation_revisions.retention_preparation_revisions_pkey": "775274a275df43e2ab22f48fc0e10fd4ffd233eec2c29e53f32dce51713ea9dc",
+            "public.retention_preparation_revisions.retention_preparation_revisions_preparation_id_fkey": "131f24dbc810c4fe98c48c41c94734d0d28bfde039239bae03d978cc338fd928",
+            "public.retention_preparation_revisions.retention_preparation_revisions_revision_check": "668ed72dd0aedfe1b53909b8234104e94ffe339a631e12909be7a6bc680d1a72",
+            "public.retention_preparation_revisions.retention_preparation_revisions_through_check": "7fdb8a5c7a490d44d60fc0e49b5374ea1dc55e8f8d789ec612f9437b7049c2c6",
+            "public.retention_preparation_revisions.retention_preparation_revisions_user_id_fkey": "35f6eee85463ebaad9afaba60ddfe5a10bbc4e1a766251fe150384afcbb6c9de",
             "public.retention_preparations.retention_preparations_code_sha_check": "defd310d556402526824905401c3d9fd47c523205f6ed3cda24b8e75a887654c",
             "public.retention_preparations.retention_preparations_manifest_check": "7833c46c75dffc7f9d4eb999413fe786eb5530cdac1f7a97f4b9ae915093ed61",
             "public.retention_preparations.retention_preparations_pkey": "161d9b21602c97ee02b13ed65b36b3f89e2590daf1c40f13f3cf607dc1400baf",
@@ -70,8 +88,15 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
             "public.retention_prepared_contracts.retention_prepared_contracts_version_check": "a473faff3d0daeb9aca6ccdfbe6e8be19c433a55452563a43195be98d8b81b1d",
             "public.retention_prepared_contracts.retention_prepared_contracts_version_uq": "79a52286004d8c03fa8b5985722013c8b393c19887061270750553081d73ff63"
         },
+        "functions": {
+            "public.bump_retention_preparation_revision()": "1669081718b3b6c0b92a754638c20c15ea7cf639d9fb10f1262f3ab82b8403c3"
+        },
         "indexes": {
             "public.conversation_checkpoints_prepared_window_uq": "46d3dbe4a9fbd4dd3476f658b432b0bcc8a63f67f2f91bdb03c4b4fccbdf6ed3",
+            "public.retention_preparation_revision_events_pkey": "0e8e7bbe0229ba70902708e8e67f941bed4897a8e843d7b1e895062f2c240816",
+            "public.retention_preparation_revision_events_subject_idx": "e66883499138bf4af35590e96d1b078ccc82011e1ff4a7d04e41cca57c775027",
+            "public.retention_preparation_revisions_pkey": "635273f997e2d3abab7d413cf5f980ba9d8e363a5d1034d2d91aacf8f39224b4",
+            "public.retention_preparation_revisions_user_idx": "cb4c739492f1c024dcebaaf28401c5486da091a5d473403ba49a142de8f7cc09",
             "public.retention_preparations_one_active_uq": "dac325d19667b676fc48436474a2a25eb6200ff0286df8fba4f656cbedbcf3b2",
             "public.retention_preparations_pkey": "82133cfe9790d666d70421ca00ef0ca43350484b9c2977e9687a9946f877eb05",
             "public.retention_prepared_contracts_live_uq": "8037e7657f5ab7543afb64fe5fd65c4a2f4f5849ee05faf4425ac44dd6451f8d",
@@ -79,6 +104,15 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
             "public.retention_prepared_contracts_version_uq": "2823a6941df1a154d95c9c7ed11d820755342ca47521f96bee5e23d2a7b1f3f1"
         },
         "relation_grants": {
+            "public.retention_preparation_revision_events:service_role:SELECT": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparation_revisions:service_role:DELETE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparation_revisions:service_role:INSERT": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparation_revisions:service_role:MAINTAIN": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparation_revisions:service_role:REFERENCES": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparation_revisions:service_role:SELECT": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparation_revisions:service_role:TRIGGER": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparation_revisions:service_role:TRUNCATE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparation_revisions:service_role:UPDATE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
             "public.retention_preparations:service_role:DELETE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
             "public.retention_preparations:service_role:INSERT": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
             "public.retention_preparations:service_role:MAINTAIN": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
@@ -96,9 +130,26 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
             "public.retention_prepared_contracts:service_role:TRUNCATE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
             "public.retention_prepared_contracts:service_role:UPDATE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5"
         },
+        "sequences": {
+            "public.retention_preparation_revision_events_id_seq": "88a9f8f5a243e0753c86f7d743c186128573e33b845266dcb015a8dd91c87307"
+        },
         "tables": {
+            "public.retention_preparation_revision_events": "95d4e3040c0d3677c113cded53b3a126847e165100eb3737218a88c438da6456",
+            "public.retention_preparation_revisions": "95d4e3040c0d3677c113cded53b3a126847e165100eb3737218a88c438da6456",
             "public.retention_preparations": "95d4e3040c0d3677c113cded53b3a126847e165100eb3737218a88c438da6456",
             "public.retention_prepared_contracts": "95d4e3040c0d3677c113cded53b3a126847e165100eb3737218a88c438da6456"
+        },
+        "triggers": {
+            "public.chat_contexts.chat_contexts_retention_preparation_revision": "3d5707b3681634e00ea9140bce3df684a0c1782e309698aeb735385125db1db6",
+            "public.conversation_checkpoints.conversation_checkpoints_retention_preparation_revision": "496e0c630efca139c4a4d74c5f4630a1212e39c9383456a19d19a6e1f0b9a938",
+            "public.mem0_ingest_candidates.mem0_ingest_candidates_retention_preparation_revision": "a607a092867368e4fbcaa74a215accd608a6bbc6be243a1e07a835b54a569b2e",
+            "public.mem0_memory_registry.mem0_memory_registry_retention_preparation_revision": "041358a1609e42f22e84fd70b25d83689f72774797a20184bd1f1745263af70d",
+            "public.mem0_memory_sources.mem0_memory_sources_retention_preparation_revision": "391b657e99f0d9e97cde5566df69011ba638f9ba0bc400c306da7f17b723d871",
+            "public.memory_pipeline_states.memory_pipeline_states_retention_preparation_revision": "5e42cb344caa8293639df8caa71e2ff2df0b7cc754a0841187bbaa2a9b118d58",
+            "public.messages.messages_retention_preparation_revision": "33b787c265cf09df052291e574a0298222930d76002fc706c93e8c86e23586f3",
+            "public.privacy_subject_barriers.privacy_subject_barriers_retention_preparation_revision": "4778e2540beeb6b92a37b72be5b93b524eadbafbf487038d836c3012846b864f",
+            "public.profiles.profiles_retention_preparation_revision": "21dc2654ac98b6638bba67ec989d562fe9139fbe652d4aef53374db5566febbc",
+            "public.retention_prepared_contracts.retention_prepared_contracts_retention_preparation_revision": "585e342e00e48652f2c6982142409e60b27eedf6bcc8da5e41ae3a9760f7b83e"
         }
     }
     allowed = {

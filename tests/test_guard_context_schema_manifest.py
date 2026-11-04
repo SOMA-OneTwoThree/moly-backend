@@ -132,7 +132,8 @@ def test_online_sql_and_release_bundle_are_exact_reviewed_derivation():
     assert 'context_retention_active_preparation' in sql
     assert "'null'::jsonb)\nON CONFLICT (key) DO NOTHING;" in sql
     # No old message/memory/diary or public contract mutation belongs to DDL.
-    assert 'UPDATE public.' not in sql and 'DELETE FROM' not in sql
+    assert sql.count('UPDATE public.') == 1
+    assert 'UPDATE public.retention_preparation_revisions r' in sql and 'DELETE FROM' not in sql
     assert 'DROP TABLE' not in sql and 'DROP COLUMN' not in sql
     def statements(value):
         return '\n'.join(line.strip() for line in value.splitlines()
@@ -187,3 +188,93 @@ def test_online_indexes_partition_only_published_window_namespaces():
     assert sql in sc.REVIEWED_ONLINE_SQL.read_text()
     assert sql.count('DROP INDEX ') == 1 and sql.count('CREATE UNIQUE INDEX ') == 2
     assert 'UPDATE ' not in sql and 'DELETE ' not in sql and 'DROP TABLE' not in sql
+
+
+def test_preparation_revision_delta_is_exact_and_service_owned():
+    final = baseline()
+    before = deepcopy(final)
+    table = 'public.retention_preparation_revisions'
+    function = 'public.bump_retention_preparation_revision()'
+    for section, entries in list(before.items()):
+        for key in list(entries):
+            if (key == table or key.startswith(table + '.') or key.startswith(table + ':')
+                    or key == function or key.endswith('_retention_preparation_revision')):
+                del entries[key]
+    original = deepcopy(before)
+    assert sc.reviewed_preparation_revisions_catalog_upgrade(before) == final
+    assert before == original
+    assert sc.reviewed_preparation_revisions_catalog_upgrade(final) == final
+    assert final['tables'][table]['relrowsecurity'] is True
+    grants = [key for key in final['relation_grants'] if key.startswith(table + ':')]
+    assert grants and all(':service_role:' in key for key in grants)
+    assert not any(key.startswith(function + ':') for key in final['function_grants'])
+    assert len([key for key in final['triggers'] if key.endswith('_retention_preparation_revision')]) == 10
+    before['columns'][table + '.revision'] = sc._column('text')
+    with pytest.raises(ValueError, match='conflicting preparation revision'):
+        sc.reviewed_preparation_revisions_catalog_upgrade(before)
+
+
+def test_preparation_revision_sql_binds_original_and_new_owners_and_fixed_prefix():
+    sql = sc.REVIEWED_ONLINE_REVISIONS_SQL.read_text()
+    assert hashlib.sha256(sql.encode()).hexdigest() == sc._GUARD_SQL_DIGESTS['guard_context_online_revisions.sql']
+    assert sql in sc.REVIEWED_ONLINE_SQL.read_text()
+    assert "SECURITY DEFINER\nSET search_path TO ''" in sql
+    assert 'SELECT DISTINCT owner FROM unnest(ARRAY[old_owner,new_owner])' in sql
+    assert 'WHERE owner IS NOT NULL ORDER BY owner' in sql
+    assert "p.state IN ('building','prepared')" in sql
+    assert "(old_row->>'id')::bigint <= locked_through" in sql
+    assert "(new_row->>'id')::bigint <= locked_through" in sql
+    assert "(old_row->>'preparation_id')::uuid = r.preparation_id" in sql
+    assert "(new_row->>'preparation_id')::uuid = r.preparation_id" in sql
+    assert 'SET revision = r.revision + 1' in sql
+    for cursor in ('source_through_turn_seq', 'ingest_through_turn_seq', 'consolidated_through_turn_seq'):
+        assert f"COALESCE((new_row->>'{cursor}')::bigint,0) >= COALESCE((old_row->>'{cursor}')::bigint,0)" in sql
+    assert 'FOR SHARE NOWAIT' in sql and 'FOR UPDATE NOWAIT' in sql
+    assert 'EXCEPTION WHEN lock_not_available' in sql and 'AND NOT ignored_change' in sql
+    assert 'FOR KEY SHARE OF p' in sql and 'AND NOT EXISTS (SELECT 1 FROM public.retention_preparation_revisions r' in sql
+    assert 'last_committed_turn_seq' not in sql and "old_row->'nickname'" not in sql
+    assert sql.count('AFTER INSERT OR UPDATE OR DELETE ON public.') == 10
+    assert sql.count('UPDATE public.') == 1
+
+
+def test_revision_registration_fence_precedes_fast_path_and_json_copy():
+    body = sc._PREPARATION_REVISION_BODY
+    sentinel = body.index("key = 'context_retention_revision_fence' FOR SHARE")
+    missing = body.index("ERRCODE = '40001'")
+    fast = body.index('IF NOT EXISTS (SELECT 1 FROM public.retention_preparations')
+    copy = body.index('to_jsonb(OLD)')
+    assert sentinel < missing < fast < copy
+    delta = sc.REVIEWED_ONLINE_REVISION_FENCE_SQL.read_text()
+    assert hashlib.sha256(delta.encode()).hexdigest() == sc._GUARD_SQL_DIGESTS['guard_context_online_revision_fence.sql']
+    assert delta.index('IN SHARE ROW EXCLUSIVE MODE NOWAIT') < delta.index('INSERT INTO public.app_config')
+    assert delta.index('INSERT INTO public.app_config') < delta.index('CREATE OR REPLACE FUNCTION')
+    assert "key = 'context_retention_revision_fence' FOR SHARE" in delta
+    for table in sc._PREPARATION_REVISION_TABLES:
+        assert f'public.{table}' in delta.split('IN SHARE ROW EXCLUSIVE MODE NOWAIT', 1)[0]
+    assert 'CREATE TRIGGER' not in delta and 'CREATE TABLE' not in delta and 'DROP ' not in delta
+    assert "VALUES ('context_retention_revision_fence','0'::jsonb) ON CONFLICT (key) DO NOTHING" in delta
+
+
+def test_revision_events_are_append_only_and_have_no_clock_foreign_key():
+    final = baseline()
+    before = deepcopy(final)
+    table = 'public.retention_preparation_revision_events'
+    for section, entries in before.items():
+        for key in list(entries):
+            if key == table or key.startswith(table + '.') or key.startswith(table + ':') or key.startswith(table + '_'):
+                del entries[key]
+    assert sc.reviewed_preparation_revision_events_catalog_upgrade(before) == final
+    assert sc.reviewed_preparation_revision_events_catalog_upgrade(final) == final
+    grants = {key for key in final['relation_grants'] if key.startswith(table + ':')}
+    assert grants == {table + ':service_role:SELECT'}
+    assert not any(key.startswith(table + '_id_seq:') for key in final['relation_grants'])
+    foreign_keys = [value['definition'] for key, value in final['constraints'].items()
+                    if key.startswith(table + '.') and 'FOREIGN KEY' in value['definition']]
+    assert len(foreign_keys) == 2
+    assert not any('retention_preparation_revisions' in value for value in foreign_keys)
+    delta = sc.REVIEWED_ONLINE_REVISION_EVENTS_SQL.read_text()
+    assert hashlib.sha256(delta.encode()).hexdigest() == sc._GUARD_SQL_DIGESTS['guard_context_online_revision_events.sql']
+    assert sc._PREPARATION_REVISION_BODY in delta
+    assert 'CREATE TRIGGER' not in delta and 'DROP ' not in delta
+    assert 'FOR UPDATE NOWAIT' in delta and 'FOR SHARE NOWAIT' in delta
+    assert 'INSERT INTO public.retention_preparation_revision_events' in delta

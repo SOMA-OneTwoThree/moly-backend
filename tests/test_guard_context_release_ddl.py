@@ -44,6 +44,7 @@ def test_existing_table_locks_are_nowait_before_any_metadata_or_swap():
     assert prefix.endswith('IN ACCESS EXCLUSIVE MODE NOWAIT;\n')
     for table in ('app_config', 'chat_contexts', 'conversation_checkpoints',
                   'mem0_ingest_candidates', 'mem0_memory_registry', 'messages',
+                  'mem0_memory_sources', 'memory_pipeline_states',
                   'privacy_subject_barriers', 'profiles'):
         assert f'public.{table}' in prefix
     assert 'VALIDATE CONSTRAINT' not in metadata

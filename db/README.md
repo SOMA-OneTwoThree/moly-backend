@@ -154,7 +154,7 @@ uv run python -m db.schema_contract --derive-guard-context-candidate \
   --baseline-schema "$MAIN64_SCHEMA" --baseline-contract "$MAIN64_CONTRACT" \
   --crisis-sha256 c587c3524e186a8a031c69d5e6769851819ed2a13c4990958f5ebe5466c3da13 \
   --pressure-sha256 e4c58f65889444430868e676e6d37702733bd30ff0c407c95686937e58145bb6 \
-  --online-sha256 a7e50156064ceefd40cb9ed491d34c860f61c6a119f53e76c005b44d88bb6cf2
+  --online-sha256 55a9a01050eb0a2329ad1428840cf795a49fc424ea55facf887ec13c2a2a1ac9
 ```
 
 입력은 고정된 main64 원본 파일이어야 한다. 도구는 baseline·SQL checksum과 정확한 추가
@@ -177,6 +177,19 @@ uv run python -m db.schema_contract --derive-guard-context-candidate \
   같아야 하며, 실제 적용은 root가 허용한 개발 DB에서 별도로 검증한다. 게시 index의 좁은
   보완에는 `changes/guard_context_online_indexes.sql`을 사용한다. 최초 도입 metadata에는
   두 addon의 최종 구조가 모두 들어 있으므로 운영에서 addon을 중복 실행하지 않는다.
+- `changes/guard_context_online_revisions.sql`은 준비 대상의 revision 한 테이블과 10개
+  source trigger를 추가한다. 등록된 경계 안 변경은 원 writer TX에서 revision을 증가시키고,
+  경계 뒤 append는 SHARE fence로 전환과 직렬화한다. 미등록 새 subject는 registry KEY SHARE로
+  참여한다. RR 감사의 전체 해시 검증은 유지하고 마지막 전환에서 번호/경계만 원자 비교한다.
+  기술 sentinel `context_retention_revision_fence`는 모든 source writer와 신규 등록 TX의
+  순서를 고정한다. 준비가 없을 때도 SHARE로 참여한다. 기존 revision 구조 보완용
+  `guard_context_online_revision_fence.sql`은 10개 source를 NOWAIT로 잠근 뒤 sentinel seed와
+  함수만 같은 750ms TX에서 바꾼 이전 단계의 참조다. 최신 DB에는 이전 함수를 재적용하지
+  않는다. 현재 보완은 `guard_context_online_revision_events.sql`로 이벤트 테이블과 최종
+  함수를 함께 적용한다. clock NOWAIT 경합 시 semantic 변경은 이벤트로, ignored/>T는
+  registry SHARE만으로 전환과 직렬화한다. 유효 revision은 base+COUNT(events)이며
+  sequence MAX를 쓰지 않는다. 이벤트에는 clock FK가 없고 서비스 역할은 SELECT만 갖는다.
+  기존 clock/trigger/자료를 재생성하지 않는다.
 - 공개 대화·일반 worker·결제 webhook은 계속 운영한다. additive DDL을 짧은 잠금 제한으로
   분리 적용하고 모든 CHECK 검증·이름 교체 후 최종 계약을 확인한다. 그다음 호환 API/worker를
   배포하고 기존 두 기능 OFF/active 포인터 null 상태에서 준비한다.
@@ -185,9 +198,16 @@ uv run python -m db.schema_contract --derive-guard-context-candidate \
   worker와 `catch-up`/`audit`로 계약 처리 증명·요약 근거·현재 tail을 확인한다. 준비 계약은
   `retention_prepared_contracts`, 준비 요약은 준비 ID의 ready 행에 저장한다. 공개 계약과
   공개 요약을 준비 상태로 바꾸지 않는다. 처리 목표·원장·준비 상태를 사용자별 기능 gate로 쓰지 않는다.
-- `activate`만 검증 자료 게시와 registry active, 전역 포인터·설정을 한 트랜잭션에서 바꾼다.
-  NOWAIT 경합이나 1초 제한 초과 시 전체 rollback하고 기존 공개 경로를 유지한다. 준비 목록별
-  공개나 A/B 전환은 없다. 기존 요청은 캡처한 이전 자료로 끝내고 이후 새 요청은 새 포인터를 쓴다.
+- `activate`는 비공개 완성 checkpoint를 먼저 seal·commit한 뒤 새 RR READ ONLY 감사에서
+  전체 원문·근거 해시와 준비 증명을 확인한다. 변경 subject의 재감사도 RR을 유지한다.
+  최종 전환은 READ COMMITTED에서 registry UPDATE NOWAIT→clock UPDATE NOWAIT 순서로
+  잠그고 base revision+COUNT(events), 대상·경계·현재 tail을 확인한다. 전체 source 테이블의
+  SHARE 잠금이나 전체 기억/근거 재해시는 최종 단계에 두지 않는다. RR 최종 TX는 거부한다.
+  registry active와 전역 포인터·설정만 원자 변경하여 준비 자료의 가시성을 바꾼다. sealed ready
+  checkpoint/ready 계약은 행별 일괄 UPDATE하지 않고 같은 준비 ID의 활성 reader가 읽는다.
+  draft 계약은 활성화하지 않는다. NOWAIT 경합이나 1초 제한 초과 시 전체 rollback하고 기존
+  공개 경로를 유지한다. 준비 목록별 공개나 A/B 전환은 없다. 기존 요청은 캡처한 이전 자료로
+  끝내고 이후 새 요청은 새 포인터를 쓴다.
 - 준비를 취소할 때는 해당 ID의 `abort`와 전용 worker 드레인을 사용한다. 활성화 뒤에는
   `changes/guard_context_release_disable.sql`로 두 쓰기 기능을 끄되 active 포인터와
   새 형식의 reader는 유지한다. building worker는 전역 disable만으로 중지되지 않는다.

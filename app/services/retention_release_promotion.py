@@ -25,10 +25,21 @@ REQUIRED_COLUMNS = {
     ("conversation_checkpoints", "preparation_id"), ("retention_preparations", "manifest_json"),
     ("retention_prepared_contracts", "processed_through_message_id"),
     ("retention_prepared_contracts", "validation_json"),
+    ("retention_preparation_revisions", "revision"),
+    ("retention_preparation_revisions", "through_message_id"),
+    ("retention_preparation_revision_events", "id"),
 }
 
 class Blocked(ValueError):
     """A fixed safe reason; never include body, identifiers or driver messages."""
+
+
+class AuditRefreshRequired(Blocked):
+    def __init__(self, subjects):
+        self.subjects = tuple(sorted({uuid.UUID(str(subject)) for subject in subjects}, key=str))
+        if not self.subjects:
+            raise Blocked("snapshot_metadata_unavailable")
+        super().__init__("audit_refresh_required")
 
 
 def digest(value):
@@ -204,7 +215,8 @@ async def schema_ready(session):
     rows = (await session.execute(text("""SELECT table_name,column_name FROM information_schema.columns
         WHERE table_schema='public' AND table_name IN
         ('mem0_memory_registry','mem0_ingest_candidates','chat_contexts','conversation_checkpoints',
-         'retention_preparations','retention_prepared_contracts')"""))).all()
+         'retention_preparations','retention_prepared_contracts','retention_preparation_revisions',
+         'retention_preparation_revision_events')"""))).all()
     return REQUIRED_COLUMNS.issubset({tuple(row) for row in rows})
 
 
@@ -472,7 +484,7 @@ def public_report(manifest, *, preparation_id=None, ready=False, blockers=None):
 
 
 async def registry(session, identity, *, lock=False):
-    statement = "SELECT id,state,code_sha,manifest_json FROM retention_preparations WHERE id=:id"
+    statement = "SELECT id,state,code_sha,manifest_json,xmin::text AS row_version FROM retention_preparations WHERE id=:id"
     row = (await session.execute(text(statement + (" FOR UPDATE NOWAIT" if lock else "")),
                                  {"id": identity})).mappings().first()
     if row is None or row["manifest_json"].get("format") != FORMAT:
@@ -480,6 +492,56 @@ async def registry(session, identity, *, lock=False):
     if row["code_sha"] != row["manifest_json"].get("code_sha"):
         raise Blocked("preparation_code_binding_changed")
     return dict(row)
+
+
+async def enroll_source_revisions(session, identity, manifest):
+    """Drain old-boundary writers before enrolling or extending tracked inputs."""
+    await fence_revision_registration(session)
+    await _enroll_source_revisions_fenced(session,identity,manifest)
+
+
+async def _enroll_source_revisions_fenced(session, identity, manifest):
+    """The caller owns the registration sentinel through commit."""
+    targets = [{"user_id": key, "through": record["through"]}
+               for key, record in manifest["users"].items()]
+    await session.execute(text("SELECT user_id FROM retention_preparation_revisions "
+        "WHERE preparation_id=:id AND user_id=ANY(CAST(:ids AS uuid[])) "
+        "ORDER BY user_id FOR UPDATE NOWAIT"),
+        {"id": identity, "ids": [uuid.UUID(item["user_id"]) for item in targets]})
+    await session.execute(text("""INSERT INTO retention_preparation_revisions
+      (preparation_id,user_id,through_message_id,revision)
+      SELECT :id,t.user_id,t.through,0 FROM jsonb_to_recordset(CAST(:targets AS jsonb))
+        AS t(user_id uuid,through bigint)
+      ON CONFLICT(preparation_id,user_id) DO UPDATE
+        SET through_message_id=EXCLUDED.through_message_id,
+            revision=retention_preparation_revisions.revision+1
+      WHERE retention_preparation_revisions.through_message_id IS DISTINCT FROM EXCLUDED.through_message_id
+      """), {"id": identity, "targets": json.dumps(targets)})
+
+
+async def audited_source_revisions(session, identity, plans):
+    boundaries = {str(plan.user["user_id"]): plan.through for plan in plans}
+    rows = (await session.execute(text("""WITH event_counts AS MATERIALIZED (
+        SELECT user_id,count(*) AS total FROM retention_preparation_revision_events
+        WHERE preparation_id=:id GROUP BY user_id)
+        SELECT r.user_id,r.through_message_id,r.revision+COALESCE(e.total,0) AS revision
+        FROM retention_preparation_revisions r LEFT JOIN event_counts e ON e.user_id=r.user_id
+        WHERE r.preparation_id=:id AND r.user_id=ANY(CAST(:ids AS uuid[])) ORDER BY r.user_id"""),
+        {"id": identity, "ids": [uuid.UUID(key) for key in boundaries]})).mappings().all()
+    if (len(rows) != len(boundaries) or {str(row["user_id"]) for row in rows} != set(boundaries)
+            or any(row["through_message_id"] != boundaries[str(row["user_id"])]
+                   or type(row["revision"]) is not int or row["revision"] < 0 for row in rows)):
+        raise Blocked("preparation_revision_unregistered")
+    return {str(row["user_id"]): row["revision"] for row in rows}
+
+
+async def fence_revision_registration(session):
+    value = await session.scalar(text("SELECT value FROM app_config "
+        "WHERE key='context_retention_revision_fence' FOR UPDATE NOWAIT"))
+    if type(value) is not int or value < 0:
+        raise Blocked("revision_registration_fence_unavailable")
+    await session.execute(text("UPDATE app_config SET value=to_jsonb(CAST(:next_value AS bigint)),"
+        "updated_at=now() WHERE key='context_retention_revision_fence'"), {"next_value":value+1})
 
 
 async def new_preparation(session, *, plans, excluded, project_ref, code_sha):
@@ -507,10 +569,12 @@ async def new_preparation(session, *, plans, excluded, project_ref, code_sha):
         key = str(user_id)
         if old.get("users", {}).get(key) == manifest["users"].get(key) and key in manifest["users"]:
             raise Blocked("unchanged_terminal_failure_requires_manual_resolution")
+    await fence_revision_registration(session)
     identity = uuid.uuid4()
     await session.execute(text("""INSERT INTO retention_preparations(id,state,code_sha,manifest_json)
        VALUES(:id,'building',:sha,CAST(:manifest AS jsonb))"""),
        {"id": identity, "sha": code_sha, "manifest": json.dumps(manifest, default=str)})
+    await _enroll_source_revisions_fenced(session, identity, manifest)
     return identity, manifest
 
 
@@ -553,6 +617,7 @@ async def prepare_all(maker, identity, *, catch_up=False):
                 await session.execute(text("UPDATE retention_preparations SET state='building', "
                     "manifest_json=CAST(:manifest AS jsonb),updated_at=now() WHERE id=:id"),
                     {"id": identity, "manifest": json.dumps(manifest, default=str)})
+                await enroll_source_revisions(session, identity, manifest)
                 await session.commit()
         for plan in plans:
             async with maker() as session:
@@ -575,6 +640,9 @@ class AuditToken:
     row_versions: dict
     tail_contexts: dict
     report: dict
+    manifest: dict
+    registry_version: str
+    source_revisions: dict
 
 
 def metadata_record(user):
@@ -615,8 +683,8 @@ def check_tail_budget(context, messages):
         input_limit=context_retention.FOREGROUND_INPUT_LIMIT, output_reserve=4096)
 
 
-async def row_versions(session, identity, plans, *, lock=False):
-    """Exact rows audited, then held through promotion; existing source edits reject."""
+def row_versions_statement(identity, plans, *, lock=False):
+    """Build the unchanged nine-scope source proof without performing I/O."""
     ids = [p.user["user_id"] for p in plans]
     boundaries = {str(p.user["user_id"]): p.through for p in plans}
     params = {"ids": ids, "id": identity, "bounds": json.dumps(boundaries)}
@@ -626,13 +694,26 @@ async def row_versions(session, identity, plans, *, lock=False):
         "contexts": "SELECT c.user_id AS id,c.memory_generation AS value FROM chat_contexts c WHERE c.user_id=ANY(CAST(:ids AS uuid[])) ORDER BY c.user_id",
         "barriers": "SELECT b.user_id AS id,b.state,b.epoch FROM privacy_subject_barriers b WHERE b.user_id=ANY(CAST(:ids AS uuid[])) ORDER BY b.user_id",
         "messages": "SELECT m.id,m.xmin::text AS version FROM messages m WHERE m.user_id=ANY(CAST(:ids AS uuid[])) AND (m.id<=COALESCE((CAST(:bounds AS jsonb)->>m.user_id::text)::bigint,0) OR EXISTS(SELECT 1 FROM mem0_memory_sources s JOIN mem0_memory_registry r ON r.id=s.registry_id WHERE s.user_id=m.user_id AND s.source_message_id=m.id AND r.semantic_status='active' AND r.provider_delete_state='kept')) ORDER BY m.id",
-        "memories": "SELECT r.id,r.xmin::text AS version FROM mem0_memory_registry r WHERE r.user_id=ANY(CAST(:ids AS uuid[])) AND r.semantic_status='active' AND r.provider_delete_state='kept' ORDER BY r.id",
-        "sources": "SELECT s.registry_id,s.source_message_id,s.evidence_start_utf8,s.evidence_end_utf8,s.xmin::text AS version FROM mem0_memory_sources s JOIN mem0_memory_registry r ON r.id=s.registry_id AND r.user_id=s.user_id WHERE s.user_id=ANY(CAST(:ids AS uuid[])) AND r.semantic_status='active' AND r.provider_delete_state='kept' ORDER BY s.registry_id,s.source_message_id,s.evidence_start_utf8,s.evidence_end_utf8",
+        "memories": "SELECT r.id,r.user_id AS owner_id,r.xmin::text AS version FROM mem0_memory_registry r WHERE r.user_id=ANY(CAST(:ids AS uuid[])) AND r.semantic_status='active' AND r.provider_delete_state='kept' ORDER BY r.id",
+        "sources": "SELECT s.registry_id,s.source_message_id,s.evidence_start_utf8,s.evidence_end_utf8,s.xmin::text AS version FROM mem0_memory_sources s JOIN locked_5 r ON r.id=s.registry_id AND r.owner_id=s.user_id WHERE s.user_id=ANY(CAST(:ids AS uuid[])) ORDER BY s.registry_id,s.source_message_id,s.evidence_start_utf8,s.evidence_end_utf8",
         "checkpoints": "SELECT c.id,c.xmin::text AS version FROM conversation_checkpoints c WHERE c.preparation_id=:id AND c.publish_state='ready' ORDER BY c.id",
         "contracts": "SELECT c.id,c.xmin::text AS version FROM retention_prepared_contracts c WHERE c.preparation_id=:id AND c.status IN ('ready','superseded') ORDER BY c.id",
     }
     definitions, projections = [], []
     for index, (name, sql) in enumerate(queries.items()):
+        if name == "sources" and not lock:
+            # Keep the join hashable even when freshly prepared data has no
+            # useful statistics. Materialization prevents the outer predicate
+            # reducing FULL to a per-source registry/index nested lookup.
+            definitions.append("joined_sources AS MATERIALIZED ("
+                "SELECT s.registry_id,s.user_id,s.source_message_id,s.evidence_start_utf8,"
+                "s.evidence_end_utf8,s.xmin::text AS version,r.owner_id AS matching_owner "
+                "FROM mem0_memory_sources s FULL JOIN locked_5 r "
+                "ON r.id=s.registry_id AND r.owner_id=s.user_id)")
+            sql = ("SELECT registry_id,source_message_id,evidence_start_utf8,evidence_end_utf8,version "
+                "FROM joined_sources WHERE matching_owner IS NOT NULL AND registry_id IS NOT NULL "
+                "AND user_id=ANY(CAST(:ids AS uuid[])) "
+                "ORDER BY registry_id,source_message_id,evidence_start_utf8,evidence_end_utf8")
         # Fixed SQL identifiers only; actual source rows are still locked. Return
         # nine tiny signatures in one round trip, not the whole source ID vector.
         suffix = " FOR UPDATE OF s NOWAIT" if name == "sources" else " FOR UPDATE NOWAIT"
@@ -655,11 +736,38 @@ async def row_versions(session, identity, plans, *, lock=False):
             f"encode(sha256(convert_to(COALESCE(string_agg({serialized}, E'\\n' "
             f"ORDER BY {order}),''),'UTF8')),'hex') AS signature FROM {alias}")
     statement = "WITH " + ",".join(definitions) + " " + " UNION ALL ".join(projections)
-    rows = (await session.execute(text(statement), params)).mappings().all()
+    return statement, params
+
+
+def _row_versions_result(rows):
     result = {r["scope"]: {"count": r["count"], "signature": r["signature"]} for r in rows}
-    if set(result) != set(queries):
+    if len(rows) != 9 or set(result) != {"profiles", "pipelines", "contexts", "barriers",
+            "messages", "memories", "sources", "checkpoints", "contracts"}:
         raise Blocked("snapshot_metadata_unavailable")
     return result
+
+
+async def row_versions(session, identity, plans, *, lock=False):
+    """Exact rows audited, then held through promotion; existing source edits reject."""
+    statement, params = row_versions_statement(identity, plans, lock=lock)
+    return _row_versions_result((await session.execute(text(statement), params)).mappings().all())
+
+
+async def activation_snapshot(session, identity, plans, manifest):
+    """One statement binds all nine signatures and the identical completion proof."""
+    signatures, signature_params = row_versions_statement(identity, plans)
+    completion, completion_params = processing_statement(identity, manifest)
+    statement = ("WITH signatures AS MATERIALIZED (" + signatures + "), "
+        "completion(value) AS MATERIALIZED (" + completion + ") "
+        "SELECT signatures.*,completion.value AS processing_complete "
+        "FROM signatures CROSS JOIN completion")
+    rows = (await session.execute(text(statement),
+        {**signature_params, **completion_params})).mappings().all()
+    versions = _row_versions_result(rows)
+    statuses = [row["processing_complete"] for row in rows]
+    if any(type(value) is not bool for value in statuses) or len(set(statuses)) != 1:
+        raise Blocked("snapshot_metadata_unavailable")
+    return versions, statuses[0]
 
 
 async def audit_preparation(session, identity):
@@ -669,6 +777,8 @@ async def audit_preparation(session, identity):
     isolation = await session.scalar(text("SELECT current_setting('transaction_isolation')"))
     if isolation not in {"repeatable read", "serializable"}:
         raise Blocked("consistent_audit_snapshot_required")
+    if await session.scalar(text("SELECT current_setting('transaction_read_only')")) != "on":
+        raise Blocked("readonly_audit_snapshot_required")
     row = await registry(session, identity)
     if row["state"] not in {"building", "prepared"}:
         raise Blocked("preparation_not_building")
@@ -706,56 +816,171 @@ async def audit_preparation(session, identity):
         if any(str(x[0]) in manifest["users"] for x in excluded):
             raise Blocked("subject_authorization_changed")
         versions = await row_versions(session, identity, verified)
+        revisions = await audited_source_revisions(session, identity, verified)
     report = public_report(manifest, preparation_id=identity, ready=True)
     return AuditToken(identity, digest(manifest), row["code_sha"], time.monotonic(),
-        tuple(metadata_record(p.user) for p in verified), versions, contexts, report)
+        tuple(metadata_record(p.user) for p in verified), versions, contexts, report,
+        manifest, row["row_version"], revisions)
 
 
-async def activate(session, token, *, deadline):
+async def refresh_audit_subjects(maker, token, subjects):
+    """Recheck only changed subjects; preserve the original deadline/retry history."""
+    from dataclasses import replace
+    from app.services.retention_preparation_context import Binding, use_binding
+    keys = {str(uuid.UUID(str(subject))) for subject in subjects}
+    if not keys or not keys.issubset(token.tail_contexts):
+        raise Blocked("preparation_revision_unregistered")
+    if time.monotonic()-token.created_monotonic > 60:
+        raise Blocked("audit_token_expired")
+    async with maker() as session:
+        row = await registry(session,token.preparation_id)
+        if row["state"] not in {"building","prepared"} or digest(row["manifest_json"]) != token.manifest_hash:
+            raise Blocked("preparation_changed_since_audit")
+        await seal_preparation(session,token.preparation_id)
+        await session.commit()
+    contexts, revisions = dict(token.tail_contexts), dict(token.source_revisions)
+    metadata = {record[0]:record for record in token.user_metadata}
+    with use_binding(Binding(token.preparation_id,True)):
+        for key in sorted(keys):
+            async with maker() as session:
+                await session.execute(text("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY"))
+                row = await registry(session,token.preparation_id)
+                if (row["state"] not in {"building","prepared"}
+                        or row["code_sha"] != token.code_sha
+                        or row["row_version"] != token.registry_version
+                        or digest(row["manifest_json"]) != token.manifest_hash):
+                    raise Blocked("preparation_changed_since_audit")
+                user = (await session.execute(text("SELECT u.* FROM ("+str(_USERS)+") u WHERE u.user_id=:uid"),
+                    {"uid":uuid.UUID(key)})).mappings().first()
+                if user is None:
+                    raise Blocked("prefix_owner_changed")
+                user = dict(user)
+                if not authorize_metadata(user):
+                    raise Blocked("subject_authorization_changed")
+                record = token.manifest["users"].get(key)
+                if record is None:
+                    raise Blocked("preparation_revision_unregistered")
+                prefix = await read_user(session,user,through_id=record["through"])
+                if prefix_record(prefix) != record:
+                    raise Blocked("prefix_changed_abort_and_replan")
+                if not await audit_user(session,prefix):
+                    raise Blocked("prepared_sources_incomplete")
+                current = await read_user(session,user)
+                context = await tail_context(session,prefix)
+                check_tail_budget(context,current.messages)
+                context["tail_hash"] = tail_digest([m for m in current.messages if m["id"]>context["through"]])
+                contexts[key] = context
+                revisions.update(await audited_source_revisions(session,token.preparation_id,[prefix]))
+                metadata[key] = metadata_record(user)
+                await session.rollback()
+    return replace(token,tail_contexts=contexts,source_revisions=revisions,
+                   user_metadata=tuple(metadata[key] for key in sorted(metadata)))
+
+
+async def lock_audited_registry(session, token):
+    # RR audit already read the complete manifest. A matching MVCC version
+    # proves it is still that exact row without transferring it a second time.
+    row = (await session.execute(text("""SELECT id,state,code_sha,
+      manifest_json->>'format' AS format,manifest_json->>'code_sha' AS bound_code_sha,
+      xmin::text AS row_version,
+      (SELECT id FROM retention_preparations WHERE state='active') AS active_id
+      FROM retention_preparations WHERE id=:id FOR UPDATE NOWAIT"""),
+      {"id":token.preparation_id})).mappings().first()
+    if (row is None or row["format"] != FORMAT or row["code_sha"] != token.code_sha
+            or row["bound_code_sha"] != row["code_sha"]):
+        raise Blocked("live_preparation_required")
+    if row["state"] != "active" and row["row_version"] != token.registry_version:
+        raise Blocked("preparation_changed_since_audit")
+    return {**dict(row), "manifest_json":token.manifest}
+
+
+async def seal_preparation(session, identity):
+    """Mark complete private artifacts; caller commits before a fresh full audit."""
+    state = await session.scalar(text("SELECT state FROM retention_preparations "
+        "WHERE id=:id FOR SHARE"), {"id": identity})
+    if state not in {"building", "prepared"}:
+        raise Blocked("preparation_not_building")
+    return await session.scalar(text("""
+      WITH sealed AS (
+        UPDATE conversation_checkpoints
+        SET validation_json=validation_json || jsonb_build_object('activation_sealed',true)
+        WHERE preparation_id=:id AND publish_state='ready'
+          AND jsonb_typeof(state_json)='object'
+          AND jsonb_typeof(validation_json)='object'
+          AND validation_json->'processing_complete'='true'::jsonb
+          AND (jsonb_typeof(validation_json->'completed_proof')='object'
+            OR (validation_json->'reverified'='true'::jsonb
+              AND jsonb_typeof(validation_json->'page_manifests')='array'
+              AND validation_json->'page_manifests'<>'[]'::jsonb))
+          AND validation_json->'activation_sealed' IS DISTINCT FROM 'true'::jsonb
+        RETURNING id
+      ) SELECT count(*) FROM sealed
+      """), {"id": identity})
+
+
+async def acquire_activation_lock(session):
+    """Configure the local bound before a nonblocking, same-key xact lock."""
+    acquired = await session.scalar(text("""
+      WITH configured AS MATERIALIZED (
+        SELECT set_config('lock_timeout','150ms',true),
+               set_config('statement_timeout','1000ms',true),
+               set_config('idle_in_transaction_session_timeout','1000ms',true),
+               set_config('work_mem','16MB',true)
+      )
+      SELECT pg_try_advisory_xact_lock(743021149) FROM configured
+      """))
+    if acquired is not True:
+        raise Blocked("activation_busy")
+
+
+async def fence_activation_sources(session):
+    # One short transaction fence replaces tens of thousands of tuple locks.
+    # SHARE permits normal reads/FK checks but excludes every existing/new DML
+    # writer. A busy table rejects immediately; never queue behind live chat.
+    await session.execute(text("""LOCK TABLE public.profiles, public.memory_pipeline_states,
+      public.chat_contexts, public.privacy_subject_barriers, public.messages,
+      public.mem0_memory_registry, public.mem0_memory_sources,
+      public.mem0_ingest_candidates, public.conversation_checkpoints,
+      public.retention_prepared_contracts IN SHARE MODE NOWAIT"""))
+
+
+async def activate(session, token, *, deadline, prepared):
     """Caller commits. Any failure MUST roll back this entire transaction."""
     if time.monotonic()-token.created_monotonic > 60 or deadline <= time.monotonic():
         raise Blocked("audit_token_expired")
     async with asyncio.timeout_at(min(deadline, time.monotonic()+1)):
-        await session.execute(text("SET LOCAL lock_timeout='150ms'"))
-        await session.execute(text("SELECT pg_advisory_xact_lock(743021149)"))
-        row = await registry(session, token.preparation_id, lock=True)
+        await acquire_activation_lock(session)
+        from app.services.retention_activation_db import validation_envelope
+        receipt = await validation_envelope(session, token, prepared)
+        row = receipt["registry"]
+        controls = {item["key"]:item["value"] for item in receipt["controls"]}
         if row["state"] == "active":
-            current = await session.scalar(text("SELECT value FROM app_config WHERE key='context_retention_active_preparation' FOR SHARE"))
-            if current != str(token.preparation_id):
+            if controls.get("context_retention_active_preparation") != str(token.preparation_id):
                 raise Blocked("active_preparation_pointer_conflict")
             return token.report
-        if row["state"] not in {"building", "prepared"} or digest(row["manifest_json"]) != token.manifest_hash:
+        if (row["state"] not in {"building", "prepared"}
+                or digest(token.manifest) != token.manifest_hash):
             raise Blocked("preparation_changed_since_audit")
-        active = await session.scalar(text("SELECT id FROM retention_preparations WHERE state='active'"))
-        if active is not None:
-            raise Blocked("different_active_preparation_not_supported")
-        controls = (await session.execute(text("SELECT key,value FROM app_config WHERE key IN "
-            "('context_retention_active_preparation','context_retention_v2_enabled','crisis_guard_enabled',"
-            "'crisis_guard_policy_version','crisis_guard_timeout_s','crisis_guard_history_messages') "
-            "ORDER BY key FOR UPDATE NOWAIT"))).all()
-        if dict(controls).get("context_retention_active_preparation") is not None:
-            raise Blocked("different_active_preparation_not_supported")
-        users = [dict(r) for r in (await session.execute(_USERS)).mappings().all()]
-        metadata = {metadata_record(u)[0]: metadata_record(u) for u in users if authorize_metadata(u)}
-        for original in token.user_metadata:
-            if metadata.get(original[0]) != original:
-                raise Blocked("subject_metadata_changed_since_audit")
-        manifest = row["manifest_json"]
-        # Locks all original subjects; allow new empty profiles and current >T raw.
-        placeholders = [UserPlan({"user_id": uuid.UUID(key)}, [], [], {},
-                        manifest["users"].get(key, {}).get("through", 0), "")
-                        for key in token.tail_contexts]
-        current_versions = await row_versions(session, token.preparation_id, placeholders, lock=True)
-        if current_versions != token.row_versions:
-            # Empty new users can add contexts; compare only actually audited rows.
-            raise Blocked("audited_rows_changed")
-        tail_bounds = {key: value["through"] for key, value in token.tail_contexts.items()}
-        all_messages = (await session.execute(text("SELECT user_id,id,sender,kind,content FROM messages "
-            "WHERE user_id=ANY(CAST(:ids AS uuid[])) AND "
-            "id>COALESCE((CAST(:bounds AS jsonb)->>user_id::text)::bigint,0) "
-            "ORDER BY id FOR SHARE NOWAIT"),
-            {"ids": [u["user_id"] for u in users if authorize_metadata(u)],
-             "bounds": json.dumps(tail_bounds)})).mappings().all()
+        if "dirty_subjects" in receipt:
+            raise AuditRefreshRequired(receipt["dirty_subjects"])
+        if receipt.get("verified_revisions") is not True:
+            raise Blocked("snapshot_metadata_unavailable")
+        expected = {key:(token.manifest["users"].get(key, {}).get("through",0), revision)
+                    for key, revision in token.source_revisions.items()}
+        rows = receipt["revision_rows"]
+        actual = {str(item["user_id"]):(item["through_message_id"],item["revision"]) for item in rows}
+        if len(rows) != len(expected) or actual != expected:
+            raise Blocked("snapshot_metadata_unavailable")
+        # The envelope only reads already-authorized subjects' tail. New users
+        # remain metadata until the same privacy policy explicitly permits them.
+        new_ids = [uuid.UUID(str(user["user_id"])) for user in receipt["new_users"]
+                   if authorize_metadata(user)]
+        all_messages = list(receipt["tail"])
+        if new_ids:
+            all_messages.extend((await session.execute(text(
+                "SELECT user_id,id,sender,kind,content FROM messages "
+                "WHERE user_id=ANY(CAST(:ids AS uuid[])) ORDER BY id FOR SHARE NOWAIT"),
+                {"ids":new_ids})).mappings().all())
         grouped = {}
         for message in all_messages:
             key = str(message["user_id"])
@@ -766,29 +991,36 @@ async def activate(session, token, *, deadline):
             tail = grouped.get(key, [])
             if tail_digest(tail) != context["tail_hash"]:
                 check_tail_budget(context, tail)
-        # One set query mirrors processing_complete for every staged boundary.
-        # Pipeline/registry/source rows are already held; no 3k per-user round trips.
-        if not await processing_set_complete(session, token.preparation_id, manifest):
-            raise Blocked("processing_changed_since_audit")
-        await session.execute(text("UPDATE conversation_checkpoints SET publish_state='published' "
-            "WHERE preparation_id=:id AND publish_state='ready'"), {"id": token.preparation_id})
-        await session.execute(text("UPDATE retention_prepared_contracts SET status='published',published_at=now() "
-            "WHERE preparation_id=:id AND status='ready'"), {"id": token.preparation_id})
-        await session.execute(text("UPDATE async_jobs SET state='cancelled',lease_owner=NULL,lease_token=NULL,lease_until=NULL,"
-            "result_code='preparation_activated',finished_at=now(),"
-            "payload_expires_at=COALESCE(payload_expires_at,now()+interval '24 hours') WHERE id IN (SELECT id FROM async_jobs WHERE state='ready' "
-            "AND payload->>'retention_preparation_id'=:id AND payload->'retention_preparation_building'='true'::jsonb "
-            "FOR UPDATE SKIP LOCKED)"),
-            {"id": str(token.preparation_id)})
-        await session.execute(text("UPDATE retention_preparations SET state='active',updated_at=now() WHERE id=:id"),
-                              {"id": token.preparation_id})
         values = {"context_retention_active_preparation": str(token.preparation_id),
                   "context_retention_v2_enabled": True, "crisis_guard_enabled": True,
                   "crisis_guard_policy_version": "crisis-v2", "crisis_guard_timeout_s": 2,
                   "crisis_guard_history_messages": 6}
-        await session.execute(text("INSERT INTO app_config(key,value) SELECT key,value FROM jsonb_each(CAST(:values AS jsonb)) "
-            "ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=now()"),
-            {"values": json.dumps(values)})
+        # Global visibility switches atomically; sealed private artifacts keep
+        # their ready status. No per-artifact mass updates hold the critical fence.
+        publication = (await session.execute(text("""
+          WITH job_cancellation AS (
+            UPDATE async_jobs SET state='cancelled',lease_owner=NULL,lease_token=NULL,lease_until=NULL,
+              result_code='preparation_activated',finished_at=now(),
+              payload_expires_at=COALESCE(payload_expires_at,now()+interval '24 hours')
+            WHERE id IN (SELECT id FROM async_jobs WHERE state='ready'
+              AND payload->>'retention_preparation_id'=:preparation_key
+              AND payload->'retention_preparation_building'='true'::jsonb FOR UPDATE SKIP LOCKED)
+            RETURNING id
+          ), preparation_activation AS (
+            UPDATE retention_preparations SET state='active',updated_at=now()
+            WHERE id=:preparation_id AND state IN ('building','prepared')
+              AND (SELECT count(*) FROM job_cancellation)>=0 RETURNING id
+          ), control_publication AS (
+            INSERT INTO app_config(key,value)
+            SELECT e.key,e.value FROM jsonb_each(CAST(:values AS jsonb)) e
+            CROSS JOIN preparation_activation WHERE true
+            ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=now() RETURNING key
+          ) SELECT (SELECT count(*) FROM preparation_activation) AS preparations_activated,
+                   (SELECT count(*) FROM control_publication) AS controls_written
+          """), {"preparation_id": token.preparation_id,
+                  "preparation_key": str(token.preparation_id), "values": json.dumps(values)})).mappings().first()
+        if publication is None or publication["preparations_activated"] != 1 or publication["controls_written"] != len(values):
+            raise Blocked("publication_state_changed")
     return token.report
 
 
@@ -822,15 +1054,14 @@ def tail_digest(messages):
     return digest([[m["id"], m["sender"], m["kind"], m["content"]] for m in messages])
 
 
-async def processing_set_complete(session, identity, manifest):
-    rows = [{"user_id": key, **record} for key, record in manifest["users"].items() if record["through"]]
-    if not rows:
-        return True
+def processing_statement(identity, manifest):
+    rows = [{"user_id": key, **{field: record[field] for field in ("through", "generation", "epoch")}}
+            for key, record in manifest["users"].items() if record["through"]]
     # Keep the exact single-user completion predicates. Materialized FULL joins
     # make each metadata set keyed and linear even when a fresh JSON manifest or
     # newly inserted rows are severely underestimated by planner statistics.
     # Non-target right-side rows never participate in the failure set.
-    return await session.scalar(text("""
+    return """
       WITH targets AS MATERIALIZED (
         SELECT * FROM jsonb_to_recordset(CAST(:targets AS jsonb))
         AS t(user_id uuid,through bigint,generation bigint,epoch bigint)),
@@ -880,4 +1111,11 @@ async def processing_set_complete(session, identity, manifest):
         SELECT user_id FROM normal WHERE last_id>0 AND unsequenced<>0
         UNION ALL SELECT user_id FROM blocked_plans
         UNION ALL SELECT user_id FROM blocked_facts)
-      """), {"targets": json.dumps(rows), "id": identity}) is True
+      """, {"targets": json.dumps(rows), "id": identity}
+
+
+async def processing_set_complete(session, identity, manifest):
+    if not any(record["through"] for record in manifest["users"].values()):
+        return True
+    statement, params = processing_statement(identity, manifest)
+    return await session.scalar(text(statement), params) is True

@@ -1100,8 +1100,17 @@ class _ContextPressureReady(Exception):
     """Goal committed, original lease retained; only normal preparation may restart."""
 
 
+_PRESSURE_CONFIG_KEYS = tuple(dict.fromkeys([
+    *limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS, *crisis_chat.CONFIG_KEYS,
+    "context_retention_v2_enabled", checkpoint.TEMPORAL_CONFIG_KEY,
+]))
+
+
 def _pressure_config_hash(raw) -> str:
-    return hashlib.sha256(json.dumps(raw, sort_keys=True, default=str).encode()).hexdigest()
+    # Hash exactly the settings reloaded on resume. The projection identity is
+    # pinned for the request by capture_controls, outside this policy comparison.
+    selected = {key: raw[key] for key in _PRESSURE_CONFIG_KEYS if key in raw}
+    return hashlib.sha256(json.dumps(selected, sort_keys=True, default=str).encode()).hexdigest()
 
 
 async def _validate_pressure_resume(session, uid, state):
@@ -1444,9 +1453,7 @@ async def _post_message_impl(
     # app_config 왕복 병합(#11) — 게이팅 키 + 도구 루프 키를 한 SELECT로 읽는다.
     # 반드시 유저 락(808행) **이후**여야 한다 — 동시요청의 한도 우회(TOCTOU) 방지 순서 불변.
     raw_cfg = await config_store.get_config_values(
-        session, [*limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS,
-                  *crisis_chat.CONFIG_KEYS, "context_retention_v2_enabled",
-                  "context_retention_active_preparation", checkpoint.TEMPORAL_CONFIG_KEY]
+        session, [*_PRESSURE_CONFIG_KEYS, "context_retention_active_preparation"]
     )
     from app.services.retention_release_read import capture_controls
     raw_cfg, captured_projection = await capture_controls(session, raw_cfg)
@@ -1532,9 +1539,7 @@ async def _post_message_impl(
             language=language, profile_language=getattr(g.profile, "language", "ko"),
             deadline=min(float(pressure_deadline), t0 + 12.0) - 0.25,
             model_reserve=_MEM0_RECALL_TIMEOUT_S + max(agent_cfg.final_reserve_s, agent_runtime.FALLBACK_MIN_S) + 0.25,
-            config_keys=tuple([*limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS,
-                *crisis_chat.CONFIG_KEYS, "context_retention_v2_enabled",
-                checkpoint.TEMPORAL_CONFIG_KEY]),
+            config_keys=_PRESSURE_CONFIG_KEYS,
             config_hash=_pressure_config_hash(raw_cfg), barrier=pressure_barrier,
             recent_proof=_guard_source_proof(decision_recent) if predecided is not None else None,
             history_limit=guard_config.history_messages, request_hash=request_digest,

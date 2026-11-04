@@ -1,6 +1,7 @@
 """입력 상한 복구: 저장 경계·고정 작업·세대·후속 처리·커서의 오프라인 회귀."""
 import json
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 import uuid
 
 import pytest
@@ -86,6 +87,8 @@ def reservation(monkeypatch):
     monkeypatch.setattr(repo, "advisory_xact_lock", lock)
     monkeypatch.setattr(repo, "load_range", load)
     monkeypatch.setattr(repo, "enqueue_checkpoint", enqueue)
+    monkeypatch.setattr(repo, "ensure_pressure_ingest", AsyncMock(return_value=False))
+    monkeypatch.setattr(repo, "wake_checkpoint_ingest", AsyncMock(return_value=False))
     return SimpleNamespace(uid=uid, state=state, sources=sources, session=Session())
 
 
@@ -126,6 +129,10 @@ async def test_target_keeps_larger_same_generation_goal(reservation):
     env.state["active"] = (uuid.uuid4(), "running", 1, None, {})
     result = await repo.request_pressure(env.session, user_id=env.uid, generation=7)
     assert result.through_message_id == 10 and env.state["target"] == 10
+    repo.ensure_pressure_ingest.assert_awaited_once_with(env.session, user_id=env.uid,
+                                                        generation=7, through_id=10)
+    repo.wake_checkpoint_ingest.assert_awaited_once_with(env.session, user_id=env.uid,
+                                                      generation=7, through_id=10)
 
 
 async def test_pressure_source_page_never_marks_final_unanswered_user_complete(monkeypatch):

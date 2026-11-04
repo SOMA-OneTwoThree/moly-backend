@@ -98,6 +98,7 @@ async def post_message(
         req,
         idempotency_key,
         deadline=deadline,
+        pressure_deadline=started + 12.0,
         capabilities=capabilities,
         topic_catalog=getattr(request.app.state, "topic_catalog", None),
     )

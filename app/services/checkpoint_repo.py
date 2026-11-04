@@ -7,8 +7,8 @@
 2. **insert는 `ON CONFLICT DO NOTHING`.** UNIQUE(user_id, through_message_id, source_hash)가
    같은 입력의 두 번째 저장을 흡수한다(잡 재실행·중복 소비 멱등).
 3. **범위 조회는 그 유저 것만.** 요약 입력에 남의 메시지가 섞이는 경로를 만들지 않는다.
-4. **Summary는 Fact가 아니다** — 이 모듈에는 기억 추출 잡을 거는 함수가 없다(§W11-7). 요약 결과에서
-   `memory_extract`를 부르는 경로를 만들면 W8의 evidence 계약이 요약으로 오염된다.
+4. **Summary는 Fact가 아니다** — 선행 기억 작업은 실제 normal 원문만 예약한다.
+   요약 결과를 기억 추출의 근거로 쓰지 않는다.
 """
 from __future__ import annotations
 
@@ -573,6 +573,66 @@ WHERE m.user_id=:user_id AND cc.memory_generation=:generation
               AND u.sender='user' AND u.turn_position=1 AND u.id<m.id)
 ORDER BY m.id DESC LIMIT 1
 """)
+_LOCK_PRESSURE_PIPELINE = text("""
+SELECT p.user_id FROM memory_pipeline_states p
+JOIN chat_contexts cc ON cc.user_id=p.user_id
+WHERE p.user_id=:user_id AND cc.memory_generation=:generation
+  AND p.mode='v2' AND p.bootstrap_status='ready'
+  AND p.source_through_turn_seq>p.ingest_through_turn_seq
+FOR UPDATE OF p SKIP LOCKED
+""")
+_MISSING_PRESSURE_INGEST = text("""
+SELECT EXISTS (
+  SELECT 1 FROM messages m
+  WHERE m.user_id=:user_id AND m.kind='normal' AND m.turn_seq=:next_turn
+    AND m.sender='moly' AND m.turn_position=2 AND m.id<=:through_id
+) AND NOT EXISTS (
+  SELECT 1 FROM async_jobs j WHERE j.user_id=:user_id AND j.job_type='mem0_ingest'
+    AND (j.state IN ('ready','running') OR j.dedup_key=:dedup_key
+         OR left(j.dedup_key,length(:dedup_key)+1)=:dedup_key||':'
+         OR left(j.dedup_key,length(:resume_prefix))=:resume_prefix)
+)
+""")
+
+
+async def ensure_pressure_ingest(session: AsyncSession, *, user_id, generation: int,
+                                 through_id: int) -> bool:
+    """Fill a missing chain link, never replay an existing ingest family.
+
+    The caller holds the short pressure/user transaction. A busy pipeline is
+    skipped rather than waiting behind a worker that owns a job row. Existing
+    ready/running work and terminal keys retain their original failure budget.
+    """
+    from app.services import context_retention, memory_pipeline
+    if not await context_retention.enabled_now(session, lock=True):
+        return False
+    if not await context_retention.adopted_user(session, user_id=user_id, lock=True):
+        return False
+    locked = (await session.execute(_LOCK_PRESSURE_PIPELINE, {
+        "user_id": user_id, "generation": generation,
+    })).first()
+    if locked is None:
+        return False
+    state = await memory_pipeline.load(session, user_id)
+    if not await context_retention.privacy_epoch_matches(session, user_id=user_id,
+            privacy_epoch=state.privacy_epoch, lock=True):
+        return False
+    nxt = await memory_pipeline.next_ingest_turn(session, user_id,
+                                                cursor=state.ingest_through_turn_seq)
+    if nxt is None:
+        return False
+    key = memory_pipeline.ingest_dedup_key(user_id, state.ingest_through_turn_seq,
+                                          generation=state.repair_generation)
+    if not await session.scalar(_MISSING_PRESSURE_INGEST, {
+        "user_id": user_id, "next_turn": nxt, "through_id": through_id, "dedup_key": key,
+        "resume_prefix": f"resume:{user_id}:c{state.ingest_through_turn_seq}:g{state.repair_generation}:",
+    }):
+        return False
+    return await memory_pipeline.enqueue_ingest(session, user_id, turn_seq=nxt,
+        cursor=state.ingest_through_turn_seq, privacy_epoch=state.privacy_epoch,
+        generation=state.repair_generation, delay_s=0) is not None
+
+
 _SET_PRESSURE = text("""
 UPDATE chat_contexts cc
 SET retention_pressure_through_message_id=GREATEST(
@@ -665,6 +725,12 @@ async def request_pressure(session: AsyncSession, *, user_id, generation: int,
     })
     if target is None:
         return PressureReservation("stale_generation")
+    # A pending fixed snapshot must not hide the newer durable goal's ingest.
+    # Fill only a genuinely absent chain link; all existing failure budgets stay.
+    await ensure_pressure_ingest(session, user_id=user_id, generation=generation,
+                                 through_id=int(target))
+    await wake_checkpoint_ingest(session, user_id=user_id, generation=generation,
+                                through_id=int(target))
     # 실행 중 원본 payload와 준비 중인 normal 계획도 변경하지 않는다.
     if (await session.execute(_RETENTION_PENDING, {"user_id": user_id})).first() is not None:
         return PressureReservation("pending", int(target))

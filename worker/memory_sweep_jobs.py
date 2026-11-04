@@ -499,6 +499,38 @@ ORDER BY nxt.turn_seq
 LIMIT :limit
 """)
 
+_LOCK_STALLED_PIPELINE = text("""
+SELECT user_id FROM memory_pipeline_states
+WHERE user_id=:user_id AND ingest_through_turn_seq=:cursor
+  AND repair_generation=:generation AND privacy_epoch=:epoch
+  AND mode<>'legacy' AND bootstrap_status='ready'
+  AND source_through_turn_seq>ingest_through_turn_seq
+FOR UPDATE SKIP LOCKED
+""")
+_STALLED_STILL_MISSING = text("""
+SELECT NOT EXISTS (SELECT 1 FROM async_jobs WHERE user_id=:user_id
+  AND job_type='mem0_ingest' AND state IN ('ready','running'))
+AND :next_turn=(SELECT MIN(m.turn_seq) FROM messages m
+  JOIN memory_pipeline_states s ON s.user_id=m.user_id
+  WHERE m.user_id=:user_id AND m.kind='normal' AND m.turn_seq>:cursor
+    AND m.turn_seq<=s.source_through_turn_seq)
+""")
+
+
+async def _current_stalled(session, candidates):
+    """Lock first, then use a fresh statement snapshot to recheck competing producers."""
+    current = []
+    for user_id, cursor, generation, epoch, next_turn in candidates:
+        if next_turn is None:
+            continue
+        params = dict(user_id=user_id, cursor=int(cursor), generation=int(generation),
+                      epoch=int(epoch), next_turn=int(next_turn))
+        if (await session.execute(_LOCK_STALLED_PIPELINE, params)).first() is None:
+            continue
+        if await session.scalar(_STALLED_STILL_MISSING, params):
+            current.append((user_id, cursor, generation, epoch, next_turn))
+    return current
+
 # 판정만 죽은 경우. 추출 커서는 계속 따라잡아 결국 `ingest == source`가 되므로 위 조건에
 # 안 걸린다. 그러면 그 기억은 영원히 미판정으로 남아 회상에 안 나오고 전환 관문도 막는다.
 _UNJUDGED_USERS = text("""
@@ -831,6 +863,8 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
         # 배치(#15a): 행당 enqueue 왕복 N회 → enqueue_many 1문. 카운트 의미는 동일하다
         # (rowcount = 새로 삽입된 수 = 기존 `made is not None` 합).
         replaying = {u for _j, u in rows}
+        current_stalled = await _current_stalled(session,
+            [row for row in stalled if row[0] not in replaying])
         resumed += await jobs.enqueue_many(
             session,
             queue=jobs.QUEUE_MEMORY,
@@ -841,7 +875,7 @@ async def handle_memory_sweep(job: ClaimedJob) -> JobResult:
                     f"resume:{user_id}:c{cursor}:g{generation}:{bucket}",
                     {"turn_seq": int(next_turn), "privacy_epoch": int(epoch)},
                 )
-                for user_id, cursor, generation, epoch, next_turn in stalled
+                for user_id, cursor, generation, epoch, next_turn in current_stalled
                 if next_turn is not None and user_id not in replaying
             ],
         )

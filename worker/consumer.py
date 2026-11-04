@@ -91,6 +91,26 @@ class JobLeaseLost(Exception):
 Handler = Callable[[ClaimedJob], Awaitable[JobResult | None]]
 
 _REGISTRY: dict[str, Handler] = {}
+PostAttemptHook = Callable[[ClaimedJob], Awaitable[None]]
+_POST_ATTEMPT_HOOKS: dict[str, list[PostAttemptHook]] = {}
+_POST_ATTEMPT_TIMEOUT_S = 1.0
+
+
+def register_post_attempt(types: tuple[str, ...], callback: PostAttemptHook) -> None:
+    """Register bounded hints, never transaction-success notifications."""
+    for job_type in types:
+        hooks = _POST_ATTEMPT_HOOKS.setdefault(job_type, [])
+        if callback not in hooks:
+            hooks.append(callback)
+
+
+async def _post_attempt(job: ClaimedJob) -> None:
+    for callback in tuple(_POST_ATTEMPT_HOOKS.get(job.job_type, ())):
+        try:
+            await asyncio.wait_for(callback(job), timeout=_POST_ATTEMPT_TIMEOUT_S)
+        except Exception as exc:  # cancellation must propagate, ordinary hint failures must not
+            _log.warning("post_attempt_hint_failed job_type=%s error_type=%s",
+                         job.job_type, type(exc).__name__)
 
 
 def register(job_type: str, handler: Handler) -> None:
@@ -360,6 +380,9 @@ async def _run_job_then_wake(job: ClaimedJob, cfg: QueueConfig) -> None:
     """run_job 후 전 큐 웨이크업 — finalize 커밋이 끝난 뒤라 후속 잡이 claim에 보인다."""
     try:
         await run_job(job, cfg)
+        # run_job can return after a failed finalize. Hooks must re-read current
+        # state; they cannot infer commit success from this callback.
+        await _post_attempt(job)
     finally:
         _wake_queues()
 

@@ -21,6 +21,7 @@ import json
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,6 +46,96 @@ RESULT_STALE_GENERATION = "stale_generation"
 # 요약 대상 구간에 잊어줘가 닫은 메시지가 섞여 있다 — 요약하면 지운 내용이 되살아난다.
 RESULT_SOURCE_CLOSED = "source_range_closed"
 PACKING_VERSION = "packed-v1"
+_PUBLISH_HINT_TYPES = ("mem0_ingest", "mem0_consolidate", "contract_compile", "conversation_checkpoint")
+
+# Only pure dependency deferrals are accelerated. A later real error leaves
+# result_code unchanged, so last_error_code must also be empty.
+_READY_PUBLISHER_WHERE = """
+    j.user_id=:user_id AND j.queue='content' AND j.job_type='conversation_checkpoint'
+    AND j.state='ready'
+    AND (j.result_code='checkpoint_source_processing_pending'
+         OR (j.attempt=0 AND j.result_code IS NULL))
+    AND j.last_error_code IS NULL AND j.attempt<j.max_attempts
+    AND j.available_at>now()
+    AND j.payload_redacted_at IS NULL
+    AND (j.expires_at IS NULL OR j.expires_at>now())
+    AND (j.payload_expires_at IS NULL OR j.payload_expires_at>now())
+    AND j.payload->>'mode'='publish_retention'
+    AND j.payload->>'summarizer_version'='conversation-checkpoint-summary-v5'
+    AND j.payload->'privacy_epoch'=to_jsonb(CAST(:event_epoch AS bigint))
+    AND j.payload->'memory_generation'=to_jsonb(c.memory_generation)
+    AND (CAST(:event_generation AS bigint) IS NULL OR c.memory_generation=:event_generation)
+"""
+_READY_PUBLISHERS = text(f"""
+SELECT j.id,j.payload FROM async_jobs j
+JOIN chat_contexts c ON c.user_id=j.user_id
+WHERE {_READY_PUBLISHER_WHERE}
+ORDER BY j.available_at,j.created_at,j.id LIMIT 2
+""")
+_WAKE_READY_PUBLISHER = text(f"""
+WITH target AS (
+    SELECT j.id FROM async_jobs j JOIN chat_contexts c ON c.user_id=j.user_id
+    WHERE {_READY_PUBLISHER_WHERE}
+      AND j.id=:job_id AND j.payload=CAST(:payload AS jsonb)
+    FOR UPDATE OF j SKIP LOCKED
+)
+UPDATE async_jobs j SET available_at=LEAST(j.available_at,now())
+FROM target WHERE j.id=target.id RETURNING j.id
+""")
+
+
+async def wake_ready_publisher(session, *, job_id, user_id, payload: dict,
+                              event_epoch: int, event_generation: int | None = None) -> bool:
+    """Wake one verified pure dependency wait; caller commits. No artifact is published."""
+    if (type(event_epoch) is not int or event_epoch<0
+            or (event_generation is not None and (type(event_generation) is not int or event_generation<0))
+            or not isinstance(payload, dict)):
+        return False
+    try:
+        req = _parse(SimpleNamespace(user_id=user_id, payload=payload))
+    except JobFatal:
+        return False
+    if (payload.get("mode") != "publish_retention"
+            or req.version != checkpoint.RETENTION_SUMMARIZER_VERSION
+            or payload.get("privacy_epoch") != event_epoch
+            or (event_generation is not None and req.memory_generation != event_generation)):
+        return False
+    # Incomplete reads never acquire a job row lock. Concurrent completing
+    # dependencies can run their own hint without being held behind this check.
+    if not await context_retention.processing_complete(session, user_id=user_id,
+            generation=req.memory_generation, through_id=req.through_message_id):
+        return False
+    # Acquire metadata locks before the final SKIP LOCKED job update. Privacy
+    # contention is a skipped hint, not a new retry or a compatibility missing row.
+    if (not await context_retention.enabled_now(session, lock=True)
+            or not await context_retention.adopted_user(session, user_id=user_id, lock=True)
+            or not await context_retention.privacy_epoch_matches(session, user_id=user_id,
+                privacy_epoch=event_epoch, lock=True)):
+        return False
+    row = (await session.execute(_WAKE_READY_PUBLISHER, {
+        "job_id": job_id, "user_id": user_id,
+        "payload": json.dumps(payload, sort_keys=True, separators=(",", ":")),
+        "event_epoch": event_epoch, "event_generation": event_generation,
+    })).first()
+    return row is not None
+
+
+async def _checkpoint_post_attempt(event: ClaimedJob) -> None:
+    """A stale actor is only a hint: current publisher proof/generation remains authoritative."""
+    payload = event.payload if isinstance(event.payload, dict) else {}
+    epoch, generation = payload.get("privacy_epoch"), payload.get("memory_generation")
+    if (event.job_type not in _PUBLISH_HINT_TYPES or event.user_id is None
+            or type(epoch) is not int or epoch<0
+            or ("memory_generation" in payload and (type(generation) is not int or generation<0))):
+        return
+    params = {"user_id": event.user_id, "event_epoch": epoch, "event_generation": generation}
+    async with get_sessionmaker()() as session:
+        candidates = (await session.execute(_READY_PUBLISHERS, params)).all()
+    for job_id, candidate_payload in candidates:
+        async with get_sessionmaker()() as session:
+            if await wake_ready_publisher(session, job_id=job_id, user_id=event.user_id,
+                    payload=candidate_payload, event_epoch=epoch, event_generation=generation):
+                await session.commit()
 
 
 def _packing_version(payload: dict) -> str | None:
@@ -897,3 +988,4 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
 # import 시 1회 등록(모듈 캐시 = 중복 등록 없음). consumer가 이 모듈을 지역 import 하는 이유는
 # 순환 import 회피 — 여기서 consumer의 JobResult/JobRetry 계약을 쓰기 때문이다.
 consumer.register(checkpoint.JOB_CONVERSATION_CHECKPOINT, handle_checkpoint)
+consumer.register_post_attempt(_PUBLISH_HINT_TYPES, _checkpoint_post_attempt)

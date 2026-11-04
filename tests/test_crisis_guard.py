@@ -1,8 +1,6 @@
 """crisis-v2 contract and server-owned text; all HTTP is mocked."""
 import asyncio
 from copy import deepcopy
-from dataclasses import replace
-from datetime import datetime, timedelta, timezone
 import json
 import time
 
@@ -289,61 +287,15 @@ def test_normal_reply_guidance_has_equivalent_scope_without_classification_metad
     assert cg.normal_reply_instruction(language + "-" + language.upper()) == instruction
 
 
-@pytest.mark.parametrize("language,service", [("ko", "이 서비스는 의료 서비스가 아니며"),
-    ("en", "This is not a medical service"), ("ja", "本サービスは医療サービスではなく")])
-def test_unknown_country_formal_text_has_no_name_or_emergency_instruction(language, service):
-    text = cg.fixed_reply(language, "synthetic nickname")
-    assert text.startswith(service) and "https://findahelpline.com/" in text
-    assert "synthetic nickname" not in text
-    assert all(value not in text for value in ("119", "911", "109", "988", "0120", "고마", "thank", "ありがとう", "?", "？"))
-    assert text == cg.fixed_reply(language, verified_country="unknown")
-
-
-def test_default_formal_copy_matches_reviewed_document_exactly():
-    expected = {
-        "ko": "이 서비스는 의료 서비스가 아니며, 진단이나 치료를 제공하지 않습니다. 상담이 필요하면 https://findahelpline.com/ 에서 현재 계신 나라의 상담기관을 찾아 연락하세요.",
-        "en": "This is not a medical service and does not provide diagnosis or treatment. For crisis support, select the country you are in at https://findahelpline.com/ and contact a local helpline.",
-        "ja": "本サービスは医療サービスではなく、診断や治療は行いません。相談が必要な場合は、https://findahelpline.com/ で現在いる国の相談窓口を探し、連絡してください。",
-    }
-    for language, text in expected.items():
-        assert cg.fixed_reply(language) == text
-
-
-@pytest.mark.parametrize("country,language,expected", [
-    ("KR", "ko", "109(24시간)"), ("KR", "en", "select South Korea"), ("KR", "ja", "韓国"),
-    ("US", "en", "call or text 988"), ("US", "ko", "988lifeline.org/get-help/"),
-    ("US", "ja", "988lifeline.org/get-help/"), ("JP", "ko", "yorisoi/n2/"),
-    ("JP", "en", "yorisoi/n2/"), ("JP", "ja", "0120-279-226"),
+@pytest.mark.parametrize("language,expected", [
+    ("ko", "이 서비스는 의료 서비스가 아니며, 진단이나 치료를 제공하지 않습니다. 도움이 필요하면 전문 상담기관에 연락하세요."),
+    ("en", "This is not a medical service and does not provide diagnosis or treatment. If you need help, contact a professional counseling service."),
+    ("ja", "本サービスは医療サービスではなく、診断や治療は行いません。支援が必要な場合は、専門の相談機関に連絡してください。"),
 ])
-def test_verified_country_and_language_catalog(country, language, expected):
-    assert expected in cg.fixed_reply(language, verified_country=country, at=datetime(2026, 11, 3, 1, tzinfo=timezone.utc))
-
-
-def test_japanese_has_both_regional_numbers_and_expiry_falls_back_to_link():
-    valid = datetime(2026, 11, 3, 1, tzinfo=timezone.utc)
-    text = cg.fixed_reply("ja", verified_country="JP", at=valid)
-    assert "0120-279-338" in text and "0120-279-226" in text and "福島県" in text
-    for at in (valid+timedelta(days=7), valid-timedelta(days=1), valid.replace(tzinfo=None)):
-        text = cg.fixed_reply("ja", verified_country="JP", at=at)
-        assert "0120" not in text and "https://www.since2011.net/yorisoi/" in text
-
-
-def test_catalog_rejects_unreviewed_version_or_long_validity(monkeypatch):
-    entry = cg.CONTACT_CATALOG["KR", "ko"]
-    at = datetime(2026, 11, 3, 1, tzinfo=timezone.utc)
-    for invalid in (replace(entry, version="unreviewed"), replace(entry, expires_at=entry.verified_at+timedelta(days=8))):
-        monkeypatch.setitem(cg.CONTACT_CATALOG, ("KR", "ko"), invalid)
-        assert "109(24시간)" not in cg.fixed_reply("ko", verified_country="KR", at=at)
-
-
-@pytest.mark.parametrize("corrupt", [None, {}, "unreviewed"])
-def test_country_catalog_failure_never_blocks_formal_guidance(monkeypatch, corrupt):
-    monkeypatch.setitem(cg.CONTACT_CATALOG, ("KR", "ko"), corrupt)
-    assert cg.fixed_reply("ko", verified_country="KR") == cg.fixed_reply("ko")
-
-
-def test_catalog_missing_source_falls_back_to_a_reviewed_link(monkeypatch):
-    entry = cg.CONTACT_CATALOG["KR", "ko"]
-    monkeypatch.setitem(cg.CONTACT_CATALOG, ("KR", "ko"), replace(entry, source=""))
-    text = cg.fixed_reply("ko", verified_country="KR", at=datetime(2026, 11, 3, 1, tzinfo=timezone.utc))
-    assert "109(24시간)" not in text and "https://www.129.go.kr/109" in text
+def test_formal_notice_has_only_service_scope_and_counseling_referral(language, expected):
+    text = cg.fixed_reply(language, "synthetic nickname")
+    assert text == expected
+    assert text == cg.fixed_reply(language + "-" + language.upper())
+    assert "synthetic nickname" not in text
+    assert not any(character.isdigit() for character in text)
+    assert all(value not in text for value in ("http", "www.", "?", "？", "고마", "thank", "ありがとう"))

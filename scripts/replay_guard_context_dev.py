@@ -71,12 +71,11 @@ QUESTION_DISAGREEMENTS = {
 # Independent oracle: do not render expected text through the implementation.
 GUIDES = {
     "ko": "이 서비스는 의료 서비스가 아니며, 진단이나 치료를 제공하지 않습니다. "
-          "상담이 필요하면 https://findahelpline.com/ 에서 현재 계신 나라의 상담기관을 찾아 연락하세요.",
+          "도움이 필요하면 전문 상담기관에 연락하세요.",
     "en": "This is not a medical service and does not provide diagnosis or treatment. "
-          "For crisis support, select the country you are in at https://findahelpline.com/ "
-          "and contact a local helpline.",
+          "If you need help, contact a professional counseling service.",
     "ja": "本サービスは医療サービスではなく、診断や治療は行いません。"
-          "相談が必要な場合は、https://findahelpline.com/ で現在いる国の相談窓口を探し、連絡してください。",
+          "支援が必要な場合は、専門の相談機関に連絡してください。",
 }
 
 

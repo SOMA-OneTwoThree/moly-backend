@@ -8,7 +8,6 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
-from datetime import datetime, timedelta, timezone
 import math
 import time
 from typing import Literal
@@ -20,7 +19,6 @@ from app.services import i18n
 MODEL = "gpt-6-luna"
 ENDPOINT = "https://api.openai.com/v1/decisions"
 QUESTION_VERSION = "crisis-v2"
-TEMPLATE_VERSION = "crisis-v2-20261103"
 SAFETY_KINDS = frozenset(("safety_check", "safety"))
 Route = Literal["normal", "ask", "safety"]
 Case = Literal["not_applicable", "self_thought", "self_intent_plan", "self_preparation_action", "meaning_unclear"]
@@ -439,80 +437,17 @@ _SERVICE = {
     "en": "This is not a medical service and does not provide diagnosis or treatment.",
     "ja": "本サービスは医療サービスではなく、診断や治療は行いません。",
 }
-_GLOBAL_CONTACT = {
-    "ko": "상담이 필요하면 https://findahelpline.com/ 에서 현재 계신 나라의 상담기관을 찾아 연락하세요.",
-    "en": "For crisis support, select the country you are in at https://findahelpline.com/ and contact a local helpline.",
-    "ja": "相談が必要な場合は、https://findahelpline.com/ で現在いる国の相談窓口を探し、連絡してください。",
+_COUNSELING = {
+    "ko": "도움이 필요하면 전문 상담기관에 연락하세요.",
+    "en": "If you need help, contact a professional counseling service.",
+    "ja": "支援が必要な場合は、専門の相談機関に連絡してください。",
 }
 
 
-@dataclass(frozen=True, slots=True)
-class ContactEntry:
-    text: str
-    fallback: str
-    source: str
-    verified_at: datetime
-    expires_at: datetime
-    version: str = TEMPLATE_VERSION
-
-
-_VERIFIED = datetime(2026, 11, 3, tzinfo=timezone.utc)
-_EXPIRES = _VERIFIED + timedelta(days=7)
-_JP_SOURCE = "https://www.since2011.net/yorisoi/"
-_JP_FOREIGN = "https://www.since2011.net/yorisoi/n2/"
-_US_SOURCE = "https://988lifeline.org/get-help/"
-_KR_SOURCE = "https://www.129.go.kr/109"
-
-# Versioned public information, not a country inference or a live lookup.
-# Unknown country always uses the global link. Expired numbers use official links.
-CONTACT_CATALOG = {
-    ("KR", "ko"): ContactEntry("상담이 필요하면 자살예방상담전화 109(24시간)로 연락하세요.",
-        "한국의 상담 안내는 https://www.129.go.kr/109 에서 확인하세요.", _KR_SOURCE, _VERIFIED, _EXPIRES),
-    ("KR", "en"): ContactEntry("For crisis support in South Korea, select South Korea at https://findahelpline.com/ to find a local helpline.",
-        _GLOBAL_CONTACT["en"], "https://findahelpline.com/", _VERIFIED, _EXPIRES),
-    ("KR", "ja"): ContactEntry("韓国の相談窓口は、https://findahelpline.com/ で国を選んでお探しください。",
-        _GLOBAL_CONTACT["ja"], "https://findahelpline.com/", _VERIFIED, _EXPIRES),
-    ("US", "en"): ContactEntry("For crisis support, call or text 988, available 24/7.",
-        "For crisis support in the United States, check https://988lifeline.org/get-help/",
-        _US_SOURCE, _VERIFIED, _EXPIRES),
-    ("US", "ko"): ContactEntry("미국의 988 상담 이용 방법은 https://988lifeline.org/get-help/ 에서 확인하세요.",
-        _GLOBAL_CONTACT["ko"], _US_SOURCE, _VERIFIED, _EXPIRES),
-    ("US", "ja"): ContactEntry("米国の988相談窓口の利用方法は、https://988lifeline.org/get-help/ でご確認ください。",
-        _GLOBAL_CONTACT["ja"], _US_SOURCE, _VERIFIED, _EXPIRES),
-    ("JP", "ja"): ContactEntry("相談が必要な場合は、よりそいホットライン0120-279-338（福島県からは0120-279-226）へ電話してください。受付時間・対応言語・つながらない場合の案内は https://www.since2011.net/yorisoi/ でご確認ください。",
-        "相談先は、よりそいホットラインの公式案内 https://www.since2011.net/yorisoi/ でご確認ください。",
-        _JP_SOURCE, _VERIFIED, _EXPIRES),
-    ("JP", "ko"): ContactEntry("일본의 외국어 상담 언어와 운영시간은 https://www.since2011.net/yorisoi/n2/ 에서 확인하세요.",
-        _GLOBAL_CONTACT["ko"], _JP_FOREIGN, _VERIFIED, _EXPIRES),
-    ("JP", "en"): ContactEntry("For crisis support in Japan, check available languages and hours at https://www.since2011.net/yorisoi/n2/",
-        _GLOBAL_CONTACT["en"], _JP_FOREIGN, _VERIFIED, _EXPIRES),
-}
-
-
-def fixed_reply(language: str | None, nickname: str | None = None, verified_country: str | None = None, *,
-                local_hotline_eligible: bool = False, at: datetime | None = None) -> str:
-    """Only an independently verified current country may be supplied by caller.
-
-    nickname and the legacy eligibility flag are ignored: formal v2 text has no
-    name, gratitude, emotional inference, emergency instruction or regional guess.
-    """
+def fixed_reply(language: str | None, nickname: str | None = None) -> str:
+    """Formal notice only: no name, country selection, links or phone numbers."""
     lang = i18n.resolve(language)
-    country = verified_country.upper() if isinstance(verified_country, str) else None
-    entry = CONTACT_CATALOG.get((country, lang))
-    contact = _GLOBAL_CONTACT[lang]
-    if isinstance(entry, ContactEntry):
-        now = at if at is not None else datetime.now(timezone.utc)
-        try:
-            valid = (now.tzinfo is not None and entry.verified_at.tzinfo is not None
-                     and entry.expires_at.tzinfo is not None and entry.version == TEMPLATE_VERSION
-                     and entry.source in {_KR_SOURCE, _US_SOURCE, _JP_SOURCE, _JP_FOREIGN, "https://findahelpline.com/"}
-                     and entry.verified_at <= now < entry.expires_at
-                     and timedelta(0) < entry.expires_at - entry.verified_at <= timedelta(days=7)
-                     and isinstance(entry.text, str) and bool(entry.text))
-        except (AttributeError, TypeError, ValueError):
-            valid = False
-        contact = entry.text if valid else (entry.fallback if isinstance(entry.fallback, str) and entry.fallback else contact)
-    return _SERVICE[lang] + ("" if lang == "ja" else " ") + contact
+    return _SERVICE[lang] + ("" if lang == "ja" else " ") + _COUNSELING[lang]
 
 
 def message_kind(route: Route) -> str:

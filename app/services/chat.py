@@ -1809,7 +1809,7 @@ async def _post_message_impl(
                 context_window = await _context(
                     session, uid, anchor, current_text=req.text, current_date=ad, language=language,
                     current_at=now, tz_name=account_timezone, checkpoint_through=checkpoint_through,
-                    compact_crises=not guard_config.enabled,
+                    compact_crises=not retention_enabled,
                     retention_enabled=retention_enabled,
                     memory_generation=memory_generation, coverage=read_coverage,
                     normal_generation_projection=(guard_config.enabled and predecided is not None
@@ -1918,7 +1918,7 @@ async def _post_message_impl(
                 # 기존 checkpoint(v1)에 남은 과거 위기 원문도 최근 대화가 명확히 다른 화제로 넘어간
                 # 경우에만 문장 단위로 제거한다. 구형 서버 대체 문구도 함께 제거하며, 현재 위기/불명확한
                 # 전환이면 위기 원문은 그대로 둔다.
-                if not guard_config.enabled and not retention_enabled:
+                if not retention_enabled:
                     checkpoint_summary = context_safety.compact_checkpoint_summary(
                         checkpoint_summary,
                         recent_entries=[

@@ -61,6 +61,7 @@ async def test_raw_pressure_reprepares_without_reacquiring_reclassifying_or_doub
     chat._accumulate_tokens.assert_awaited_once()
     assert len([x for x in session.added if isinstance(x, Message)]) == 2
     assert wait.await_args.args[2].lease == finish.await_args.kwargs['lease']
+    assert wait.await_args.args[2].model_reserve == 4.25
 
 
 async def test_assembled_pressure_reloads_memory_and_preserves_one_embedding_cache(handoff, monkeypatch):

@@ -566,7 +566,7 @@ async def _recall_memory_v2(
     trace: dict[str, float] | None = None,
     retention_enabled: bool = False,
     generation: int = 0,
-    registry_snapshot: list[tuple] | None = None,
+    registry_snapshot: list[Any] | None = None,
     query_embedding_cache: dict | None = None,
 ) -> str:
     """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
@@ -578,13 +578,13 @@ async def _recall_memory_v2(
     if not getattr(state, "serves_v2", False):
         return ""
     try:
-        from app.services import mem0_recall, memory_embeddings
+        from app.services import mem0_recall, memory_embeddings, provided_memory
 
         from app.core.db import get_sessionmaker
 
         maker = get_sessionmaker()
         async def embed_query(text, *, timeout=None):
-            key = _query_embedding_key(text)
+            key = ("openai", settings.embedder_model, settings.memory_embedding_dimensions, text)
             if query_embedding_cache is None:
                 return await memory_embeddings.embed_query(text, timeout=timeout)
             if key in query_embedding_cache:
@@ -635,10 +635,21 @@ async def _recall_memory_v2(
                     if row is None or row[5] == "required":
                         continue
                     validated_items.append(replace(item, text=row[4]))
+                if validated_items:
+                    proofs = await provided_memory.capture(s2, user_id=user_id, generation=generation,
+                        ids=tuple({verified[item.provider_memory_id][0] for item in validated_items}),
+                        language=language, today=today, tz_name=tz_name)
+                    by_provider = {str(proof.provider_memory_id): proof for proof in proofs}
+                    validated_items = [replace(item,
+                        text=by_provider[item.provider_memory_id].canonical_text,
+                        occurred_at=by_provider[item.provider_memory_id].occurred_at)
+                        for item in validated_items]
                     if registry_snapshot is not None:
-                        registry_snapshot.append((row[0], int(row[2]), row[3]))
+                        registry_snapshot.extend(proofs)
                 items = validated_items
         if availability.get("status") == "unavailable":
+            if registry_snapshot is not None:
+                registry_snapshot.clear()
             return _memory_unavailable_notice(language)
         return mem0_recall.render_block(
             items, language=language, today=today, tz_name=tz_name
@@ -1083,21 +1094,10 @@ class _PressureResume:
     baseline_through: int = 0
     required_through: int = 0
     resumed: bool = False
-    recall_timeout: float = _MEM0_RECALL_TIMEOUT_S
 
 
 class _ContextPressureReady(Exception):
     """Goal committed, original lease retained; only normal preparation may restart."""
-
-
-def _query_embedding_key(text):
-    return ("openai", settings.embedder_model, settings.memory_embedding_dimensions, text)
-
-
-def _valid_cached_query_embedding(cache, text) -> bool:
-    value = cache.get(_query_embedding_key(text)) if cache is not None else None
-    return (type(value) is tuple and len(value) == settings.memory_embedding_dimensions
-            and all(type(number) in (int, float) and isfinite(number) for number in value))
 
 
 def _pressure_config_hash(raw) -> str:
@@ -1310,8 +1310,9 @@ async def post_message(
                     await session.rollback()
                     await chat_turns.release(session, user_id=_uid(user_id), lease=owner["lease"])
                     await session.commit()
-                if owner.get("pressure_active"):
-                    cleanup_left = owner["pressure_response_deadline"] - time.monotonic()
+                if owner.get("pressure_active") or owner.get("provided_memory_protected"):
+                    cleanup_left = (owner["pressure_response_deadline"] - time.monotonic()
+                                    if owner.get("pressure_active") else 0.25)
                     if cleanup_left > 0:
                         async with asyncio.timeout(min(0.25, cleanup_left)):
                             await cleanup_lease()
@@ -1321,6 +1322,10 @@ async def post_message(
                 # A later request's lease is never released: release matches the
                 # original token. Its expiry is the fallback if DB is unavailable.
                 _log.warning("chat_lease_cleanup_failed error=%s", type(cleanup_error).__name__)
+        if owner.get("provided_memory_protected"):
+            from app.services import provided_memory
+            if provided_memory.is_lock_conflict(exc):
+                raise errors.ai_unavailable() from exc
         if isinstance(exc, ProvenanceError):
             raise errors.AppError("CHAT_TURN_STALE", 409,
                                   "대화 근거가 바뀌었어요. 새 요청으로 다시 시도해 주세요.") from exc
@@ -1514,7 +1519,7 @@ async def _post_message_impl(
             lease=lease, generation=memory_generation, now=now, day=ad, timezone=account_timezone,
             language=language, profile_language=getattr(g.profile, "language", "ko"),
             deadline=min(float(pressure_deadline), t0 + 12.0) - 0.25,
-            model_reserve=_MEM0_RECALL_TIMEOUT_S + agent_runtime.FALLBACK_MIN_S + 0.25,
+            model_reserve=_MEM0_RECALL_TIMEOUT_S + max(agent_cfg.final_reserve_s, agent_runtime.FALLBACK_MIN_S) + 0.25,
             config_keys=tuple([*limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS,
                 *crisis_chat.CONFIG_KEYS, "context_retention_v2_enabled", "context_retention_ready_users",
                 checkpoint.TEMPORAL_CONFIG_KEY]),
@@ -1660,7 +1665,7 @@ async def _post_message_impl(
             # 자체 세션을 쓰므로 이 세션의 락과 무관하고, mode가 v2가 아니면 태스크가 즉시 빈
             # 문자열로 끝난다(임베딩·검색 호출 0).
             recall_trace: dict[str, float] = {}
-            recalled_registry_snapshot: list[tuple] = []
+            recalled_registry_snapshot: list[Any] = []
             t_recall0 = time.monotonic()
             async def recall_memory():
                 if correction_pending:
@@ -1847,8 +1852,7 @@ async def _post_message_impl(
             # 지키는지에 의존하지 말고 **경계에서 통째로** 자른다.
             try:
                 memory_v2_block = await asyncio.wait_for(
-                    recall_task, timeout=(pressure_resume.recall_timeout
-                        if pressure_resume is not None and pressure_resume.resumed else _MEM0_RECALL_TIMEOUT_S)
+                    recall_task, timeout=_MEM0_RECALL_TIMEOUT_S
                 )
             except TimeoutError:
                 recall_task.cancel()  # 끊고 나서도 계속 돌면 비용만 나간다
@@ -1955,12 +1959,6 @@ async def _post_message_impl(
                     if fallback_fits:
                         convo = fallback
                     else:
-                        if (pressure_resume is not None and not pressure_resume.resumed
-                                and _valid_cached_query_embedding(query_embedding_cache, req.text)):
-                            # Only optional fresh search is shortened. Required facts,
-                            # contracts and source validation retain their full checks.
-                            pressure_resume.recall_timeout = 0.5
-                            pressure_resume.model_reserve = 0.5 + agent_runtime.FALLBACK_MIN_S + 0.25
                         await _pause_for_history_pressure(
                             session, uid=uid, lease=lease, memory_generation=memory_generation,
                             reserve=recoverable_history(), recent=decision_recent if predecided is not None else None,
@@ -1985,7 +1983,7 @@ async def _post_message_impl(
         break
     try:
         if (pressure_resume is not None and pressure_resume.resumed
-                and absolute_deadline-time.monotonic() < agent_runtime.FALLBACK_MIN_S):
+                and absolute_deadline-time.monotonic() < max(agent_cfg.final_reserve_s, agent_runtime.FALLBACK_MIN_S)):
             raise errors.ai_unavailable()
         if time.monotonic() >= absolute_deadline:
             raise TimeoutError("chat request deadline exceeded before inference")
@@ -2114,59 +2112,31 @@ async def _post_message_impl(
     if retention_enabled:
         retention_writes_enabled = await context_retention.enabled_now(session, lock=True)
         if not correction_pending:
-            validation_failed = False
-            validation_stage = "required"
             try:
                 current_required = await context_retention.load_required_facts(
                     session, user_id=uid, generation=memory_generation,
                 )
-                validation_stage = "contract"
                 current_contract = await contract_repo.published_text(
                     session, user_id=uid, locale=i18n.resolve(language),
                     retention_enabled=True, generation=memory_generation, activity_date=ad,
                     current_text=req.text,
                 )
             except (context_retention.RetentionError, ValueError):
-                validation_failed = True
                 current_required, current_contract = None, None
             recall_changed = False
-            recall_validation_failed = False
             if recalled_registry_snapshot:
-                ids = [row[0] for row in recalled_registry_snapshot]
-                current_rows = (await session.execute(select(
-                    Mem0MemoryRegistry.id, Mem0MemoryRegistry.revision, Mem0MemoryRegistry.content_hash,
-                ).where(
-                    Mem0MemoryRegistry.user_id == uid, Mem0MemoryRegistry.id.in_(ids),
-                    Mem0MemoryRegistry.semantic_status == "active",
-                    Mem0MemoryRegistry.provider_delete_state == "kept",
-                ))).all()
-                expected_revisions = {str(row[0]): (int(row[1]), row[2])
-                                      for row in recalled_registry_snapshot}
-                current_revisions = {str(row[0]): (int(row[1]), row[2]) for row in current_rows}
-                recall_changed = expected_revisions != current_revisions
-                if not recall_changed:
-                    try:
-                        await context_retention.load_required_facts(
-                            session, user_id=uid, generation=memory_generation, referenced_ids=ids,
-                        )
-                    except context_retention.RetentionError:
-                        recall_changed = True
-                        recall_validation_failed = True
+                from app.services import provided_memory
+                if _owner is not None:
+                    _owner["provided_memory_protected"] = True
+                try:
+                    recall_changed = not await provided_memory.validate_for_publish(session, user_id=uid,
+                        generation=memory_generation, snapshots=tuple(recalled_registry_snapshot),
+                        deadline=absolute_deadline)
+                except provided_memory.ProvidedMemoryError:
+                    recall_changed = True
             if (current_required != required_facts or current_contract != contract_text
                     or recall_changed):
-                failure = errors.ai_unavailable()
-                if settings.environment == "development":
-                    # Development diagnostics contain no identifiers or source text.
-                    # The public code, message, retry policy and production body stay unchanged.
-                    failure.details["context_changed"] = {
-                        "required": current_required != required_facts,
-                        "contract": current_contract != contract_text,
-                        "recall": recall_changed,
-                        "validation_failed": validation_failed,
-                        "validation_stage": validation_stage if validation_failed else None,
-                        "recall_validation_failed": recall_validation_failed,
-                    }
-                raise failure from None
+                raise errors.ai_unavailable() from None
     if fortune_snapshot is not None:
         phase2_now = datetime.now(timezone.utc)
         fresh_account = await session.get(type(g.profile), uid, populate_existing=True)

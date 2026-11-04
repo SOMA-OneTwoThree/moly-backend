@@ -568,6 +568,55 @@ def _recall_adapter():
     return _mem0_recall_adapter
 
 
+async def prepare_recall_clients() -> None:
+    """Construct local SDK/vector objects before accepting requests. No I/O.
+
+    Neither embeddings.create, SQL connect nor a vector operation is called.
+    Join the initialization thread even when startup is cancelled, so a lazy
+    request cannot race an abandoned constructor. Shared clients keep their
+    existing process lifetime and the per-request recall budget stays unchanged.
+    """
+    if not settings.openai_api_key:
+        return
+
+    def initialize():
+        def embedding_resource():
+            client = llm._get_openai_client()
+            return client.embeddings
+
+        outcomes = []
+        for component, factory in (
+            ('openai_embedding', embedding_resource),
+            ('vector_index', lambda: _recall_adapter()._col()),
+        ):
+            started = time.monotonic()
+            failure = None
+            try:
+                factory()
+            except Exception as error:
+                failure = type(error).__name__
+            outcomes.append((component, time.monotonic() - started, failure))
+        return outcomes
+
+    pending = asyncio.create_task(asyncio.to_thread(initialize))
+    cancelled = False
+    while not pending.done():
+        try:
+            await asyncio.shield(pending)
+        except asyncio.CancelledError:
+            cancelled = True
+    if cancelled:
+        if not pending.cancelled():
+            pending.exception()  # Consume a constructor failure before propagating cancellation.
+        raise asyncio.CancelledError
+    for component, elapsed, failure in pending.result():
+        try:
+            _log.info('context_recall_startup component=%s state=%s elapsed=%.3fs error_type=%s',
+                component, 'unavailable' if failure else 'ready', elapsed, failure or 'none')
+        except Exception:
+            pass  # Optional observation cannot change API readiness.
+
+
 async def _recall_memory_v2(
     user_id: uuid.UUID,
     *,

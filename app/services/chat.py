@@ -584,7 +584,7 @@ async def _recall_memory_v2(
 
         maker = get_sessionmaker()
         async def embed_query(text, *, timeout=None):
-            key = ("openai", settings.embedder_model, settings.memory_embedding_dimensions, text)
+            key = _query_embedding_key(text)
             if query_embedding_cache is None:
                 return await memory_embeddings.embed_query(text, timeout=timeout)
             if key in query_embedding_cache:
@@ -1083,10 +1083,21 @@ class _PressureResume:
     baseline_through: int = 0
     required_through: int = 0
     resumed: bool = False
+    recall_timeout: float = _MEM0_RECALL_TIMEOUT_S
 
 
 class _ContextPressureReady(Exception):
     """Goal committed, original lease retained; only normal preparation may restart."""
+
+
+def _query_embedding_key(text):
+    return ("openai", settings.embedder_model, settings.memory_embedding_dimensions, text)
+
+
+def _valid_cached_query_embedding(cache, text) -> bool:
+    value = cache.get(_query_embedding_key(text)) if cache is not None else None
+    return (type(value) is tuple and len(value) == settings.memory_embedding_dimensions
+            and all(type(number) in (int, float) and isfinite(number) for number in value))
 
 
 def _pressure_config_hash(raw) -> str:
@@ -1503,7 +1514,7 @@ async def _post_message_impl(
             lease=lease, generation=memory_generation, now=now, day=ad, timezone=account_timezone,
             language=language, profile_language=getattr(g.profile, "language", "ko"),
             deadline=min(float(pressure_deadline), t0 + 12.0) - 0.25,
-            model_reserve=_MEM0_RECALL_TIMEOUT_S + max(agent_cfg.final_reserve_s, agent_runtime.FALLBACK_MIN_S) + 0.25,
+            model_reserve=_MEM0_RECALL_TIMEOUT_S + agent_runtime.FALLBACK_MIN_S + 0.25,
             config_keys=tuple([*limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS,
                 *crisis_chat.CONFIG_KEYS, "context_retention_v2_enabled", "context_retention_ready_users",
                 checkpoint.TEMPORAL_CONFIG_KEY]),
@@ -1836,10 +1847,12 @@ async def _post_message_impl(
             # 지키는지에 의존하지 말고 **경계에서 통째로** 자른다.
             try:
                 memory_v2_block = await asyncio.wait_for(
-                    recall_task, timeout=_MEM0_RECALL_TIMEOUT_S
+                    recall_task, timeout=(pressure_resume.recall_timeout
+                        if pressure_resume is not None and pressure_resume.resumed else _MEM0_RECALL_TIMEOUT_S)
                 )
             except TimeoutError:
                 recall_task.cancel()  # 끊고 나서도 계속 돌면 비용만 나간다
+                recalled_registry_snapshot.clear()
                 memory_v2_block = _memory_unavailable_notice(language) if pipeline_state.serves_v2 else ""
                 _log_recall_timeout(uid, started=t_recall0, phase1_done=t_phase1, trace=recall_trace)
             except asyncio.CancelledError:
@@ -1942,6 +1955,12 @@ async def _post_message_impl(
                     if fallback_fits:
                         convo = fallback
                     else:
+                        if (pressure_resume is not None and not pressure_resume.resumed
+                                and _valid_cached_query_embedding(query_embedding_cache, req.text)):
+                            # Only optional fresh search is shortened. Required facts,
+                            # contracts and source validation retain their full checks.
+                            pressure_resume.recall_timeout = 0.5
+                            pressure_resume.model_reserve = 0.5 + agent_runtime.FALLBACK_MIN_S + 0.25
                         await _pause_for_history_pressure(
                             session, uid=uid, lease=lease, memory_generation=memory_generation,
                             reserve=recoverable_history(), recent=decision_recent if predecided is not None else None,
@@ -1966,7 +1985,7 @@ async def _post_message_impl(
         break
     try:
         if (pressure_resume is not None and pressure_resume.resumed
-                and absolute_deadline-time.monotonic() < max(agent_cfg.final_reserve_s, agent_runtime.FALLBACK_MIN_S)):
+                and absolute_deadline-time.monotonic() < agent_runtime.FALLBACK_MIN_S):
             raise errors.ai_unavailable()
         if time.monotonic() >= absolute_deadline:
             raise TimeoutError("chat request deadline exceeded before inference")

@@ -24,8 +24,8 @@ Run only after the proposed code and reviewed schema are on development:
 Default invocation is validation only. A crash leaves a private cleanup journal
 beside the input; --cleanup-state <journal> --execute-dev resumes cleanup. The
 journal holds only synthetic account IDs/configuration state, never chat text or
-tokens. Existing cohorts must already be enabled with this policy, or be empty;
-this tool will not enable an existing unrelated cohort.
+tokens. The switches apply to the entire development environment; configuration
+is restored with a compare-and-swap after the owned test accounts are removed.
 """
 from __future__ import annotations
 
@@ -52,8 +52,8 @@ AUTH = f"https://{REF}.supabase.co"
 POLICY = "crisis-v2"
 KINDS = {"normal", "safety_check", "safety"}
 CONFIG_KEYS = tuple(sorted(("crisis_guard_enabled", "crisis_guard_policy_version",
-    "crisis_guard_timeout_s", "crisis_guard_history_messages", "crisis_guard_ready_users",
-    "context_retention_v2_enabled", "context_retention_ready_users")))
+    "crisis_guard_timeout_s", "crisis_guard_history_messages",
+    "context_retention_v2_enabled")))
 QUESTIONS = {
     # Both intermediate cases share the approved clarification copy. Case
     # annotations remain classifier evidence; output alone cannot distinguish them.
@@ -218,28 +218,16 @@ def validate_targets(env: dict, expected_sha: str) -> str:
 
 
 def config_patch(saved: dict, users: list[str]) -> dict:
-    """Never enable or switch the policy underneath unrelated existing cohorts."""
-    for flag, cohort in (("crisis_guard_enabled", "crisis_guard_ready_users"),
-                         ("context_retention_v2_enabled", "context_retention_ready_users")):
-        values = saved.get(cohort, [])
-        require(isinstance(values, list) and all(isinstance(u, str) for u in values),
-                "existing_cohort_invalid")
-        try:
-            require(all(str(uuid.UUID(u)) == u for u in values), "existing_cohort_invalid")
-        except ValueError:
-            raise ReplayError("existing_cohort_invalid") from None
-        require(not values or saved.get(flag) is True, "existing_cohort_would_be_enabled")
-        if cohort == "crisis_guard_ready_users":
-            require(not values or saved.get("crisis_guard_policy_version") == POLICY,
-                    "existing_cohort_policy_conflict")
-            require(not values or (saved.get("crisis_guard_timeout_s", 2.0) == 2.0 and
-                    saved.get("crisis_guard_history_messages", 6) == 6),
-                    "existing_cohort_settings_conflict")
+    """Use global development switches; never create user rollout lists."""
+    if saved.get("crisis_guard_enabled") is True:
+        require(saved.get("crisis_guard_policy_version") == POLICY,
+                "existing_guard_policy_conflict")
+        require(saved.get("crisis_guard_timeout_s", 2.0) == 2.0
+                and saved.get("crisis_guard_history_messages", 6) == 6,
+                "existing_guard_settings_conflict")
     return {"crisis_guard_enabled": True, "crisis_guard_policy_version": POLICY,
             "crisis_guard_timeout_s": 2.0, "crisis_guard_history_messages": 6,
-            "crisis_guard_ready_users": saved.get("crisis_guard_ready_users", []) + users,
-            "context_retention_v2_enabled": True,
-            "context_retention_ready_users": saved.get("context_retention_ready_users", []) + users}
+            "context_retention_v2_enabled": True}
 
 
 def expected_question(language: str, question: str | None) -> set[str]:

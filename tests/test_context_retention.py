@@ -286,17 +286,17 @@ async def test_historical_item_with_reclassified_source_cannot_reactivate():
             generation=0, item_id="presentation")
 
 
-@pytest.mark.parametrize("ready,history,expected", [
+@pytest.mark.parametrize("enabled,history,expected", [
     (True, False, True), (False, True, True), (False, False, False),
 ])
-async def test_adoption_requires_explicit_ready_user_or_current_generation_history(ready, history, expected):
+async def test_global_enable_or_current_generation_history_preserves_compatibility(enabled, history, expected):
     uid = uuid.uuid4()
     class Session:
         async def scalar(self, statement, params):
             assert "cc.memory_generation=c.memory_generation" in str(statement)
             return history
     assert await retention.adopted_user(Session(), user_id=uid,
-        config={"context_retention_ready_users": [str(uid)] if ready else []}) is expected
+        config={"context_retention_v2_enabled": enabled}) is expected
 
 
 async def test_pending_correction_backlog_cannot_hide_unread_sources():

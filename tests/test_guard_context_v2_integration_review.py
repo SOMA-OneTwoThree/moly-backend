@@ -39,7 +39,6 @@ class Session(FakeSession):
 def setup(monkeypatch):
     configuration = {
         "crisis_guard_enabled": True, "crisis_guard_policy_version": "crisis-v2",
-        "crisis_guard_ready_users": [UID], "context_retention_ready_users": [UID],
         "context_retention_v2_enabled": True,
     }
     monkeypatch.setattr(chat.config_store, "get_config_values", AsyncMock(return_value=configuration))
@@ -437,7 +436,7 @@ async def test_normal_revision_pause_can_retry_same_key_then_replay_without_doub
     assert chat._accumulate_tokens.await_count == 1
 
 
-async def test_policy_version_or_ready_cohort_gate_preserves_legacy_path(setup, monkeypatch):
+async def test_policy_version_gate_preserves_legacy_path(setup, monkeypatch):
     _, configuration = setup
     configuration["crisis_guard_policy_version"] = "old-policy"
     decide = AsyncMock()

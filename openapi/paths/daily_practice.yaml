@@ -1,0 +1,130 @@
+/daily-practice:
+  get:
+    tags: [daily-practice]
+    summary: 오늘의 작은 실천 조회
+    operationId: getDailyPractice
+    description: 읽기 전용이다. 제안을 만들지 않지만 이미 있는 오늘의 제안은 돌려준다.
+    parameters:
+    - {$ref: ./affirmation.yaml#/parameters/AppLocale}
+    - {$ref: ./affirmation.yaml#/parameters/AppTimezone}
+    responses:
+      '200': &today
+        description: 오늘의 상태
+        headers:
+          Cache-Control:
+            schema:
+              type: string
+              const: private, no-store
+        content:
+          application/json:
+            schema: {$ref: ../components/daily_practice.yaml#/schemas/DailyPracticeToday}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '404': {$ref: ../components/daily_practice.yaml#/responses/ReadNotFound}
+      '409': {$ref: ../components/daily_practice.yaml#/responses/AccountDeleting}
+      '422': {$ref: ../components/daily_practice.yaml#/responses/Unprocessable}
+    security: [{SupabaseBearer: []}]
+/daily-practice/offer:
+  post:
+    tags: [daily-practice]
+    summary: 오늘의 제안 받기
+    operationId: offerDailyPractice
+    description: >-
+      본문이 없다. can_choose이고 오늘 제안이 없을 때만 활성 템플릿에서 최대 3개를 만들고 오늘의 상태를 반환한다.
+      최근 30일에 보인 템플릿은 피하고, 모자라면 가장 오래전에 보인 순으로 채운다. 활성 템플릿이 없으면 options는
+      빈 배열이다. 멱등이며 같은 현지 날짜에는 같은 3개를 돌려준다.
+    parameters:
+    - {$ref: ./affirmation.yaml#/parameters/AppLocale}
+    - {$ref: ./affirmation.yaml#/parameters/AppTimezone}
+    responses:
+      '200': *today
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '404': {$ref: ../components/daily_practice.yaml#/responses/ReadNotFound}
+      '409': {$ref: ../components/daily_practice.yaml#/responses/AccountDeleting}
+      '422': {$ref: ../components/daily_practice.yaml#/responses/Unprocessable}
+    security: [{SupabaseBearer: []}]
+/daily-practice/{id}/accept:
+  post:
+    tags: [daily-practice]
+    summary: 제안 선택
+    operationId: acceptDailyPractice
+    description: >-
+      can_choose일 때 오늘의 offered 행만 accepted로 바꾸고 deadline을 24시간 뒤로 정한다. 이 행이 이미 진행 중이면
+      그대로 반환한다. 그 밖에는 409 DAILY_PRACTICE_INVALID_STATE.
+    parameters:
+    - {$ref: ../components/daily_practice.yaml#/parameters/PracticeId}
+    - {$ref: ./affirmation.yaml#/parameters/AppLocale}
+    - {$ref: ./affirmation.yaml#/parameters/AppTimezone}
+    responses:
+      '200': *today
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '404': {$ref: ../components/daily_practice.yaml#/responses/PracticeNotFound}
+      '409': {$ref: ../components/daily_practice.yaml#/responses/ChoiceConflict}
+      '422': {$ref: ../components/daily_practice.yaml#/responses/Unprocessable}
+    security: [{SupabaseBearer: []}]
+/daily-practice/{id}/complete:
+  post:
+    tags: [daily-practice]
+    summary: 실천 완료
+    operationId: completeDailyPractice
+    description: >-
+      accepted를 completed로 바꾸고 completed_local_date를 정한다. 이미 completed면 그대로 반환한다. deadline이
+      지났으면 409 DAILY_PRACTICE_EXPIRED.
+    parameters:
+    - {$ref: ../components/daily_practice.yaml#/parameters/PracticeId}
+    - {$ref: ./affirmation.yaml#/parameters/AppLocale}
+    - {$ref: ./affirmation.yaml#/parameters/AppTimezone}
+    responses:
+      '200': *today
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '404': {$ref: ../components/daily_practice.yaml#/responses/PracticeNotFound}
+      '409': {$ref: ../components/daily_practice.yaml#/responses/TransitionConflict}
+      '422': {$ref: ../components/daily_practice.yaml#/responses/Unprocessable}
+    security: [{SupabaseBearer: []}]
+/daily-practice/{id}/uncomplete:
+  post:
+    tags: [daily-practice]
+    summary: 완료 취소
+    operationId: uncompleteDailyPractice
+    description: >-
+      잘못 누른 완료를 되돌린다. completed를 accepted로 바꾸고 이미 accepted면 그대로 반환한다. routine_added이거나
+      그 뒤에 다른 실천을 골랐으면 409 DAILY_PRACTICE_INVALID_STATE. deadline이 지났으면 409 DAILY_PRACTICE_EXPIRED.
+    parameters:
+    - {$ref: ../components/daily_practice.yaml#/parameters/PracticeId}
+    - {$ref: ./affirmation.yaml#/parameters/AppLocale}
+    - {$ref: ./affirmation.yaml#/parameters/AppTimezone}
+    responses:
+      '200': *today
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '404': {$ref: ../components/daily_practice.yaml#/responses/PracticeNotFound}
+      '409': {$ref: ../components/daily_practice.yaml#/responses/TransitionConflict}
+      '422': {$ref: ../components/daily_practice.yaml#/responses/Unprocessable}
+    security: [{SupabaseBearer: []}]
+/daily-practice/{id}/routine:
+  post:
+    tags: [daily-practice]
+    summary: 루틴으로 추가
+    operationId: addDailyPracticeRoutine
+    description: >-
+      completed에서만 가능하다. 한 트랜잭션에서 루틴을 만들고 routine_added를 켠다. 이름은 요청 언어의 title, name_i18n은
+      세 언어, 아이콘은 seedling, 색은 peach, 요일은 매일, 알림은 없음. 다시 호출하면 같은 루틴을 반환한다. 그 루틴을
+      지웠으면 새로 만들어 연결한다.
+    parameters:
+    - {$ref: ../components/daily_practice.yaml#/parameters/PracticeId}
+    - {$ref: ./affirmation.yaml#/parameters/AppLocale}
+    - {$ref: ./affirmation.yaml#/parameters/AppTimezone}
+    responses:
+      '200':
+        description: 오늘의 상태와 만든 루틴
+        headers:
+          Cache-Control:
+            schema:
+              type: string
+              const: private, no-store
+        content:
+          application/json:
+            schema: {$ref: ../components/daily_practice.yaml#/schemas/DailyPracticeRoutineResponse}
+      '401': {$ref: ../components/common.yaml#/responses/Unauthorized}
+      '404': {$ref: ../components/daily_practice.yaml#/responses/PracticeNotFound}
+      '409': {$ref: ../components/daily_practice.yaml#/responses/ChoiceConflict}
+      '422': {$ref: ../components/daily_practice.yaml#/responses/Unprocessable}
+    security: [{SupabaseBearer: []}]

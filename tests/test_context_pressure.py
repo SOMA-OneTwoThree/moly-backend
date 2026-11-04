@@ -240,6 +240,9 @@ async def test_sweep_round_robin_visits_beyond_first_fifty_busy_users(monkeypatc
             pass
     async def enabled(*args, **kwargs):
         return True
+    async def resolve_release(session):
+        return None
+    monkeypatch.setattr(sweep.retention_release, "resolve", resolve_release)
     monkeypatch.setattr(sweep, "get_sessionmaker", lambda: Session)
     monkeypatch.setattr(sweep, "_retention_enabled", enabled)
     first = await sweep._resume_retention_checkpoints()

@@ -24,7 +24,7 @@
       "mission": {
         "ko": "일정대로 되지 않은 여행 앞에서 어떤 생각을 하면 좋을까요?",
         "en": "How might you think about a trip that didn't go as planned?",
-        "ja": "予定どおりにいかなかった旅行を前に、どう考えるとよいでしょうか？"
+        "ja": "予定どおりにいかなかった旅行について、どう考えるとよいでしょうか？"
       },
       "lines": [
         {
@@ -48,7 +48,7 @@
           "text": {
             "ko": "날짜를 잘못 잡아서 친구들의 주말을 다 망쳐버린 내 탓이야",
             "en": "It's my fault for picking the wrong dates and ruining my friends' whole weekend",
-            "ja": "日程を間違えて友達の週末を台無しにした自分のせいだ"
+            "ja": "日にちを選び間違えて友達の週末を台無しにした自分のせいだ"
           },
           "correct": false,
           "hint": {
@@ -380,9 +380,9 @@
           "speaker": "narration",
           "slot": false,
           "text": {
-            "ko": "고민 끝에 산 겨울 코트가 1주 뒤에 깜짝 세일로 3만 원이나 더 싸게 팔리는 걸 봤어요.",
-            "en": "You saw the winter coat you carefully thought over and bought go on a surprise sale 1 week later for $30 less.",
-            "ja": "悩んだ末に買った冬のコートが、1週間後にサプライズセールで3,000円も安く売られているのを見ました。"
+            "ko": "고민 끝에 산 겨울 코트가 1주 뒤에 깜짝 세일로 반값에 팔리는 걸 봤어요.",
+            "en": "You saw the winter coat you carefully thought over and bought go on a surprise sale 1 week later at half price.",
+            "ja": "悩んだ末に買った冬のコートが、1週間後にサプライズセールで半額になっているのを見ました。"
           }
         },
         {
@@ -409,9 +409,9 @@
         {
           "id": "b",
           "text": {
-            "ko": "조금 아쉽긴 하지만 살 때는 세일 소식을 미리 알 수 없었어",
-            "en": "It's a bit disappointing, but I couldn't have known about the sale back then",
-            "ja": "少し残念だけれど、買うときにはセールのことを事前に知る由もなかった"
+            "ko": "아쉽긴 하지만 살 때는 세일 소식을 미리 알 수 없었어",
+            "en": "It's disappointing, but I couldn't have known about the sale back then",
+            "ja": "残念だけれど、買うときにはセールのことを事前に知る由もなかった"
           },
           "correct": true,
           "hint": null
@@ -434,7 +434,7 @@
       "mission": {
         "ko": "선물을 드리고 난 뒤 아쉬움이 남을 때 어떻게 생각하면 좋을까요?",
         "en": "When you wish you could have given a bigger gift, how might you think about it?",
-        "ja": "プレゼントを渡した後に心残りがするとき、どう考えるとよいでしょうか？"
+        "ja": "プレゼントを渡した後に心残りがあるとき、どう考えるとよいでしょうか？"
       },
       "lines": [
         {
@@ -480,9 +480,9 @@
         {
           "id": "c",
           "text": {
-            "ko": "기념일은 무사히 넘겼잖아, 더 못 해드린 아쉬움은 생각하지 말고 잊어버릴래",
-            "en": "The anniversary is over anyway, so I'll just forget about wishing I did more",
-            "ja": "記念日は無事に過ぎたんだから、もっとしてあげたかった気持ちは忘れてしまおう"
+            "ko": "기념일은 무사히 넘겼잖아. 아쉬운 마음 같은 건 처음부터 없었던 걸로 칠래",
+            "en": "The anniversary went fine, so I'll act like I never wished I'd done more",
+            "ja": "記念日は無事に過ぎたんだから、残念な気持ちなんて最初からなかったことにしよう"
           },
           "correct": false,
           "hint": {
@@ -769,7 +769,7 @@
       "explanation": {
         "ko": "상대가 무례하게 행동한 이유를 내 탓에서 찾지 않아도 돼요. 불쾌한 감정을 인정하고 거리를 두는 건 자연스러운 대처예요.",
         "en": "You don't have to blame yourself for someone else's rude behavior. Acknowledging your unpleasant feelings and keeping your distance is a natural response.",
-        "ja": "相手が失礼な行動をとった理由を、自分のせいにしなくて大丈夫です。不快な気持ちを認めて距離を置くのは自然な対処です。"
+        "ja": "相手が失礼な行動をとった理由を、自分に求めなくても大丈夫です。不快な気持ちを認めて距離を置くのは自然な対処です。"
       }
     },
     {
@@ -805,7 +805,7 @@
         {
           "id": "a",
           "text": {
-            "ko": "심사위원 취향까지는 어쩔 수 없지, 우리가 끝까지 최선을 다한 걸로 충분해",
+            "ko": "심사위원 취향까지는 어쩔 수 없지. 우리가 끝까지 최선을 다한 걸로 충분해",
             "en": "We can't control the judges' taste, so doing our best until the end is enough",
             "ja": "審査員の好みまではどうしようもないし、最後まで最善を尽くしただけで十分だ"
           },
@@ -880,7 +880,7 @@
         {
           "id": "b",
           "text": {
-            "ko": "처음 가보는 길이라 긴장할 만했어, 마지막 구간까지 잘 몰았으니 다음엔 붙을 거야",
+            "ko": "처음 가보는 길이라 긴장할 만했어. 마지막 구간까지 잘 몰았으니 다음엔 붙을 거야",
             "en": "Anyone would be nervous on a new road; I drove well up to the last part, so I'll pass next time",
             "ja": "初めての道だから緊張するのも無理はないし、最後の区間までうまく運転できたから次は受かるよ"
           },
@@ -898,7 +898,7 @@
           "hint": {
             "ko": "속상한 마음과 아쉬운 결과를 못 본 척 덮어두지 않아도 돼요.",
             "en": "You don't need to ignore your upset feelings and the disappointing result.",
-            "ja": "悔しい気持ちや残念な結果を、見ないふりしなくても大丈夫です。"
+            "ja": "悔しい気持ちや残念な結果を、見ないふりをしなくても大丈夫です。"
           }
         }
       ],
@@ -1076,7 +1076,7 @@
           "text": {
             "ko": "진심으로 사과하고 커피도 샀으니, 자책은 그만하고 지금 친구와 나누는 대화에 집중하자",
             "en": "I apologized and bought coffee, so I'll stop blaming myself and focus on our chat",
-            "ja": "心から謝ってコーヒーもごちそうしたから、自分を責めるのはやめて今の友達との会話に集中しよう"
+            "ja": "心から謝ってコーヒーもごちそうしたから、自分を責めるのはやめて今は友達との会話に集中しよう"
           },
           "correct": true,
           "hint": null
@@ -1376,7 +1376,7 @@
         "retry_hint": {
           "ko": "나를 혼내기 전에 피곤한 몸으로 책상까지 간 노력부터 알아주세요.",
           "en": "Before scolding yourself, recognize the effort it took to go there while tired.",
-          "ja": "自分を叱る前に、疲れた体で机まで向かった努力を認めてあげましょう。"
+          "ja": "自分を叱る前に、疲れた体で机に向かった努力を認めてあげましょう。"
         }
       },
       "explanation": {
@@ -1576,15 +1576,15 @@
           "hint": {
             "ko": "상대의 무례한 태도까지 내 매력 탓으로 가져오지 않아도 돼요.",
             "en": "You don't have to blame your own charm for the other person's rude behavior.",
-            "ja": "相手の失礼な態度まで、自分の魅力のせいにしなくて大丈夫です。"
+            "ja": "相手の失礼な態度まで、自分に魅力がないせいだと思わなくて大丈夫です。"
           }
         },
         {
           "id": "b",
           "text": {
-            "ko": "어색했던 자리는 별일 아닌 걸로 치고 씁쓸한 기분도 그냥 잊고 신경 쓰지 말아야지",
-            "en": "The awkward date was no big deal, so I'll just forget this bitter feeling",
-            "ja": "気まずかった時間は大したことないと思って、苦い気持ちも忘れて気にしないでおこう"
+            "ko": "어색했던 자리는 아예 없던 일로 치고, 사실 씁쓸하지도 않았다고 생각할래",
+            "en": "I'll treat the date as if it never happened; I wasn't really bitter anyway",
+            "ja": "気まずかった時間はなかったことにして、実は苦い気持ちにもならなかったと思うことにしよう"
           },
           "correct": false,
           "hint": {
@@ -1596,9 +1596,9 @@
         {
           "id": "c",
           "text": {
-            "ko": "나는 대화를 이어가려고 예의를 다했고 자리에서 매너를 안 지킨 건 상대 문제야",
-            "en": "I politely tried to keep the conversation going; their rude manners are on them",
-            "ja": "自分は礼儀をもって会話を続けようとしたし、その場でマナーを守らなかったのは相手の問題だ"
+            "ko": "씁쓸하긴 해도 나는 대화를 이어가려고 예의를 다했고, 매너를 안 지킨 건 상대 쪽이야",
+            "en": "It's bitter, but I was polite and kept trying; the poor manners were on their side",
+            "ja": "苦い気持ちはあるけれど、自分は礼儀をもって会話を続けようとしたし、マナーを守らなかったのは相手のほうだ"
           },
           "correct": true,
           "hint": null
@@ -1643,9 +1643,9 @@
         {
           "id": "a",
           "text": {
-            "ko": "반찬이 이게 뭐야, 이렇게 허술하게 싸 올 거면 도시락은 그냥 포기하는 게 낫겠어",
+            "ko": "반찬이 이게 뭐야. 이렇게 허술하게 싸 올 거면 도시락은 그냥 포기하는 게 낫겠어",
             "en": "What kind of lunch is this? If it's this sloppy, I might as well give up",
-            "ja": "こんなおかずじゃあんまりだ、こんなに適当に詰めるくらいならお弁当は諦めた方がいい"
+            "ja": "こんなおかずじゃあんまりだ。こんなに適当に詰めるくらいならお弁当は諦めた方がいい"
           },
           "correct": false,
           "hint": {
@@ -1682,7 +1682,7 @@
       "explanation": {
         "ko": "완벽한 식단이 아니어도 바쁜 아침에 다짐을 이어간 것만으로도 충분해요. 늦잠 잔 이유를 바깥 탓으로 돌리거나 포기하지 않아도 괜찮아요.",
         "en": "Even if it isn't a perfect meal, keeping your commitment on a busy morning is enough. You don't need to blame outside circumstances for oversleeping or give up altogether.",
-        "ja": "完璧な献立でなくても、忙しい朝に決意を続けただけで十分です。寝坊した理由を周りのせいにしたり、諦めたりしなくても大丈夫です。"
+        "ja": "完璧な献立でなくても、忙しい朝でも決めたことを続けられただけで十分です。寝坊を状況のせいにしたり、諦めたりしなくても大丈夫です。"
       }
     },
     {
@@ -2002,7 +2002,7 @@
       "explanation": {
         "ko": "계획을 전부 이루지 못했어도 한 해를 버텨내며 애쓴 시간은 사라지지 않아요. 있는 그대로의 나를 따뜻하게 다독여주세요.",
         "en": "Even if you didn't achieve all your plans, the time you spent working hard and getting through the year doesn't disappear. Comfort yourself warmly just as you are.",
-        "ja": "計画をすべて達成できなくても、この1年を乗り切るために頑張った時間は消えません。ありのままの自分を温かく労わってあげてください。"
+        "ja": "計画をすべて達成できなくても、この1年を乗り切るために頑張った時間は消えません。ありのままの自分を温かくいたわってあげてください。"
       }
     }
   ]

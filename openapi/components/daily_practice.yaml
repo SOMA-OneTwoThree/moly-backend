@@ -1,0 +1,176 @@
+schemas:
+  DailyPracticeStatus:
+    type: string
+    enum:
+    - offered
+    - accepted
+    - completed
+  DailyPractice:
+    type: object
+    additionalProperties: false
+    required:
+    - id
+    - status
+    - title
+    - routine_added
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: 이 제안의 사용자 행 id. 템플릿의 id가 아니다.
+      status:
+        $ref: '#/schemas/DailyPracticeStatus'
+      title:
+        type: string
+        description: 요청 언어의 행동 문구. 루틴 이름으로도 쓰인다.
+      routine_added:
+        type: boolean
+        description: 연결된 루틴이 살아 있으면 true. 루틴을 지우면 false다.
+      deadline:
+        anyOf:
+        - type: string
+          format: date-time
+        - type: 'null'
+        description: 선택 시각의 24시간 뒤. offered 동안은 null이다.
+  DailyPracticeToday:
+    type: object
+    additionalProperties: false
+    required:
+    - local_date
+    - expires_at
+    - locale
+    - can_choose
+    - options
+    - practice
+    properties:
+      local_date:
+        type: string
+        format: date
+        description: 요청 시간대의 오늘.
+      expires_at:
+        type: string
+        format: date-time
+        description: 선택한 실천이 진행 중이면 그 deadline, 아니면 다음 현지 자정.
+      locale:
+        type: string
+        enum:
+        - ko
+        - en
+        - ja
+        description: 문구에 적용한 언어. 미설정이나 미지원 언어는 en이다.
+      can_choose:
+        type: boolean
+        description: >-
+          오늘 고를 수 있으면 true. 진행 중인 실천이 있거나 오늘 날짜의 제안을 이미 골랐으면 false다.
+          어제 고른 실천을 오늘 완료했거나 그것이 만료되었으면 오늘은 고를 수 있다.
+      options:
+        type: array
+        maxItems: 3
+        items:
+          $ref: '#/schemas/DailyPractice'
+        description: 오늘 고르지 않은 제안. 이미 골랐거나, 실천이 진행 중이거나, POST offer 전이면 비어 있다.
+      practice:
+        anyOf:
+        - $ref: '#/schemas/DailyPractice'
+        - type: 'null'
+        description: >-
+          진행 중인 실천 또는 오늘 현지 날짜에 완료한 실천. 없으면 null이다. options와는 독립적이라
+          어제 고른 실천을 오늘 완료하면 can_choose true와 함께 온다.
+  DailyPracticeRoutineResponse:
+    type: object
+    additionalProperties: false
+    required:
+    - today
+    - routine
+    properties:
+      today:
+        $ref: '#/schemas/DailyPracticeToday'
+      routine:
+        $ref: ./routines.yaml#/schemas/RoutineResponse
+responses:
+  Unprocessable:
+    description: 요청 형식 또는 시간대 검증 실패
+    content:
+      application/json:
+        schema: {$ref: ./common.yaml#/schemas/ErrorEnvelope}
+        examples:
+          validation:
+            summary: 요청 검증
+            value:
+              error:
+                code: VALIDATION
+                message: 요청 형식이 올바르지 않습니다.
+                details:
+                  errors:
+                  - loc: [header, x-app-locale]
+                    type: string_too_long
+                    msg: String should have at most 64 characters
+          appTimezoneInvalid:
+            summary: 시간대 형식 오류
+            value: {error: {code: APP_TIMEZONE_INVALID, message: 시간대 형식이 올바르지 않습니다., details: {}}}
+  ReadNotFound:
+    description: 시간대 헤더가 없을 때의 프로필 없음
+    content:
+      application/json:
+        schema: {$ref: ./common.yaml#/schemas/ErrorEnvelope}
+        examples:
+          profileNotFound:
+            summary: 프로필 없음
+            value: {error: {code: NOT_FOUND, message: 프로필을 찾을 수 없어요., details: {}}}
+  AccountDeleting:
+    description: 계정 삭제 진행 중
+    content:
+      application/json:
+        schema: {$ref: ./common.yaml#/schemas/ErrorEnvelope}
+        examples:
+          accountDeleting:
+            summary: 계정 삭제 진행 중
+            value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+  PracticeNotFound:
+    description: 없는 id이거나 다른 사용자의 id, 또는 시간대 헤더가 없을 때의 프로필 없음
+    content:
+      application/json:
+        schema: {$ref: ./common.yaml#/schemas/ErrorEnvelope}
+        examples:
+          dailyPracticeNotFound:
+            summary: 없는 실천
+            value: {error: {code: DAILY_PRACTICE_NOT_FOUND, message: 오늘의 작은 실천을 찾을 수 없어요., details: {}}}
+          profileNotFound:
+            summary: 프로필 없음
+            value: {error: {code: NOT_FOUND, message: 프로필을 찾을 수 없어요., details: {}}}
+  TransitionConflict:
+    description: 계정 삭제 중이거나 deadline이 지난 행, 또는 허용되지 않은 전이
+    content:
+      application/json:
+        schema: {$ref: ./common.yaml#/schemas/ErrorEnvelope}
+        examples:
+          accountDeleting:
+            summary: 계정 삭제 진행 중
+            value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+          expired:
+            summary: deadline이 지난 행
+            value: {error: {code: DAILY_PRACTICE_EXPIRED, message: 오늘의 작은 실천이 이미 끝났어요., details: {}}}
+          invalidState:
+            summary: 허용되지 않은 전이
+            value: {error: {code: DAILY_PRACTICE_INVALID_STATE, message: 지금은 할 수 없는 동작이에요., details: {}}}
+  ChoiceConflict:
+    description: 계정 삭제 중이거나 허용되지 않은 전이
+    content:
+      application/json:
+        schema: {$ref: ./common.yaml#/schemas/ErrorEnvelope}
+        examples:
+          accountDeleting:
+            summary: 계정 삭제 진행 중
+            value: {error: {code: ACCOUNT_DELETING, message: 계정 삭제를 처리하고 있어요., details: {}}}
+          invalidState:
+            summary: 허용되지 않은 전이
+            value: {error: {code: DAILY_PRACTICE_INVALID_STATE, message: 지금은 할 수 없는 동작이에요., details: {}}}
+parameters:
+  PracticeId:
+    name: id
+    in: path
+    required: true
+    description: DailyPractice.id
+    schema:
+      type: string
+      format: uuid

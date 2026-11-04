@@ -120,7 +120,7 @@
           "text": {
             "ko": "동료들이 점심 메뉴를 어제 저녁에 먹은 김치찌개로 통일하자고 해요. 같은 음식을 또 먹기는 내키지 않아요.",
             "en": "Your coworkers suggest everyone order curry for lunch, which you had for dinner last night. You don't feel like eating the same food again.",
-            "ja": "同僚たちが、昼食のメニューを昨夜食べたカレーに統一しようと言っています。同じものをまた食べる気にはなれません。"
+            "ja": "同僚たちが、昼食をカレーに統一しようと言っています。昨夜も食べたので、同じものをまた食べる気にはなれません。"
           },
           "slot": false
         },
@@ -161,7 +161,7 @@
         {
           "id": "b",
           "text": {
-            "ko": "제가 어제 저녁에도 김치찌개를 먹어서요, 오늘 저는 다른 걸로 시켜도 될까요?",
+            "ko": "제가 어제 저녁에도 김치찌개를 먹어서요. 오늘 저는 다른 걸로 시켜도 될까요?",
             "en": "I actually had curry last night—mind if I order something else today?",
             "ja": "昨日の夜もカレーを食べたので、今日は私だけ別のものを頼んでもいいでしょうか？"
           },
@@ -171,9 +171,9 @@
         {
           "id": "c",
           "text": {
-            "ko": "미안해서 저만 따로 시키기가 좀 그러네요, 오늘은 그냥 같은 걸로 먹을게요",
+            "ko": "미안해서 저만 따로 시키기가 좀 그러네요. 오늘은 그냥 같은 걸로 먹을게요",
             "en": "I feel bad ordering separately, so I'll just get the same thing today",
-            "ja": "申し訳なくて私だけ別には頼みづらいですね、今日はそのまま同じものを食べます"
+            "ja": "申し訳なくて私だけ別には頼みづらいですね。今日はそのまま同じものを食べます"
           },
           "correct": false,
           "hint": {
@@ -208,7 +208,7 @@
           "text": {
             "ko": "옷 가게에서 친구가 내 취향이 아닌 화려한 옷을 입어보라고 부추겨요. 갈아입기도 번거롭고 입어보고 싶지 않아요.",
             "en": "At a clothing store, your friend urges you to try on a flashy outfit that isn't your style. Changing feels like a hassle, and you don't want to try it on.",
-            "ja": "洋服店で、友達が好みではない派手な服を着てみるよう勧めてきます。着替えるのも面倒で、試着したくありません。"
+            "ja": "洋服店で、好みではない派手な服を着てみるよう友達が勧めてきます。着替えるのも面倒で、試着したくありません。"
           },
           "slot": false
         },
@@ -317,7 +317,7 @@
         {
           "id": "c",
           "text": {
-            "ko": "갑자기 근처에 들를 곳이 생겨서요, 다음번에 기회 되면 그때 꼭 탈게요",
+            "ko": "갑자기 근처에 들를 곳이 생겨서요. 다음번에 기회 되면 그때 꼭 탈게요",
             "en": "I suddenly need to stop somewhere nearby, so I'll take a ride next time",
             "ja": "急に近くで立ち寄る場所ができまして、また次の機会にぜひ乗せていただきますね"
           },
@@ -365,7 +365,7 @@
           "text": {
             "ko": "열심히 설명해 준 성의를 봐서라도 오늘 한 번은 결제해야지",
             "en": "They explained it so thoroughly, so I should pay for it just this once out of courtesy",
-            "ja": "熱心に説明してくれた誠意に免じてでも、今日一度は支払おう"
+            "ja": "熱心に説明してくれたんだから、今日くらいは追加料金を払おう"
           },
           "correct": false,
           "hint": {
@@ -416,7 +416,7 @@
       "mission": {
         "ko": "오늘 원하는 시술만 받겠다고 직원에게 할 말을 적어보세요.",
         "en": "Write what you would say to the staff to get only the service you want today.",
-        "ja": "今日希望する施術だけを受けると、スタッフに伝える言葉を書いてみましょう。"
+        "ja": "今日は希望する施術だけを受けたいと、スタッフに伝える言葉を書いてみましょう。"
       },
       "lines": [
         {
@@ -523,7 +523,7 @@
         {
           "id": "b",
           "text": {
-            "ko": "다음 달 일정을 먼저 확인해 봐야 해서요, 내일 오전까지 말씀드려도 될까요?",
+            "ko": "다음 달 일정을 먼저 확인해 봐야 해서요. 내일 오전까지 말씀드려도 될까요?",
             "en": "I need to check next month's schedule first—can I let you know tomorrow morning?",
             "ja": "来月の予定を先に確認してみないといけませんので、明日の午前中までにお返事してもいいですか？"
           },
@@ -533,7 +533,7 @@
         {
           "id": "c",
           "text": {
-            "ko": "많이 바쁘지만 않으면 괜찮을 것 같은데요, 일단 같이하는 걸로 알고 있을게요",
+            "ko": "많이 바쁘지만 않으면 괜찮을 것 같은데요. 일단 같이하는 걸로 알고 있을게요",
             "en": "It should be fine unless I get swamped, so count me in for now",
             "ja": "あまり忙しくなければ大丈夫だと思いますので、ひとまず参加するつもりでいますね"
           },
@@ -597,7 +597,7 @@
         {
           "id": "a",
           "text": {
-            "ko": "다음 달 일정을 확인해 봤는데 마감 일이 겹쳐서요, 이번에는 함께하기 어려울 것 같아요",
+            "ko": "다음 달 일정을 확인해 봤는데 마감 일이 겹쳐서요. 이번에는 함께하기 어려울 것 같아요",
             "en": "I checked my schedule and my deadlines overlap, so I can't join this time",
             "ja": "来月の予定を確認してみたのですが締め切りが重なっていまして、今回はご一緒するのが難しそうです"
           },
@@ -607,9 +607,9 @@
         {
           "id": "b",
           "text": {
-            "ko": "일정이 겹쳐서 다 못 도와드려 죄송한데, 작은 일이라도 제가 조금 맡아볼까요?",
-            "en": "Sorry my schedule is tight, but could I at least take on a small part?",
-            "ja": "予定が重なって全部はお手伝いできず申し訳ないのですが、小さなことでも少し引き受けましょうか？"
+            "ko": "일정이 겹쳐서 어렵지만 거절하기 죄송하니까, 제가 일부라도 어떻게든 맡아볼게요",
+            "en": "My schedule's packed, but I feel bad saying no, so I'll take on part of it somehow",
+            "ja": "予定が重なって難しいのですが、お断りするのは申し訳ないので、一部だけでもどうにか引き受けます"
           },
           "correct": false,
           "hint": {
@@ -927,7 +927,7 @@
         "retry_hint": {
           "ko": "일찍 자고 쉬고 싶다는 내 계획을 친구에게 솔직하게 이야기해 봐요.",
           "en": "Tell your friends honestly that you plan to go to bed early and get some rest.",
-          "ja": "早く寝て休みたいという予定を、友達に正直に伝えてみましょう。"
+          "ja": "早く寝て休むつもりだと、友達に正直に伝えてみましょう。"
         }
       }
     },
@@ -1047,9 +1047,9 @@
         {
           "id": "a",
           "text": {
-            "ko": "날씨 좋다니 나들이 가기 딱이겠다, 토요일 몇 시에 어디서 만날까?",
+            "ko": "날씨 좋다니 나들이 가기 딱이겠다. 토요일 몇 시에 어디서 만날까?",
             "en": "Great weather sounds perfect for going out! When and where should we meet?",
-            "ja": "天気がいいならお出かけにぴったりだね、土曜日は何時にどこで会う？"
+            "ja": "天気がいいならお出かけにぴったりだね。土曜日は何時にどこで会う？"
           },
           "correct": false,
           "hint": {
@@ -1217,7 +1217,7 @@
             "ja": "友達"
           },
           "text": {
-            "ko": "아쉽다, 우리 근처에서 간단하게 맥주 한 잔만 딱 더 하고 가자!",
+            "ko": "아쉽다. 우리 근처에서 간단하게 맥주 한 잔만 딱 더 하고 가자!",
             "en": "It's too early to stop! Let's have just one more beer nearby!",
             "ja": "ここで解散は名残惜しいな。近くでもう一杯だけ飲んでいこうよ！"
           },
@@ -1306,7 +1306,7 @@
           "text": {
             "ko": "나도 보고 싶지만 오늘은 머리가 좀 아파서 일찍 쉬고 다른 날 만나자",
             "en": "I want to see you too, but I have a headache—let's rest tonight and meet another day",
-            "ja": "私も会いたいけど、今日は少し頭が痛いから早く休んでまた別の日に会おう"
+            "ja": "私も会いたいけど、今日は少し頭が痛いから早めに休むね。また別の日に会おう"
           },
           "correct": true,
           "hint": null
@@ -1314,9 +1314,9 @@
         {
           "id": "c",
           "text": {
-            "ko": "나도 얼른 보고 싶으니까 출발할 때 연락해, 나갈 준비하고 있을게",
+            "ko": "나도 얼른 보고 싶으니까 출발할 때 연락해. 나갈 준비하고 있을게",
             "en": "I can't wait to see you too! Text me when you leave and I'll get ready",
-            "ja": "私も早く会いたいから出発するときに連絡してね、出る準備をして待ってるよ"
+            "ja": "私も早く会いたいから出発するときに連絡してね。出る準備をして待ってるよ"
           },
           "correct": false,
           "hint": {
@@ -1351,7 +1351,7 @@
           "text": {
             "ko": "애인이 연휴에 1박 2일로 험한 산속 야영을 가자고 해요. 벌레와 체력 소모가 큰 야외 활동은 생각만 해도 지쳐요.",
             "en": "Your partner suggests an overnight camping trip in the rugged mountains for the holiday. Just thinking about bugs and exhausting outdoor activities wears you out.",
-            "ja": "恋人が連休に1泊2日で険しい山へキャンプに行こうと言っています。虫や体力を消耗する野外活動は、考えるだけでも疲れてしまいます。"
+            "ja": "恋人が連休に1泊2日で険しい山へキャンプに行こうと言っています。虫が多く体力も消耗する野外活動は、考えるだけでも疲れてしまいます。"
           },
           "slot": false
         },
@@ -1442,9 +1442,9 @@
         {
           "id": "c",
           "text": {
-            "ko": "주말 내내 힘들겠지만 내 외국어 실력도 늘 테니 좋은 연습 기회라고 생각해야지",
-            "en": "It'll take all weekend, but it'll improve my language skills, so it's good practice",
-            "ja": "週末ずっと大変だろうけど、外国語の力も伸びるはずだからいい練習の機会だと思うことにしよう"
+            "ko": "버거운 건 사실이지만 거절하긴 어려우니까 외국어 연습이라고 생각하고 그냥 해야지",
+            "en": "It's a lot, but saying no is hard, so I'll call it language practice and just do it",
+            "ja": "大変なのは確かだけど、断るのは難しいから、外国語の練習だと思ってとにかくやろう"
           },
           "correct": false,
           "hint": {
@@ -1678,7 +1678,7 @@
           "text": {
             "ko": "매달 15만 원은 조금 빠듯한데 미안해서 어쩌지… 이번 달 사정 보고 다시 말해줄게",
             "en": "$150 a month is tight, and I feel bad… Let me see how this month goes first",
-            "ja": "毎月1万5千円は少し厳しいけど申し訳ないな…今月の状況を見てまた伝えるよ"
+            "ja": "毎月1万5千円は少し厳しくて申し訳ないな…今月の状況を見てまた伝えるよ"
           },
           "correct": false,
           "hint": {
@@ -1785,7 +1785,7 @@
           "text": {
             "ko": "이번 주말에는 꼭 집에 오는 거지? 네가 와서 이것저것 좀 도와줘야 엄마가 편하지.",
             "en": "You're definitely coming home this weekend, right? It makes things so much easier for me when you come and help out around the house.",
-            "ja": "今週末は必ず帰ってくるよね？来ていろいろ手伝ってくれると、お母さんも楽なんだけど。"
+            "ja": "今週末は必ず帰ってくるよね？いろいろ手伝ってくれると、お母さんも楽なんだけど。"
           },
           "slot": false
         },
@@ -1882,7 +1882,7 @@
           "text": {
             "ko": "다른 사람한테는 절대 말하지 마 지금 아이디랑 비밀번호 바로 보내줄게",
             "en": "Just don't tell anyone—I'll text you my username and password right now",
-            "ja": "ほかの人には絶対に言わないでね、今からIDとパスワードをすぐに送るよ"
+            "ja": "ほかの人には絶対に言わないでね。今からIDとパスワードをすぐに送るよ"
           },
           "correct": false,
           "hint": {

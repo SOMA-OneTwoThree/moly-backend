@@ -18,7 +18,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.message import SUMMARY_EXCLUDED_MESSAGE_KINDS
-from app.services import memory, naming
+from app.services import memory, naming, retention_release
 from app.config import settings
 
 STATE_SCHEMA = "conversation-progress-v1"
@@ -69,6 +69,11 @@ _FLAG_LOCK = text("SELECT value FROM app_config WHERE key='context_retention_v2_
 
 async def enabled_now(session: AsyncSession, *, lock: bool = False) -> bool:
     """게시 트랜잭션은 설정 행을 공유 잠가 끄기와 게시의 순서를 정한다."""
+    bound = retention_release.binding()
+    if bound is not None:
+        await retention_release.require_binding(session, bound, lock=lock)
+        if bound.building:
+            return True
     if lock:
         row = (await session.execute(_FLAG_LOCK)).first()
         value = row[0] if row is not None else settings.context_retention_v2_enabled
@@ -82,26 +87,39 @@ async def enabled_now(session: AsyncSession, *, lock: bool = False) -> bool:
 _ADOPTED_USER = text("""
 SELECT EXISTS (SELECT 1 FROM conversation_checkpoints c
  JOIN chat_contexts cc ON cc.user_id=c.user_id AND cc.memory_generation=c.memory_generation
- WHERE c.user_id=:user_id AND c.version='conversation-checkpoint-summary-v5'
+ WHERE c.user_id=:user_id AND c.version='conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL
    AND c.publish_state='published')
 """)
 
 
 async def adopted_user(session: AsyncSession, *, user_id: uuid.UUID | str,
                        config: dict[str, Any] | None = None, lock: bool = False) -> bool:
-    """첫날의 명시 준비 명단 또는 현재 삭제 세대의 v5 게시 이력으로만 진입한다."""
+    """The global switch admits everyone; published v5 remains readable while off.
+
+    Existing data format is a compatibility check, never a rollout cohort.
+    This does not certify legacy sources or advance any processing cursor.
+    """
+    bound = retention_release.binding()
+    if bound is not None:
+        await retention_release.require_binding(session, bound, lock=lock)
+        return True
     if lock:
-        value = (await session.execute(text("""
-          SELECT value FROM app_config WHERE key='context_retention_ready_users' FOR SHARE
-        """))).first()
-        config = {"context_retention_ready_users": value[0] if value is not None else []}
-    elif config is None:
+        enabled = await enabled_now(session, lock=True)
+    else:
+        if config is None:
+            from app.services import config_store
+            config = await config_store.get_config_values(session, ["context_retention_v2_enabled", "context_retention_active_preparation"])
+        enabled = config.get("context_retention_v2_enabled", settings.context_retention_v2_enabled) is True
+    if enabled:
+        return True
+    if config is None:
         from app.services import config_store
-        config = await config_store.get_config_values(session, ["context_retention_ready_users"])
-    ready = config.get("context_retention_ready_users", [])
-    if isinstance(ready, list) and str(user_id) in ready:
+        config = await config_store.get_config_values(session, ["context_retention_active_preparation"])
+    if config.get("context_retention_active_preparation") is not None:
+        await retention_release.resolve(session, config=config, lock=lock)
         return True
     return (await session.scalar(_ADOPTED_USER, {"user_id": user_id})) is True
+
 
 
 class EvidenceQuote(BaseModel):
@@ -376,7 +394,7 @@ SELECT c.id,c.through_message_id,item.value
 FROM conversation_checkpoints c
 CROSS JOIN LATERAL jsonb_array_elements(c.state_json->'items') item(value)
 WHERE c.user_id=:user_id AND c.memory_generation=:generation
-  AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+  AND c.version='conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL AND c.publish_state='published'
   AND item.value->>'id'=:item_id
 ORDER BY c.through_message_id DESC,c.created_at DESC,c.id DESC LIMIT 1
 """)
@@ -391,7 +409,7 @@ async def load_historical_item(session: AsyncSession, *, user_id: uuid.UUID | st
     """
     if not isinstance(item_id, str) or not _ITEM_ID.fullmatch(item_id):
         raise RetentionError("history_item_id")
-    row = (await session.execute(_HISTORICAL_ITEM, {
+    row = (await retention_release.execute(session, _HISTORICAL_ITEM, {
         "user_id": user_id, "generation": generation, "item_id": item_id,
     })).first()
     if row is None:
@@ -532,7 +550,7 @@ WHERE m.user_id=:user_id AND cc.memory_generation=:generation
        OR m.id>COALESCE((SELECT max(c.through_message_id)
                          FROM conversation_checkpoints c
                          WHERE c.user_id=cc.user_id AND c.memory_generation=cc.memory_generation
-                           AND c.version='conversation-checkpoint-summary-v5'
+                           AND c.version='conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL
                            AND c.publish_state='published'),0))
 ORDER BY m.id LIMIT :page_size
 """)
@@ -549,13 +567,21 @@ async def pending_correction(session: AsyncSession, *, user_id: uuid.UUID | str,
                              generation: int, current_text: str) -> bool:
     if correction_candidate(current_text):
         return True
+    pending_sql = _PENDING_CORRECTIONS
+    pending_params = {}
+    if retention_release.binding() is not None:
+        pending_params["contract_through"] = await retention_release.contract_cursor(
+            session, user_id=user_id, generation=generation)
+        pending_sql = text(str(pending_sql).replace(
+            "m.id>cc.contract_processed_through_message_id\n       OR cc.contract_generation<>cc.memory_generation",
+            "m.id>:contract_through"))
     after_id = 0
     source_bytes = 0
     while True:
-        rows = (await session.execute(_PENDING_CORRECTIONS, {
+        rows = (await session.execute(retention_release.checkpoint_sql(pending_sql), retention_release.params({**pending_params,
             "user_id": user_id, "generation": generation, "after_id": after_id,
             "page_size": CORRECTION_PAGE_SIZE,
-        })).all()
+        }))).all()
         for identity, content in rows:
             if type(identity) is not int or identity<=after_id:
                 raise RetentionError("correction_source_order")
@@ -573,18 +599,20 @@ async def pending_correction(session: AsyncSession, *, user_id: uuid.UUID | str,
 _CONTRACT_ACTIVE = text("""
 SELECT 1 FROM async_jobs j WHERE j.user_id=:user_id AND j.job_type='contract_compile'
  AND j.payload->'retention_enabled'='true'::jsonb
+ AND (j.payload->>'retention_preparation_id') IS NULL
  AND j.payload->'memory_generation'=to_jsonb(CAST(:generation AS bigint))
  AND j.state IN ('ready','running')
  AND (j.payload->>'through_message_id')::bigint>=:through_id LIMIT 1
 """)
 _CONTRACT_BASE_JOB = text("""
-SELECT id FROM async_jobs WHERE user_id=:user_id AND job_type='contract_compile'
+SELECT id FROM async_jobs WHERE (payload->>'retention_preparation_id') IS NULL AND user_id=:user_id AND job_type='contract_compile'
  AND dedup_key=:dedup_key LIMIT 1
 """)
 _CONTRACT_LATEST_TERMINAL = text("""
 SELECT j.state FROM async_jobs j
 WHERE j.user_id=:user_id AND j.job_type='contract_compile'
  AND j.payload->'retention_enabled'='true'::jsonb
+ AND (j.payload->>'retention_preparation_id') IS NULL
  AND j.payload->'memory_generation'=to_jsonb(CAST(:generation AS bigint))
  AND j.payload->'through_message_id'=to_jsonb(CAST(:through_id AS bigint))
  AND (j.dedup_key=:dedup_key OR starts_with(j.dedup_key,:dedup_key||':')
@@ -600,6 +628,7 @@ WHERE j.user_id=:user_id AND j.job_type='contract_compile'
            THEN cc.contract_processed_through_message_id ELSE 0 END)=:cursor
  AND :cursor<:through_id
  AND j.payload->'retention_enabled'='true'::jsonb
+ AND (j.payload->>'retention_preparation_id') IS NULL
  AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
  AND j.payload->'through_message_id'=to_jsonb(CAST(:through_id AS bigint))
  AND (j.dedup_key=:dedup_key OR starts_with(j.dedup_key,:dedup_key||':')
@@ -612,12 +641,14 @@ WHERE j.user_id=:user_id AND j.job_type='contract_compile'
  AND NOT EXISTS (SELECT 1 FROM async_jobs active_job
    WHERE active_job.user_id=j.user_id AND active_job.job_type=j.job_type
      AND active_job.payload->'retention_enabled'='true'::jsonb
-     AND active_job.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+     AND (active_job.payload->>'retention_preparation_id') IS NULL
+ AND active_job.payload->'memory_generation'=to_jsonb(cc.memory_generation)
      AND active_job.state IN ('ready','running')
      AND (active_job.payload->>'through_message_id')::bigint>=:through_id)
  AND NOT EXISTS (SELECT 1 FROM async_jobs failed
    WHERE failed.user_id=j.user_id AND failed.job_type=j.job_type AND failed.state='dead'
-     AND failed.payload->'memory_generation'=j.payload->'memory_generation'
+     AND (failed.payload->>'retention_preparation_id') IS NULL
+ AND failed.payload->'memory_generation'=j.payload->'memory_generation'
      AND failed.payload->'through_message_id'=j.payload->'through_message_id'
      AND (failed.finished_at,failed.id)>(j.finished_at,j.id))
 ORDER BY COALESCE((j.payload->>'partial_offset')::bigint,0) DESC,
@@ -626,34 +657,47 @@ ORDER BY COALESCE((j.payload->>'partial_offset')::bigint,0) DESC,
 
 
 async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UUID | str,
-                                      generation: int, through_id: int, privacy_epoch: int | None = None):
+                                      generation: int, through_id: int, privacy_epoch: int | None = None,
+                                      config: dict | None = None):
     """현재 턴과 같은 커밋에서 명시 선호/정정의 기존 계약 작업을 예약한다."""
     from app.services import jobs
+    if (retention_release.binding() is None and config is not None
+            and config.get("context_retention_active_preparation") is not None):
+        # A new child plan captures current publication identity explicitly;
+        # the already-running public fact job itself remains unbound.
+        from app.services.retention_preparation_context import use_binding
+        value = await retention_release.resolve(session, config=config)
+        with use_binding(value):
+            return await enqueue_contract_processing(session, user_id=user_id,
+                generation=generation, through_id=through_id, privacy_epoch=privacy_epoch)
     epoch = await capture_privacy_epoch(session, user_id=user_id) if privacy_epoch is None else privacy_epoch
     if epoch is None or not await privacy_epoch_matches(session, user_id=user_id, privacy_epoch=epoch):
         return None
-    cursor = await session.scalar(text("""
-      SELECT CASE WHEN contract_generation=memory_generation THEN contract_processed_through_message_id
-                  ELSE 0 END FROM chat_contexts
-      WHERE user_id=:user_id AND memory_generation=:generation
-    """), {"user_id": user_id, "generation": generation})
+    if retention_release.binding() is not None:
+        cursor = await retention_release.contract_cursor(session, user_id=user_id, generation=generation)
+    else:
+        cursor = await session.scalar(text("""
+          SELECT CASE WHEN contract_generation=memory_generation THEN contract_processed_through_message_id
+                      ELSE 0 END FROM chat_contexts
+          WHERE user_id=:user_id AND memory_generation=:generation
+        """), {"user_id": user_id, "generation": generation})
     if cursor is None or int(cursor) >= through_id:
         return None
     params = {"user_id": user_id, "generation": generation, "through_id": through_id,
               "cursor": int(cursor),
-              "dedup_key": f"contract-retention:{user_id}:{generation}:{int(cursor)}:{through_id}"}
-    if await session.scalar(_CONTRACT_ACTIVE, params) is not None:
+              "dedup_key": retention_release.dedup_key(f"contract-retention:{user_id}:{generation}:{int(cursor)}:{through_id}")}
+    if await session.scalar(retention_release.job_sql(_CONTRACT_ACTIVE), retention_release.params(params)) is not None:
         return None
-    latest_terminal = (await session.execute(_CONTRACT_LATEST_TERMINAL, params)).first()
+    latest_terminal = (await session.execute(retention_release.job_sql(_CONTRACT_LATEST_TERMINAL), retention_release.params(params))).first()
     if latest_terminal is not None and latest_terminal[0] == "dead":
         return None  # suffix-only 계획도 새 base로 실패 재시도 예산을 초기화하지 않는다.
-    existing = (await session.execute(_CONTRACT_BASE_JOB, params)).first()
+    existing = (await session.execute(retention_release.job_sql(_CONTRACT_BASE_JOB), retention_release.params(params))).first()
     if existing is None and latest_terminal is None:
         payload = {"retention_enabled": True, "memory_generation": generation,
                    "through_message_id": through_id, "after_message_id": int(cursor), "privacy_epoch": epoch}
         key = params["dedup_key"]
     else:
-        terminal = (await session.execute(_CONTRACT_UNPROCESSED_TERMINAL, params)).first()
+        terminal = (await session.execute(retention_release.job_sql(text(str(_CONTRACT_UNPROCESSED_TERMINAL).replace("AND (CASE WHEN cc.contract_generation=cc.memory_generation\n           THEN cc.contract_processed_through_message_id ELSE 0 END)=:cursor", "")) if retention_release.binding() is not None else _CONTRACT_UNPROCESSED_TERMINAL), retention_release.params(params))).first()
         if terminal is None:
             return None
         payload = terminal[1] if isinstance(terminal[1], dict) else json.loads(terminal[1])
@@ -675,6 +719,10 @@ async def processing_complete(session: AsyncSession, *, user_id: uuid.UUID | str
     row = (await session.execute(_COVERAGE, {
         "user_id": user_id, "generation": generation, "through_id": through_id,
     })).first()
+    if row is not None and retention_release.binding() is not None:
+        row = list(row)
+        row[1] = generation
+        row[2] = await retention_release.contract_cursor(session, user_id=user_id, generation=generation)
     if row is None or int(row[0]) != generation:
         return False
     if int(row[6]) == 0:  # safety/운세 등 정책 제외만 있는 범위

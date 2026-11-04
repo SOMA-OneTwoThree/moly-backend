@@ -7,16 +7,16 @@ import pytest
 from app.services import config_store, context_retention, jobs, memory_pipeline
 
 
-@pytest.mark.parametrize("ready,checkpoint,enabled,paused,expected", [
+@pytest.mark.parametrize("unused,checkpoint,enabled,paused,expected", [
     (True, False, True, False, "retention"),
-    (True, False, False, False, None),
+    (True, False, False, False, "legacy"),
     (False, True, False, False, None),
     (False, True, True, False, "retention"),
     (False, False, False, False, "legacy"),
     (True, True, True, True, None),
 ])
 async def test_day_boundary_preserves_retention_contract_path(
-    monkeypatch, ready, checkpoint, enabled, paused, expected,
+    monkeypatch, unused, checkpoint, enabled, paused, expected,
 ):
     uid, made = uuid.uuid4(), []
     class Result:
@@ -32,12 +32,12 @@ async def test_day_boundary_preserves_retention_contract_path(
                 return Result((date(2026, 11, 2), date(2026, 11, 1)))
             return Result((4, checkpoint, 22))
     async def config(*args):
-        return {"context_retention_ready_users": [str(uid)] if ready else []}
+        return {"context_retention_v2_enabled": enabled}
     async def flag(session, *, lock=False):
         assert lock
         return enabled
     async def adopted(*args, **kwargs):
-        return ready or checkpoint
+        return enabled or checkpoint
     async def enqueue(*args, **kwargs):
         made.append(kwargs)
     async def retained(*args, **kwargs):

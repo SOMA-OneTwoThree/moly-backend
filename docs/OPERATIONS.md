@@ -2,53 +2,6 @@
 
 이 문서는 반복해서 사용하는 배포·관측·복구 절차다. 실행 시점의 SHA, 환경 설정, DB 계약과 실제 검사 결과는 해당 PR·배포 기록에 남긴다. 코드 기본값이나 과거 영수증을 현재 운영 상태로 간주하지 않는다.
 
-## 구독 환불 수정과 고객 보정
-
-DB 차이는 `db/changes/subscription_refund_access.sql`의 nullable JSONB 두 컬럼뿐이다.
-기존 구독·Payment·건초·설정 행을 일괄 수정하지 않는다. `db.apply` 기본 롤백 검사 후 검토한
-SHA-256으로 적용하고, 별도 구독 릴리스 허용 목록으로 개발 스키마 계약을 생성·검증한다.
-개발 작업 중 운영 DB에 실행하지 않는다.
-
-최초 채택 설정은 기본 끔이다. API·웹훅 처리기·주기 워커 모두 호환 코드임을 확인하기 전에는
-설정이나 고객 보정을 시작하지 않는다. 한 고객부터 검증한 뒤 적용 범위를 늘린다.
-설정 해제는 신규 채택만 멈추며 기존 채택 고객의 검증·환불·이전과 단계 재시도를 유지한다.
-채택 또는 금융 단계 저장 이후에는 이를 모르는 옛 이미지로 복구하지 않는다.
-
-개발 전용 도구 `scripts/subscription_access_repair.py`는 `--env dev`만 허용하고 고정 개발
-API의 환경과 전체 SHA를 확인한다. 실제 고객을 대신 로그인하거나 대화를 보내지 않는다.
-사용 예의 구독 ID·배포 SHA는 실행 때 확인한 값을 사용한다.
-
-```bash
-python scripts/subscription_access_repair.py preview --env dev \
-  --subscription-id <검증용-구독-UUID> --mode refunded \
-  --expected-app-sha <개발-배포-40자리-SHA> --output /private/tmp/repair-preview.json
-python scripts/subscription_access_repair.py apply --env dev \
-  --plan /private/tmp/repair-preview.json --expected-sha256 <미리보기-SHA256> \
-  --expected-app-sha <같은-개발-SHA> --output /private/tmp/repair-audit.jsonl
-```
-
-`refunded`는 현재 스토어 종료와 결제 환불이 일치할 때만 남은 권한을 종료한다.
-`metadata`는 정상 유료 권한과 만료일을 그대로 유지하며 체험·거래 정보를 바로잡는다.
-새 구매·예정 구독·소유권 변경·미처리 알림·조회 중 값 변경이 있으면 기존 계획으로 실행하지 않는다.
-미리보기는 60초 뒤 만료되며 잠금 이후에도 다시 검사한다. 허용된 Subscription 열만 수정한다.
-이미 처리한 환불이나 건초 회수는 재실행하지 않는다. 실행 전후 금융 상태도 비교한다.
-
-미리보기와 고객 식별 정보는 저장소 밖의 0600 파일에 보관한다. 적용 기록은 커밋 시도 전부터
-추가만 하는 JSON 줄 기록으로 남긴다. `commit_result_unknown`이면 적용 여부를 먼저 확인하고
-재실행하지 않는다. 커밋 뒤 기록 쓰기 실패도 적용 완료와 구분해 보고한다.
-적용 뒤 외부 상태·새 inbox·로컬 구독·금융 상태를 재조회한다. 변화나 조회 실패가 있으면
-적용된 상태임을 기록하고 다음 고객 진행을 멈춘다. 과거의 잘못된 활성 상태로 자동 복원하지 않는다.
-
-운영 고객 보정은 이 개발 전용 도구로 실행할 수 없다. 운영 적용 때는 호환 코드 전체 반영,
-정확한 대상과 최신 RC 읽기 경로, 수정 전후 값·적용 SQL·검증·조건부 복구를 별도 검토한다.
-환불 고객과 정상 결제 고객을 분리하고, 대상 밖 정상 구독은 변경하지 않은 채 각 단계에서 비교한다.
-
-DDL 복구 파일 `subscription_refund_access_rollback.sql`은 채택 기록이 하나라도 있으면 거부한다.
-기록 생성 전에도 모든 호환 reader/writer를 종료한 뒤 외부 트랜잭션 안에서 실행해야 한다.
-`SET LOCAL moly.subscription_readers_and_writers_stopped = 'confirmed'`는 실제 종료 확인 후에만
-설정한다. 두 테이블의 배타 잠금 아래 비어 있음을 재확인한 뒤 컬럼을 제거한다.
-채택 이후에는 컬럼과 호환 코드를 유지하고 신규 채택 설정만 끈다.
-
 ## 일일 보고
 
 `worker/daily_report.py`와 `worker/monitoring.py`는 가입·활동·구독·일기를 독립 조회한다.
@@ -89,14 +42,14 @@ python scripts/check_daily_report.py --environment production --expected-sha <40
 
 ### 기억 보존·위기 가드레일의 개발 검증
 
-새 기능 기본값은 끔이다. `crisis_guard_ready_users`·`context_retention_ready_users`는 검증이 끝난
-사용자 ID의 명시 배열이며 `*`로 일괄 전환하지 않는다. 기존 파생 정보가 새 원문 근거·위기 제외
-조건을 통과하기 전에는 명단에 넣지 않는다. 전역 설정과 별도로 사용자별 읽기 전환을 확인한다.
+새 기능 기본값은 끔이다. 도입할 때는 전역 설정으로 전체 사용자에게 한 번에 적용한다.
+사용자 목록·비율·A/B 시험으로 적용 대상을 나누지 않는다. 기존 파생 정보의 원문 근거와
+전체 사용자 자료 호환 준비는 전역 도입 전에 끝내며, 사용자별 공개 절차로 대신하지 않는다.
 
 다음 검증은 기존 개발 Supabase만 허용한다. 실제 모델 호출은 별도 설정이 필요하며 비용이 발생한다.
 합성 원문·진행 정보 시험은 rollback하고, 실제 개발 API 시험은 자체 생성한 인증 계정만 사용한 뒤
 설정 복구와 계정·대화·벡터 기억 삭제를 확인한다. API 시험은 기대 배포 SHA와 고정 개발 주소를 검사한다.
-`crisis-v2`를 쓰지 않는 기존 명단을 시험 도중 새 정책으로 바꾸지 않는다.
+개발 환경의 기존 전역 판정 정책·제한 시간이 다르면 시험 도구가 임의로 바꾸지 않는다.
 
 ```bash
 MOLY_CHECKPOINT_TEST_ENV=dev uv run pytest -q \
@@ -565,6 +518,294 @@ UPDATE public.articles SET is_active = false WHERE id = 'sample-3';
 
 오늘의 한마디는 현지 날짜 이하의 최신 행을 사용한다. dev의 2026년 행은 임시 문장이므로 운영에
 일괄 복사하지 않는다. 날짜별 검수한 문장만 추가하고 지난 날짜의 행은 임의로 바꾸지 않는다.
+
+## 오늘의 작은 실천 DB·템플릿
+
+자동 배포는 DB를 바꾸지 않는다. `db/changes/daily_practice.sql`은 새 테이블 둘만 만들고 기존 행은 바꾸지 않으므로
+이전 서버와 함께 돌아도 문제가 없다. 이미지 배포 전에 적용한다. 스키마 사전 검사가 새 계약을 보므로 순서를 바꾸면
+배포가 실패한다.
+
+```bash
+uv run python -m db.apply db/changes/daily_practice.sql --env dev --commit --expected-sha256 <검토한-SHA256>
+uv run python -m db.verify --env dev
+```
+
+운영도 같은 절차에 `--env prod --commit --allow-prod`를 쓴다. 되돌리기는 기능 없는 이미지로 내린 뒤
+`DROP TABLE public.daily_practice_offers, public.daily_practice_templates;`다. 사용자 행도 함께 사라진다.
+
+템플릿은 마이그레이션에 들어 있지 않다. 운영자가 직접 넣으며 모든 사용자가 함께 쓴다. 활성 템플릿이 없으면 API는
+오류 없이 `options: []`를 낸다. 3개보다 적으면 그만큼만 낸다. 문구는 언어별 1~50자(루틴 이름 한도와 같다)이고 `title_ko`는 유일하다.
+
+```sql
+INSERT INTO public.daily_practice_templates (title_ko, title_en, title_ja)
+VALUES ('물 한 잔 마시기', 'Drink a glass of water', 'お水を一杯飲む');
+```
+
+내릴 때는 끈다. 한 번이라도 사용자에게 보인 템플릿은 사용자 행이 참조하므로 `DELETE`가 실패하고, 보인 적 없는 템플릿만
+지울 수 있다. 끈 템플릿은 새 제안에 나오지 않지만 이미 받은 제안과 진행 중인 실천에는 그대로 보인다.
+
+```sql
+UPDATE public.daily_practice_templates SET is_active = false WHERE title_ko = '물 한 잔 마시기';
+```
+
+## 구독 환불 권한 전환
+
+체험·결제 기간은 `subscriptions.access_evidence`, 웹훅의 결제·보상·권한 진행은
+`revenuecat_events.processing_state`로 분리한다. NULL인 기존 고객은 기존 정책을 유지한다.
+새 전환 설정은 기본 꺼짐이며 이미 전환한 고객과 미완료 단계는 꺼도 새 처리기를 유지한다.
+
+1. `db/changes/subscription_refund_access.sql`의 SHA-256을 검토하고 `db.apply`로
+   rollback 검사 후 운영에 적용한다. nullable JSONB 두 컬럼만 추가하며 고객 행은 수정하지 않는다.
+   `db.verify`를 통과한 뒤 main에 구독 변경만 머지하고 정상 배포 완료를 확인한다.
+2. 별도 읽기 전용 조회로 보정 대상의 구독·소유자·결제 번호·상태를 확인하고 대상 checksum과
+   환불/정보 보정/대조군 수를 준비한다. 고객 식별자와 원문은 Git·Actions 입력·로그에 넣지 않는다.
+3. main의 **Production subscription operations** workflow를 `report`로 실행한다.
+   입력은 배포 SHA, 임의 session 이름, 위 checksum·건수다. 보고서 checksum을 받은 뒤 같은 입력과
+   `expected_manifest`로 `repair_refunded` → `repair_metadata` → `verify` 순서로 실행한다.
+4. 보정·최신 RevenueCat 상태·대조군을 모두 확인한 뒤 `activate`로 새 수신 이벤트 전환을 켠다.
+   마지막 `verify`와 읽기 전용 조회로 확인한다. 기존 고객을 일괄 전환하는 작업은 아니다.
+
+workflow는 프로젝트 GitHub OIDC 역할과 SSM만 사용하며 로컬 AWS 계정을 사용하지 않는다.
+API 두 대·consumer·실행 중 worker·다음 worker 이미지의 배포 SHA, 정상 target 두 대와 timer 소유자
+한 대를 확인한다. 배포와 같은 concurrency group으로 직렬화한다. 고정 작업만 허용하며 서버의
+RevenueCat 키를 외부로 출력하지 않는다.
+
+서버 Git 밖 `/var/lib/moly/subscription-ops/<session>`에 보고서·보정 계획·commit 전후 journal을
+소유자 전용 권한으로 보관한다. 대상·소유권·결제·금융 이력·대조군 변화, 새 미처리 이벤트,
+불명확한 commit 결과가 있으면 멈춘다. 환불 권한 보정은 결제·건초를 다시 처리하지 않으며,
+정보 보정은 정상 고객의 권한·만료일·건초를 보존한다. 실패 시 예전 스냅샷을 덮어쓰지 않는다.
+
+문제 시 호환 배포 SHA와 session으로 `deactivate`를 실행해 새 전환을 끈다. 이 작업은 오래된
+보고서·RevenueCat 접속·전체 fleet 정상 여부에 의존하지 않으며 이미 전환한 고객을 되돌리지 않는다.
+JSON 데이터가 저장된 뒤에는 컬럼을 삭제하거나 이 컬럼을 모르는 이미지로 돌아가지 않는다.
+`subscription_refund_access_rollback.sql`은 모든 writer/reader가 정지했고 두 컬럼이 전부 NULL인
+경우에만 사용한다. 그 외에는 호환 이미지로 전진 복구한다.
+
+## 가드레일·대화 맥락의 무중단 전체 전환 (2026-11-04)
+
+### 범위와 보존 원칙
+
+운영 기준은 `64c133d97c0c61022600c3b9074aa72fa92a113b`다. 이 기준 위에 개발 검증본
+`49f1f9940a49f2315414d8bff3beea9836cf62af`의 가드레일·맥락 변경과 무중단 준비 경로를
+통합한다. 구독 환불, 루틴, 일상 연습, 교정 원고, OpenAPI와 기존 배포 workflow는 보존한다.
+사용자별 기능 목록, 노출 비율, A/B 적용은 없다. 준비 자료를 검증한 뒤 전역 포인터와 설정을
+한 트랜잭션에서 바꾸며, 이후 새 요청부터 전체 사용자가 같은 활성 자료를 읽는다. 준비 자료의
+행별 일괄 상태 변경을 최종 전환에 넣지 않고, 준비 단계에서 검증 가능한 checkpoint를 seal한다.
+
+**준비 중에도 공개 대화·일반 worker·결제/환불 webhook·인증·스케줄러를 계속 운영한다.**
+기존 공개 계약과 요약을 준비 자료로 덮어쓰거나 공개 원문을 줄이지 않는다. 준비 계약과 요약은
+준비 ID로 분리해서 저장한다. 내부 manifest의 사용자 키는 원문 처리 목표·감사용이며 일반
+reader의 기능 허용 목록이 아니다. 개인정보 삭제 중/완료 계정에는 기존 접근 금지를 유지한다.
+
+이 절은 실행 절차다. 운영 PR·배포·DDL·자료 준비·활성화는 아직 실행하지 않았다. 운영 전체
+전환은 실행 시점의 최종 SHA, 실제 자료 감사와 API 확인을 통과해야 한다.
+
+### DB와 도구
+
+| 파일 | 용도 |
+| --- | --- |
+| `db/changes/guard_context_release.sql` | 최종 구조의 검토 참조. 운영에서 한 TX로 실행하지 않음 |
+| `db/changes/guard_context_release_metadata.sql` | 짧은 구조 변경. 기존 테이블 전체 NOWAIT 잠금을 먼저 잡고, CHECK는 NOT VALID로 추가. 전체 DDL statement 제한 750ms |
+| `db/changes/guard_context_release_validate_messages.sql` | messages 새 CHECK만 별도 TX에서 검증 |
+| `db/changes/guard_context_release_validate_registry.sql` | 기억 registry priority CHECK만 별도 TX에서 검증 |
+| `db/changes/guard_context_release_validate_candidates.sql` | ingest candidate priority CHECK만 별도 TX에서 검증 |
+| `db/changes/guard_context_release_validate_pressure.sql` | pressure CHECK만 별도 TX에서 검증 |
+| `db/changes/guard_context_release_swap.sql` | 검증된 messages CHECK의 이름만 NOWAIT/750ms로 교체 |
+| `db/changes/guard_context_online.sql` | metadata에 포함된 무중단 준비 구조. 최초 운영 도입 시 중복 실행하지 않음 |
+| `db/changes/guard_context_online_proof.sql` | 이전 online 구조가 이미 있는 개발 DB에 `validation_json` 한 컬럼과 object CHECK만 추가. 최초 운영 metadata에는 이미 포함 |
+| `db/changes/guard_context_online_indexes.sql` | 이미 online 구조가 있는 개발 DB의 게시 unique를 기존 NULL 준비 영역/각 준비 ID 영역으로 분리. 최초 운영 metadata에는 이미 포함 |
+| `db/changes/guard_context_online_revision_fence.sql` | 이벤트 보완 전 sentinel 도입의 검토 참조. 최신 DB에 이전 함수를 재적용하지 않음 |
+| `db/changes/guard_context_online_revision_events.sql` | 이미 revision/sentinel이 있는 개발 DB에 이벤트 테이블과 최신 NOWAIT 함수를 추가. 기존 clock/trigger/원문은 유지 |
+| `db/changes/guard_context_online_revisions.sql` | 준비 subject의 변경 revision과 원 writer TX의 잠금 fence. 최초 metadata와 기존 개발 DB 추가에 같은 정의 사용 |
+| `db/changes/guard_context_release_disable.sql` | 두 쓰기 기능 OFF. 활성 준비 포인터와 읽기 호환성·기존 자료는 유지 |
+| `scripts/prepare_guard_context_release.py` | `plan`·`start`·`catch-up`·`audit`·`activate`·`abort`. 모델/provider 호출 없이 준비 예약·감사·원자 전환 수행 |
+| `scripts/run_guard_context_preparation_worker.py` | 지정한 준비 ID의 building 계약/checkpoint만 처리. 일반 소비자와 별도 실행 |
+
+DDL은 기존 원문·기억·일기·공개 계약·요약을 갱신하거나 삭제하지 않는다. 준비 단계에서는
+입증된 NULL canonical 본문을 채우고 처리 목표를 예약할 수 있지만, 기존 공개 계약/요약과
+앵커를 준비 자료로 바꾸지 않는다. 기존 게시 window unique는 NULL 준비 영역으로 한정하고,
+준비 ID별 게시 unique를 별도로 둬 같은 원문 경계의 기존 공개행과 준비행이 공존하게 한다.
+같은 준비 ID 안의 중복 게시는 계속 거부한다. 구독·일상 연습의 스키마도 보존한다. 활성 포인터 초기값은
+JSON null이며, 이미 있는 포인터는 DDL로 덮어쓰지 않는다.
+
+준비 worker는 memory/content에서 정확한 준비 ID와 building 표시가 있는 작업만 소비하고
+각 큐의 동시 실행은 1개로 제한한다. 공개 사실 파이프라인과 다른 업무는 일반 worker가 계속
+처리한다. 준비 worker는 전역 reaper·만료 정리·광고 정리를 실행하지 않으며, 기존 사용량
+원장 마감은 유지한다. 일반 worker를 준비 worker로 대체하거나 전체 큐를 정지하지 않는다.
+
+### 실행 전 검증
+
+- 최신 main 위에서 최종 CI, 구독/루틴 보존 검사, DB 계약과 전역 ON/OFF 검사를 통과시킨다.
+  main이 바뀌면 다시 통합한다. 다른 배포를 취소하거나 우회하지 않는다.
+- 초기 전환의 일반 설정은 guard/retention 모두 OFF, 활성 포인터는 JSON null인지 확인한다.
+  이미 active 준비 ID가 있다면 이 최초 전환 절차로 재활성화하거나 포인터를 지우지 않는다.
+- 원문·준비 자료 변경 거부, 기존 요청이 모델을 생성하는 동안의 활성화, 준비 worker 최종 저장과
+  활성화의 양쪽 잠금 순서, 새 대화/신규 계정, 활성화 뒤 OFF 읽기 호환을 실제 경합으로 검증한다.
+- 긴 감사는 읽기 일관성이 있는 트랜잭션에서 수행하고, 마지막 승격은 NOWAIT 잠금과 전체
+  1초 제한을 쓴다. 실제 전체 규모에서 이 제한 안에 끝나는지는 별도 측정 대상이다.
+  제한을 늘리거나 검사 항목을 빼서 성공시키지 않는다.
+
+최종 개발 DB catalog에서 이번 가드 변경의 컬럼 39개, 제약 28개, 함수 3개, 인덱스 11개,
+권한 25개, sequence 1개, 테이블 4개와 trigger 12개가 후보 계약과 일치했다. 기존 dev/main의
+일상 연습 테이블 부재와 구독 함수 차이는 별도로 남겨 전체 catalog 일치로 처리하지 않았다.
+이번 변경을 위해 그 기능의 개발 DB 구조를 임의로 바꾸지 않는다. 2026-11-04 운영 metadata
+읽기 점검은 당시 main 계약과 차이가 없었으나 실제 적용 직전에 현재 metadata와 원문 처리
+경계를 다시 확인한다.
+
+### 현재 검증 판정 (2026-11-04)
+
+단위 검사 5,388개, 개발 DB의 온라인 승격·비공개 읽기·분리 DDL 잠금 검사 34개와
+revision/event·동시 작성자·등록 경계 검사 36개를 통과했다. 별도 에이전트가 최종 잠금 순서,
+원문/출처/계약/요약 검증의 유지, 최초 감사 기한과 재시도 제한을 다시 검토했다.
+Ruff·diff 검사와 전체 후보 134개 파일의 비밀값 검사도 통과했다. 구독·루틴·일상 연습·훈련의
+제품 코드, OpenAPI와 기존 배포 workflow는 운영 기준 main64와 동일하다.
+
+최종 규모 시험은 합성 사용자 3,207명, 기억/근거 각각 43,000행, 원문 6,414행,
+요약/계약 각각 3,207행으로 수행했다. 전환 직전의 전체 자료 재해시는 없애고, 준비 단계에서
+전체 근거를 감사한 뒤 원 writer 트랜잭션의 변경번호/이벤트로 변경 여부를 증명한다.
+검증·잠금·전역 게시·caller의 savepoint commit까지 같은 1초 안에 측정한다.
+연결 확보·metadata payload 업로드·비공개 seal은 전환 잠금 전에 별도로 수행한다.
+동일 제품 코드로 세 번 측정해 **947.51ms, 922.57ms, 703.35ms**로 모두 통과했다.
+최대값은 947.51ms이며 네트워크/부하 변화에서도 항상 1초 내 성공한다는 보장은 아니다.
+제한 초과 시 전환만 rollback하고 공개 서비스는 유지한다. 이전 전체 재해시 방식의 timeout
+기록도 보존하며 최신 성공 결과로 덮어쓰지 않는다.
+
+성능용 token과 8명 표본 감사를 사용한 합성 시험은 운영 전체 자료의 감사 완료나 실제
+운영 commit/WAL 내구성·실제 원문량의 대표성을 증명하지 않는다. 전역 실 commit·운영 변경은
+0회이며 시험 뒤 합성 auth 잔여도 0건이다. 실제 배포 때 같은 SHA의 전체 감사와 현재 상태
+확인, 운영 API 점검을 아래 순서대로 수행해야 한다. 운영 PR·push·배포는 실행하지 않았다.
+현재 개발 API 배포 SHA는 dev49이며 이 운영 후보 이미지의 API 배포 검증을 대신하지 않는다.
+이번 세션의 개발 `/health/ready` 외부 요청은 timeout으로 확인하지 못했으므로, 정상 응답으로
+기록하지 않았다. 실제 이미지 배포 시 health/API 확인은 별도로 수행한다.
+
+### 준비와 원자 전환 순서
+
+1. 공개 서비스를 유지한 채 운영 metadata를 검토된 기준과 대조한다. metadata 파일만
+   먼저 dry-run하고, 같은 SHA를 750ms 제한으로 commit한다. 기존 테이블 잠금을 NOWAIT로
+   모두 얻은 뒤 변경하므로 경합 시 전체 rollback한다. commit 후 네 CHECK를 각각 별도
+   파일·별도 TX로 검증하고 마지막 swap 파일을 750ms로 실행한다. 검증을 metadata TX에
+   합치면 ACCESS EXCLUSIVE 잠금이 scan 동안 유지되므로 한 번에 합쳐 실행하지 않는다.
+   각 검증은 SHARE UPDATE EXCLUSIVE를 사용해 일반 대화 쓰기와 병행한다. 해당 파일의
+   제한 초과·잠금 실패는 그 TX만 rollback하며 서비스나 일반 worker를 끄지 않는다.
+2. DDL 적용 뒤 호환 API·일반 worker 이미지를 기존 운영 workflow로 배포한다. 두 TG 대상,
+   API·consumer의 production 환경/최종 SHA, `/health/ready`와 DB 계약을 확인한다.
+   기존 `.github/workflows/deploy.yml`의 무중단 롤링을 그대로 쓴다. healthy 2대와 기존 API/consumer
+   SHA를 확인하고 한 대씩 deregister·drain·배포·healthy 확인 후 다음 대로 진행하며, 양쪽의
+   새 SHA를 확인한다. 이 작업에서 workflow를 바꾸지 않는다. 준비를 시작하기 전 호환되지 않는
+   구버전 actor가 교체됐는지 확인하며 공개 대화는 유지한다.
+3. `plan`의 차단 사유와 집계를 검토한다. 승인 checksum은 코드/환경/전체 준비 방식을 승인한다.
+   `start`는 그때의 실제 완결 원문 경계를 별도 준비 manifest로 봉인하고 준비 ID를 기록한다.
+   이 ID를 이후 모든 명령과 준비 worker에 동일하게 전달한다.
+4. 같은 SHA의 준비 worker를 별도 프로세스로 실행한다. 일반 사실 처리와 준비 계약/요약 계산이
+   함께 진행된다. 본문·근거를 입증할 수 없는 계정을 임의 제외해 전환하지 않는다. 처리할 수
+   없는 원문을 고치거나 커서·실패 예산을 초기화하지 않는다.
+5. 준비 중 새 대화가 생기면 `catch-up`으로 원래 봉인한 원문의 불변성을 확인한 뒤 목표를
+   갱신한다. 같은 준비 ID를 유지한다. 새 경계의 작업이 끝나면 `audit`로 전체 처리 근거와
+   durable 계약 chain, 요약 원자/해시, 현재 세대·권한·미처리 tail의 입력 예산을 검사한다.
+   `async_jobs` payload가 만료됐다고 처리 근거를 잃지 않도록 계약 행의 증명을 사용한다.
+6. `activate`는 먼저 비공개 준비 checkpoint의 완성 증명 형태를 확인해 `activation_sealed`
+   표시를 저장·commit한다. 이 seal만으로 자료가 공개되지는 않는다. 이어서 새 **REPEATABLE
+   READ READ ONLY 감사**에서 전체 원문·기억 근거·계약 durable chain·요약 proof와 처리 완료를
+   검증하고 같은 snapshot의 등록 경계와 유효 revision을 읽는다. 변경된 subject의 재감사도
+   RR 읽기 전용으로 수행하며 원래 token 기한과 재시도 제한을 늘리지 않는다.
+   마지막 1초 전환 TX는 **READ COMMITTED**로 실행한다. registry FOR UPDATE NOWAIT를 먼저
+   잡고, 등록 clock을 사용자 순서로 FOR UPDATE NOWAIT 잠근 뒤 유효 revision과 대상/경계를
+   비교한다. 유효 번호는 base revision+COUNT(events)이며 sequence MAX는 쓰지 않는다.
+   이 단계에서 전체 기억/근거를 재해시하거나 source 전체 테이블을 SHARE로 잠그지 않는다.
+   권한·인구 metadata, 현재 >T tail과 입력 예산은 최신 상태로 확인하며 필요한 tail 행 잠금은
+   유지한다. 서로 다른 snapshot을 묶지 않도록 최종 TX에서 RR은 거부한다.
+   원 writer는 clock을 기다리며 source 행을 보유하지 않는다. semantic 변경은 clock UPDATE
+   NOWAIT 성공 시 번호를 올리고, 경합 시 append-only event를 넣는다. ignored 변경/>T append는
+   clock SHARE NOWAIT를 쓰고 경합하면 번호/event 변경 없이 registry KEY SHARE로 우회한다.
+   미등록 subject의 의미 변경도 registry KEY SHARE에 참여한다. event의 registry FK와 이
+   SHARE가 최종 registry UPDATE와 변경 전/후를 직렬화하며 clock 복합 FK는 두지 않는다.
+   모든 source writer는 기술 sentinel을 SHARE로 잡고, 신규 등록/경계 확장은 같은 행을 UPDATE해
+   등록 전 writer와 직렬화한다. 오래된 RR writer snapshot은 40001로 거부한다. 준비가 없을 때도
+   sentinel 잠금에 참여하되 원문 JSON 복사는 건너뛴다.
+   최종 commit은 registry active, 전역 포인터·guard/retention 설정과 남은 준비 작업 취소만
+   함께 반영한다. seal한 checkpoint와 준비 계약의 ready 행을 대량 UPDATE하지 않는다. 활성
+   reader는 같은 준비 ID의 sealed ready/published checkpoint와 ready/published 계약을 읽으며
+   draft 계약은 읽지 않는다. 기존 공개 자료와 봉인 경계 뒤에 붙은 미처리 원문은 유지한다.
+7. 경합·원문 변경·시간 초과가 나면 전체 승격을 rollback하여 기존 공개 경로를 그대로 유지한다.
+   새 출력 경로로 원인을 확인한 뒤 필요한 `catch-up`·감사를 다시 수행한다. 부분 승격이나
+   활성화 SQL 직접 실행으로 우회하지 않는다. 성공 시 준비 worker를 SIGTERM으로 드레인하고
+   전체 사용자 전환 뒤 API·기억·회계 검사를 수행한다. 대화 차단/해제 단계는 없다.
+
+DDL은 단계마다 commit하므로 일부 실패가 이전에 완료한 단계까지 되돌리는 것은 아니다.
+실행 결과가 불분명하면 현재 catalog부터 확인한다. metadata 전이면 동일 SHA로 재시도하고,
+metadata 후에는 기존/새 messages CHECK 이름과 정의, 각 CHECK의 validated 상태, 컬럼·index·
+권한이 검토된 중간 구조와 같은지 확인한 뒤 미완료 검증부터 이어 간다. metadata를 무조건
+다시 실행하거나 누락 제약을 임의로 건너뛰지 않는다. swap 전에는 기존 CHECK와 검증된 임시
+CHECK가 모두 있어야 하며, 이미 swap이 완료됐다면 최종 이름/정의/검증 상태를 확인하고
+재실행하지 않는다. 마지막 swap은 원본 또는 임시 CHECK 부재를 오류로 처리한다. 중간 상태에서는
+최종 `db.verify`가 성공한다고 기대하지 않으며, 모든 단계 완료 전 새 기능을 배포·활성화하지 않는다.
+기존 서비스는 계속 두고 중간 자료·제약을 삭제해 처음으로 되돌리지 않는다.
+
+기존 요청은 시작할 때 캡처한 None 또는 활성 준비 ID로 끝나고, 활성화 뒤 새 요청부터 새 ID를
+쓴다. 전환 순간에 이미 진행 중인 모델 호출을 재실행하거나 같은 요청에 새 자료를 섞지 않는다.
+준비 시간·운영 전체 비용·1초 내 승격 성공률은 아직 확정하지 않았다. 자동 타이머로 전환하거나
+계속되는 대화를 중단해 감사 성공을 강제하지 않는다.
+
+명령은 프로젝트에서 확인한 운영 자격으로 실행한다. 개인 기본 AWS 계정을 사용하지 않는다.
+`GUARD_ENV`는 Git 밖 0600 파일의 절대 경로이며 기존 DB 도구를 위해 `.env.prod`로 끝난다.
+출력은 Git 밖 0700 폴더의 매번 새로운 파일이다. `GUARD_SHA`는 실행 이미지와 같은 검토된
+40자리 SHA이고, `GUARD_PREPARATION_ID`는 start 결과의 준비 ID다. 비밀값은 출력하지 않는다.
+
+```bash
+# 각 파일은 먼저 rollback으로 검사하고, 같은 파일/SHA의 실반영에만 --commit --allow-prod를 추가한다.
+# metadata를 실제 commit한 다음에만 네 검증 파일을 순서대로 각각 실행한다.
+uv run python -m db.apply db/changes/guard_context_release_metadata.sql --env "$GUARD_ENV" --statement-timeout-ms 750 --expected-sha256 bdbd5dbb558e851d95625cd8c93f7353c888627228e7e0c7832e99f2a8e832e7
+uv run python -m db.apply db/changes/guard_context_release_validate_messages.sql --env "$GUARD_ENV" --statement-timeout-ms 60000 --expected-sha256 a409e9b06001a0f0c6b131bcde9b0b918049aaf7cf9f035a0c947636e21f8f89
+uv run python -m db.apply db/changes/guard_context_release_validate_registry.sql --env "$GUARD_ENV" --statement-timeout-ms 60000 --expected-sha256 a6edfd65a9e844f342a7516dc7d4330a0d6b3a65e52a5724eadc012e540d0061
+uv run python -m db.apply db/changes/guard_context_release_validate_candidates.sql --env "$GUARD_ENV" --statement-timeout-ms 60000 --expected-sha256 c54834fb758936b6559ff6950fce63b4ddc1c6797c734187f21140af97265507
+uv run python -m db.apply db/changes/guard_context_release_validate_pressure.sql --env "$GUARD_ENV" --statement-timeout-ms 60000 --expected-sha256 d83d2429eecb9e33accabef993da12b7595278fc86330e8d0f954547a01dc0e0
+uv run python -m db.apply db/changes/guard_context_release_swap.sql --env "$GUARD_ENV" --statement-timeout-ms 750 --expected-sha256 708b2654cf0c7d0df31192c9906c96b01dcf909cd60f67e79e9855654c303c63
+# 네 검증과 swap의 실제 commit까지 완료한 뒤 최종 계약을 확인한다.
+uv run python -m db.verify --env "$GUARD_ENV"
+
+uv run python scripts/prepare_guard_context_release.py plan --env prod --env-file "$GUARD_ENV" --expected-project-ref qkgjlgzsharnilxnkytd --expected-code-sha "$GUARD_SHA" --production-ack --output "$GUARD_PLAN"
+uv run python scripts/prepare_guard_context_release.py start --env prod --env-file "$GUARD_ENV" --expected-project-ref qkgjlgzsharnilxnkytd --expected-code-sha "$GUARD_SHA" --production-ack --plan "$GUARD_PLAN" --plan-sha256 <승인한-plan-SHA256> --output "$GUARD_STARTED"
+# 준비 ID를 확인한 뒤 별도 프로세스에서 실행한다.
+uv run python scripts/run_guard_context_preparation_worker.py --env prod --env-file "$GUARD_ENV" --expected-project-ref qkgjlgzsharnilxnkytd --expected-code-sha "$GUARD_SHA" --preparation-id "$GUARD_PREPARATION_ID" --production-ack
+uv run python scripts/prepare_guard_context_release.py catch-up --env prod --env-file "$GUARD_ENV" --expected-project-ref qkgjlgzsharnilxnkytd --expected-code-sha "$GUARD_SHA" --preparation-id "$GUARD_PREPARATION_ID" --production-ack --output "$GUARD_CAUGHT_UP"
+uv run python scripts/prepare_guard_context_release.py audit --env prod --env-file "$GUARD_ENV" --expected-project-ref qkgjlgzsharnilxnkytd --expected-code-sha "$GUARD_SHA" --preparation-id "$GUARD_PREPARATION_ID" --production-ack --output "$GUARD_AUDIT"
+uv run python scripts/prepare_guard_context_release.py activate --env prod --env-file "$GUARD_ENV" --expected-project-ref qkgjlgzsharnilxnkytd --expected-code-sha "$GUARD_SHA" --preparation-id "$GUARD_PREPARATION_ID" --production-ack --output "$GUARD_ACTIVATED"
+```
+
+각 명령은 작업자가 결과를 검토하고 별도로 실행한다. 한 shell에서 연속 자동 실행하지 않는다.
+종료 코드 0과 결과, 실제 active 포인터/설정·health를 함께 확인하며 파일이 생겼다는 이유만으로
+성공으로 판정하지 않는다. audit 미완료·경합은 공개 서비스의 중단 사유가 아니다.
+
+### 전환 뒤 확인과 복구
+
+- 일상 대화, 고정 재확인/위기 안내, 화제 전환과 이전 일반 맥락 회상을 운영 점검 계정으로
+  확인한다. 한·영·일 고정 안내는 링크·전화번호·응급 지시 없이 정해진 문구와 같아야 한다.
+- 멱등 재요청의 답/메시지 ID 일치, 중복 저장·중복 차감 0, 고정 응답 차감 0을 확인한다.
+  과거 기억·선호·일기와 구독·루틴이 유지돼야 한다. 실사용자 대신 점검 계정을 사용하며
+  결제·환불은 시험 거래로 실행하지 않는다.
+- 정상 응답·503·판정 timeout/error·지연, 준비/활성 작업과 큐 정체를 구분해 기록한다.
+  큐 오류는 `jobs._STATS_SQL`의 성공 replay 조상 제외 기준으로 판정한다. raw dead 행 수를
+  새 오류로 세지 않는다. 원문·키·사용자 ID는 보고서·로그·Git에 넣지 않는다.
+- 판정 timeout이면 일반 경로로 가는 한계는 남는다. 이번 전환이나 검증을 전체 요청 무실패,
+  위기 판정 완벽성의 증명으로 설명하지 않는다.
+
+**활성화 전 취소:** `abort` 명령은 해당 준비를 aborted로 표시하고 해당 준비의 잠기지 않은
+ready 작업만 취소한다. 준비 worker를 SIGTERM으로 드레인하고 일반 서비스는 유지한다.
+이미 시작한 호출의 원가는 정상 마감한다. 준비 자료·원문·실패 이력은 지우지 않는다.
+전역 disable만으로 building 전용 worker가 멈추는 것은 아니므로 이 절차를 사용한다.
+
+**활성화 후 기능 중지:** 검토한 `guard_context_release_disable.sql`로 두 전역 기능을 끈다.
+활성 준비 포인터·registry active와 이미 게시한 새 자료는 유지한다. OFF는 새 위기 분기와 맥락 보존의 예약·게시를
+멈추는 설정이며, 이미 진행 중인 요청은 캡처한 설정으로 끝날 수 있다. 일반 대화·사실 처리의
+기존 모델 호출을 모두 중지하는 설정은 아니다. 활성 자료를 읽는 호환
+경로는 유지되는지 확인한다. active 준비에는 `abort`를 쓰거나 포인터를 JSON null로 지우지 않는다.
+
+구버전 main64는 새 준비 ID·v5·계약 증명의 읽기 계약을 보장하지 않는다. 새 형식을 읽고 최신
+구독/루틴을 보존하는 **검증된 호환 이미지**만 복구에 사용한다. 같은 후보의 전역 OFF는
+구버전 이미지 복구 검증과 다르다. 검증하지 않은 복구 SHA를 임의로 적거나 새 CHECK/컬럼을
+제거하거나 safety 종류를 normal로 바꾸지 않는다. 원문·기억·일기·준비 자료·결제 이력을 잃는
+DB 전체 snapshot 복원도 하지 않는다. 자료 수정이 필요하면 영향 행과 원문 근거를 확인한
+별도 전진 복구로 처리한다.
 
 ## 변경 시 확인할 원본
 

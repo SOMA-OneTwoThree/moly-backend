@@ -133,6 +133,10 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
         assert events[-1] == ("user", "exit")
         return True
 
+    async def resolve_release(session):
+        return None
+
+    monkeypatch.setattr(sweep.retention_release, "resolve", resolve_release)
     monkeypatch.setattr(settings, "context_checkpoint_enabled", True)
     monkeypatch.setattr(sweep, "get_sessionmaker", lambda: factory)
     monkeypatch.setattr(sweep, "_retention_enabled", flag)
@@ -502,3 +506,47 @@ def test_completed_draft_selector_precedes_model_pages_and_only_accepts_material
     assert "ORDER BY (j.payload->>'mode'='publish_retention') DESC" in sql
     assert "j.result_code='checkpoint_draft_ready' AND j.payload->>'mode'='publish_retention'" in sql
     assert "failed.payload->>'mode','normal') IN ('normal','publish_retention')" in sql
+
+
+async def test_sweep_captures_active_projection_even_when_parent_job_is_legacy(monkeypatch):
+    from app.services.retention_preparation_context import Binding, current_binding, use_binding
+    identity = uuid.uuid4()
+    active = Binding(identity, False)
+    statements = []
+
+    class Session:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+        async def execute(self, statement, params):
+            assert current_binding() == active
+            statements.append(str(statement))
+            assert params['preparation_id'] == identity
+            assert params['preparation_building'] == 'false'
+            assert 'c.preparation_id=CAST(:preparation_id AS uuid)' in str(statement)
+            assert "j.payload->>'retention_preparation_id'" in str(statement)
+            return Result()
+
+    async def resolve(session):
+        # The sweep starts a fresh producer scope, independent of the parent.
+        assert current_binding() is None
+        return active
+
+    async def flag(session, **kwargs):
+        assert current_binding() == active
+        return True
+
+    async def cursor(session):
+        return None
+
+    monkeypatch.setattr(sweep, 'get_sessionmaker', lambda: Session)
+    monkeypatch.setattr(sweep.retention_release, 'resolve', resolve)
+    monkeypatch.setattr(sweep, '_retention_enabled', flag)
+    monkeypatch.setattr(sweep, '_read_resume_cursor', cursor)
+    with use_binding(None):
+        assert await sweep._resume_retention_checkpoints() == sweep.RetentionResumeResult()
+        assert current_binding() is None
+    assert len(statements) == 1

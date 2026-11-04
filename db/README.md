@@ -82,7 +82,10 @@ query parameter나 fragment가 있는 주소는 dev 쓰기 대상으로 승인�
 `--expected-sha256`은 검토 이후 파일이 바뀌었는지 확인한다. 기존 `schema_migrations` 기록은
 보존하지만 새 변경을 이 원장에 누적하거나 배포 성공 조건으로 사용하지 않는다.
 
-기본 트랜잭션 제한은 lock 2초, statement 60초, idle 60초다. lock을 얻지 못하면 제한을 늘리지
+기본 트랜잭션 제한은 lock 2초, statement 60초, idle 60초다. `--statement-timeout-ms`는
+양의 정수이며 기본값은 60000이다. 제한은 검토 SQL을 감싼 바깥 DO가 시작되기 전에 설정한다.
+SQL 파일 안에서 SET LOCAL만 해 이미 시작한 DO의 전체 제한을 줄였다고 가정하지 않는다.
+lock을 얻지 못하면 제한을 늘리지
 않고 rollback 후 한가한 시점에 재시도한다. `CREATE/DROP INDEX CONCURRENTLY`와 `VACUUM`은
 트랜잭션 실행기에 넣지 않는다. 별도 검토한 절차로 실행하고 `indisvalid`·`indisready`와 구조
 계약을 사후 확인한다. `IF NOT EXISTS`만으로 깨진 인덱스가 정상이라는 결론을 내리지 않는다.
@@ -104,12 +107,6 @@ uv run python -m db.verify --env dev
 
 다른 릴리스의 차이를 자동으로 허용하지 않는다. 새 구조 변경에서는 허용 목록과 검증을 별도로 검토한다.
 
-구독 환불 수정의 `db/changes/subscription_refund_access.sql`도 별도 허용 목록을 사용한다.
-변경은 `subscriptions.access_evidence`, `revenuecat_events.processing_state` nullable JSONB 두 컬럼뿐이다.
-같은 명령에 해당 `--reviewed-sql`, 그 파일의 SHA-256과 변경 전 baseline을 전달한다.
-기존 가드레일 허용 목록을 확장해서 다른 차이까지 승인하지 않는다. 현재 스키마와 baseline의 해시,
-정확한 소스 차이, 개발 catalog를 모두 비교한 뒤 계약을 생성한다.
-
 ## 로컬 재생성과 검증
 
 `db/testing/supabase.sql`은 폐기 가능한 로컬 테스트 DB용 최소 Auth 의존성이다. Supabase에
@@ -127,6 +124,104 @@ uv run pytest -q tests/integration/test_schema_bootstrap_local.py
 `psql`은 `PGHOST/PGPORT/PGUSER/PGDATABASE`, 검증 도구는 `SUPABASE_DB_CONNECTION_STRING`,
 테스트는 `MOLY_SCHEMA_TEST_DSN`을 사용한다. 모두 같은 폐기용 DB를 지정한다.
 `--check-generated`는 또 다른 빈 DB에 스키마를 생성해 커밋된 계약과 일치하는지 검증한다.
+
+## 구독 변경의 main 계약 보존
+
+개발 DB와 main에는 서로 다른 기능이 있으므로 개발 catalog 전체를 운영 계약에 복사하지 않는다.
+이번 구독 변경은 검토한 main `schema.sql`과 기존 계약을 보존하고, 개발 DB에서 확인한 nullable
+JSONB 두 컬럼만 합친다. 로컬 DB를 새로 만들지 않는 제한된 생성 경로다.
+
+```bash
+uv run python -m db.schema_contract --refresh-subscription-from-dev --env dev \
+  --expected-project-ref <확인한-개발-project-ref> \
+  --reviewed-sql db/changes/subscription_refund_access.sql \
+  --expected-sha256 <검토한-SQL-SHA256> --baseline-schema <변경-전-main-schema.sql>
+```
+
+생성기는 baseline checksum, SQL 경로·checksum, 정확히 두 컬럼만 바뀐 소스, 실제 개발 컬럼의
+타입·NULL·기본값을 확인한다. main의 나머지 테이블·제약·정책·권한은 유지한다. CI는 전체 소스를
+폐기용 CI DB에 재생성해 최종 계약을 독립적으로 확인한다. 운영 적용 순서와 보정·복구는
+[운영 문서](../docs/OPERATIONS.md#구독-환불-권한-전환)를 따른다.
+
+## 가드레일·맥락의 무중단 전체 전환
+
+이번 후보는 운영 main `64c133d97c0c61022600c3b9074aa72fa92a113b`의 스키마/계약을
+보존하고 검토한 guard/context 객체만 더한다. 개발 DB 전체 catalog를 복사하지 않는다.
+생성 후보와 실제 DB 검증을 구분하며, 다음 순수 derivation은 DB에 연결하지 않는다.
+
+```bash
+uv run python -m db.schema_contract --derive-guard-context-candidate \
+  --baseline-schema "$MAIN64_SCHEMA" --baseline-contract "$MAIN64_CONTRACT" \
+  --crisis-sha256 c587c3524e186a8a031c69d5e6769851819ed2a13c4990958f5ebe5466c3da13 \
+  --pressure-sha256 e4c58f65889444430868e676e6d37702733bd30ff0c407c95686937e58145bb6 \
+  --online-sha256 55a9a01050eb0a2329ad1428840cf795a49fc424ea55facf887ec13c2a2a1ac9
+```
+
+입력은 고정된 main64 원본 파일이어야 한다. 도구는 baseline·SQL checksum과 정확한 추가
+객체만 있는 source를 확인하고 계약 후보를 생성한다. main64의 구독·루틴·일상 연습·권한 등
+다른 객체는 보존한다. 생성 성공을 운영 DB 일치나 적용 완료로 해석하지 않는다.
+
+- `changes/guard_context_release.sql`은 최종 DDL의 **검토 참조**다. 이를 운영에 한 TX로
+  실행하면 metadata의 ACCESS EXCLUSIVE 잠금을 기존 데이터 검증 scan 끝까지 보유할 수 있다.
+  실제 최초 도입은 `guard_context_release_metadata.sql` → 네
+  `guard_context_release_validate_*.sql` 각각 → `guard_context_release_swap.sql` 순서의
+  별도 TX를 사용한다. metadata/swap은 `--statement-timeout-ms 750`과 NOWAIT 잠금,
+  각 검증은 60000을 사용한다. 검증의 SHARE UPDATE EXCLUSIVE는 일반 DML과 호환된다.
+  최종 구조는 기존 보존 기능 컬럼 8개와 메시지 종류를 확장하고, 준비 테이블 두 개와 checkpoint
+  준비 ID, 전역 active 포인터의 JSON null 초기 행을 추가한다. 기존 포인터는 덮어쓰지 않는다.
+  기존 published window unique만 NULL 준비 영역으로 한정하고, 준비 ID별 unique를 추가한다.
+  같은 원문 경계의 기존 공개행을 보존하면서 한 준비 ID 안의 중복 게시는 계속 막는다.
+- `changes/guard_context_online.sql`은 위 metadata 실행 내용에 포함되므로 중복 실행하지 않는다.
+  이 구조를 이미 적용한 개발 DB의 proof 필드 보완에만 별도
+  `changes/guard_context_online_proof.sql`을 사용한다. addon과 최종 CREATE의 catalog가
+  같아야 하며, 실제 적용은 root가 허용한 개발 DB에서 별도로 검증한다. 게시 index의 좁은
+  보완에는 `changes/guard_context_online_indexes.sql`을 사용한다. 최초 도입 metadata에는
+  두 addon의 최종 구조가 모두 들어 있으므로 운영에서 addon을 중복 실행하지 않는다.
+- `changes/guard_context_online_revisions.sql`은 준비 대상의 revision 한 테이블과 10개
+  source trigger를 추가한다. 등록된 경계 안 변경은 원 writer TX에서 revision을 증가시키고,
+  경계 뒤 append는 SHARE fence로 전환과 직렬화한다. 미등록 새 subject는 registry KEY SHARE로
+  참여한다. RR 감사의 전체 해시 검증은 유지하고 마지막 전환에서 번호/경계만 원자 비교한다.
+  기술 sentinel `context_retention_revision_fence`는 모든 source writer와 신규 등록 TX의
+  순서를 고정한다. 준비가 없을 때도 SHARE로 참여한다. 기존 revision 구조 보완용
+  `guard_context_online_revision_fence.sql`은 10개 source를 NOWAIT로 잠근 뒤 sentinel seed와
+  함수만 같은 750ms TX에서 바꾼 이전 단계의 참조다. 최신 DB에는 이전 함수를 재적용하지
+  않는다. 현재 보완은 `guard_context_online_revision_events.sql`로 이벤트 테이블과 최종
+  함수를 함께 적용한다. clock NOWAIT 경합 시 semantic 변경은 이벤트로, ignored/>T는
+  registry SHARE만으로 전환과 직렬화한다. 유효 revision은 base+COUNT(events)이며
+  sequence MAX를 쓰지 않는다. 이벤트에는 clock FK가 없고 서비스 역할은 SELECT만 갖는다.
+  기존 clock/trigger/자료를 재생성하지 않는다.
+- 공개 대화·일반 worker·결제 webhook은 계속 운영한다. additive DDL을 짧은 잠금 제한으로
+  분리 적용하고 모든 CHECK 검증·이름 교체 후 최종 계약을 확인한다. 그다음 호환 API/worker를
+  배포하고 기존 두 기능 OFF/active 포인터 null 상태에서 준비한다.
+  잠금 실패는 rollback 후 재시도하며 서비스 중단이나 강제 커서 변경으로 우회하지 않는다.
+- 준비 CLI의 `plan`/`start`는 코드 SHA와 전체 원문 경계를 고정한다. 지정된 준비 ID의 전용
+  worker와 `catch-up`/`audit`로 계약 처리 증명·요약 근거·현재 tail을 확인한다. 준비 계약은
+  `retention_prepared_contracts`, 준비 요약은 준비 ID의 ready 행에 저장한다. 공개 계약과
+  공개 요약을 준비 상태로 바꾸지 않는다. 처리 목표·원장·준비 상태를 사용자별 기능 gate로 쓰지 않는다.
+- `activate`는 비공개 완성 checkpoint를 먼저 seal·commit한 뒤 새 RR READ ONLY 감사에서
+  전체 원문·근거 해시와 준비 증명을 확인한다. 변경 subject의 재감사도 RR을 유지한다.
+  최종 전환은 READ COMMITTED에서 registry UPDATE NOWAIT→clock UPDATE NOWAIT 순서로
+  잠그고 base revision+COUNT(events), 대상·경계·현재 tail을 확인한다. 전체 source 테이블의
+  SHARE 잠금이나 전체 기억/근거 재해시는 최종 단계에 두지 않는다. RR 최종 TX는 거부한다.
+  registry active와 전역 포인터·설정만 원자 변경하여 준비 자료의 가시성을 바꾼다. sealed ready
+  checkpoint/ready 계약은 행별 일괄 UPDATE하지 않고 같은 준비 ID의 활성 reader가 읽는다.
+  draft 계약은 활성화하지 않는다. NOWAIT 경합이나 1초 제한 초과 시 전체 rollback하고 기존
+  공개 경로를 유지한다. 준비 목록별 공개나 A/B 전환은 없다. 기존 요청은 캡처한 이전 자료로
+  끝내고 이후 새 요청은 새 포인터를 쓴다.
+- 준비를 취소할 때는 해당 ID의 `abort`와 전용 worker 드레인을 사용한다. 활성화 뒤에는
+  `changes/guard_context_release_disable.sql`로 두 쓰기 기능을 끄되 active 포인터와
+  새 형식의 reader는 유지한다. building worker는 전역 disable만으로 중지되지 않는다.
+  구버전 main64 이미지로 맹목 복귀하거나 새 컬럼·CHECK·자료를 제거하지 않는다.
+
+일부 DDL 단계가 실패하면 이미 commit된 단계는 보존한다. 실제 catalog의 컬럼/제약 정의와
+validated 상태를 확인한 뒤 남은 파일만 이어 간다. metadata나 swap을 재실행하면서 존재 여부를
+임의로 무시하지 않는다. metadata 전이면 전체 재시도, metadata 후면 미완료 검증부터, swap
+완료면 최종 계약 검증으로 진행한다. 새 구조를 지워 처음으로 되돌리지 않는다.
+
+이전 점검 방식의 직접 prepare/activate SQL은 제거했다. 전역 flag나 active 포인터를 수동으로
+켜서 source/audit 검사를 우회하지 않는다. 실제 동시성·전체 규모 승격 시간·운영 API 확인은
+검사 산출물로 증명해야 하며 구조 계약 생성만으로 완료됐다고 하지 않는다. 명령·대상 보호·
+적용·검증·복구 순서는 [운영 문서](../docs/OPERATIONS.md#가드레일대화-맥락의-무중단-전체-전환-2026-11-04)를 따른다.
 
 ## 반드시 보존하는 정책
 

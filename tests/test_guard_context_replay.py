@@ -99,21 +99,19 @@ def test_redaction_barrier_rejects_obvious_identifiers_without_echo(tmp_path, va
     assert value not in str(error.value)
 
 
-def test_existing_guard_cohort_never_has_timeout_changed_for_replay():
+def test_existing_global_guard_settings_are_not_changed_for_replay():
     saved = {"crisis_guard_enabled": True, "crisis_guard_policy_version": replay.POLICY,
-        "crisis_guard_timeout_s": 0.1, "crisis_guard_history_messages": 6,
-        "crisis_guard_ready_users": [str(uuid.uuid4())]}
-    try:
-        patch = replay.config_patch(saved, [str(uuid.uuid4())])
-    except replay.ReplayError:
-        return  # Refusing a conflicting existing cohort is acceptable.
-    assert patch["crisis_guard_timeout_s"] == saved["crisis_guard_timeout_s"]
+        "crisis_guard_timeout_s": 0.1, "crisis_guard_history_messages": 6}
+    with pytest.raises(replay.ReplayError, match="existing_guard_settings_conflict"):
+        replay.config_patch(saved, [str(uuid.uuid4())])
 
 
-def test_existing_disabled_cohort_is_rejected():
-    with pytest.raises(replay.ReplayError, match="existing_cohort_would_be_enabled"):
-        replay.config_patch({"context_retention_v2_enabled": False,
-            "context_retention_ready_users": [str(uuid.uuid4())]}, [str(uuid.uuid4())])
+def test_replay_uses_global_switches_without_user_lists():
+    patch = replay.config_patch({"context_retention_v2_enabled": False,
+        "context_retention_ready_users": [str(uuid.uuid4())]}, [str(uuid.uuid4())])
+    assert patch["context_retention_v2_enabled"] is True
+    assert patch["crisis_guard_enabled"] is True
+    assert not any("ready_users" in key for key in patch)
 
 
 class Tx:

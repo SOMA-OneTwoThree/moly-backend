@@ -226,9 +226,13 @@ async def test_absolute_timer_already_covers_slow_pressure_reservation(handoff):
 
 
 async def test_disabled_writers_do_not_enter_inline_wait(handoff):
+    from types import SimpleNamespace
     handoff[1]['context_retention_v2_enabled'] = False
+    session = ResumableSession()
+    session.get_map['ChatContext'] = SimpleNamespace(anchor_message_id=0, memory_generation=0,
+        last_active_at=None, retention_v5_adopted=True)
     with pytest.raises(errors.AppError):
-        await execute()
+        await execute(session)
     handoff[-1].assert_not_awaited()
 
 

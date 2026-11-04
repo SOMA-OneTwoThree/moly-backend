@@ -85,10 +85,13 @@ async def _provider_proof(rc_id: str, owner: str) -> dict:
             "objects": sorted(objects, key=lambda s: s["id"])}
 
 
-async def preview(session, sub_id: uuid.UUID, mode: str, *, project_ref: str, app_sha: str) -> dict:
+async def preview(session, sub_id: uuid.UUID, mode: str, *, project_ref: str, app_sha: str,
+                  environment: str = "development") -> dict:
     """Build a reviewable plan using current provider proof, never local expiry alone."""
     if mode not in {"refunded", "metadata"}:
         raise access.EvidenceError("unsupported repair mode")
+    if environment not in {"development", "production"}:
+        raise access.EvidenceError("unsupported repair environment")
     sub = await session.get(Subscription, sub_id)
     if sub is None or sub.user_id is None or not sub.rc_subscription_id:
         raise access.EvidenceError("repair requires an owned, mapped subscription")
@@ -97,7 +100,9 @@ async def preview(session, sub_id: uuid.UUID, mode: str, *, project_ref: str, ap
                                  .order_by(Payment.paid_at.desc().nullslast()).limit(1))).scalars().first()
     if pay is None or (mode == "refunded" and pay.status != "refunded"):
         raise access.EvidenceError("repair payment state does not match mode")
-    tx, owner, rc_id = pay.store_transaction_id, str(sub.user_id), sub.rc_subscription_id
+    if mode == "metadata" and pay.status != "paid":
+        raise access.EvidenceError("metadata repair requires an unrefunded payment")
+    tx, owner, rc_id, payment_id = pay.store_transaction_id, str(sub.user_id), sub.rc_subscription_id, str(pay.id)
     prepared = processing.Prepared([before], None, datetime.now(timezone.utc))
     event = {"type": "REPAIR", "transaction_id": tx, "original_transaction_id": sub.original_transaction_id,
              "environment": sub.environment, "app_user_id": owner}
@@ -130,6 +135,8 @@ async def preview(session, sub_id: uuid.UUID, mode: str, *, project_ref: str, ap
                     or (start is not None and projected.expires_at is not None and start > projected.expires_at)):
                 raise access.EvidenceError("new, scheduled or ambiguous store subscription requires re-planning")
     elif (after_access is None or access.resolve_access(SimpleNamespace(**before), now) is None
+          or after_access.status != "active" or after_access.store_trial_ends_at is not None
+          or target.evidence["current_transaction_id"] != tx
           or projected.expires_at != before["expires_at"]):
         raise access.EvidenceError("metadata repair must preserve current paid access and expiry")
     live = await session.get(Subscription, sub_id, populate_existing=True)
@@ -137,22 +144,25 @@ async def preview(session, sub_id: uuid.UUID, mode: str, *, project_ref: str, ap
     if live is None or processing.baseline(live) != before or await _pending(session, live, tx_ids):
         raise access.EvidenceError("subscription or related inbox requires re-planning")
     financial = await _financial_digest(session, live)
-    result = {"version": 1, "environment": "development", "project_ref": project_ref,
+    result = {"version": 1, "environment": environment, "project_ref": project_ref,
               "app_sha": app_sha, "created_at": now.isoformat(), "mode": mode,
               "subscription_id": str(sub_id), "owner_id": owner, "tx_ids": tx_ids,
+              "payment_id": payment_id, "payment_tx": tx,
               "before": serial(before), "after": serial({k: getattr(projected, k) for k in sorted(_WRITABLE)}),
               "provider_sha256": digest(proof), "financial_sha256": financial}
     await session.rollback()
     return result
 
 
-async def apply_preview(session, plan: dict, *, expected_sha256: str, project_ref: str, app_sha: str, on_status=None) -> dict:
-    """Caller must enforce the confirmed dev target and deployed-compatible SHA."""
+async def apply_preview(session, plan: dict, *, expected_sha256: str, project_ref: str, app_sha: str,
+                        on_status=None, environment: str = "development") -> dict:
+    """Caller must enforce the explicitly confirmed target and compatible fleet."""
     from app.services import subscription as old
 
     if digest(plan) != expected_sha256 or plan.get("version") != 1:
         raise access.EvidenceError("repair preview checksum mismatch")
-    if plan.get("environment") != "development" or plan.get("project_ref") != project_ref or plan.get("app_sha") != app_sha:
+    if (environment not in {"development", "production"} or plan.get("environment") != environment
+            or plan.get("project_ref") != project_ref or plan.get("app_sha") != app_sha):
         raise access.EvidenceError("repair target or deployed version mismatch")
     created = access.instant(plan.get("created_at"))
     age = (datetime.now(timezone.utc) - created).total_seconds() if created else -1

@@ -578,9 +578,9 @@ async def enqueue_day_boundary_jobs(
         payload={"privacy_epoch": privacy_epoch},
     )
     # 한 번 새 보존 경로에 들어간 사용자는 끈 뒤에도 구형 계약 컴파일러로
-    # 돌아가지 않는다. 아직 첫 v5 요약이 없는 첫날의 준비 명단도 포함한다.
+    # 돌아가지 않는다. 전역 설정이 켜지면 모든 사용자에게 같은 경로를 적용한다.
     from app.services import config_store, context_retention
-    config = await config_store.get_config_values(session, ["context_retention_ready_users"])
+    config = await config_store.get_config_values(session, ["context_retention_v2_enabled", "context_retention_active_preparation"])
     saved = (await session.execute(text("""
       SELECT cc.memory_generation,
         EXISTS (SELECT 1 FROM conversation_checkpoints c
@@ -602,7 +602,8 @@ async def enqueue_day_boundary_jobs(
                 return closed.isoformat()
             if target is not None:
                 await context_retention.enqueue_contract_processing(session, user_id=user_id,
-                    generation=current_generation, through_id=int(target))
+                    generation=current_generation, through_id=int(target),
+                    **({"config": config} if config.get("context_retention_active_preparation") is not None else {}))
     elif not contract_paused:
         await jobs.enqueue(
             session, queue=jobs.QUEUE_CONTENT, job_type=JOB_CONTRACT_COMPILE,

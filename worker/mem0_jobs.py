@@ -250,7 +250,7 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
     # ── 짧은 read: 상태·원문 확인 후 세션을 닫는다 ──
     async with get_sessionmaker()() as session:
         raw_config = await config_store.get_config_values(session,
-            ["context_retention_v2_enabled", "context_retention_ready_users"])
+            ["context_retention_v2_enabled"])
         from app.services import context_retention
         retention_enabled = (raw_config.get("context_retention_v2_enabled",
             settings.context_retention_v2_enabled) is True

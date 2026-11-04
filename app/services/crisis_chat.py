@@ -40,7 +40,7 @@ async def drain_cost_tasks(timeout_s: float = 1.0) -> None:
 
 CONFIG_KEYS = (
     "crisis_guard_enabled", "crisis_guard_policy_version", "crisis_guard_timeout_s",
-    "crisis_guard_history_messages", "crisis_guard_ready_users",
+    "crisis_guard_history_messages",
 )
 
 

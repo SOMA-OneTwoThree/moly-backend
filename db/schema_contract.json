@@ -1522,6 +1522,14 @@
         "not_null": true,
         "type": "bigint"
       },
+      "public.conversation_checkpoints.preparation_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "uuid"
+      },
       "public.conversation_checkpoints.previous_checkpoint_id": {
         "collation": null,
         "default": null,
@@ -4746,6 +4754,166 @@
         "not_null": true,
         "type": "uuid"
       },
+      "public.retention_preparations.code_sha": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_preparations.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.retention_preparations.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_preparations.manifest_json": {
+        "collation": null,
+        "default": "'{}'::jsonb",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.retention_preparations.state": {
+        "collation": "\"default\"",
+        "default": "'building'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_preparations.updated_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.retention_prepared_contracts.created_at": {
+        "collation": null,
+        "default": "now()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "timestamp with time zone"
+      },
+      "public.retention_prepared_contracts.document_json": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.retention_prepared_contracts.id": {
+        "collation": null,
+        "default": "gen_random_uuid()",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_prepared_contracts.locale": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_prepared_contracts.memory_generation": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.retention_prepared_contracts.preparation_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_prepared_contracts.processed_through_message_id": {
+        "collation": null,
+        "default": "0",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
+      "public.retention_prepared_contracts.published_at": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "timestamp with time zone"
+      },
+      "public.retention_prepared_contracts.render_hash": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_prepared_contracts.rendered_text": {
+        "collation": "\"default\"",
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_prepared_contracts.status": {
+        "collation": "\"default\"",
+        "default": "'ready'::text",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "text"
+      },
+      "public.retention_prepared_contracts.user_id": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "uuid"
+      },
+      "public.retention_prepared_contracts.validation_json": {
+        "collation": null,
+        "default": "'{}'::jsonb",
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "jsonb"
+      },
+      "public.retention_prepared_contracts.version": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": true,
+        "type": "bigint"
+      },
       "public.revenuecat_events.attempts": {
         "collation": null,
         "default": "0",
@@ -7427,6 +7595,18 @@
         "enforcement_triggers": [],
         "validated": true
       },
+      "public.conversation_checkpoints.conversation_checkpoints_preparation_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id)",
+        "enforcement_triggers": [
+          "public.conversation_checkpoints:17:O",
+          "public.conversation_checkpoints:5:O",
+          "public.retention_preparations:17:O",
+          "public.retention_preparations:9:O"
+        ],
+        "validated": true
+      },
       "public.conversation_checkpoints.conversation_checkpoints_publish_state_check": {
         "deferrable": false,
         "deferred": false,
@@ -8950,6 +9130,121 @@
         "deferrable": false,
         "deferred": false,
         "definition": "UNIQUE (user_id, prompt_revision, profile_relationship_revision, locale, renderer_version)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparations.retention_preparations_code_sha_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((code_sha ~ '^[0-9a-f]{40}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparations.retention_preparations_manifest_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((jsonb_typeof(manifest_json) = 'object'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparations.retention_preparations_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_preparations.retention_preparations_state_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((state = ANY (ARRAY['building'::text, 'prepared'::text, 'active'::text, 'aborted'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_generation_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((memory_generation >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_locale_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((locale = ANY (ARRAY['ko'::text, 'en'::text, 'ja'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_pkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "PRIMARY KEY (id)",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_preparation_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id)",
+        "enforcement_triggers": [
+          "public.retention_preparations:17:O",
+          "public.retention_preparations:9:O",
+          "public.retention_prepared_contracts:17:O",
+          "public.retention_prepared_contracts:5:O"
+        ],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_render_hash_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((render_hash ~ '^[0-9a-f]{64}$'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_status_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((status = ANY (ARRAY['ready'::text, 'published'::text, 'superseded'::text, 'draft'::text])))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_through_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((processed_through_message_id >= 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_user_id_fkey": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE",
+        "enforcement_triggers": [
+          "public.profiles:17:O",
+          "public.profiles:9:O",
+          "public.retention_prepared_contracts:17:O",
+          "public.retention_prepared_contracts:5:O"
+        ],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_validation_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((jsonb_typeof(validation_json) = 'object'::text))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_version_check": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((version > 0))",
+        "enforcement_triggers": [],
+        "validated": true
+      },
+      "public.retention_prepared_contracts.retention_prepared_contracts_version_uq": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "UNIQUE (preparation_id, user_id, memory_generation, locale, version)",
         "enforcement_triggers": [],
         "validated": true
       },
@@ -10609,8 +10904,17 @@
         "unique": true,
         "valid": true
       },
+      "public.conversation_checkpoints_prepared_window_uq": {
+        "definition": "CREATE UNIQUE INDEX conversation_checkpoints_prepared_window_uq ON public.conversation_checkpoints USING btree (preparation_id, user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text) AND (preparation_id IS NOT NULL))",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.conversation_checkpoints",
+        "unique": true,
+        "valid": true
+      },
       "public.conversation_checkpoints_published_window_uq": {
-        "definition": "CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text))",
+        "definition": "CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text) AND (preparation_id IS NULL))",
         "exclusion": false,
         "options": [],
         "ready": true,
@@ -11614,6 +11918,51 @@
         "options": [],
         "ready": true,
         "table_name": "public.relationship_profile_renders",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_preparations_one_active_uq": {
+        "definition": "CREATE UNIQUE INDEX retention_preparations_one_active_uq ON public.retention_preparations USING btree (state) WHERE (state = 'active'::text)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_preparations",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_preparations_pkey": {
+        "definition": "CREATE UNIQUE INDEX retention_preparations_pkey ON public.retention_preparations USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_preparations",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_prepared_contracts_live_uq": {
+        "definition": "CREATE UNIQUE INDEX retention_prepared_contracts_live_uq ON public.retention_prepared_contracts USING btree (preparation_id, user_id, memory_generation, locale) WHERE (status = ANY (ARRAY['ready'::text, 'published'::text]))",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_prepared_contracts",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_prepared_contracts_pkey": {
+        "definition": "CREATE UNIQUE INDEX retention_prepared_contracts_pkey ON public.retention_prepared_contracts USING btree (id)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_prepared_contracts",
+        "unique": true,
+        "valid": true
+      },
+      "public.retention_prepared_contracts_version_uq": {
+        "definition": "CREATE UNIQUE INDEX retention_prepared_contracts_version_uq ON public.retention_prepared_contracts USING btree (preparation_id, user_id, memory_generation, locale, version)",
+        "exclusion": false,
+        "options": [],
+        "ready": true,
+        "table_name": "public.retention_prepared_contracts",
         "unique": true,
         "valid": true
       },
@@ -14881,6 +15230,54 @@
       "public.relationship_profile_renders:service_role:UPDATE": {
         "grantable": false
       },
+      "public.retention_preparations:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.retention_preparations:service_role:UPDATE": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:DELETE": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:INSERT": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:MAINTAIN": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:REFERENCES": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:SELECT": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:TRIGGER": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:TRUNCATE": {
+        "grantable": false
+      },
+      "public.retention_prepared_contracts:service_role:UPDATE": {
+        "grantable": false
+      },
       "public.revenuecat_events:anon:DELETE": {
         "grantable": false
       },
@@ -16664,6 +17061,20 @@
         "relkind": "r",
         "relrowsecurity": true
       },
+      "public.retention_preparations": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
+      "public.retention_prepared_contracts": {
+        "options": [],
+        "owner": "postgres",
+        "relforcerowsecurity": false,
+        "relkind": "r",
+        "relrowsecurity": true
+      },
       "public.revenuecat_events": {
         "options": [],
         "owner": "postgres",
@@ -16928,5 +17339,5 @@
       }
     }
   },
-  "schema_sha256": "38a58491013c7a985dc66647127eb3a33daca3a94be4faa1c84c989b5dcb177f"
+  "schema_sha256": "9a2b592fbc176ab3b80a216fb5cf393422ac09726539e898fbb9256b42f4fee1"
 }

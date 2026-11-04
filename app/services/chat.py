@@ -1293,6 +1293,22 @@ async def post_message(
     topic_catalog: TopicCatalog | None = None,
     pressure_deadline: float | None = None,
 ) -> PostMessageResponse:
+    """A request finishes on the projection captured before any model call."""
+    from app.services.retention_preparation_context import use_binding
+    with use_binding(None):
+        return await _post_message_with_projection_scope(
+            session, user_id, req, idempotency_key, deadline=deadline,
+            capabilities=capabilities, topic_catalog=topic_catalog,
+            pressure_deadline=pressure_deadline,
+        )
+
+
+async def _post_message_with_projection_scope(
+    session: AsyncSession, user_id: str, req, idempotency_key: str, *,
+    deadline: float | None = None, capabilities: str | None = None,
+    topic_catalog: TopicCatalog | None = None,
+    pressure_deadline: float | None = None,
+) -> PostMessageResponse:
     """One owner releases its own lease on every uncommitted failure/cancellation."""
     owner: dict[str, Any] = {}
     try:
@@ -1430,12 +1446,14 @@ async def _post_message_impl(
     raw_cfg = await config_store.get_config_values(
         session, [*limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS,
                   *crisis_chat.CONFIG_KEYS, "context_retention_v2_enabled",
-                  checkpoint.TEMPORAL_CONFIG_KEY]
+                  "context_retention_active_preparation", checkpoint.TEMPORAL_CONFIG_KEY]
     )
+    from app.services.retention_release_read import capture_controls
+    raw_cfg, captured_projection = await capture_controls(session, raw_cfg)
     guard_config = crisis_chat.effective_config(raw_cfg)
     retention_enabled = raw_cfg.get(
         "context_retention_v2_enabled", settings.context_retention_v2_enabled,
-    ) is True
+    ) is True or captured_projection is not None
     g = await gating.resolve(session, user_id, now=now, config_raw=raw_cfg)
     remaining = g.entitlement["tokens_remaining"]
     if remaining is None:
@@ -1470,8 +1488,10 @@ async def _post_message_impl(
     ctx = await session.get(ChatContext, uid)
     anchor = ctx.anchor_message_id if ctx is not None else 0
     memory_generation = (getattr(ctx, "memory_generation", 0) or 0) if ctx is not None else 0
-    retention_enabled = (retention_enabled
-                         or getattr(ctx, "retention_v5_adopted", False) is True)
+    if "context_retention_active_preparation" not in raw_cfg:
+        # Compatibility for already-published pre-release v5 records only.
+        retention_enabled = (retention_enabled
+                             or getattr(ctx, "retention_v5_adopted", False) is True)
     last_turn_at = getattr(ctx, "last_active_at", None)
     agent_cfg = await agent_config.effective_agent_config(session, raw=raw_cfg)
     absolute_deadline += agent_cfg.turn_deadline_s - settings.agent_turn_deadline_s

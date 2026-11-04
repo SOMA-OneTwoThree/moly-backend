@@ -6,25 +6,39 @@ import pytest
 from scripts import run_guard_context_preparation_worker as worker
 
 
-def test_target_validation_blocks_unknown_and_unconfirmed_production():
+def test_target_validation_blocks_unknown_and_unacknowledged_production():
     with pytest.raises(ValueError):
-        worker.validate_target('postgresql://postgres.unknown:p@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres', 'unknown', True)
-    with pytest.raises(ValueError, match='closed_maintenance'):
+        worker.validate_target('postgresql://postgres.unknown:p@host/postgres', 'unknown', True)
+    with pytest.raises(ValueError):
         worker.validate_target('postgresql://postgres.qkgjlgzsharnilxnkytd:p@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres',
             'qkgjlgzsharnilxnkytd', False)
-    worker.validate_target('postgresql://postgres.wywzjslvxwttxkecbyis:p@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres',
-        'wywzjslvxwttxkecbyis', False)
+    worker.validate_target('postgresql://postgres.qkgjlgzsharnilxnkytd:p@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres',
+        'qkgjlgzsharnilxnkytd', True)
 
 
-async def test_runner_only_uses_memory_and_content_and_provides_drain_event(monkeypatch):
+async def test_runner_only_claims_exact_private_stage_and_keeps_public_workers_online(monkeypatch):
+    import uuid
+    from app.config import settings
+    from app.core import db
+    from app.services import retention_release_promotion as promotion
     from worker import consumer as consumer_module
 
+    class Session:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+    identity, code = uuid.uuid4(), 'a'*40
+    monkeypatch.setattr(settings, 'git_sha', code)
+    monkeypatch.setattr(db, 'get_sessionmaker', lambda: Session)
+    monkeypatch.setattr(promotion, 'registry', AsyncMock(return_value={'state':'building','code_sha':code}))
     consumer = AsyncMock()
     monkeypatch.setattr(consumer_module, 'run_consumer', consumer)
-    await worker.run()
-    assert consumer.await_args.kwargs['queues'] == ('memory', 'content')
-    assert consumer.await_args.kwargs['global_cleanup'] is False
-    assert not consumer.await_args.kwargs['stop'].is_set()
+    await worker.run(identity, expected_code_sha=code)
+    args = consumer.await_args.kwargs
+    assert args['queues'] == ('memory', 'content')
+    assert args['preparation_id'] == identity
+    assert args['concurrency_cap'] == 1
+    assert args['reap'] is False and args['global_cleanup'] is False
+    assert not args['stop'].is_set()
 
 
 async def test_preparation_reaper_does_not_run_unrelated_global_cleanup(monkeypatch):

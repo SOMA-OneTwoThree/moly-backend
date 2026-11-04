@@ -90,3 +90,100 @@ async def test_guard_refresh_reads_actual_metadata_and_rejects_unrelated_functio
         generated = json.loads(artifact.read_bytes())
         assert generated['catalog'] == actual
         assert generated['schema_sha256'] == hashlib.sha256(source.read_bytes()).hexdigest()
+
+
+def test_online_schema_and_catalog_are_idempotent_additive_and_private():
+    before = baseline()
+    after = sc.reviewed_online_catalog_upgrade(before)
+    assert after == before
+    assert sc.reviewed_online_schema_upgrade(sc.SCHEMA.read_text()) == sc.SCHEMA.read_text()
+    for table in ('retention_preparations', 'retention_prepared_contracts'):
+        entry = after['tables'][f'public.{table}']
+        assert entry['relrowsecurity'] is True
+        grants = {k for k in after['relation_grants'] if k.startswith(f'public.{table}:')}
+        assert grants and all(':service_role:' in k for k in grants)
+    assert after['columns']['public.conversation_checkpoints.preparation_id'] == sc._column('uuid')
+    assert after['columns']['public.retention_preparations.manifest_json'] == sc._column(
+        'jsonb', not_null=True, default="'{}'::jsonb")
+    assert 'memory_generation, locale, version)' in after['constraints'][
+        'public.retention_prepared_contracts.retention_prepared_contracts_version_uq']['definition']
+    assert "'draft'::text" in after['constraints'][
+        'public.retention_prepared_contracts.retention_prepared_contracts_status_check']['definition']
+    assert "'draft'::text" not in after['indexes'][
+        'public.retention_prepared_contracts_live_uq']['definition']
+    assert after['indexes']['public.retention_preparations_one_active_uq']['unique'] is True
+    assert "WHERE (state = 'active'::text)" in after['indexes'][
+        'public.retention_preparations_one_active_uq']['definition']
+
+
+def test_online_manifest_rejects_conflicting_definition_without_changing_input():
+    before = baseline()
+    before['columns']['public.conversation_checkpoints.preparation_id'] = sc._column('text')
+    original = deepcopy(before)
+    with pytest.raises(ValueError, match='conflicting online'):
+        sc.reviewed_online_catalog_upgrade(before)
+    assert before == original
+
+
+def test_online_sql_and_release_bundle_are_exact_reviewed_derivation():
+    sql = sc.REVIEWED_ONLINE_SQL.read_text()
+    assert hashlib.sha256(sql.encode()).hexdigest() == sc._GUARD_SQL_DIGESTS['guard_context_online.sql']
+    assert sc._ONLINE_SCHEMA_SUFFIX.endswith(sql)
+    assert 'context_retention_active_preparation' in sql
+    assert "'null'::jsonb)\nON CONFLICT (key) DO NOTHING;" in sql
+    # No old message/memory/diary or public contract mutation belongs to DDL.
+    assert 'UPDATE public.' not in sql and 'DELETE FROM' not in sql
+    assert 'DROP TABLE' not in sql and 'DROP COLUMN' not in sql
+    def statements(value):
+        return '\n'.join(line.strip() for line in value.splitlines()
+                         if line.strip() and not line.lstrip().startswith('--'))
+    expected = '\n'.join(statements(path.read_text()) for path in
+                         (sc.REVIEWED_DEV_SQL, sc.REVIEWED_GUARD_CONTEXT_SQL, sc.REVIEWED_ONLINE_SQL))
+    assert statements((sc.REVIEWED_ONLINE_SQL.parent / 'guard_context_release.sql').read_text()) == expected
+
+
+def test_online_proof_upgrade_changes_only_one_column_and_one_check():
+    final = baseline()
+    before = deepcopy(final)
+    table = 'public.retention_prepared_contracts'
+    del before['columns'][f'{table}.validation_json']
+    del before['constraints'][f'{table}.retention_prepared_contracts_validation_check']
+    original = deepcopy(before)
+    assert sc.reviewed_online_proof_catalog_upgrade(before) == final
+    assert before == original
+    assert sc.reviewed_online_proof_catalog_upgrade(final) == final
+    before['columns'][f'{table}.validation_json'] = sc._column('text')
+    with pytest.raises(ValueError, match='conflicting online proof'):
+        sc.reviewed_online_proof_catalog_upgrade(before)
+    sql = sc.REVIEWED_ONLINE_PROOF_SQL.read_text()
+    assert hashlib.sha256(sql.encode()).hexdigest() == sc._GUARD_SQL_DIGESTS['guard_context_online_proof.sql']
+    assert "ADD COLUMN IF NOT EXISTS validation_json jsonb NOT NULL DEFAULT '{}'::jsonb" in sql
+    assert "CHECK (jsonb_typeof(validation_json) = 'object') NOT VALID" in sql
+    assert 'UPDATE ' not in sql and 'DELETE ' not in sql and 'DROP ' not in sql
+
+
+def test_online_indexes_partition_only_published_window_namespaces():
+    final = baseline()
+    before = deepcopy(final)
+    legacy = 'public.conversation_checkpoints_published_window_uq'
+    prepared = 'public.conversation_checkpoints_prepared_window_uq'
+    before['indexes'][legacy]['definition'] = (
+        "CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON "
+        "public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) "
+        "WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text))")
+    del before['indexes'][prepared]
+    original = deepcopy(before)
+    assert sc.reviewed_online_indexes_catalog_upgrade(before) == final
+    assert before == original
+    assert sc.reviewed_online_indexes_catalog_upgrade(final) == final
+    assert '(preparation_id IS NULL)' in final['indexes'][legacy]['definition']
+    assert '(preparation_id, user_id, coverage_through_message_id)' in final['indexes'][prepared]['definition']
+    assert '(preparation_id IS NOT NULL)' in final['indexes'][prepared]['definition']
+    before['indexes'][legacy]['unique'] = False
+    with pytest.raises(ValueError, match='unexpected legacy published window'):
+        sc.reviewed_online_indexes_catalog_upgrade(before)
+    sql = sc.REVIEWED_ONLINE_INDEXES_SQL.read_text()
+    assert hashlib.sha256(sql.encode()).hexdigest() == sc._GUARD_SQL_DIGESTS['guard_context_online_indexes.sql']
+    assert sql in sc.REVIEWED_ONLINE_SQL.read_text()
+    assert sql.count('DROP INDEX ') == 1 and sql.count('CREATE UNIQUE INDEX ') == 2
+    assert 'UPDATE ' not in sql and 'DELETE ' not in sql and 'DROP TABLE' not in sql

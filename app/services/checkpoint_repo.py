@@ -26,7 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core.advisory_lock import advisory_xact_lock
 from app.models.message import SUMMARY_EXCLUDED_MESSAGE_KINDS
-from app.services import checkpoint, jobs
+from app.services import checkpoint, jobs, retention_release
 from app.services.context_provenance import VerifiedCoverage
 
 _log = logging.getLogger("moly-worker")
@@ -55,7 +55,7 @@ LIMIT 1
 _LATEST_RETENTION_SQL = text(str(_LATEST_SQL).replace(
     "c.source_hash\n", "c.source_hash, c.state_json, c.validation_json\n"
 ).replace("c.version <> 'conversation-checkpoint-summary-v5'",
-          "c.version = 'conversation-checkpoint-summary-v5'"))
+          "c.version = 'conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL"))
 
 _PENDING_SQL = text("""
 SELECT 1 FROM async_jobs j
@@ -63,7 +63,8 @@ SELECT 1 FROM async_jobs j
   WHERE j.user_id = :user_id
     AND j.job_type = 'conversation_checkpoint'
     AND j.state IN ('ready', 'running')
-    AND j.payload->'memory_generation' = to_jsonb(COALESCE(cc.memory_generation, 0))
+    AND (j.payload->>'retention_preparation_id') IS NULL
+ AND j.payload->'memory_generation' = to_jsonb(COALESCE(cc.memory_generation, 0))
 LIMIT 1
 """)
 
@@ -120,15 +121,15 @@ _INSERT_RETENTION_SQL = text("""
 INSERT INTO conversation_checkpoints
  (user_id,through_message_id,summary,version,source_hash,memory_generation,
   state_json,validation_json,previous_checkpoint_id,coverage_from_message_id,
-  coverage_through_message_id,segment_through_message_id)
+  coverage_through_message_id,segment_through_message_id,preparation_id,publish_state)
 SELECT :user_id,:through_message_id,:summary,:version,:source_hash,:expected_generation,
        CAST(:state AS jsonb),CAST(:validation AS jsonb),CAST(:previous_id AS uuid),
-       :coverage_from,:through_message_id,:through_message_id
+       :coverage_from,:through_message_id,:through_message_id,CAST(:preparation_id AS uuid),:preparation_state
 WHERE EXISTS (SELECT 1 FROM chat_contexts cc
               WHERE cc.user_id=:user_id AND cc.memory_generation=:expected_generation)
   AND (SELECT c.id FROM conversation_checkpoints c
        WHERE c.user_id=:user_id AND c.memory_generation=:expected_generation
-         AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+         AND c.version='conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL AND c.publish_state='published'
        ORDER BY c.through_message_id DESC,c.created_at DESC,c.id DESC LIMIT 1)
       IS NOT DISTINCT FROM CAST(:previous_id AS uuid)
 ON CONFLICT (user_id, through_message_id, source_hash) DO NOTHING RETURNING id
@@ -143,7 +144,7 @@ async def read_memory_generation(session: AsyncSession, user_id: uuid.UUID | str
     이 값은 **이른 종료용 힌트**다. 최종 방어는 `insert`가 같은 문장 안에서 하는 세대 검사이며,
     여기서 읽은 값이 낡아도 저장은 안전하다.
     """
-    row = (await session.execute(_GENERATION_SQL, {"user_id": user_id})).first()
+    row = (await retention_release.execute(session, _GENERATION_SQL, {"user_id": user_id})).first()
     return int(row[0]) if row is not None else 0
 
 
@@ -153,7 +154,9 @@ async def load_latest(
 ) -> checkpoint.Checkpoint | None:
     """`through_message_id`가 가장 큰 checkpoint 하나(§W11-5). 없으면 None."""
     enabled = settings.context_retention_v2_enabled if retention_enabled is None else retention_enabled
-    row = (await session.execute(_LATEST_RETENTION_SQL if enabled else _LATEST_SQL,
+    if enabled:
+        await retention_release.require_binding(session)
+    row = (await retention_release.execute(session, _LATEST_RETENTION_SQL if enabled else _LATEST_SQL,
                                  {"user_id": user_id})).first()
     if row is None:
         return None
@@ -200,8 +203,8 @@ async def coverage_for_checkpoint(session, *, user_id, generation: int,
 
 async def count(session: AsyncSession, user_id: uuid.UUID | str, *, retention_enabled: bool = False) -> int:
     """그 유저의 checkpoint 수 — 몇 번째 checkpoint인지(재검증 주기 판정)에 쓴다."""
-    statement = text(str(_COUNT_SQL) + " AND c.version = 'conversation-checkpoint-summary-v5'") if retention_enabled else _COUNT_SQL
-    row = (await session.execute(statement, {"user_id": user_id})).first()
+    statement = text(str(_COUNT_SQL) + " AND c.version = 'conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL") if retention_enabled else _COUNT_SQL
+    row = (await retention_release.execute(session, statement, {"user_id": user_id})).first()
     return int(row[0]) if row is not None else 0
 
 
@@ -209,7 +212,7 @@ async def load_user_state(
     session: AsyncSession, user_id: uuid.UUID | str
 ) -> tuple[str | None, str | None] | None:
     """`(nickname, language)`. 행이 없으면 None(탈퇴) — 호출측이 cancelled로 끝낸다."""
-    row = (await session.execute(_USER_STATE_SQL, {"user_id": user_id})).first()
+    row = (await retention_release.execute(session, _USER_STATE_SQL, {"user_id": user_id})).first()
     return None if row is None else (row[0], row[1])
 
 
@@ -228,7 +231,7 @@ async def load_range(
     원문 대화 조회와 달리 fortune_*·safety*는 제외한다. 일반 요약과 재점검이 함께 사용한다.
     """
     rows = (
-        await session.execute(
+        await retention_release.execute(session,
             _RANGE_ALL_SQL if include_excluded else _RANGE_SQL,
             {
                 "user_id": user_id,
@@ -267,8 +270,10 @@ async def insert(
     `expected_generation`이 지금 값과 다르면 **아무것도 쓰지 않고** None을 돌려준다 —
     그 사이에 잊어줘가 있었다는 뜻이고, 그 대화를 다시 요약해 넣으면 안 된다.
     """
+    if version == checkpoint.RETENTION_SUMMARIZER_VERSION:
+        await retention_release.require_binding(session, lock=True)
     row = (
-        await session.execute(
+        await retention_release.execute(session,
             _INSERT_RETENTION_SQL if version == checkpoint.RETENTION_SUMMARIZER_VERSION else _INSERT_SQL,
             {
                 "user_id": user_id,
@@ -281,6 +286,8 @@ async def insert(
                 "validation": json.dumps(validation_json, ensure_ascii=False),
                 "previous_id": str(previous_id) if previous_id else None,
                 "coverage_from": coverage_from,
+                "preparation_id": retention_release.preparation_id(),
+                "preparation_state": "ready" if retention_release.binding() is not None and retention_release.binding().building else "published",
             },
         )
     ).first()
@@ -378,14 +385,14 @@ async def maybe_enqueue(
         return None
     # Only reset/pressure turns reach here. Existing async_jobs_user_idx bounds the
     # lookup; terminal or old-generation work must not prevent a new attempt.
-    if (await session.execute(_PENDING_SQL, {"user_id": user_id})).first() is not None:
+    if (await retention_release.execute(session, _PENDING_SQL, {"user_id": user_id})).first() is not None:
         return None
     previous = await load_latest(session, user_id, retention_enabled=True) if enabled else await load_latest(session, user_id)
     # 잡을 만드는 시점의 세대를 payload에 박는다. forget이 이 값을 +1 하므로, forget 이후에
     # 뒤늦게 실행된 잡은 핸들러에서 stale로 끊긴다 — 안 그러면 지운 대화를 다시 요약해 넣는다.
     generation = await read_memory_generation(session, user_id)
     plan = checkpoint.plan(
-        messages,
+        messages, preparation_id=retention_release.preparation_id(),
         previous=previous,
         keep_from_message_id=keep_from_message_id,
         memory_generation=generation,
@@ -404,7 +411,8 @@ SELECT j.id,j.state,j.attempt,j.created_at,j.payload,cc.retention_pressure_throu
 FROM async_jobs j JOIN chat_contexts cc ON cc.user_id=j.user_id
 WHERE j.user_id=:user_id AND j.job_type='conversation_checkpoint'
   AND j.state IN ('ready','running')
-  AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+  AND (j.payload->>'retention_preparation_id') IS NULL
+ AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
 ORDER BY j.created_at,j.id LIMIT 1
 """)
 _MERGE_RETENTION_READY = text("""
@@ -417,7 +425,7 @@ RETURNING id
 _RETENTION_COOLDOWN = text("""
 SELECT EXISTS(SELECT 1 FROM conversation_checkpoints c JOIN chat_contexts cc ON cc.user_id=c.user_id
  WHERE c.user_id=:user_id AND c.memory_generation=cc.memory_generation
-   AND c.version='conversation-checkpoint-summary-v5' AND c.publish_state='published'
+   AND c.version='conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL AND c.publish_state='published'
    AND c.created_at>now()-interval '60 seconds')
 """)
 _SAVE_RETENTION_TARGET = text("""
@@ -439,16 +447,17 @@ async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
     await advisory_xact_lock(session, user_id)
     previous = await load_latest(session, user_id, retention_enabled=True)
     generation = await read_memory_generation(session, user_id)
-    plan = checkpoint.plan(messages, previous=previous, keep_from_message_id=keep_from_message_id,
+    plan = checkpoint.plan(messages, previous=previous, preparation_id=retention_release.preparation_id(), keep_from_message_id=keep_from_message_id,
         memory_generation=generation, reset_triggered=reset_triggered,
         version=checkpoint.RETENTION_SUMMARIZER_VERSION,
         through_message_id=pressure_through_message_id,
         reason="input_pressure" if pressure else None)
     if plan is None:
         return None
-    if keep_from_message_id is not None and not pressure:
-        await session.execute(_SAVE_RETENTION_TARGET, {"user_id": user_id, "keep_from": keep_from_message_id})
-    pending = (await session.execute(_RETENTION_PENDING, {"user_id": user_id})).first()
+    if (keep_from_message_id is not None and not pressure
+            and not (retention_release.binding() is not None and retention_release.binding().building)):
+        await retention_release.execute(session, _SAVE_RETENTION_TARGET, {"user_id": user_id, "keep_from": keep_from_message_id})
+    pending = (await retention_release.execute(session, _RETENTION_PENDING, {"user_id": user_id})).first()
     if pending is not None:
         payload = pending[4] if isinstance(pending[4], dict) else json.loads(pending[4])
         if (not pressure and (len(pending)<6 or pending[5] is None)
@@ -466,20 +475,23 @@ async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
                 return None
             plan = replace(plan, privacy_epoch=epoch)
             merged_payload = plan.payload()
+            for key in ("retention_preparation_id", "retention_preparation_building"):
+                if key in payload:
+                    merged_payload[key] = payload[key]
             if "packing_version" in payload:
                 merged_payload["packing_version"] = payload["packing_version"]
             wire = json.dumps(merged_payload, sort_keys=True, separators=(",", ":"))
-            merged = (await session.execute(_MERGE_RETENTION_READY, {
+            merged = (await retention_release.execute(session, _MERGE_RETENTION_READY, {
                 "id": pending[0], "payload": wire,
                 "payload_hash": hashlib.sha256(wire.encode()).hexdigest(),
-                "dedup_key": plan.dedup_key(user_id),
+                "dedup_key": retention_release.dedup_key(plan.dedup_key(user_id)),
             })).first()
             if merged is not None:
                 await reserve_checkpoint_dependencies(session, user_id=user_id, plan=plan)
                 return merged[0]
             return None
         return None
-    if not pressure and await session.scalar(_RETENTION_COOLDOWN, {"user_id": user_id}):
+    if not pressure and await retention_release.scalar(session, _RETENTION_COOLDOWN, {"user_id": user_id}):
         return None
     return await enqueue_checkpoint(session, user_id=user_id, plan=plan, delay_s=0 if pressure else 5)
 
@@ -538,6 +550,8 @@ async def wake_checkpoint_ingest(session: AsyncSession, *, user_id, generation: 
     lock. This changes only available_at, never attempts, payload or job state.
     A retry's backoff, a running claim, and exhausted work are not accelerated.
     """
+    if retention_release.binding() is not None and retention_release.binding().building:
+        return False
     from app.services import context_retention, memory_pipeline
     if type(generation) is not int or generation < 0 or type(through_id) is not int or through_id <= 0:
         raise ValueError("checkpoint_ingest_boundary")
@@ -560,7 +574,7 @@ async def wake_checkpoint_ingest(session: AsyncSession, *, user_id, generation: 
             user_id, state.ingest_through_turn_seq, generation=state.repair_generation,
         ),
     }
-    return (await session.execute(_WAKE_CHECKPOINT_INGEST, params)).first() is not None
+    return (await retention_release.execute(session, _WAKE_CHECKPOINT_INGEST, params)).first() is not None
 
 
 _PRESSURE_BOUNDARY = text("""
@@ -603,12 +617,14 @@ async def ensure_pressure_ingest(session: AsyncSession, *, user_id, generation: 
     skipped rather than waiting behind a worker that owns a job row. Existing
     ready/running work and terminal keys retain their original failure budget.
     """
+    if retention_release.binding() is not None and retention_release.binding().building:
+        return False
     from app.services import context_retention, memory_pipeline
     if not await context_retention.enabled_now(session, lock=True):
         return False
     if not await context_retention.adopted_user(session, user_id=user_id, lock=True):
         return False
-    locked = (await session.execute(_LOCK_PRESSURE_PIPELINE, {
+    locked = (await retention_release.execute(session, _LOCK_PRESSURE_PIPELINE, {
         "user_id": user_id, "generation": generation,
     })).first()
     if locked is None:
@@ -623,7 +639,7 @@ async def ensure_pressure_ingest(session: AsyncSession, *, user_id, generation: 
         return False
     key = memory_pipeline.ingest_dedup_key(user_id, state.ingest_through_turn_seq,
                                           generation=state.repair_generation)
-    if not await session.scalar(_MISSING_PRESSURE_INGEST, {
+    if not await retention_release.scalar(session, _MISSING_PRESSURE_INGEST, {
         "user_id": user_id, "next_turn": nxt, "through_id": through_id, "dedup_key": key,
         "resume_prefix": f"resume:{user_id}:c{state.ingest_through_turn_seq}:g{state.repair_generation}:",
     }):
@@ -649,7 +665,7 @@ WHERE cc.user_id=:user_id AND cc.memory_generation=:generation
   AND cc.retention_pressure_through_message_id<=:through_id
   AND EXISTS (SELECT 1 FROM conversation_checkpoints c WHERE c.user_id=cc.user_id
     AND c.memory_generation=cc.memory_generation AND c.publish_state='published'
-    AND c.version='conversation-checkpoint-summary-v5'
+    AND c.version='conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL
     AND c.through_message_id>=cc.retention_pressure_through_message_id
     AND c.validation_json->'processing_complete'='true'::jsonb)
 FOR UPDATE OF cc SKIP LOCKED
@@ -667,7 +683,7 @@ async def clear_completed_pressure(session: AsyncSession, *, user_id, generation
     worker finalize는 이미 job 행을 잡고 있다. cc 잠금을 기다리면 채팅의 cc→job
     순서와 교착할 수 있으므로 잠기지 않은 행만 해제한다.
     """
-    return (await session.execute(_CLEAR_PRESSURE, {
+    return (await retention_release.execute(session, _CLEAR_PRESSURE, {
         "user_id": user_id, "generation": generation, "through_id": through_id,
     })).first() is not None
 
@@ -708,7 +724,7 @@ async def request_pressure(session: AsyncSession, *, user_id, generation: int,
         return PressureReservation("disabled")
     if not await context_retention.adopted_user(session, user_id=user_id, lock=True):
         return PressureReservation("not_adopted")
-    boundary = await session.scalar(_PRESSURE_BOUNDARY, {
+    boundary = await retention_release.scalar(session, _PRESSURE_BOUNDARY, {
         "user_id": user_id, "generation": generation, "through_id": through_id,
     })
     if boundary is None:
@@ -720,7 +736,7 @@ async def request_pressure(session: AsyncSession, *, user_id, generation: int,
             await clear_completed_pressure(session, user_id=user_id, generation=generation,
                                            through_id=previous.through_message_id)
         return PressureReservation("covered", int(boundary))
-    target = await session.scalar(_SET_PRESSURE, {
+    target = await retention_release.scalar(session, _SET_PRESSURE, {
         "user_id": user_id, "generation": generation, "through_id": int(boundary),
     })
     if target is None:
@@ -732,7 +748,7 @@ async def request_pressure(session: AsyncSession, *, user_id, generation: int,
     await wake_checkpoint_ingest(session, user_id=user_id, generation=generation,
                                 through_id=int(target))
     # 실행 중 원본 payload와 준비 중인 normal 계획도 변경하지 않는다.
-    if (await session.execute(_RETENTION_PENDING, {"user_id": user_id})).first() is not None:
+    if (await retention_release.execute(session, _RETENTION_PENDING, {"user_id": user_id})).first() is not None:
         return PressureReservation("pending", int(target))
     sources = await load_pressure_sources(session, user_id,
         after_id=previous.through_message_id if previous else 0, through_id=int(target))
@@ -749,7 +765,7 @@ SELECT cc.retention_pressure_through_message_id FROM chat_contexts cc
 WHERE cc.user_id=:user_id AND cc.memory_generation=:generation
   AND cc.retention_pressure_through_message_id>:published_through
   AND EXISTS(SELECT 1 FROM conversation_checkpoints c WHERE c.user_id=cc.user_id
-    AND c.memory_generation=cc.memory_generation AND c.version='conversation-checkpoint-summary-v5'
+    AND c.memory_generation=cc.memory_generation AND c.version='conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL
     AND c.publish_state='published' AND c.through_message_id>=:published_through
     AND c.validation_json->'processing_complete'='true'::jsonb)
 FOR UPDATE OF cc SKIP LOCKED
@@ -770,11 +786,11 @@ async def reserve_remaining_pressure(session: AsyncSession, *, user_id, generati
     made = False
     try:
         async with session.begin_nested():
-            timeouts = (await session.execute(_FOLLOWUP_TIMEOUTS)).first()
-            await session.execute(_FOLLOWUP_SET_TIMEOUTS,
+            timeouts = (await retention_release.execute(session, _FOLLOWUP_TIMEOUTS)).first()
+            await retention_release.execute(session, _FOLLOWUP_SET_TIMEOUTS,
                 {"lock_timeout": "100ms", "statement_timeout": "750ms"})
-            if await session.scalar(_TRY_PRESSURE_USER, {"user_id": str(user_id)}):
-                goal = (await session.execute(_REMAINING_PRESSURE_GOAL, {
+            if await retention_release.scalar(session, _TRY_PRESSURE_USER, {"user_id": str(user_id)}):
+                goal = (await retention_release.execute(session, _REMAINING_PRESSURE_GOAL, {
                     "user_id": user_id, "generation": generation,
                     "published_through": published_through_id,
                 })).first()
@@ -785,7 +801,7 @@ async def reserve_remaining_pressure(session: AsyncSession, *, user_id, generati
                     reserved = await request_pressure(session, user_id=user_id, generation=generation,
                                                       through_id=int(goal[0]))
                     made = reserved.job_id is not None
-            await session.execute(_FOLLOWUP_SET_TIMEOUTS,
+            await retention_release.execute(session, _FOLLOWUP_SET_TIMEOUTS,
                 {"lock_timeout": timeouts[0], "statement_timeout": timeouts[1]})
         return made
     except Exception as exc:

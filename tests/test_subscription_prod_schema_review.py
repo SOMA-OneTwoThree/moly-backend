@@ -27,7 +27,80 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
     # extension. Do not call the implementation's upgrade/manifest for this check.
     expected_main_catalog = "446d522a19e3f2930e58a56740adedb7726cd68926f0eb1a9b4984697480fe96"
     expected_main_source = "e5929c8dc95a01842822ff94be432d8df791244ffdbf91820310d3f94a403e7a"
-    expected_guard_source = "38a58491013c7a985dc66647127eb3a33daca3a94be4faa1c84c989b5dcb177f"
+    expected_guard_source = "9a2b592fbc176ab3b80a216fb5cf393422ac09726539e898fbb9256b42f4fee1"
+    online_allowed = {
+        "columns": {
+            "public.conversation_checkpoints.preparation_id": "c4f1490fc6d384dab674435fc78c16215a2a60f21cf6351cca866cb3792a0f56",
+            "public.retention_preparations.code_sha": "f7658eafcb0f767c30344f02926cda2c6ff8b738eab2fa07b9e47945a439237b",
+            "public.retention_preparations.created_at": "d8a14a0a4476b0b493873be944da9d18ca66792820059eed4c47d0eb07b24b88",
+            "public.retention_preparations.id": "6acbcac2652344e14be611fc356eab967d6a5ccb26c6342ec16bcb7b16db876c",
+            "public.retention_preparations.manifest_json": "114923190ea64f63519e8034faa20dc2a9245c1b3cfd97b2da823af096cc8bfb",
+            "public.retention_preparations.state": "1465ebb6b90d2863aebeef39d0083e0dc5b5f469028337982129c6ae555d6f79",
+            "public.retention_preparations.updated_at": "d8a14a0a4476b0b493873be944da9d18ca66792820059eed4c47d0eb07b24b88",
+            "public.retention_prepared_contracts.created_at": "d8a14a0a4476b0b493873be944da9d18ca66792820059eed4c47d0eb07b24b88",
+            "public.retention_prepared_contracts.document_json": "1586e06b1837663e23139c39fa4e9208ea805760084b55ca8f29ecf228db6f61",
+            "public.retention_prepared_contracts.id": "6acbcac2652344e14be611fc356eab967d6a5ccb26c6342ec16bcb7b16db876c",
+            "public.retention_prepared_contracts.locale": "f7658eafcb0f767c30344f02926cda2c6ff8b738eab2fa07b9e47945a439237b",
+            "public.retention_prepared_contracts.memory_generation": "a6c1fd558c79447671e756190f21ffd35afa00ab3f50a604f6cf0cdc97c77aa5",
+            "public.retention_prepared_contracts.preparation_id": "edd812d45f5919458976c71690d34d25df87d6b100a3d63c71677d4903db4bdf",
+            "public.retention_prepared_contracts.processed_through_message_id": "477f2bf1d5266fef2bbb4ff76b497bd75ed4f82caf70001405888cc0317673ef",
+            "public.retention_prepared_contracts.published_at": "01e3ebbbd9a9da77a690e2953bcb4cbec2e1ee95f4b8c836b465713c730a3795",
+            "public.retention_prepared_contracts.render_hash": "f7658eafcb0f767c30344f02926cda2c6ff8b738eab2fa07b9e47945a439237b",
+            "public.retention_prepared_contracts.rendered_text": "f7658eafcb0f767c30344f02926cda2c6ff8b738eab2fa07b9e47945a439237b",
+            "public.retention_prepared_contracts.status": "a03ff2b66a3d9371f7ab5f83eb4be114ba9a805cf3ac99a49228e91ebf5c3d5b",
+            "public.retention_prepared_contracts.user_id": "edd812d45f5919458976c71690d34d25df87d6b100a3d63c71677d4903db4bdf",
+            "public.retention_prepared_contracts.validation_json": "114923190ea64f63519e8034faa20dc2a9245c1b3cfd97b2da823af096cc8bfb",
+            "public.retention_prepared_contracts.version": "a6c1fd558c79447671e756190f21ffd35afa00ab3f50a604f6cf0cdc97c77aa5"
+        },
+        "constraints": {
+            "public.conversation_checkpoints.conversation_checkpoints_preparation_id_fkey": "074ecad4c7cbaba044b1af48fb8b3c2b0977324d6ab5a8bf7948015d97ec0cac",
+            "public.retention_preparations.retention_preparations_code_sha_check": "defd310d556402526824905401c3d9fd47c523205f6ed3cda24b8e75a887654c",
+            "public.retention_preparations.retention_preparations_manifest_check": "7833c46c75dffc7f9d4eb999413fe786eb5530cdac1f7a97f4b9ae915093ed61",
+            "public.retention_preparations.retention_preparations_pkey": "161d9b21602c97ee02b13ed65b36b3f89e2590daf1c40f13f3cf607dc1400baf",
+            "public.retention_preparations.retention_preparations_state_check": "c25fc4daf871a1ccad41c8b53a04b91c573d549ab753ecfdf6992ca74bbcb798",
+            "public.retention_prepared_contracts.retention_prepared_contracts_generation_check": "f5ee955129c9be4439ed4ba269c6658d472c6759792d868e2b1d00f58ad559e6",
+            "public.retention_prepared_contracts.retention_prepared_contracts_locale_check": "ea04803eb5aedeba11de187a1510a023f0efd263bd7627cce7d356dbccc2dfc0",
+            "public.retention_prepared_contracts.retention_prepared_contracts_pkey": "161d9b21602c97ee02b13ed65b36b3f89e2590daf1c40f13f3cf607dc1400baf",
+            "public.retention_prepared_contracts.retention_prepared_contracts_preparation_id_fkey": "592b15edc0adb46504196443c9f448a1256973fbaa23b6fc72585d28ac437969",
+            "public.retention_prepared_contracts.retention_prepared_contracts_render_hash_check": "fbd056e96f3fa9e38c06f7799b1d67d0fe16dbe8b87763113586b17b4e462a0d",
+            "public.retention_prepared_contracts.retention_prepared_contracts_status_check": "37f43b7dcceb449c279e5780cc89667f141175178fc71d87f651244cb9b0c62e",
+            "public.retention_prepared_contracts.retention_prepared_contracts_through_check": "172d1a51f7880cf6463ff2284bab4a579d539e5ccb70c0af489d62b6ccf6ef7f",
+            "public.retention_prepared_contracts.retention_prepared_contracts_user_id_fkey": "1bcf6cd4d7a6c095b4568cf4902acdd2893ce1e117af675c91e46fe966279654",
+            "public.retention_prepared_contracts.retention_prepared_contracts_validation_check": "588942627d158536d2369748d45972a1963c1113eae5775fdcbb6a8a07641cd3",
+            "public.retention_prepared_contracts.retention_prepared_contracts_version_check": "a473faff3d0daeb9aca6ccdfbe6e8be19c433a55452563a43195be98d8b81b1d",
+            "public.retention_prepared_contracts.retention_prepared_contracts_version_uq": "79a52286004d8c03fa8b5985722013c8b393c19887061270750553081d73ff63"
+        },
+        "indexes": {
+            "public.conversation_checkpoints_prepared_window_uq": "46d3dbe4a9fbd4dd3476f658b432b0bcc8a63f67f2f91bdb03c4b4fccbdf6ed3",
+            "public.retention_preparations_one_active_uq": "dac325d19667b676fc48436474a2a25eb6200ff0286df8fba4f656cbedbcf3b2",
+            "public.retention_preparations_pkey": "82133cfe9790d666d70421ca00ef0ca43350484b9c2977e9687a9946f877eb05",
+            "public.retention_prepared_contracts_live_uq": "8037e7657f5ab7543afb64fe5fd65c4a2f4f5849ee05faf4425ac44dd6451f8d",
+            "public.retention_prepared_contracts_pkey": "68ee35ec988a2440856c7711874cc168b5296ddabb26ae7f6a5aae99d167f3ce",
+            "public.retention_prepared_contracts_version_uq": "2823a6941df1a154d95c9c7ed11d820755342ca47521f96bee5e23d2a7b1f3f1"
+        },
+        "relation_grants": {
+            "public.retention_preparations:service_role:DELETE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparations:service_role:INSERT": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparations:service_role:MAINTAIN": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparations:service_role:REFERENCES": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparations:service_role:SELECT": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparations:service_role:TRIGGER": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparations:service_role:TRUNCATE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_preparations:service_role:UPDATE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_prepared_contracts:service_role:DELETE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_prepared_contracts:service_role:INSERT": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_prepared_contracts:service_role:MAINTAIN": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_prepared_contracts:service_role:REFERENCES": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_prepared_contracts:service_role:SELECT": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_prepared_contracts:service_role:TRIGGER": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_prepared_contracts:service_role:TRUNCATE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5",
+            "public.retention_prepared_contracts:service_role:UPDATE": "acb791d3cae9a1e44e2307aa6e2c9be67635c1890eb9b5070e83a75db3952cd5"
+        },
+        "tables": {
+            "public.retention_preparations": "95d4e3040c0d3677c113cded53b3a126847e165100eb3737218a88c438da6456",
+            "public.retention_prepared_contracts": "95d4e3040c0d3677c113cded53b3a126847e165100eb3737218a88c438da6456"
+        }
+    }
     allowed = {
         "columns": {
             "public.chat_contexts.contract_generation": "477f2bf1d5266fef2bbb4ff76b497bd75ed4f82caf70001405888cc0317673ef",
@@ -57,6 +130,13 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
         return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
     after = json.loads(contract.CONTRACT.read_bytes())
     restored_catalog = deepcopy(after["catalog"])
+    for section, additions in online_allowed.items():
+        for key, expected in additions.items():
+            assert digest(restored_catalog[section].pop(key)) == expected
+    # Only this existing main index changes, to isolate prepared namespaces.
+    prior_window = restored_catalog["indexes"]["public.conversation_checkpoints_published_window_uq"]
+    assert digest(prior_window) == "31b0e2dfd96297c001c8c2352eb624b69ae3126f7450a6fc0a1c91922b0a722c"
+    prior_window["definition"] = "CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text))"
     for section, additions in allowed.items():
         for key, expected in additions.items():
             assert digest(restored_catalog[section].pop(key)) == expected
@@ -75,6 +155,10 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
     main_source = contract.SCHEMA.read_text()
     assert hashlib.sha256(main_source.encode()).hexdigest() == expected_guard_source
     assert after["schema_sha256"] == hashlib.sha256(main_source.encode()).hexdigest()
+    online_marker = "\n-- 무중단 가드레일/맥락 준비용 additive 구조.\n"
+    assert main_source.count(online_marker) == 1
+    main_source = main_source.split(online_marker, 1)[0] + "\nCOMMIT;\n"
+    assert hashlib.sha256(main_source.encode()).hexdigest() == "38a58491013c7a985dc66647127eb3a33daca3a94be4faa1c84c989b5dcb177f"
     for marker, terminator in (
         ("-- FUNCTION: public.reset_retention_pressure_generation()\n", "$function$;\n\n"),
         ("-- FUNCTION: public.reset_retention_pressure_privacy()\n", "$function$;\n\n"),

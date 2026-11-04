@@ -20,7 +20,7 @@ from sqlalchemy import text
 from app.config import settings
 from app.core.db import get_sessionmaker
 from app.services import contract_compiler as cc
-from app.services import contract_repo
+from app.services import contract_repo, retention_release
 from app.services import interaction_contract as ic
 from app.services import llm, usage_ledger, context_retention, checkpoint
 from app.services.jobs import ClaimedJob
@@ -118,6 +118,8 @@ def _document(candidates) -> str:
 
 
 async def handle_contract_compile(job: ClaimedJob) -> JobResult:
+    if retention_release.binding() is not None and (job.payload or {}).get("retention_enabled") is not True:
+        raise JobFatal("preparation_requires_retention_contract")
     if (job.payload or {}).get("retention_enabled") is True:
         return await _handle_retention_compile(job)
     if job.user_id is None:
@@ -500,6 +502,17 @@ async def _persist_output_fallback(job, before, after):
         await session.commit()
 
 
+async def _retention_state(session, uid, generation, *, lock=False):
+    # cc protects generation/concurrent writers; preparation cursor comes only
+    # from that preparation's independently certified document, including [].
+    row = (await session.execute(_RETENTION_STATE_LOCK if lock else _RETENTION_STATE,
+                                 {"user_id": uid})).first()
+    if row is not None and retention_release.binding() is not None:
+        cursor = await retention_release.contract_cursor(session, user_id=uid, generation=generation)
+        return (row[0], generation, cursor)
+    return row
+
+
 async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
     if job.user_id is None:
         raise JobFatal("missing_user")
@@ -525,7 +538,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             raise JobCancelled("contract_retention_disabled")
         if not await context_retention.adopted_user(session, user_id=uid):
             raise JobCancelled("contract_retention_not_adopted")
-        base = (await session.execute(_RETENTION_STATE, {"user_id": uid})).first()
+        base = await _retention_state(session, uid, generation)
         if base is None or int(base[0]) != generation:
             raise JobCancelled("stale_contract_generation")
         cursor = int(base[2]) if int(base[1]) == generation else 0
@@ -637,7 +650,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             return
         if not await context_retention.adopted_user(session, user_id=uid, lock=True):
             return
-        fresh = (await session.execute(_RETENTION_STATE_LOCK, {"user_id": uid})).first()
+        fresh = await _retention_state(session, uid, generation, lock=True)
         if fresh is None or int(fresh[0]) != generation:
             return
 
@@ -694,33 +707,40 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
                 payload=next_payload,
                 max_attempts=fallback_available if fallback_planner else 3)
             return  # 원문 전체를 읽기 전 커서 전진·중간 선호 발행을 하지 않는다.
-        for items, text_render, publish in ((merged, rendered, True),
-                (draft_items, "", False)):
-            if not items:
-                continue
-            doc = json.dumps(items, ensure_ascii=False, sort_keys=True)
-            digest = ic.document_hash(doc)
-            if publish and await contract_repo.has_same_document(session, user_id=uid, document_hash=digest):
-                continue
-            version = int(await session.scalar(_NEXT_VERSION, {"user_id": uid, "locale": locale}))
-            cid = await session.scalar(_RETENTION_INSERT, {
-                "user_id": uid, "version": version, "locale": locale, "doc": doc,
-                "rendered": text_render, "hash": digest, "through": boundary,
-            })
-            for item in items:
-                directive = contract_repo.directive_from_item(item)
-                await session.execute(_INSERT_ITEM, {
-                    "contract_id": cid, "user_id": uid, "item_key": item["item_key"],
-                    "section": _SECTION[directive.kind], "value": json.dumps(item, ensure_ascii=False),
-                    "rendered": "" if item.get("status") == "ended" else ic.render(directive, language=locale),
-                    "source_message_id": item["source_message_id"],
-                    "item_status": "superseded" if item.get("status") == "ended" else "active",
+        if retention_release.binding() is not None:
+            doc = json.dumps(merged, ensure_ascii=False, sort_keys=True)
+            await retention_release.store_contract(session, user_id=uid, generation=generation,
+                locale=locale, items=merged, rendered=rendered, digest=ic.document_hash(doc),
+                through=boundary, draft_items=draft_items, after=cursor,
+                source_rows=[row for row in current if cursor < row[0] <= boundary])
+        else:
+            for items, text_render, publish in ((merged, rendered, True),
+                    (draft_items, "", False)):
+                if not items:
+                    continue
+                doc = json.dumps(items, ensure_ascii=False, sort_keys=True)
+                digest = ic.document_hash(doc)
+                if publish and await contract_repo.has_same_document(session, user_id=uid, document_hash=digest):
+                    continue
+                version = int(await session.scalar(_NEXT_VERSION, {"user_id": uid, "locale": locale}))
+                cid = await session.scalar(_RETENTION_INSERT, {
+                    "user_id": uid, "version": version, "locale": locale, "doc": doc,
+                    "rendered": text_render, "hash": digest, "through": boundary,
                 })
-            if publish:
-                await contract_repo.publish(session, contract_id=cid, user_id=uid, locale=locale)
-        await session.execute(_RETENTION_ADVANCE, {
-            "user_id": uid, "generation": generation, "through": boundary,
-        })
+                for item in items:
+                    directive = contract_repo.directive_from_item(item)
+                    await session.execute(_INSERT_ITEM, {
+                        "contract_id": cid, "user_id": uid, "item_key": item["item_key"],
+                        "section": _SECTION[directive.kind], "value": json.dumps(item, ensure_ascii=False),
+                        "rendered": "" if item.get("status") == "ended" else ic.render(directive, language=locale),
+                        "source_message_id": item["source_message_id"],
+                        "item_status": "superseded" if item.get("status") == "ended" else "active",
+                    })
+                if publish:
+                    await contract_repo.publish(session, contract_id=cid, user_id=uid, locale=locale)
+            await session.execute(_RETENTION_ADVANCE, {
+                "user_id": uid, "generation": generation, "through": boundary,
+            })
         if boundary < target:
             from app.services import jobs
             next_payload = {key: value for key, value in payload.items() if not key.startswith("partial_")}

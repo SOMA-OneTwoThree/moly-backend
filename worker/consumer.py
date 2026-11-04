@@ -18,7 +18,7 @@ import signal
 import socket
 import sys
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from app.config import settings
@@ -235,7 +235,35 @@ async def _run_with_heartbeat(job: ClaimedJob, cfg: QueueConfig, handler: Handle
                 await t
 
 
+_CONTEXT_JOB_TYPES = frozenset(("conversation_checkpoint", "contract_compile", "mem0_ingest",
+    "mem0_consolidate", "mem0_reconsolidate", "memory_sweep"))
+
+
+async def _preparation_binding(job):
+    from app.services import retention_release
+    from app.services.retention_preparation_context import from_payload
+    value = from_payload(job.payload)
+    if value is not None:
+        if job.job_type not in {"conversation_checkpoint", "contract_compile"}:
+            raise ValueError("preparation_job_type")
+        async with get_sessionmaker()() as session:
+            await retention_release.require_binding(session, value)
+        return value
+    return None
+
+
 async def run_job(job: ClaimedJob, cfg: QueueConfig) -> None:
+    from app.services.retention_preparation_context import use_binding
+    try:
+        value = await _preparation_binding(job)
+    except ValueError:
+        await _finalize_terminal(job, "cancelled", "preparation_unavailable")
+        return
+    with use_binding(value):
+        await _run_job_impl(job, cfg)
+
+
+async def _run_job_impl(job: ClaimedJob, cfg: QueueConfig) -> None:
     """claim된 잡 1건 실행 + 확정. 어떤 경로로도 예외를 밖으로 올리지 않는다.
 
     재시도 분류(명세 §W7): timeout·429·일시 네트워크/DB = backoff 재시도 / 스키마 검증 실패·미지원
@@ -382,18 +410,35 @@ async def _run_job_then_wake(job: ClaimedJob, cfg: QueueConfig) -> None:
         await run_job(job, cfg)
         # run_job can return after a failed finalize. Hooks must re-read current
         # state; they cannot infer commit success from this callback.
-        await _post_attempt(job)
+        from app.services.retention_preparation_context import use_binding
+        try:
+            value = await _preparation_binding(job)
+            if value is None and job.job_type in _CONTEXT_JOB_TYPES:
+                from app.services import retention_release
+                from app.services.retention_preparation_context import without_binding
+                with without_binding():
+                    async with get_sessionmaker()() as session:
+                        value = await retention_release.resolve(session)
+        except Exception as exc:
+            # Hints never decide publication. Existing deferred work keeps polling.
+            _log.warning("post_attempt_binding_failed error_type=%s", type(exc).__name__)
+            return
+        with use_binding(value):
+            await _post_attempt(job)
     finally:
         _wake_queues()
 
 
-async def queue_loop(queue: str, worker_id: str, stop: asyncio.Event) -> None:
+async def queue_loop(queue: str, worker_id: str, stop: asyncio.Event, *,
+                     preparation_id: uuid.UUID | None = None, concurrency_cap: int | None = None) -> None:
     """한 큐의 claim 루프. 빈 슬롯만큼만 claim하고, 없으면 지수 백오프로 쉬며 폴링한다.
 
     빈 claim이 이어지면 job_idle_sleep_s → job_idle_sleep_max_s 지수 증가(유휴 폴링 부하 축소),
     잡을 잡거나 웨이크업(잡 완료)으로 깨면 즉시 기준값 복귀 — 바쁠 때 반응성은 그대로다.
     """
     cfg = jobs.queue_config(queue)
+    if concurrency_cap is not None:
+        cfg = replace(cfg, concurrency=min(cfg.concurrency, concurrency_cap))
     slots = _Slots()
     idle = settings.job_idle_sleep_s
     idle_max = max(settings.job_idle_sleep_max_s, idle)
@@ -412,7 +457,8 @@ async def queue_loop(queue: str, worker_id: str, stop: asyncio.Event) -> None:
         try:
             async with get_sessionmaker()() as session:
                 claimed = await jobs.claim(
-                    session, queue, worker_id=worker_id, batch_size=min(cfg.claim_batch, free)
+                    session, queue, worker_id=worker_id, batch_size=min(cfg.claim_batch, free),
+                    **({"preparation_id": preparation_id} if preparation_id is not None else {}),
                 )
         except Exception as e:  # noqa: BLE001  # DB 일시 장애로 소비자가 죽으면 안 된다
             _log.warning("claim 실패(queue=%s): %r", queue, e)
@@ -473,6 +519,9 @@ async def run_consumer(
     queues: tuple[str, ...] = jobs.QUEUES,
     stop: asyncio.Event | None = None,
     global_cleanup: bool = True,
+    preparation_id: uuid.UUID | None = None,
+    concurrency_cap: int | None = None,
+    reap: bool = True,
 ) -> None:
     """큐 루프 + reaper 루프를 함께 돈다. stop이 set되면 드레인 후 반환."""
     _register_handlers()
@@ -488,10 +537,12 @@ async def run_consumer(
         usage_ledger.run_close_flusher(flusher_stop, reconcile=True)
     )
     try:
-        await asyncio.gather(
-            *(queue_loop(q, wid, stop) for q in queues),
-            reaper_loop(stop, queues, global_cleanup=global_cleanup),
-        )
+        loops = [queue_loop(q, wid, stop, **(
+            {"preparation_id": preparation_id, "concurrency_cap": concurrency_cap}
+            if preparation_id is not None or concurrency_cap is not None else {})) for q in queues]
+        if reap:
+            loops.append(reaper_loop(stop, queues, global_cleanup=global_cleanup))
+        await asyncio.gather(*loops)
     finally:
         flusher_stop.set()
         with contextlib.suppress(Exception):

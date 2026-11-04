@@ -24,6 +24,9 @@ from app.services.contract_compiler import (
 )
 from app.config import settings
 
+from app.services import retention_release
+
+
 _PUBLISHED = text("""
 SELECT rendered_text, document_json
 FROM user_interaction_contracts
@@ -152,9 +155,12 @@ def directive_from_item(item: dict) -> ic.Directive:
 async def retained_document(session: AsyncSession, *, user_id: uuid.UUID,
                             generation: int) -> list[dict]:
     """현 세대의 원문 검증본만 반환. 손상/삭제/재분류를 빈 선호로 숨기지 않는다."""
-    row = (await session.execute(_RETENTION_DOCUMENT, {
-        "user_id": user_id, "generation": generation,
-    })).first()
+    if retention_release.binding() is not None:
+        row = await retention_release.contract_row(session, user_id=user_id, generation=generation)
+    else:
+        row = (await session.execute(_RETENTION_DOCUMENT, {
+            "user_id": user_id, "generation": generation,
+        })).first()
     if row is None:
         return []
     items = decode_document(row[0])
@@ -209,6 +215,12 @@ async def published_text(
     enabled = settings.context_retention_v2_enabled if retention_enabled is None else retention_enabled
     if enabled:
         items = await retained_document(session, user_id=user_id, generation=generation)
+        end_sql, end_params = _PENDING_CONVERSATION_ENDS, {}
+        if retention_release.binding() is not None:
+            end_params["contract_through"] = await retention_release.contract_cursor(
+                session, user_id=user_id, generation=generation)
+            end_sql = text(str(end_sql).replace("m.id>cc.contract_processed_through_message_id",
+                                               "m.id>:contract_through"))
         active = active_retained_items(items, activity_date=activity_date)
         conversation = [item for item in active if item.get("scope") == "conversation"]
         if conversation:
@@ -217,7 +229,7 @@ async def published_text(
             if conversation:
                 ends, after = [], 0
                 while True:
-                    pending = (await session.execute(_PENDING_CONVERSATION_ENDS, {
+                    pending = (await session.execute(end_sql, {**end_params,
                         "user_id": user_id, "generation": generation, "after": after,
                     })).all()
                     ends.extend((int(mid), conversation_scope_end_targets(body)) for mid, body in pending
@@ -295,5 +307,7 @@ async def has_same_document(
     session: AsyncSession, *, user_id: uuid.UUID, document_hash: str
 ) -> bool:
     """정본이 같으면 새 version을 만들지 않는다(6.3절)."""
+    if retention_release.binding() is not None:
+        return False  # Bound writes also certify a new consumed-source boundary.
     n = await session.scalar(_SAME_DOCUMENT, {"user_id": user_id, "hash": document_hash})
     return bool(n)

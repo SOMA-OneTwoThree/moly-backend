@@ -1,5 +1,7 @@
 """Existing development DB only: owned synthetic migration transactions roll back."""
+import uuid
 from sqlalchemy import text
+from app.services.retention_preparation_context import Binding, use_binding
 
 from scripts import prepare_guard_context_release as release
 from tests.integration.test_checkpoint_continuity_dev import checkpoint_db as checkpoint_db
@@ -19,7 +21,7 @@ async def seed_release(session, uid):
       'mem0-normalizer-v1',provider_memory_id,:body,'committed'
       FROM mem0_memory_registry WHERE id=:r"""), {'r': rid, 'body': CANONICAL})
     await session.execute(text("UPDATE mem0_memory_registry SET canonical_text=NULL WHERE id=:r"), {'r': rid})
-    await set_global(session, True)
+    await set_global(session, False)
     row = (await session.execute(text(str(release._USERS).replace('ORDER BY p.id', 'WHERE p.id=:uid')),
                                 {'uid': uid})).mappings().one()
     return rid, mid, await release.read_user(session, dict(row))
@@ -28,15 +30,20 @@ async def seed_release(session, uid):
 async def test_prepare_restores_proved_canonical_and_reserves_without_editing_sources(checkpoint_db):
     session, (uid, _) = checkpoint_db
     rid, _, plan = await seed_release(session, uid)
+    preparation_id = uuid.uuid4()
+    await session.execute(text("INSERT INTO retention_preparations(id,code_sha) VALUES(:p,:sha)"),
+                          {"p": preparation_id, "sha": "a"*40})
     before = (await session.execute(text('SELECT id,content,kind,turn_seq FROM messages WHERE user_id=:u ORDER BY id'),
                                     {'u': uid})).all()
-    await release.prepare_user(session, plan)
+    with use_binding(Binding(preparation_id, True)):
+        await release.prepare_user(session, plan, preparation_id=preparation_id)
     assert await session.scalar(text('SELECT canonical_text FROM mem0_memory_registry WHERE id=:r'), {'r': rid}) == CANONICAL
     assert (await session.execute(text('SELECT id,content,kind,turn_seq FROM messages WHERE user_id=:u ORDER BY id'),
                                   {'u': uid})).all() == before
     jobs = await session.scalar(text('SELECT count(*) FROM async_jobs WHERE user_id=:u'), {'u': uid})
     assert jobs > 0
-    await release.prepare_user(session, plan)
+    with use_binding(Binding(preparation_id, True)):
+        await release.prepare_user(session, plan, preparation_id=preparation_id)
     assert await session.scalar(text('SELECT count(*) FROM async_jobs WHERE user_id=:u'), {'u': uid}) == jobs
     assert not await release.audit_user(session, plan)
 
@@ -46,7 +53,11 @@ async def test_prepare_rejects_changed_raw_without_filling_canonical(checkpoint_
 
     session, (uid, _) = checkpoint_db
     rid, mid, plan = await seed_release(session, uid)
+    preparation_id = uuid.uuid4()
+    await session.execute(text("INSERT INTO retention_preparations(id,code_sha) VALUES(:p,:sha)"),
+                          {"p": preparation_id, "sha": "a"*40})
     await session.execute(text("UPDATE messages SET content=content||' Changed.' WHERE id=:m"), {'m': mid})
     with pytest.raises(ValueError):
-        await release.prepare_user(session, plan)
+        with use_binding(Binding(preparation_id, True)):
+            await release.prepare_user(session, plan, preparation_id=preparation_id)
     assert await session.scalar(text('SELECT canonical_text FROM mem0_memory_registry WHERE id=:r'), {'r': rid}) is None

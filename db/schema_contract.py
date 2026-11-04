@@ -99,6 +99,9 @@ REVIEWED_DEV_SQL = Path(__file__).with_name('changes') / 'crisis_guardrails.sql'
 
 
 REVIEWED_GUARD_CONTEXT_SQL = Path(__file__).with_name('changes') / 'guard_context_v2.sql'
+REVIEWED_ONLINE_SQL = Path(__file__).with_name('changes') / 'guard_context_online.sql'
+REVIEWED_ONLINE_PROOF_SQL = Path(__file__).with_name('changes') / 'guard_context_online_proof.sql'
+REVIEWED_ONLINE_INDEXES_SQL = Path(__file__).with_name('changes') / 'guard_context_online_indexes.sql'
 
 
 def _column(sql_type: str, *, not_null: bool = False, default: str | None = None) -> dict:
@@ -299,6 +302,226 @@ def reviewed_guard_context_catalog_upgrade(baseline: dict) -> dict:
     return expected
 
 
+_ONLINE_SCHEMA_SUFFIX = """
+-- 무중단 가드레일/맥락 준비용 additive 구조.
+-- 무중단 준비 자료는 공개 계약/기존 checkpoint와 분리한다.
+-- db.apply의 단일 TX/짧은 잠금 제한으로 적용하며 기존 자료는 변경하지 않는다.
+-- 복구: 새 기능을 끄고 준비 registry를 aborted로 전환한다. 공개/기존 자료를 지우지 않는다.
+CREATE TABLE public.retention_preparations (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    state text DEFAULT 'building'::text NOT NULL,
+    code_sha text NOT NULL,
+    manifest_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT retention_preparations_pkey PRIMARY KEY (id),
+    CONSTRAINT retention_preparations_state_check CHECK (state IN ('building', 'prepared', 'active', 'aborted')),
+    CONSTRAINT retention_preparations_code_sha_check CHECK (code_sha ~ '^[0-9a-f]{40}$'),
+    CONSTRAINT retention_preparations_manifest_check CHECK (jsonb_typeof(manifest_json) = 'object')
+);
+CREATE UNIQUE INDEX retention_preparations_one_active_uq ON public.retention_preparations USING btree (state) WHERE state = 'active';
+ALTER TABLE public.retention_preparations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.retention_preparations FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.retention_preparations TO service_role;
+
+CREATE TABLE public.retention_prepared_contracts (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    preparation_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    memory_generation bigint NOT NULL,
+    locale text NOT NULL,
+    version bigint NOT NULL,
+    document_json jsonb NOT NULL,
+    validation_json jsonb DEFAULT '{}'::jsonb NOT NULL,
+    rendered_text text NOT NULL,
+    render_hash text NOT NULL,
+    status text DEFAULT 'ready'::text NOT NULL,
+    processed_through_message_id bigint DEFAULT 0 NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    published_at timestamp with time zone,
+    CONSTRAINT retention_prepared_contracts_pkey PRIMARY KEY (id),
+    CONSTRAINT retention_prepared_contracts_preparation_id_fkey FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id),
+    CONSTRAINT retention_prepared_contracts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id) ON DELETE CASCADE,
+    CONSTRAINT retention_prepared_contracts_generation_check CHECK (memory_generation >= 0),
+    CONSTRAINT retention_prepared_contracts_locale_check CHECK (locale IN ('ko', 'en', 'ja')),
+    CONSTRAINT retention_prepared_contracts_version_check CHECK (version > 0),
+    CONSTRAINT retention_prepared_contracts_render_hash_check CHECK (render_hash ~ '^[0-9a-f]{64}$'),
+    CONSTRAINT retention_prepared_contracts_status_check CHECK (status IN ('ready', 'published', 'superseded', 'draft')),
+    CONSTRAINT retention_prepared_contracts_validation_check CHECK (jsonb_typeof(validation_json) = 'object'),
+    CONSTRAINT retention_prepared_contracts_through_check CHECK (processed_through_message_id >= 0),
+    CONSTRAINT retention_prepared_contracts_version_uq UNIQUE (preparation_id, user_id, memory_generation, locale, version)
+);
+CREATE UNIQUE INDEX retention_prepared_contracts_live_uq ON public.retention_prepared_contracts USING btree (preparation_id, user_id, memory_generation, locale) WHERE status IN ('ready', 'published');
+ALTER TABLE public.retention_prepared_contracts ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.retention_prepared_contracts FROM PUBLIC, anon, authenticated, service_role;
+GRANT ALL ON public.retention_prepared_contracts TO service_role;
+
+ALTER TABLE public.conversation_checkpoints ADD COLUMN preparation_id uuid;
+ALTER TABLE public.conversation_checkpoints ADD CONSTRAINT conversation_checkpoints_preparation_id_fkey
+    FOREIGN KEY (preparation_id) REFERENCES public.retention_preparations(id);
+
+-- 이미 online 구조가 있는 개발 DB용 좁은 호환 보완이다.
+-- 기존 공개 행은 보존하고 NULL 준비 영역과 각 준비 ID의 게시 경계를 분리한다.
+-- 짧은 잠금/전체 단일 TX 제한에서 실패하면 기존 index까지 함께 rollback한다.
+DROP INDEX public.conversation_checkpoints_published_window_uq;
+CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq
+    ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id)
+    WHERE kind = 'window' AND publish_state = 'published' AND preparation_id IS NULL;
+CREATE UNIQUE INDEX conversation_checkpoints_prepared_window_uq
+    ON public.conversation_checkpoints USING btree (preparation_id, user_id, coverage_through_message_id)
+    WHERE kind = 'window' AND publish_state = 'published' AND preparation_id IS NOT NULL;
+
+-- 기존 설정은 덮어쓰지 않고 전역 전환용 행 잠금을 항상 잡을 수 있게 한다.
+INSERT INTO public.app_config (key, value) VALUES ('context_retention_active_preparation', 'null'::jsonb)
+ON CONFLICT (key) DO NOTHING;
+"""
+
+
+def reviewed_online_schema_upgrade(baseline: str) -> str:
+    """Add only the reviewed online preparation structures; retain all prior SQL."""
+    if _ONLINE_SCHEMA_SUFFIX in baseline:
+        if baseline.count(_ONLINE_SCHEMA_SUFFIX) != 1:
+            raise ValueError('ambiguous online preparation schema')
+        return baseline
+    if baseline.count('\nCOMMIT;\n') != 1:
+        raise ValueError('unexpected online preparation schema baseline')
+    return baseline.replace('\nCOMMIT;\n', _ONLINE_SCHEMA_SUFFIX + '\nCOMMIT;\n', 1)
+
+
+def reviewed_online_catalog_upgrade(baseline: dict) -> dict:
+    """Exact additive manifest, never a replacement with the whole dev catalog."""
+    expected = deepcopy(baseline)
+    registry = 'public.retention_preparations'
+    contracts = 'public.retention_prepared_contracts'
+    changes = {section: {} for section in baseline}
+    table = deepcopy(baseline['tables']['public.chat_active_turns'])
+    for name in (registry, contracts):
+        changes['tables'][name] = deepcopy(table)
+        for key, definition in baseline['relation_grants'].items():
+            if key.startswith('public.chat_active_turns:'):
+                changes['relation_grants'][name + key[len('public.chat_active_turns'):]] = deepcopy(definition)
+    columns = {
+        registry: {
+            'id': _column('uuid', not_null=True, default='gen_random_uuid()'),
+            'state': _column('text', not_null=True, default="'building'::text"),
+            'code_sha': _column('text', not_null=True),
+            'manifest_json': _column('jsonb', not_null=True, default="'{}'::jsonb"),
+            'created_at': _column('timestamp with time zone', not_null=True, default='now()'),
+            'updated_at': _column('timestamp with time zone', not_null=True, default='now()'),
+        },
+        contracts: {
+            'id': _column('uuid', not_null=True, default='gen_random_uuid()'),
+            'preparation_id': _column('uuid', not_null=True),
+            'user_id': _column('uuid', not_null=True),
+            'memory_generation': _column('bigint', not_null=True),
+            'locale': _column('text', not_null=True),
+            'version': _column('bigint', not_null=True),
+            'document_json': _column('jsonb', not_null=True),
+            'validation_json': _column('jsonb', not_null=True, default="'{}'::jsonb"),
+            'rendered_text': _column('text', not_null=True),
+            'render_hash': _column('text', not_null=True),
+            'status': _column('text', not_null=True, default="'ready'::text"),
+            'processed_through_message_id': _column('bigint', not_null=True, default='0'),
+            'created_at': _column('timestamp with time zone', not_null=True, default='now()'),
+            'published_at': _column('timestamp with time zone'),
+        },
+        'public.conversation_checkpoints': {'preparation_id': _column('uuid')},
+    }
+    for name, fields in columns.items():
+        changes['columns'].update({f'{name}.{field}': value for field, value in fields.items()})
+    constraints = {
+        registry: {
+            'retention_preparations_pkey': 'PRIMARY KEY (id)',
+            'retention_preparations_state_check': "CHECK ((state = ANY (ARRAY['building'::text, 'prepared'::text, 'active'::text, 'aborted'::text])))",
+            'retention_preparations_code_sha_check': "CHECK ((code_sha ~ '^[0-9a-f]{40}$'::text))",
+            'retention_preparations_manifest_check': "CHECK ((jsonb_typeof(manifest_json) = 'object'::text))",
+        },
+        contracts: {
+            'retention_prepared_contracts_pkey': 'PRIMARY KEY (id)',
+            'retention_prepared_contracts_generation_check': 'CHECK ((memory_generation >= 0))',
+            'retention_prepared_contracts_locale_check': "CHECK ((locale = ANY (ARRAY['ko'::text, 'en'::text, 'ja'::text])))",
+            'retention_prepared_contracts_version_check': 'CHECK ((version > 0))',
+            'retention_prepared_contracts_render_hash_check': "CHECK ((render_hash ~ '^[0-9a-f]{64}$'::text))",
+            'retention_prepared_contracts_status_check': "CHECK ((status = ANY (ARRAY['ready'::text, 'published'::text, 'superseded'::text, 'draft'::text])))",
+            'retention_prepared_contracts_validation_check': "CHECK ((jsonb_typeof(validation_json) = 'object'::text))",
+            'retention_prepared_contracts_through_check': 'CHECK ((processed_through_message_id >= 0))',
+            'retention_prepared_contracts_version_uq': 'UNIQUE (preparation_id, user_id, memory_generation, locale, version)',
+        },
+    }
+    for name, entries in constraints.items():
+        changes['constraints'].update({f'{name}.{key}': _constraint(value) for key, value in entries.items()})
+    for name, key, column, target, cascade in (
+        (contracts, 'retention_prepared_contracts_preparation_id_fkey', 'preparation_id', registry, False),
+        (contracts, 'retention_prepared_contracts_user_id_fkey', 'user_id', 'public.profiles', True),
+        ('public.conversation_checkpoints', 'conversation_checkpoints_preparation_id_fkey', 'preparation_id', registry, False),
+    ):
+        definition = _constraint(f'FOREIGN KEY ({column}) REFERENCES {target}(id)' + (' ON DELETE CASCADE' if cascade else ''))
+        definition['enforcement_triggers'] = sorted([f'{name}:17:O', f'{name}:5:O', f'{target}:17:O', f'{target}:9:O'])
+        changes['constraints'][f'{name}.{key}'] = definition
+    for name, key, fields, where in (
+        (registry, 'retention_preparations_pkey', 'id', ''),
+        (registry, 'retention_preparations_one_active_uq', 'state', " WHERE (state = 'active'::text)"),
+        (contracts, 'retention_prepared_contracts_pkey', 'id', ''),
+        (contracts, 'retention_prepared_contracts_version_uq', 'preparation_id, user_id, memory_generation, locale, version', ''),
+        (contracts, 'retention_prepared_contracts_live_uq', 'preparation_id, user_id, memory_generation, locale', " WHERE (status = ANY (ARRAY['ready'::text, 'published'::text]))"),
+    ):
+        changes['indexes'][f'public.{key}'] = {
+            'definition': f'CREATE UNIQUE INDEX {key} ON {name} USING btree ({fields}){where}',
+            'exclusion': False, 'options': [], 'ready': True, 'table_name': name,
+            'unique': True, 'valid': True,
+        }
+    for section, entries in changes.items():
+        for key, definition in entries.items():
+            if key in expected[section] and expected[section][key] != definition:
+                raise ValueError('conflicting online preparation object')
+            expected[section][key] = deepcopy(definition)
+    return reviewed_online_indexes_catalog_upgrade(expected)
+
+
+def reviewed_online_proof_catalog_upgrade(baseline: dict) -> dict:
+    """For already-applied online DDL, permit only the one proof column/check."""
+    expected = deepcopy(baseline)
+    table = 'public.retention_prepared_contracts'
+    if table not in expected['tables']:
+        raise ValueError('online preparation table is missing')
+    for section, key, definition in (
+        ('columns', f'{table}.validation_json',
+         _column('jsonb', not_null=True, default="'{}'::jsonb")),
+        ('constraints', f'{table}.retention_prepared_contracts_validation_check',
+         _constraint("CHECK ((jsonb_typeof(validation_json) = 'object'::text))")),
+    ):
+        if key in expected[section] and expected[section][key] != definition:
+            raise ValueError('conflicting online proof object')
+        expected[section][key] = definition
+    return expected
+
+
+
+_ONLINE_LEGACY_WINDOW_INDEX = 'public.conversation_checkpoints_published_window_uq'
+_ONLINE_PREPARED_WINDOW_INDEX = 'public.conversation_checkpoints_prepared_window_uq'
+_ONLINE_LEGACY_WINDOW_OLD = "CREATE UNIQUE INDEX conversation_checkpoints_published_window_uq ON public.conversation_checkpoints USING btree (user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text))"
+_ONLINE_LEGACY_WINDOW_NEW = _ONLINE_LEGACY_WINDOW_OLD[:-1] + ' AND (preparation_id IS NULL))'
+_ONLINE_PREPARED_WINDOW_NEW = "CREATE UNIQUE INDEX conversation_checkpoints_prepared_window_uq ON public.conversation_checkpoints USING btree (preparation_id, user_id, coverage_through_message_id) WHERE ((kind = 'window'::text) AND (publish_state = 'published'::text) AND (preparation_id IS NOT NULL))"
+
+
+def reviewed_online_indexes_catalog_upgrade(baseline: dict) -> dict:
+    """Partition only the existing window uniqueness by immutable preparation ID."""
+    expected = deepcopy(baseline)
+    previous = expected['indexes'].get(_ONLINE_LEGACY_WINDOW_INDEX)
+    def definition(sql):
+        return {'definition': sql, 'exclusion': False, 'options': [], 'ready': True,
+                'table_name': 'public.conversation_checkpoints', 'unique': True, 'valid': True}
+    if previous not in (definition(_ONLINE_LEGACY_WINDOW_OLD), definition(_ONLINE_LEGACY_WINDOW_NEW)):
+        raise ValueError('unexpected legacy published window index')
+    expected['indexes'][_ONLINE_LEGACY_WINDOW_INDEX] = definition(_ONLINE_LEGACY_WINDOW_NEW)
+    prepared = definition(_ONLINE_PREPARED_WINDOW_NEW)
+    if (_ONLINE_PREPARED_WINDOW_INDEX in expected['indexes']
+            and expected['indexes'][_ONLINE_PREPARED_WINDOW_INDEX] != prepared):
+        raise ValueError('conflicting prepared window index')
+    expected['indexes'][_ONLINE_PREPARED_WINDOW_INDEX] = prepared
+    return expected
+
+
 def require_reviewed_dev(dsn: str, *, env: str, expected_project_ref: str) -> None:
     """Refuse prod, unknown hosts/refs, and URL connection overrides before connecting."""
     from db.envfile import DEV_PROJECT_REFS, project_ref
@@ -373,11 +596,14 @@ GUARD_BASELINE_CONTRACT_SHA256 = '769d36eb70564f841364b23dbe11ccd63a2b8b075beda1
 _GUARD_SQL_DIGESTS = {
     'crisis_guardrails.sql': 'c587c3524e186a8a031c69d5e6769851819ed2a13c4990958f5ebe5466c3da13',
     'guard_context_v2.sql': 'e4c58f65889444430868e676e6d37702733bd30ff0c407c95686937e58145bb6',
+    'guard_context_online.sql': 'a7e50156064ceefd40cb9ed491d34c860f61c6a119f53e76c005b44d88bb6cf2',
+    'guard_context_online_proof.sql': '2c203ba8e192733a1efc60cb75ce269ab8bdded6cdb01ef2d77940048309f54a',
+    'guard_context_online_indexes.sql': '3ea78345283bc99647f8aceee60329e69e60e92a6d6712f853391d87c04a6276',
 }
 
 
 def derive_guard_context_candidate(*, baseline_schema: Path, baseline_contract: Path,
-                                   crisis_sha256: str, pressure_sha256: str) -> list[str]:
+                                   crisis_sha256: str, pressure_sha256: str, online_sha256: str) -> list[str]:
     """Derive this release candidate from reviewed main64, without connecting to a DB.
 
     This is a manifest derivation, not a database attestation. Preserve all main
@@ -392,7 +618,8 @@ def derive_guard_context_candidate(*, baseline_schema: Path, baseline_contract: 
     artifact = json.loads(original_baseline_contract)
     if artifact['schema_sha256'] != hashlib.sha256(baseline).hexdigest():
         raise ValueError('reviewed main baseline source and contract disagree')
-    reviewed = ((REVIEWED_DEV_SQL, crisis_sha256), (REVIEWED_GUARD_CONTEXT_SQL, pressure_sha256))
+    reviewed = ((REVIEWED_DEV_SQL, crisis_sha256), (REVIEWED_GUARD_CONTEXT_SQL, pressure_sha256),
+                (REVIEWED_ONLINE_SQL, online_sha256))
     sql_inputs = []
     for path, expected in reviewed:
         data = path.read_bytes()
@@ -401,14 +628,17 @@ def derive_guard_context_candidate(*, baseline_schema: Path, baseline_contract: 
             raise ValueError('guard candidate reviewed SQL checksum mismatch')
         sql_inputs.append((path, data))
     source = SCHEMA.read_bytes()
-    upgraded = reviewed_guard_context_schema_upgrade(reviewed_schema_upgrade(baseline.decode()))
+    prior_source = reviewed_guard_context_schema_upgrade(reviewed_schema_upgrade(baseline.decode()))
+    upgraded = reviewed_online_schema_upgrade(prior_source)
     if upgraded.encode() != source:
         raise ValueError('schema contains changes outside the reviewed main guard release')
-    catalog = reviewed_guard_context_catalog_upgrade(reviewed_catalog_upgrade(artifact['catalog']))
+    prior_catalog = reviewed_guard_context_catalog_upgrade(reviewed_catalog_upgrade(artifact['catalog']))
+    catalog = reviewed_online_catalog_upgrade(prior_catalog)
+    prior_candidate = {'schema_sha256': hashlib.sha256(prior_source.encode()).hexdigest(), 'catalog': prior_catalog}
     candidate = {'schema_sha256': hashlib.sha256(source).hexdigest(), 'catalog': catalog}
     original_current = CONTRACT.read_bytes()
     if (original_current != original_baseline_contract
-            and json.loads(original_current) != candidate):
+            and json.loads(original_current) not in (prior_candidate, candidate)):
         raise ValueError('current contract is neither reviewed main nor this derived candidate')
     generated = json.dumps(candidate, ensure_ascii=False, indent=2, sort_keys=True) + '\n'
     temporary = CONTRACT.with_name('.guard-candidate-' + uuid.uuid4().hex)
@@ -493,6 +723,7 @@ def main() -> int:
     parser.add_argument('--baseline-contract', type=Path)
     parser.add_argument('--crisis-sha256')
     parser.add_argument('--pressure-sha256')
+    parser.add_argument('--online-sha256')
     args = parser.parse_args()
     raw = os.environ.get('SUPABASE_DB_CONNECTION_STRING', '')
     if not raw and not args.refresh_subscription_from_dev and not args.derive_guard_context_candidate:
@@ -500,11 +731,11 @@ def main() -> int:
     dsn = re.sub(r'^postgresql\+asyncpg://', 'postgresql://', raw)
     try:
         if args.derive_guard_context_candidate:
-            if not all((args.baseline_schema, args.baseline_contract, args.crisis_sha256, args.pressure_sha256)):
-                parser.error('reviewed main baseline and both guard SQL checksums required')
+            if not all((args.baseline_schema, args.baseline_contract, args.crisis_sha256, args.pressure_sha256, args.online_sha256)):
+                parser.error('reviewed main baseline and all three guard SQL checksums required')
             problems = derive_guard_context_candidate(baseline_schema=args.baseline_schema,
                 baseline_contract=args.baseline_contract, crisis_sha256=args.crisis_sha256,
-                pressure_sha256=args.pressure_sha256)
+                pressure_sha256=args.pressure_sha256, online_sha256=args.online_sha256)
         elif args.refresh_from_dev:
             if not all((args.expected_project_ref, args.reviewed_sql, args.expected_sha256, args.baseline_schema)):
                 parser.error('reviewed guard release arguments required')

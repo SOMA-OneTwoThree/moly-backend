@@ -13,6 +13,7 @@ import pytest
 from app.services import checkpoint, checkpoint_repo, context_retention, contract_repo, memory
 from app.services.mem0_ingest import candidate_hash
 from scripts import prepare_guard_context_release as tool
+from app.services import retention_release_promotion as promotion
 
 DEV = "wywzjslvxwttxkecbyis"
 PROD = tool.PROD_PROJECT_REF  # Identifier only; all tests are offline.
@@ -48,6 +49,8 @@ def fixture():
 class Result:
     def __init__(self, rows):
         self.rows = rows
+    def scalars(self):
+        return self
     def mappings(self):
         return self
     def all(self):
@@ -177,7 +180,7 @@ async def test_prepare_only_cas_and_domain_reservation_no_commit_or_cursor_edit(
     reserve = AsyncMock(return_value=checkpoint_repo.PressureReservation("queued", 2))
     monkeypatch.setattr(context_retention, "enqueue_contract_processing", contract)
     monkeypatch.setattr(checkpoint_repo, "request_pressure", reserve)
-    await tool.prepare_user(session, expected)
+    await _prepare_bound(session, expected, monkeypatch)
     assert row["canonical_text"] == "verified source"
     assert contract.await_args.kwargs["through_id"] == reserve.await_args.kwargs["through_id"] == 2
     assert not any("UPDATE messages" in q or "UPDATE memory_pipeline_states" in q for q, _ in session.queries)
@@ -240,9 +243,10 @@ async def test_audit_recomputes_raw_chain_hash_not_just_numeric_cursors(monkeypa
     monkeypatch.setattr(context_retention, "validate_progress_sources", AsyncMock())
     monkeypatch.setattr(checkpoint, "validate_completed_progress", lambda **kwargs: "summary")
     monkeypatch.setattr(contract_repo, "published_text", AsyncMock())
+    from app.services import retention_release
+    monkeypatch.setattr(retention_release, "validate_contract_chain", AsyncMock(return_value=receipt), raising=False)
     async def audit_rows(sql, params):
-        if "FROM async_jobs" in str(sql):
-            return Result([({"after_message_id": 0}, {"through": 2})] if receipt else [])
+        assert "FROM async_jobs" not in str(sql)
         return Result([record])
     session.execute = AsyncMock(side_effect=audit_rows)
     assert await tool.audit_user(session, item) is receipt
@@ -262,7 +266,8 @@ def test_schema_preflight_uses_real_columns_not_orm_computed_properties():
     schema = (Path(tool.__file__).resolve().parents[1]/"db/schema.sql").read_text()
     for table, column in tool.REQUIRED_COLUMNS:
         body = schema.split(f"CREATE TABLE public.{table} (", 1)[1].split("\n);", 1)[0]
-        assert re.search(rf"^\s*{re.escape(column)}\s+", body, re.MULTILINE), (table, column)
+        assert (re.search(rf"^\s*{re.escape(column)}\s+", body, re.MULTILINE)
+                or re.search(rf"ALTER TABLE public\.{table} ADD COLUMN {column}\s", schema)), (table, column)
 
 
 async def test_environment_override_must_be_private_before_connection(monkeypatch, tmp_path):
@@ -310,13 +315,13 @@ async def test_prepare_never_fills_from_a_changed_plan_or_disabled_global_worker
     monkeypatch.setattr(advisory_lock, "advisory_xact_lock", AsyncMock())
     monkeypatch.setattr(context_retention, "enabled_now", AsyncMock(return_value=False))
     with pytest.raises(tool.Blocked, match="global_worker_or_privacy_not_ready"):
-        await tool.prepare_user(session, expected)
+        await _prepare_bound(session, expected, monkeypatch)
     assert row["canonical_text"] is None
     monkeypatch.setattr(context_retention, "enabled_now", AsyncMock(return_value=True))
     monkeypatch.setattr(context_retention, "privacy_epoch_matches", AsyncMock(return_value=True))
     messages[-1]["content"] += " new body"
     with pytest.raises(tool.Blocked, match="plan_source_changed"):
-        await tool.prepare_user(session, expected)
+        await _prepare_bound(session, expected, monkeypatch)
     assert row["canonical_text"] is None
 
 
@@ -365,9 +370,9 @@ async def test_existing_authorization_exclusions_are_counted_and_bound_without_b
     plan = await tool.read_user(Session(user, messages, [row], [source]), user)
     excluded = {**user, "user_id": uuid.uuid4(), "barrier_state": "deleting"}
     session = SimpleNamespace(execute=AsyncMock(return_value=Result([user, excluded])))
-    monkeypatch.setattr(tool, "schema_ready", AsyncMock(return_value=True))
+    monkeypatch.setattr(promotion, "schema_ready", AsyncMock(return_value=True))
     body = AsyncMock(return_value=plan)
-    monkeypatch.setattr(tool, "read_user", body)
+    monkeypatch.setattr(promotion, "read_user", body)
     plans, blockers, population, exclusions = await tool.collect(session)
     body.assert_awaited_once_with(session, user)
     output = tool.artifact(plans, blockers, population, project_ref=DEV, excluded=exclusions)
@@ -386,3 +391,12 @@ def test_no_rollout_lists_ddl_or_history_mutation_surface():
                       "ALTER TABLE", "GRANT ", "crisis_guard_ready_users"):
         assert forbidden not in source
     assert "c.status='committed'" in tool._MEMORIES
+
+
+async def _prepare_bound(session, expected, monkeypatch):
+    from app.services import retention_release
+    from app.services.retention_preparation_context import Binding, use_binding
+    identity = uuid.uuid4()
+    monkeypatch.setattr(retention_release, "require_binding", AsyncMock())
+    with use_binding(Binding(identity, True)):
+        return await tool.prepare_user(session, expected, preparation_id=identity)

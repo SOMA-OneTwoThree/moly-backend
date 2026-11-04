@@ -203,6 +203,14 @@ async def test_due_update_is_only_available_at_and_rechecks_exact_live_metadata(
 
 @pytest.fixture
 def consumer_env(monkeypatch):
+    from app.services import retention_release
+    monkeypatch.setattr(retention_release, "resolve", AsyncMock(return_value=None))
+    class HintSession:
+        async def __aenter__(self):
+            return self
+        async def __aexit__(self, *args):
+            pass
+    monkeypatch.setattr(consumer, "get_sessionmaker", lambda: HintSession)
     monkeypatch.setattr(consumer, "_POST_ATTEMPT_HOOKS", {})
     wake = Mock()
     monkeypatch.setattr(consumer, "_wake_queues", wake)

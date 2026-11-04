@@ -37,7 +37,7 @@ from sqlalchemy import text
 from app.core.db import get_sessionmaker
 from app.services import (
     checkpoint, checkpoint_repo, context_retention,
-    diary_recall_repo, diary_shared_embeddings, jobs, memory_pipeline,
+    diary_recall_repo, diary_shared_embeddings, jobs, memory_pipeline, retention_release,
 )
 from app.services.jobs import ClaimedJob
 from worker import consumer
@@ -223,7 +223,7 @@ ORDER BY (j.payload->>'mode'='publish_retention') DESC NULLS LAST,
 
 async def _resume_unpublished_success(session, *, user_id, generation, plan, previous):
     """실제 게시가 없는 동일 계획의 마지막 durable payload만 새 행으로 이어 간다."""
-    row = (await session.execute(_RETENTION_UNPUBLISHED_SUCCESS, {
+    row = (await retention_release.execute(session, _RETENTION_UNPUBLISHED_SUCCESS, {
         "user_id": user_id, "generation": generation, "source_hash": plan.source_hash,
         "through_id": plan.through_message_id, "previous_id": str(previous.id) if previous else "",
     })).first()
@@ -327,6 +327,14 @@ async def _load_retention_segment(session, user_id, *, after_id: int, through_id
 
 
 async def _resume_retention_checkpoints() -> RetentionResumeResult:
+    # A sweep is a new producer, even when its parent job predates activation.
+    # Pin its own global release once; never rebind an already-running job.
+    from app.services.retention_preparation_context import without_binding
+    with without_binding():
+        return await _resume_retention_checkpoints_bound()
+
+
+async def _resume_retention_checkpoints_bound() -> RetentionResumeResult:
     """job finalize 밖에서 사용자별 짧은 예약 트랜잭션을 실행한다.
 
     예약만 멱등으로 수행한다. 모델·요약 게시·원문 압축은 하지 않는다. sweep의 job 행 잠금을
@@ -334,13 +342,15 @@ async def _resume_retention_checkpoints() -> RetentionResumeResult:
     """
     try:
         async with get_sessionmaker()() as session:
+            from app.services.retention_preparation_context import set_binding
+            set_binding(await retention_release.resolve(session))
             if not await _retention_enabled(session):
                 return RetentionResumeResult()
             cursor = await _read_resume_cursor(session)
-            candidates = list((await session.execute(_RETENTION_RESUME_USERS,
+            candidates = list((await retention_release.execute(session, _RETENTION_RESUME_USERS,
                 {"limit": SWEEP_LIMIT, "cursor": cursor})).all())
             if cursor is not None and len(candidates)<SWEEP_LIMIT:
-                candidates.extend((await session.execute(_RETENTION_RESUME_WRAP,
+                candidates.extend((await retention_release.execute(session, _RETENTION_RESUME_WRAP,
                     {"limit": SWEEP_LIMIT-len(candidates), "cursor": cursor})).all())
     except Exception as exc:
         _log.warning("후속 요약 예약 점검 실패 error=%s", type(exc).__name__)
@@ -360,7 +370,7 @@ async def _resume_retention_checkpoints() -> RetentionResumeResult:
                     break
                 if not await context_retention.adopted_user(session, user_id=user_id, lock=True):
                     continue
-                state = (await session.execute(_RETENTION_CURRENT, {
+                state = (await retention_release.execute(session, _RETENTION_CURRENT, {
                     "user_id": user_id, "generation": int(generation),
                 })).first()
                 if state is None:
@@ -407,6 +417,8 @@ async def _resume_retention_checkpoints() -> RetentionResumeResult:
                     version=checkpoint.RETENTION_SUMMARIZER_VERSION,
                     through_message_id=messages[-1].id if pressure_target is not None else None,
                     reason="input_pressure" if pressure_target is not None else None,
+                    **({"preparation_id": retention_release.binding().preparation_id}
+                       if retention_release.binding() is not None else {}),
                 )
                 if plan is None:
                     # 최신 한 턴이 tail 전체를 차지해도 처리를 시작할 수 있다.
@@ -429,9 +441,9 @@ async def _resume_retention_checkpoints() -> RetentionResumeResult:
                     # Exhausted attempts are a durable stop, not a fresh retry
                     # allowance every sweep. Preserve the target and old job;
                     # only an explicit operator replay may restart that job.
-                    dead = (await session.execute(_RETENTION_DEAD_PLAN, {
+                    dead = (await retention_release.execute(session, _RETENTION_DEAD_PLAN, {
                         "user_id": user_id, "generation": int(generation),
-                        "dedup_key": plan.dedup_key(user_id), "through_id": plan.through_message_id,
+                        "dedup_key": retention_release.dedup_key(plan.dedup_key(user_id)), "through_id": plan.through_message_id,
                         "previous_id": str(previous.id) if previous else "",
                         "pressure": pressure_target is not None,
                     })).first()

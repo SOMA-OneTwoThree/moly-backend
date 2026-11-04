@@ -15,6 +15,8 @@ W7 계약 위에서 지키는 것(어기면 조용히 깨진다):
 """
 from __future__ import annotations
 
+from app.services import retention_release
+
 import logging
 import hashlib
 import json
@@ -87,6 +89,9 @@ FROM target WHERE j.id=target.id RETURNING j.id
 async def wake_ready_publisher(session, *, job_id, user_id, payload: dict,
                               event_epoch: int, event_generation: int | None = None) -> bool:
     """Wake one verified pure dependency wait; caller commits. No artifact is published."""
+    if payload.get("retention_preparation_id") != (str(retention_release.preparation_id())
+            if retention_release.preparation_id() is not None else None):
+        return False
     if (type(event_epoch) is not int or event_epoch<0
             or (event_generation is not None and (type(event_generation) is not int or event_generation<0))
             or not isinstance(payload, dict)):
@@ -112,7 +117,7 @@ async def wake_ready_publisher(session, *, job_id, user_id, payload: dict,
             or not await context_retention.privacy_epoch_matches(session, user_id=user_id,
                 privacy_epoch=event_epoch, lock=True)):
         return False
-    row = (await session.execute(_WAKE_READY_PUBLISHER, {
+    row = (await retention_release.execute(session, _WAKE_READY_PUBLISHER, {
         "job_id": job_id, "user_id": user_id,
         "payload": json.dumps(payload, sort_keys=True, separators=(",", ":")),
         "event_epoch": event_epoch, "event_generation": event_generation,
@@ -130,7 +135,7 @@ async def _checkpoint_post_attempt(event: ClaimedJob) -> None:
         return
     params = {"user_id": event.user_id, "event_epoch": epoch, "event_generation": generation}
     async with get_sessionmaker()() as session:
-        candidates = (await session.execute(_READY_PUBLISHERS, params)).all()
+        candidates = (await retention_release.execute(session, _READY_PUBLISHERS, params)).all()
     for job_id, candidate_payload in candidates:
         async with get_sessionmaker()() as session:
             if await wake_ready_publisher(session, job_id=job_id, user_id=event.user_id,
@@ -453,7 +458,7 @@ async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
         _, language = user
         sources = await _load_sources(session, req, previous)
         if not sources or checkpoint.source_hash(previous=previous, messages=sources,
-                version=req.version) != req.source_hash:
+                version=req.version, preparation_id=retention_release.preparation_id()) != req.source_hash:
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
         try:
             summary = _validate_completed(req, payload, sources, previous, language)
@@ -481,7 +486,7 @@ async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
             return
         current = await _load_sources(session, req, fresh_parent)
         if not current or checkpoint.source_hash(previous=fresh_parent, messages=current,
-                version=req.version) != req.source_hash:
+                version=req.version, preparation_id=retention_release.preparation_id()) != req.source_hash:
             return
         _validate_completed(req, payload, current, fresh_parent, language)
         await context_retention.validate_progress_sources(session, user_id=req.user_id,
@@ -529,6 +534,9 @@ async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
 
 
 async def handle_checkpoint(job: ClaimedJob) -> JobResult:
+    if (retention_release.binding() is not None
+            and (job.payload or {}).get("summarizer_version") != checkpoint.RETENTION_SUMMARIZER_VERSION):
+        raise JobFatal("preparation_requires_retention_checkpoint")
     packing = _packing_version(job.payload or {})
     if (job.payload or {}).get("mode") == "reverify":
         if packing is not None:
@@ -547,7 +555,8 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         retention = req.version == checkpoint.RETENTION_SUMMARIZER_VERSION
         if retention:
             raw = await config_store.get_config_values(session, ["context_retention_v2_enabled"])
-            if raw.get("context_retention_v2_enabled", settings.context_retention_v2_enabled) is not True:
+            if (not await context_retention.enabled_now(session) if retention_release.binding() is not None
+                    else raw.get("context_retention_v2_enabled", settings.context_retention_v2_enabled) is not True):
                 return JobResult(result_code=RESULT_DISABLED)
             if not await context_retention.adopted_user(session, user_id=req.user_id):
                 return JobResult(result_code=RESULT_DISABLED)
@@ -581,7 +590,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
         if checkpoint.source_hash(
             previous=previous, messages=messages, version=req.version,
-        ) != req.source_hash:
+         preparation_id=retention_release.preparation_id()) != req.source_hash:
             # 같은 id 목록이라도 본문이 바뀌었다 = 이 요약의 전제가 깨졌다.
             return JobResult(result_code=RESULT_SOURCE_CHANGED)
 
@@ -759,7 +768,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
             fresh_sources = await _load_sources(session, req, previous)
             if not fresh_sources or checkpoint.source_hash(
                 previous=previous, messages=fresh_sources, version=req.version,
-            ) != req.source_hash:
+             preparation_id=retention_release.preparation_id()) != req.source_hash:
                 return
             await context_retention.validate_progress_sources(session, user_id=req.user_id,
                 state=state_json)
@@ -870,7 +879,8 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
         raise JobFatal("invalid_reverify_payload")
     async with get_sessionmaker()() as session:
         raw = await config_store.get_config_values(session, ["context_retention_v2_enabled"])
-        if raw.get("context_retention_v2_enabled", settings.context_retention_v2_enabled) is not True:
+        if (not await context_retention.enabled_now(session) if retention_release.binding() is not None
+                else raw.get("context_retention_v2_enabled", settings.context_retention_v2_enabled) is not True):
             return JobResult(result_code=RESULT_DISABLED)
         if not await context_retention.adopted_user(session, user_id=job.user_id):
             return JobResult(result_code=RESULT_DISABLED)
@@ -892,7 +902,7 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
     working = context_retention.validate_state(payload.get("draft_state", current.state_json))
     allowed = [message for message in page if message.kind not in SUMMARY_EXCLUDED_MESSAGE_KINDS]
     page_hash = checkpoint.source_hash(previous=None, messages=page,
-                                       version=checkpoint.RETENTION_SUMMARIZER_VERSION)
+                                       version=checkpoint.RETENTION_SUMMARIZER_VERSION, preparation_id=retention_release.preparation_id())
     continuation = None
     if allowed:
         reviewed = checkpoint.Checkpoint(current.id, current.through_message_id, current.summary,
@@ -943,7 +953,7 @@ async def _handle_retention_reverify(job: ClaimedJob) -> JobResult:
                 after_id=manifest["after"], through_id=manifest["through"], max_rows=121,
                 include_excluded=True)
             digest = checkpoint.source_hash(previous=None, messages=sources,
-                                             version=checkpoint.RETENTION_SUMMARIZER_VERSION)
+                                             version=checkpoint.RETENTION_SUMMARIZER_VERSION, preparation_id=retention_release.preparation_id())
             if digest != manifest["hash"]:
                 return
         if continuation is not None:

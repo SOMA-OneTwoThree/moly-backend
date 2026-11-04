@@ -119,6 +119,14 @@ class CompatRunner(LegacyRunner):
                 replay.require(changed == key, "configuration_changed_concurrently")
 
     async def cleanup(self, state, journal):
+        # Keep only owned synthetic identities for a later scoped log review.
+        # Successful cleanup removes the mutable recovery journal, not this
+        # private 0600 metadata receipt. No token or conversation is included.
+        save(journal.parent / "owned-subjects.json", {
+            "schema": "context-compat-owned-subjects-v1",
+            "run": state["run"], "users": sorted(set(state.get("users", []))),
+            "synthetic_only": True,
+        })
         # A crash can land on either side of the second (OFF) config commit.
         # Accept only one of this run's two exact CAS receipts, never an
         # unrelated administrator edit. The shared cleanup then restores the

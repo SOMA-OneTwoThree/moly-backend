@@ -21,7 +21,8 @@ from app.models.app_config import AppConfig
 from app.services import slack_notify
 
 _log = logging.getLogger(__name__)
-_SIGNALS = frozenset({"worker_diary", "worker_memory", "worker_timeout", "worker_push", "rc_processor",
+_SIGNALS = frozenset({"worker_diary", "worker_memory", "worker_timeout", "worker_push", "worker_summary",
+                      "summary_observation", "rc_processor",
                       "rc_observation", "rc_provider", "rc_production", "rc_unknown", "daily_status"})
 _LEASE_S = 60
 _CHANGE_S = 3600
@@ -39,6 +40,7 @@ class Observation:
     severity: str = "alert"
     daily: bool = False
     importance: int = 1
+    recovery_requires_notification: bool = False
 
 
 @dataclass(frozen=True)
@@ -90,6 +92,11 @@ def transition(state: dict, obs: Observation, now: datetime) -> tuple[dict, bool
     if obs.daily:
         return state, state.get("last_notified_date") != obs.fingerprint
     if not obs.active:
+        if obs.recovery_requires_notification and (
+            state.get("notified_active") is not True
+            or state.get("notified_incident_number", 0) < state.get("incident_number", 0)
+        ):
+            return state, False
         # 초기 정상은 무통지. 전송에 실패한 장애도 정상 재관측 시 조용히 소실시키지 않는다.
         unsent_incident = state.get("incident_number", 0) > state.get("notified_incident_number", 0)
         return state, bool(state.get("had_incident")) and (

@@ -143,6 +143,8 @@ def contract_environment(monkeypatch):
              "adopted": True, "enabled": True, "message_id": 1}
 
     class Session:
+        async def get(self, model, key):
+            return None  # Existing fixture has no compatibility baseline.
         async def __aenter__(self):
             return self
         async def __aexit__(self, *args):

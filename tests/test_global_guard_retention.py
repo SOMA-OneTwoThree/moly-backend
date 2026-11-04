@@ -91,7 +91,7 @@ async def test_global_activation_does_not_certify_unprepared_existing_sources(fi
     class Result:
         def first(self):
             return row
-    session = SimpleNamespace(execute=AsyncMock(return_value=Result()))
+    session = SimpleNamespace(execute=AsyncMock(return_value=Result()), get=AsyncMock(return_value=None))
     assert not await retention.processing_complete(session, user_id=uuid.uuid4(),
         generation=2, through_id=40)
 

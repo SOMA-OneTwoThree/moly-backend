@@ -49,6 +49,12 @@ def reservation(monkeypatch):
     uid = uuid.uuid4()
     state = {"enabled": True, "adopted": True, "boundary": 2, "target": None,
              "generation": 7, "active": None, "queued": [], "queries": []}
+    async def initialized_baseline(*args, **kwargs):
+        if state.get("previous") is not None:
+            return None
+        return SimpleNamespace(source_after=0, payload=lambda: {
+            "source_after": 0, "generation": 7, "privacy_epoch": 0})
+    monkeypatch.setattr(repo, "load_compat_baseline", initialized_baseline)
     sources = [message(1, size=10), message(2, "moly", size=10)]
     class Session:
         async def scalar(self, sql, params):

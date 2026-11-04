@@ -1194,6 +1194,22 @@
         "not_null": true,
         "type": "bigint"
       },
+      "public.chat_contexts.retention_compat_json": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
+      },
+      "public.chat_contexts.retention_compat_summary_invalidated_revision": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "bigint"
+      },
       "public.chat_contexts.retention_pressure_through_message_id": {
         "collation": null,
         "default": null,
@@ -6625,6 +6641,14 @@
         "identity": "",
         "not_null": true,
         "type": "uuid"
+      },
+      "public.user_interaction_contracts.validation_json": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "jsonb"
       },
       "public.user_interaction_contracts.version": {
         "collation": null,
@@ -17625,5 +17649,5 @@
       }
     }
   },
-  "schema_sha256": "db5e2a88d9d291e08e650ec7dd330a5c554e4d94edbc9bfbc27c78cf4d690dfd"
+  "schema_sha256": "d8f243ed807d77615a43535e678336bed98309169a26aa07c1b560d614095c70"
 }

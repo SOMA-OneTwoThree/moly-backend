@@ -841,6 +841,12 @@ async def notify_dead_fields(
         "잡 dead — job_id=%s queue=%s job_type=%s attempt=%s error_code=%s",
         job_id, queue, job_type, attempt, error_code,
     )
+    from app.services.summary_recovery import grouped_failure
+    if queue == QUEUE_CONTENT and grouped_failure(job_type, error_code):
+        # The existing monitoring tick verifies replacement source coverage,
+        # waits 15 minutes, then reports only unresolved summary incidents.
+        # Preserve this terminal row and log; never silently replay it.
+        return
     try:
         await slack_notify.alert(
             f"☠️ [잡 dead] queue={queue} job_type={job_type} "
@@ -916,7 +922,21 @@ async def queue_stats(session: AsyncSession) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {
         q: {"ready": 0, "running": 0, "dead": 0, "oldest_dead_age_s": None} for q in QUEUES
     }
-    for r in (await session.execute(_STATS_SQL)).mappings().all():
+    rows = (await session.execute(_STATS_SQL)).mappings().all()
+    try:
+        from app.services import summary_recovery
+        recovered = await summary_recovery.resolved_receipt_ids(session)
+        if recovered:
+            # Keep the original recursive replay-ancestor rule verbatim; apply
+            # only the additional exact, verified summary IDs to all age/counts.
+            statement = text(str(_STATS_SQL).replace("GROUP BY queue, state", "AND NOT (state='dead' "
+                "AND j.id=ANY(CAST(:summary_resolved AS uuid[])))\nGROUP BY queue, state"))
+            rows = (await session.execute(statement,
+                {"summary_resolved": [uuid.UUID(value) for value in recovered]})).mappings().all()
+    except Exception as exc:
+        # An unknown recovery never clears a dead incident or another queue.
+        _log.warning("summary_recovery_stats_unavailable error_type=%s", type(exc).__name__)
+    for r in rows:
         bucket = out.setdefault(  # 미등록 queue 값(구버전 잔재)도 은폐하지 않고 노출
             r["queue"], {"ready": 0, "running": 0, "dead": 0, "oldest_dead_age_s": None}
         )

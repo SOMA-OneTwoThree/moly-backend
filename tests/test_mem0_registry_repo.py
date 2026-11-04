@@ -40,6 +40,8 @@ class _Session:
             return _Res([(self.revision, self.epoch)])
         if s == str(repo._APPLY):
             return _Res([(params["id"],)] if self.applied else [])
+        if s == str(repo._LOCK_COMPAT_SUMMARY):
+            return _Res([])  # Original fixtures represent users without a baseline.
         if s == str(repo._PENDING) or s == str(repo._COMPARISON_POOL):
             return _Res([])
         raise AssertionError(f"모르는 문장: {s[:60]}")

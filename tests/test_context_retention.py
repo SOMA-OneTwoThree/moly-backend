@@ -301,6 +301,8 @@ async def test_global_enable_or_current_generation_history_preserves_compatibili
 
 async def test_pending_correction_backlog_cannot_hide_unread_sources():
     class Session:
+        async def get(self, *args):
+            return None
         async def execute(self, statement, params):
             return Rows([(1, "ordinary"*3_000)])
     with pytest.raises(retention.RetentionError, match="correction_processing_backlog"):
@@ -314,6 +316,8 @@ async def test_pending_correction_row_count_is_pagination_not_a_conversation_cap
         history[-1] = (500, "금요일 아니고 토요일")
     cursors = []
     class Session:
+        async def get(self, *args):
+            return None
         async def execute(self, statement, params):
             cursors.append(params["after_id"])
             return Rows([row for row in history if row[0]>params["after_id"]][:params["page_size"]])
@@ -339,7 +343,7 @@ async def test_required_fact_is_source_validated_without_vector_search():
             if statement is retention._REQUIRED:
                 return Rows([(rid, fact, 1, candidate_hash(fact))])
             return Rows([(rid, 1, "user", "explicit_user", 0, len(body.encode()),
-                          hashlib.sha256(body.encode()).hexdigest(), body, "normal")])
+                          hashlib.sha256(body.encode()).hexdigest(), body, "normal", "user")])
     assert fact == await retention.load_required_facts(Session(), user_id=uuid.uuid4(), generation=0)
 
 
@@ -350,13 +354,15 @@ async def test_required_fact_with_changed_source_is_not_silently_dropped():
         async def execute(self, statement, params):
             if statement is retention._REQUIRED:
                 return Rows([(rid, "fact", 1, candidate_hash("fact"))])
-            return Rows([(rid, 1, "user", "explicit_user", 0, 1, "a"*64, "changed", "normal")])
+            return Rows([(rid, 1, "user", "explicit_user", 0, 1, "a"*64, "changed", "normal", "user")])
     with pytest.raises(retention.RetentionError, match="required_source_changed"):
         await retention.load_required_facts(Session(), user_id=uuid.uuid4(), generation=0)
 
 
 async def test_safety_only_coverage_does_not_wait_for_unneeded_fact_pipeline():
     class Session:
+        async def get(self, *args):
+            return None
         async def execute(self, statement, params):
             return Rows([(2, 0, 0, None, None, None, 0, 0, 0, False, False)])
     assert await retention.processing_complete(Session(), user_id=uuid.uuid4(), generation=2, through_id=99)
@@ -367,6 +373,8 @@ async def test_processed_cursor_cannot_hide_pending_candidates_or_unverified_fac
     row = [0, 0, 100, "v2", "ready", 10, 100, 10, 0, False, False]
     row[pending_index] = True
     class Session:
+        async def get(self, *args):
+            return None
         async def execute(self, statement, params):
             return Rows([tuple(row)])
     assert not await retention.processing_complete(Session(), user_id=uuid.uuid4(), generation=0, through_id=100)

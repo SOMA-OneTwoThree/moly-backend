@@ -374,6 +374,8 @@ CREATE TABLE public.chat_contexts (
     checkpoint_job_id uuid,
     checkpoint_source_hash text,
     contract_processed_through_message_id bigint DEFAULT 0 NOT NULL,
+    retention_compat_json jsonb,
+    retention_compat_summary_invalidated_revision bigint,
     contract_generation bigint DEFAULT 0 NOT NULL,
     retention_pressure_through_message_id bigint,
     CONSTRAINT chat_contexts_retention_pressure_positive_check CHECK (((retention_pressure_through_message_id IS NULL) OR (retention_pressure_through_message_id > 0))),
@@ -1257,6 +1259,7 @@ CREATE TABLE public.user_interaction_contracts (
     source_watermark bigint,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     published_at timestamp with time zone,
+    validation_json jsonb,
     CONSTRAINT user_interaction_contracts_status_check CHECK ((status = ANY (ARRAY['draft'::text, 'published'::text, 'superseded'::text, 'rejected'::text]))),
     CONSTRAINT user_interaction_contracts_version_check CHECK ((version > 0))
 );

@@ -18,7 +18,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.message import SUMMARY_EXCLUDED_MESSAGE_KINDS
-from app.services import memory, naming, retention_release
+from app.services import context_compat, memory, naming, retention_release
 from app.config import settings
 
 STATE_SCHEMA = "conversation-progress-v1"
@@ -460,7 +460,7 @@ ORDER BY r.id LIMIT 257
 
 _REQUIRED_SOURCES = text("""
 SELECT s.registry_id,s.source_message_id,s.source_sender,s.authority,
-       s.evidence_start_utf8,s.evidence_end_utf8,s.source_content_hash,m.content,m.kind
+       s.evidence_start_utf8,s.evidence_end_utf8,s.source_content_hash,m.content,m.kind,m.sender
 FROM mem0_memory_sources s
 JOIN messages m ON m.id=s.source_message_id AND m.user_id=s.user_id
 WHERE s.user_id=:user_id AND s.registry_id=ANY(CAST(:ids AS uuid[]))
@@ -468,12 +468,59 @@ ORDER BY s.registry_id,s.source_message_id,s.evidence_start_utf8
 """)
 
 
+_REQUIRED_LEGACY_CANONICAL = text("""
+SELECT r.id,r.content_hash,
+ ARRAY(SELECT c.candidate_text FROM mem0_ingest_candidates c
+       WHERE c.user_id=r.user_id AND c.provider_memory_id=r.provider_memory_id
+         AND c.candidate_hash=r.content_hash AND c.status='committed') AS candidates,
+ v.metadata->>'user_id' AS vector_owner,v.metadata->>'data' AS vector_data,
+ v.metadata->>'text' AS vector_text
+FROM mem0_memory_registry r
+LEFT JOIN vecs.moly_memories_v2 v ON v.id=r.provider_memory_id::text
+WHERE r.user_id=:user_id AND r.id=ANY(CAST(:ids AS uuid[]))
+ AND r.collection_version='v2' AND r.semantic_status='active'
+ AND r.provider_delete_state='kept' AND r.canonical_text IS NULL
+ AND r.duplicate_of_registry_id IS NULL AND r.superseded_by_registry_id IS NULL
+""")
+
+
+async def _required_legacy_texts(session, *, user_id, rows, canonical_overrides):
+    from app.services import provided_memory
+    identities = [row[0] for row in rows]
+    try:
+        overrides = provided_memory._overrides(canonical_overrides, set(identities))
+        missing = [row[0] for row in rows if row[1] is None and row[0] not in overrides]
+        if missing:
+            available = (await session.execute(_REQUIRED_LEGACY_CANONICAL,
+                {"user_id": user_id, "ids": missing})).all()
+            for identity, digest, candidates, owner, data, body in available:
+                values = list(candidates or ())
+                if owner == str(user_id):
+                    values.extend((data, body))
+                approved = set()
+                for value in values:
+                    try:
+                        approved.add(provided_memory.certified_legacy_text(value, digest))
+                    except provided_memory.ProvidedMemoryError:
+                        continue
+                if len(approved) != 1:
+                    raise RetentionError("required_legacy_unproved")
+                overrides[identity] = next(iter(approved))
+        return {row[0]: (provided_memory.certified_legacy_text(overrides.get(row[0]), row[3])
+                if row[1] is None else row[1]) for row in rows}
+    except provided_memory.ProvidedMemoryError as exc:
+        raise RetentionError("required_legacy_unproved") from exc
+
+
 async def load_required_facts(session: AsyncSession, *, user_id: uuid.UUID | str,
-                              generation: int, referenced_ids: Sequence[uuid.UUID | str] = ()) -> str:
-    """필수 사실은 벡터 검색 없이 읽는다. 조회 실패를 빈 기억으로 바꾸지 않는다."""
+                              generation: int, referenced_ids: Sequence[uuid.UUID | str] = (),
+                              canonical_overrides=None) -> str:
+    """필수 사실을 exact subset으로 읽는다. NULL legacy는 자료만 인증하며 쓰지 않는다."""
+    if type(generation) is not int or generation < 0:
+        raise RetentionError("required_generation")
     try:
         references = [uuid.UUID(str(value)) for value in referenced_ids]
-    except ValueError as exc:
+    except (ValueError, TypeError, AttributeError) as exc:
         raise RetentionError("required_reference_id") from exc
     if len(references) > 256:
         raise RetentionError("required_facts_budget")
@@ -482,6 +529,8 @@ async def load_required_facts(session: AsyncSession, *, user_id: uuid.UUID | str
     })).all()
     if len(rows) > 256:
         raise RetentionError("required_facts_budget")
+    texts = await _required_legacy_texts(session, user_id=user_id, rows=rows,
+        canonical_overrides=canonical_overrides) if rows else {}
     if rows:
         from app.services.mem0_ingest import candidate_hash
         source_rows = (await session.execute(_REQUIRED_SOURCES, {
@@ -489,19 +538,24 @@ async def load_required_facts(session: AsyncSession, *, user_id: uuid.UUID | str
         })).all()
         verified = set()
         for source in source_rows:
-            if source[8] != "normal" or source[2] != "user" or source[3] not in {"explicit_user", "confirmed_user"}:
+            if (source[8] != "normal" or source[2] != "user" or source[9] != "user"
+                    or source[3] not in {"explicit_user", "confirmed_user"}):
                 raise RetentionError("required_source_excluded")
             data = memory.sanitize_text(source[7] or "").encode("utf-8")
             start, end = source[4], source[5]
-            if not 0 <= start < end <= len(data):
+            if type(start) is not int or type(end) is not int or not 0 <= start < end <= len(data):
                 raise RetentionError("required_source_span")
+            try:
+                data[start:end].decode("utf-8")
+            except UnicodeDecodeError as exc:
+                raise RetentionError("required_source_utf8") from exc
             if hashlib.sha256(data[start:end]).hexdigest() != source[6]:
                 raise RetentionError("required_source_changed")
             verified.add(source[0])
         for row in rows:
-            if row[0] not in verified or not row[1] or candidate_hash(row[1]) != row[3]:
+            if row[0] not in verified or not texts[row[0]] or candidate_hash(texts[row[0]]) != row[3]:
                 raise RetentionError("required_fact_unverified")
-    rendered = "\n".join(memory.sanitize_text(row[1]) for row in rows)
+    rendered = "\n".join(memory.sanitize_text(texts[row[0]]) for row in rows)
     if token_upper_bound(rendered) > 2_048:
         raise RetentionError("required_facts_budget")
     return rendered
@@ -510,17 +564,18 @@ async def load_required_facts(session: AsyncSession, *, user_id: uuid.UUID | str
 _COVERAGE = text("""
 WITH normal_source AS (
   SELECT COALESCE(max(id),0) AS last_id, COALESCE(max(turn_seq),0) AS last_turn,
+         COALESCE(min(turn_seq),9223372036854775807) AS first_turn,
          count(*) FILTER (WHERE sender='user' AND turn_seq IS NULL) AS unsequenced
-  FROM messages WHERE user_id=:user_id AND id<=:through_id AND kind='normal'
+  FROM messages WHERE user_id=:user_id AND id>:after_id AND id<=:through_id AND kind='normal'
 )
 SELECT cc.memory_generation, cc.contract_generation,
        cc.contract_processed_through_message_id,
        p.mode, p.bootstrap_status, p.consolidated_through_turn_seq,
        n.last_id, n.last_turn, n.unsequenced,
        EXISTS (SELECT 1 FROM mem0_ingest_candidates c
-               WHERE c.user_id=cc.user_id AND c.turn_seq<=n.last_turn AND c.status='planned'),
+               WHERE c.user_id=cc.user_id AND c.turn_seq BETWEEN n.first_turn AND n.last_turn AND c.status='planned'),
        EXISTS (SELECT 1 FROM mem0_memory_registry r
-               WHERE r.user_id=cc.user_id AND r.source_turn_seq<=n.last_turn
+               WHERE r.user_id=cc.user_id AND r.source_turn_seq BETWEEN n.first_turn AND n.last_turn
                  AND (r.semantic_status='pending' OR
                      (r.semantic_status='active' AND r.canonical_text IS NULL)))
 FROM chat_contexts cc
@@ -560,7 +615,8 @@ MAX_CORRECTION_SOURCE_BYTES = 16_384
 
 def correction_candidate(value: str) -> bool:
     """명시 정정 후보의 보수적 차단용 단서. 의미 추출이나 사실 변경을 하지 않는다."""
-    return bool(_CORRECTION.search(value or ""))
+    from app.services.mem0_ingest import mentions_forget_request
+    return bool(_CORRECTION.search(value or "")) or mentions_forget_request(value)
 
 
 async def pending_correction(session: AsyncSession, *, user_id: uuid.UUID | str,
@@ -569,13 +625,23 @@ async def pending_correction(session: AsyncSession, *, user_id: uuid.UUID | str,
         return True
     pending_sql = _PENDING_CORRECTIONS
     pending_params = {}
+    baseline = None
     if retention_release.binding() is not None:
         pending_params["contract_through"] = await retention_release.contract_cursor(
             session, user_id=user_id, generation=generation)
         pending_sql = text(str(pending_sql).replace(
             "m.id>cc.contract_processed_through_message_id\n       OR cc.contract_generation<>cc.memory_generation",
             "m.id>:contract_through"))
-    after_id = 0
+    else:
+        baseline = await context_compat.load(session, user_id, generation)
+        if baseline is not None:
+            from app.services import contract_repo
+            pending_params['contract_through'] = await contract_repo.effective_contract_cursor(
+                session, user_id=user_id, generation=generation, compat_baseline=baseline)
+            pending_sql = text(str(pending_sql).replace(
+                "m.id>cc.contract_processed_through_message_id\n       OR cc.contract_generation<>cc.memory_generation",
+                "m.id>:contract_through"))
+    after_id = baseline.source_after if baseline is not None else 0
     source_bytes = 0
     while True:
         rows = (await session.execute(retention_release.checkpoint_sql(pending_sql), retention_release.params({**pending_params,
@@ -660,7 +726,7 @@ async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UU
                                       generation: int, through_id: int, privacy_epoch: int | None = None,
                                       config: dict | None = None):
     """현재 턴과 같은 커밋에서 명시 선호/정정의 기존 계약 작업을 예약한다."""
-    from app.services import jobs
+    from app.services import contract_repo, jobs
     if (retention_release.binding() is None and config is not None
             and config.get("context_retention_active_preparation") is not None):
         # A new child plan captures current publication identity explicitly;
@@ -675,12 +741,13 @@ async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UU
         return None
     if retention_release.binding() is not None:
         cursor = await retention_release.contract_cursor(session, user_id=user_id, generation=generation)
+        baseline = None
     else:
-        cursor = await session.scalar(text("""
-          SELECT CASE WHEN contract_generation=memory_generation THEN contract_processed_through_message_id
-                      ELSE 0 END FROM chat_contexts
-          WHERE user_id=:user_id AND memory_generation=:generation
-        """), {"user_id": user_id, "generation": generation})
+        baseline = await context_compat.load(session, user_id, generation)
+        if baseline is None and (await session.scalar(_ADOPTED_USER, {"user_id": user_id})) is not True:
+            return None  # First real request captures its visible suffix; never scan inactive history.
+        cursor = await contract_repo.effective_contract_cursor(session, user_id=user_id,
+            generation=generation, compat_baseline=baseline)
     if cursor is None or int(cursor) >= through_id:
         return None
     params = {"user_id": user_id, "generation": generation, "through_id": through_id,
@@ -695,9 +762,14 @@ async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UU
     if existing is None and latest_terminal is None:
         payload = {"retention_enabled": True, "memory_generation": generation,
                    "through_message_id": through_id, "after_message_id": int(cursor), "privacy_epoch": epoch}
+        if baseline is not None:
+            payload['baseline_binding'] = baseline.payload()
         key = params["dedup_key"]
     else:
-        terminal = (await session.execute(retention_release.job_sql(text(str(_CONTRACT_UNPROCESSED_TERMINAL).replace("AND (CASE WHEN cc.contract_generation=cc.memory_generation\n           THEN cc.contract_processed_through_message_id ELSE 0 END)=:cursor", "")) if retention_release.binding() is not None else _CONTRACT_UNPROCESSED_TERMINAL), retention_release.params(params))).first()
+        terminal_sql = _CONTRACT_UNPROCESSED_TERMINAL
+        if retention_release.binding() is not None or baseline is not None:
+            terminal_sql = text(str(terminal_sql).replace("AND (CASE WHEN cc.contract_generation=cc.memory_generation\n           THEN cc.contract_processed_through_message_id ELSE 0 END)=:cursor", ""))
+        terminal = (await session.execute(retention_release.job_sql(terminal_sql), retention_release.params(params))).first()
         if terminal is None:
             return None
         payload = terminal[1] if isinstance(terminal[1], dict) else json.loads(terminal[1])
@@ -707,6 +779,8 @@ async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UU
             raise RetentionError("contract_resume_plan_changed")
         if payload.get("privacy_epoch") != epoch or type(payload.get("privacy_epoch")) is not int:
             return None  # Old/unbound or stale work cannot adopt a fresh privacy epoch.
+        if payload.get('baseline_binding') != (baseline.payload() if baseline is not None else None):
+            return None  # Never rebind a partial plan to a new visible boundary.
         payload = {**payload, "after_message_id": int(cursor)}
         key = f"contract-retention-resume:{terminal[0]}"
     return await jobs.enqueue(session, queue=jobs.QUEUE_MEMORY, job_type="contract_compile",
@@ -716,13 +790,22 @@ async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UU
 async def processing_complete(session: AsyncSession, *, user_id: uuid.UUID | str,
                               generation: int, through_id: int) -> bool:
     """이 범위의 실제 사실·선호 완료와 정책 제외를 함께 확인한다."""
+    baseline = (await context_compat.load(session, user_id, generation)
+                if retention_release.binding() is None else None)
     row = (await session.execute(_COVERAGE, {
         "user_id": user_id, "generation": generation, "through_id": through_id,
+        "after_id": baseline.source_after if baseline is not None else 0,
     })).first()
     if row is not None and retention_release.binding() is not None:
         row = list(row)
         row[1] = generation
         row[2] = await retention_release.contract_cursor(session, user_id=user_id, generation=generation)
+    elif row is not None and baseline is not None:
+        from app.services import contract_repo
+        row = list(row)
+        row[1] = generation
+        row[2] = await contract_repo.effective_contract_cursor(session, user_id=user_id,
+            generation=generation, compat_baseline=baseline)
     if row is None or int(row[0]) != generation:
         return False
     if int(row[6]) == 0:  # safety/운세 등 정책 제외만 있는 범위

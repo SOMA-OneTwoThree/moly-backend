@@ -100,6 +100,9 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
         events.append((session.name, "latest"))
         return checkpoint_value
 
+    async def no_compat_baseline(*args, **kwargs):
+        return None
+
     async def load_range(session, user_id, **kwargs):
         assert user_id == uid and kwargs["include_excluded"] is True
         events.append((session.name, "source_page"))
@@ -141,6 +144,7 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
     monkeypatch.setattr(sweep, "get_sessionmaker", lambda: factory)
     monkeypatch.setattr(sweep, "_retention_enabled", flag)
     monkeypatch.setattr(sweep.checkpoint_repo, "load_latest", load_latest)
+    monkeypatch.setattr(sweep.checkpoint_repo, "load_compat_baseline", no_compat_baseline)
     monkeypatch.setattr(sweep.checkpoint_repo, "load_range", load_range)
     monkeypatch.setattr(sweep.checkpoint_repo, "maybe_enqueue", enqueue)
     monkeypatch.setattr(sweep.jobs, "replay_dead", replay)

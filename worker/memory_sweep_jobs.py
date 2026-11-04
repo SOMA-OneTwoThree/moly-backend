@@ -74,6 +74,8 @@ LEFT JOIN LATERAL (
   ORDER BY c.through_message_id DESC,c.created_at DESC,c.id DESC LIMIT 1
 ) latest ON true
 WHERE (CAST(:cursor AS uuid) IS NULL OR cc.user_id>CAST(:cursor AS uuid))
+AND (CAST(:allow_unbound AS boolean) OR cc.retention_compat_json IS NOT NULL
+     OR latest.through_message_id IS NOT NULL)
 AND NOT EXISTS (
   SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=cc.user_id AND b.state<>'active'
 )
@@ -89,19 +91,19 @@ AND (
   (cc.pending_anchor_message_id IS NOT NULL AND (
     NOT EXISTS (
       SELECT 1 FROM messages pending_message WHERE pending_message.user_id=cc.user_id
-        AND pending_message.id>COALESCE(latest.through_message_id,0)
+        AND pending_message.id>COALESCE(latest.through_message_id,CASE WHEN CAST(:allow_unbound AS boolean) THEN 0 ELSE (cc.retention_compat_json->>'source_after')::bigint END,0)
         AND pending_message.id<cc.pending_anchor_message_id
     )
     OR COALESCE((
       SELECT sum(octet_length(COALESCE(pending_message.content,''))+24)
       FROM messages pending_message WHERE pending_message.user_id=cc.user_id
-        AND pending_message.id>COALESCE(latest.through_message_id,0)
+        AND pending_message.id>COALESCE(latest.through_message_id,CASE WHEN CAST(:allow_unbound AS boolean) THEN 0 ELSE (cc.retention_compat_json->>'source_after')::bigint END,0)
         AND pending_message.id<cc.pending_anchor_message_id
     ),0)>=1024
   ))
   OR EXISTS (
     SELECT 1 FROM messages m
-    WHERE m.user_id=cc.user_id AND m.id>COALESCE(latest.through_message_id,0)
+    WHERE m.user_id=cc.user_id AND m.id>COALESCE(latest.through_message_id,CASE WHEN CAST(:allow_unbound AS boolean) THEN 0 ELSE (cc.retention_compat_json->>'source_after')::bigint END,0)
     GROUP BY m.user_id HAVING sum(octet_length(COALESCE(m.content,''))+24)>=4096
   )
 )
@@ -233,6 +235,9 @@ async def _resume_unpublished_success(session, *, user_id, generation, plan, pre
     if not await context_retention.privacy_epoch_matches(session, user_id=user_id,
                                                         privacy_epoch=payload.get("privacy_epoch")):
         return None
+    if not await checkpoint_repo.compat_binding_matches(session, user_id=user_id,
+            generation=generation, binding=payload.get("baseline_binding")):
+        return None
     # SQL의 상태 조건과 별개로 원본 범위/부모 계약을 모두 비교한다.
     if any(payload.get(key) != value for key, value in plan.payload().items() if key != "reason"):
         raise context_retention.RetentionError("checkpoint_resume_plan_changed")
@@ -247,6 +252,7 @@ async def _resume_unpublished_success(session, *, user_id, generation, plan, pre
             raise context_retention.RetentionError("checkpoint_resume_progress")
         await context_retention.validate_progress_sources(session, user_id=user_id,
             state=payload["progress_state"])
+        checkpoint_repo.validate_compat_state(payload["progress_state"], payload.get("baseline_binding"))
     return await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
         job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=user_id,
         dedup_key=f"checkpoint-resume:{row[0]}", payload=payload,
@@ -347,11 +353,13 @@ async def _resume_retention_checkpoints_bound() -> RetentionResumeResult:
             if not await _retention_enabled(session):
                 return RetentionResumeResult()
             cursor = await _read_resume_cursor(session)
+            allow_unbound = retention_release.binding() is not None
             candidates = list((await retention_release.execute(session, _RETENTION_RESUME_USERS,
-                {"limit": SWEEP_LIMIT, "cursor": cursor})).all())
+                {"limit": SWEEP_LIMIT, "cursor": cursor, "allow_unbound": allow_unbound})).all())
             if cursor is not None and len(candidates)<SWEEP_LIMIT:
                 candidates.extend((await retention_release.execute(session, _RETENTION_RESUME_WRAP,
-                    {"limit": SWEEP_LIMIT-len(candidates), "cursor": cursor})).all())
+                    {"limit": SWEEP_LIMIT-len(candidates), "cursor": cursor,
+                     "allow_unbound": allow_unbound})).all())
     except Exception as exc:
         _log.warning("후속 요약 예약 점검 실패 error=%s", type(exc).__name__)
         return RetentionResumeResult(blocked=1)
@@ -376,7 +384,13 @@ async def _resume_retention_checkpoints_bound() -> RetentionResumeResult:
                 if state is None:
                     continue
                 previous = await checkpoint_repo.load_latest(session, user_id, retention_enabled=True)
-                through = previous.through_message_id if previous else 0
+                baseline = await checkpoint_repo.load_compat_baseline(session,
+                    user_id=user_id, generation=int(generation))
+                if baseline is None and previous is None and retention_release.binding() is None:
+                    # A background sweep may not enroll historical users. The
+                    # first ordinary request captures its own immutable suffix.
+                    continue
+                through = previous.through_message_id if previous else baseline.source_after if baseline else 0
                 target, latest_id = state[1], state[4]
                 pressure_target = state[5] if len(state)>5 else None
                 if pressure_target is not None and through>=pressure_target:
@@ -417,6 +431,7 @@ async def _resume_retention_checkpoints_bound() -> RetentionResumeResult:
                     version=checkpoint.RETENTION_SUMMARIZER_VERSION,
                     through_message_id=messages[-1].id if pressure_target is not None else None,
                     reason="input_pressure" if pressure_target is not None else None,
+                    baseline_binding=baseline.payload() if baseline else None,
                     **({"preparation_id": retention_release.binding().preparation_id}
                        if retention_release.binding() is not None else {}),
                 )

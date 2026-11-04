@@ -20,7 +20,7 @@ from sqlalchemy import text
 from app.config import settings
 from app.core.db import get_sessionmaker
 from app.services import contract_compiler as cc
-from app.services import contract_repo, retention_release
+from app.services import contract_repo, retention_release, context_compat
 from app.services import interaction_contract as ic
 from app.services import llm, usage_ledger, context_retention, checkpoint
 from app.services.jobs import ClaimedJob
@@ -420,8 +420,8 @@ WHERE user_id=:user_id AND memory_generation=:generation
 """)
 _RETENTION_INSERT = text("""
 INSERT INTO user_interaction_contracts
- (user_id,version,locale,document_json,rendered_text,render_hash,status,source_watermark)
-VALUES (:user_id,:version,:locale,CAST(:doc AS jsonb),:rendered,:hash,'draft',:through)
+ (user_id,version,locale,document_json,rendered_text,render_hash,status,source_watermark,validation_json)
+VALUES (:user_id,:version,:locale,CAST(:doc AS jsonb),:rendered,:hash,'draft',:through,CAST(:validation AS jsonb))
 RETURNING id
 """)
 
@@ -472,7 +472,21 @@ def merge_retained_items(previous: list[dict], candidates: list[cc.Candidate],
             old = items.get(old_key)
             if old is None or old.get("scope") != candidate.scope or old.get("kind") != item["kind"]:
                 raise cc.CompilerRejection("정정할 기존 선호의 범위가 맞지 않는다")
-            del items[old_key]
+            if old.get("_compat_legacy"):
+                old["status"] = "ended"
+                old["_compat_projection"] = {"op": "replace", "legacy_item": {key: value for key, value in old.items() if key not in {"status", "_compat_projection"}}, "replacement_key": item["item_key"],
+                    "replacement": dict(item), "reference": {key: item[key] for key in
+                        ("source_message_id", "source_hash", "start_utf8", "end_utf8")}}
+            else:
+                del items[old_key]
+        # Repeating an identical legacy directive does not create two prompt entries.
+        for old in items.values():
+            if (old.get("_compat_legacy") and old.get("status") == "active"
+                    and contract_repo.directive_from_item(old) == candidate.directive):
+                old["status"] = "ended"
+                old["_compat_projection"] = {"op": "replace", "legacy_item": {key: value for key, value in old.items() if key not in {"status", "_compat_projection"}}, "replacement_key": item["item_key"],
+                    "replacement": dict(item), "reference": {key: item[key] for key in
+                        ("source_message_id", "source_hash", "start_utf8", "end_utf8")}}
         items[item["item_key"]] = item
     return [items[key] for key in sorted(items)]
 
@@ -538,10 +552,17 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             raise JobCancelled("contract_retention_disabled")
         if not await context_retention.adopted_user(session, user_id=uid):
             raise JobCancelled("contract_retention_not_adopted")
+        baseline = await context_compat.load(session, uid, generation)
+        if ((baseline is None and payload.get("baseline_binding") is not None)
+                or (baseline is not None and (payload.get("baseline_binding") != baseline.payload()
+                    or baseline.privacy_epoch != privacy_epoch))):
+            raise JobCancelled("contract_compat_baseline_changed")
         base = await _retention_state(session, uid, generation)
         if base is None or int(base[0]) != generation:
             raise JobCancelled("stale_contract_generation")
         cursor = int(base[2]) if int(base[1]) == generation else 0
+        if baseline is not None:
+            cursor = max(cursor, baseline.source_after, baseline.legacy_contract_after)
         if cursor >= target:
             return JobResult(result_code="already_processed")
         rows = (await session.execute(_RETENTION_MESSAGES, {
@@ -550,7 +571,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         profile = (await session.execute(_PROFILE, {"user_id": uid})).first()
         if profile is None:
             raise JobCancelled("user_deleted")
-        previous = await contract_repo.retained_document(session, user_id=uid, generation=generation)
+        previous = await contract_repo.retained_document(session, user_id=uid, generation=generation, compat_baseline=baseline)
         working = previous
         partial_id, partial_offset = payload.get("partial_message_id"), payload.get("partial_offset", 0)
         if partial_id is not None:
@@ -560,7 +581,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
                     or ic.document_hash(json.dumps(previous, ensure_ascii=False, sort_keys=True)) != payload.get("partial_document_hash")):
                 raise JobCancelled("contract_partial_source_changed")
             working = await contract_repo.validate_retained_items(session, user_id=uid,
-                generation=generation, items=contract_repo.decode_document(payload.get("partial_items")))
+                generation=generation, items=contract_repo.decode_document(payload.get("partial_items")), compat_baseline=baseline)
             await contract_repo.validate_retained_items(session, user_id=uid, generation=generation,
                 items=contract_repo.decode_document(payload.get("partial_drafts", [])))
     locale = i18n.resolve(profile[1])
@@ -633,6 +654,8 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             ordinary = sorted([*ordinary, *supplementary],
                               key=lambda candidate: (candidate.source_message_id, candidate.operation == "end"))
             merged = merge_retained_items(working, ordinary, generation=generation)
+            if baseline is not None:
+                merged = contract_repo.apply_legacy_ends(merged, selected)
             active = contract_repo.active_retained_items(merged,
                 activity_date=selected[-1].activity_date if selected else None)
             rendered = ic.render_document([contract_repo.directive_from_item(item) for item in active],
@@ -650,6 +673,9 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             return
         if not await context_retention.adopted_user(session, user_id=uid, lock=True):
             return
+        current_baseline = await context_compat.load(session, uid, generation)
+        if current_baseline != baseline:
+            return
         fresh = await _retention_state(session, uid, generation, lock=True)
         if fresh is None or int(fresh[0]) != generation:
             return
@@ -658,6 +684,8 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             from app.services import jobs
             restart_payload = {"retention_enabled": True, "memory_generation": generation,
                                "through_message_id": target, "privacy_epoch": privacy_epoch}
+            if baseline is not None:
+                restart_payload["baseline_binding"] = baseline.payload()
             if fallback_planner or output_fallback:
                 restart_payload["adaptive_output_fallback"] = True
                 restart_payload["adaptive_output_attempts_remaining"] = fallback_available
@@ -678,7 +706,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         if [tuple(row) for row in current] != [tuple(row) for row in rows]:
             await restart_current()
             return
-        latest_previous = await contract_repo.retained_document(session, user_id=uid, generation=generation)
+        latest_previous = await contract_repo.retained_document(session, user_id=uid, generation=generation, compat_baseline=baseline)
         if latest_previous != previous:
             await restart_current()
             return
@@ -714,18 +742,23 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
                 through=boundary, draft_items=draft_items, after=cursor,
                 source_rows=[row for row in current if cursor < row[0] <= boundary])
         else:
-            for items, text_render, publish in ((merged, rendered, True),
+            stored_items, validation = (contract_repo.compatibility_metadata(merged, baseline,
+                after=cursor, through=boundary,
+                source_rows=[row for row in current if cursor < row[0] <= boundary])
+                if baseline is not None else (merged, None))
+            for items, text_render, publish in ((stored_items, rendered, True),
                     (draft_items, "", False)):
-                if not items:
+                if not items and not (publish and baseline is not None):
                     continue
                 doc = json.dumps(items, ensure_ascii=False, sort_keys=True)
                 digest = ic.document_hash(doc)
-                if publish and await contract_repo.has_same_document(session, user_id=uid, document_hash=digest):
+                if publish and baseline is None and await contract_repo.has_same_document(session, user_id=uid, document_hash=digest):
                     continue
                 version = int(await session.scalar(_NEXT_VERSION, {"user_id": uid, "locale": locale}))
                 cid = await session.scalar(_RETENTION_INSERT, {
                     "user_id": uid, "version": version, "locale": locale, "doc": doc,
                     "rendered": text_render, "hash": digest, "through": boundary,
+                    "validation": json.dumps(validation, ensure_ascii=False, default=str) if publish and validation is not None else None,
                 })
                 for item in items:
                     directive = contract_repo.directive_from_item(item)

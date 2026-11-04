@@ -39,6 +39,7 @@ from app.services import (
     checkpoint_repo,
     config_store,
     context_safety,
+    context_compat,
     context_retention,
     crisis_guard,
     crisis_chat,
@@ -310,6 +311,8 @@ async def _context(
     memory_generation: int = 0,
     coverage: VerifiedCoverage | None = None,
     normal_generation_projection: bool = False,
+    legacy_source_after: int = 0,
+    legacy_projection: bool = False,
 ) -> ContextWindow:
     """Build a bounded window without removing an uncheckpointed head at normal resets.
 
@@ -337,7 +340,8 @@ async def _context(
         # An integer boundary alone never authorizes a sticky reader to omit raw.
         checkpoint_through = coverage.through_message_id if coverage is not None else None
         # Page rather than treating the row safety limit as a context boundary.
-        raw_anchor = checkpoint_through + 1 if checkpoint_through is not None else 0
+        raw_anchor = max(legacy_source_after + 1,
+                         checkpoint_through + 1 if checkpoint_through is not None else 0)
         descending = []
         before_id = None
         while True:
@@ -376,6 +380,7 @@ async def _context(
             # remove the latest exact conversation. Keep a protected recent tail.
             covered = (await session.execute(select(Message).where(
                 Message.user_id == uid, Message.id <= checkpoint_through,
+                Message.id > legacy_source_after,
             ).order_by(Message.id.desc()).limit(120))).scalars().all()
             candidates = sorted({m.id: m for m in [*covered, *rows]}.values(), key=lambda m: m.id)
             protected = checkpoint.keep_tail(candidates, retention_enabled=True)
@@ -426,6 +431,14 @@ async def _context(
     # must also precede leading-assistant extraction to prevent a system bypass.
     projection = [m for m in rows if not normal_generation_projection
                   or m.kind not in crisis_guard.SAFETY_KINDS]
+    if retention_enabled and legacy_projection:
+        projected = context_safety.compact_legacy_context([
+            context_safety.ContextEntry('assistant' if m.sender == 'moly' else 'user', m.content,
+                m.activity_date, getattr(m, 'created_at', None),
+                SourceRef.from_message(m, user_id=uid, generation=memory_generation))
+            for m in projection], current_text=current_text, current_date=current_date, language=language)
+        surviving = {entry.source_ref.message_id for entry in projected.entries}
+        projection = [m for m in projection if m.id in surviving]
     convo = [
         {"role": "assistant" if m.sender == "moly" else "user", "content": m.content}
         for m in projection
@@ -555,6 +568,55 @@ def _recall_adapter():
     return _mem0_recall_adapter
 
 
+async def prepare_recall_clients() -> None:
+    """Construct local SDK/vector objects before accepting requests. No I/O.
+
+    Neither embeddings.create, SQL connect nor a vector operation is called.
+    Join the initialization thread even when startup is cancelled, so a lazy
+    request cannot race an abandoned constructor. Shared clients keep their
+    existing process lifetime and the per-request recall budget stays unchanged.
+    """
+    if not settings.openai_api_key:
+        return
+
+    def initialize():
+        def embedding_resource():
+            client = llm._get_openai_client()
+            return client.embeddings
+
+        outcomes = []
+        for component, factory in (
+            ('openai_embedding', embedding_resource),
+            ('vector_index', lambda: _recall_adapter()._col()),
+        ):
+            started = time.monotonic()
+            failure = None
+            try:
+                factory()
+            except Exception as error:
+                failure = type(error).__name__
+            outcomes.append((component, time.monotonic() - started, failure))
+        return outcomes
+
+    pending = asyncio.create_task(asyncio.to_thread(initialize))
+    cancelled = False
+    while not pending.done():
+        try:
+            await asyncio.shield(pending)
+        except asyncio.CancelledError:
+            cancelled = True
+    if cancelled:
+        if not pending.cancelled():
+            pending.exception()  # Consume a constructor failure before propagating cancellation.
+        raise asyncio.CancelledError
+    for component, elapsed, failure in pending.result():
+        try:
+            _log.info('context_recall_startup component=%s state=%s elapsed=%.3fs error_type=%s',
+                component, 'unavailable' if failure else 'ready', elapsed, failure or 'none')
+        except Exception:
+            pass  # Optional observation cannot change API readiness.
+
+
 async def _recall_memory_v2(
     user_id: uuid.UUID,
     *,
@@ -568,6 +630,7 @@ async def _recall_memory_v2(
     generation: int = 0,
     registry_snapshot: list[Any] | None = None,
     query_embedding_cache: dict | None = None,
+    mandatory_facts: str = "",
 ) -> str:
     """v2 기억 블록. **mode=v2가 아니면 빈 문자열**이라 프롬프트가 전환 전과 같다.
 
@@ -578,7 +641,7 @@ async def _recall_memory_v2(
     if not getattr(state, "serves_v2", False):
         return ""
     try:
-        from app.services import mem0_recall, memory_embeddings, provided_memory
+        from app.services import mem0_recall, memory, memory_embeddings, provided_memory
 
         from app.core.db import get_sessionmaker
 
@@ -621,24 +684,31 @@ async def _recall_memory_v2(
                     Mem0MemoryRegistry.collection_version == "v2",
                     Mem0MemoryRegistry.semantic_status == "active",
                     Mem0MemoryRegistry.provider_delete_state == "kept",
-                    Mem0MemoryRegistry.canonical_text.is_not(None),
                 ))).all()
                 verified = {str(row[1]): row for row in verified_rows}
-                if verified_rows:
-                    await context_retention.load_required_facts(
-                        s2, user_id=user_id, generation=generation,
-                        referenced_ids=tuple(row[0] for row in verified_rows),
-                    )
+                legacy_texts = {row[0]: item.text for item in items
+                    if (row := verified.get(item.provider_memory_id)) is not None and row[4] is None}
                 validated_items = []
                 for item in items:
                     row = verified.get(item.provider_memory_id)
                     if row is None or row[5] == "required":
                         continue
-                    validated_items.append(replace(item, text=row[4]))
+                    validated_items.append(replace(item, text=row[4] if row[4] is not None else item.text))
                 if validated_items:
+                    optional_ids = {verified[item.provider_memory_id][0] for item in validated_items}
                     proofs = await provided_memory.capture(s2, user_id=user_id, generation=generation,
-                        ids=tuple({verified[item.provider_memory_id][0] for item in validated_items}),
-                        language=language, today=today, tz_name=tz_name)
+                        ids=tuple(optional_ids),
+                        language=language, today=today, tz_name=tz_name,
+                        canonical_overrides={identity: body for identity, body in legacy_texts.items()
+                                             if identity in optional_ids})
+                    # Required facts were already certified in normal phase 1
+                    # and are checked again at publication. Optional capture
+                    # proves these exact hits and their sources more strictly;
+                    # do not fetch the same registry/evidence rows twice.
+                    combined = '\n'.join(filter(None, [mandatory_facts,
+                        *(memory.sanitize_text(proof.canonical_text) for proof in proofs)]))
+                    if context_retention.token_upper_bound(combined) > 2_048:
+                        raise provided_memory.ProvidedMemoryError('provided_memory_budget')
                     by_provider = {str(proof.provider_memory_id): proof for proof in proofs}
                     validated_items = [replace(item,
                         text=by_provider[item.provider_memory_id].canonical_text,
@@ -657,7 +727,8 @@ async def _recall_memory_v2(
     except Exception as error:  # noqa: BLE001  회상 때문에 대화가 죽으면 안 된다
         if registry_snapshot is not None:
             registry_snapshot.clear()
-        _log.warning("v2 회상 블록 생성 실패 error_type=%s", type(error).__name__)
+        _log.warning("v2 회상 블록 생성 실패 subject=%s error_type=%s",
+                     hashlib.sha256(str(user_id).encode()).hexdigest(), type(error).__name__)
         return _memory_unavailable_notice(language)
 
 
@@ -916,6 +987,7 @@ async def _record_memory_v2(
     activity_date: date,
     now: datetime,
     record_derived: bool = True,
+    compat_baseline=None,
 ) -> None:
     """v2 source 커서 전진 + 관계 event append. **legacy 사용자는 아무것도 하지 않는다.**
 
@@ -937,7 +1009,10 @@ async def _record_memory_v2(
         # 신규 가입자는 **여기서 처음 등록된다.** 이 경로가 없으면 그 사람은 평생 기억이
         # 0건이다 — 오류도 로그도 안 난다(2026-08-08 감사에서 발견. 전환 이후 가입한 52명이
         # 실제로 그 상태였고 그중 4명은 이미 대화까지 했다).
-        if not await memory_pipeline.enroll(session, uid):
+        enrollment = ({'source_after_message_id': compat_baseline.source_after,
+                       'privacy_epoch': compat_baseline.privacy_epoch}
+                      if compat_baseline is not None else {})
+        if not await memory_pipeline.enroll(session, uid, **enrollment):
             return
         state = await memory_pipeline.load(session, uid)
         _log.info("기억 파이프라인 신규 등록 — user=%s", uid)
@@ -1354,6 +1429,12 @@ async def _post_message_with_projection_scope(
         if isinstance(exc, ProvenanceError):
             raise errors.AppError("CHAT_TURN_STALE", 409,
                                   "대화 근거가 바뀌었어요. 새 요청으로 다시 시도해 주세요.") from exc
+        if isinstance(exc, context_compat.CompatibilityError):
+            _log.warning('context_compatibility_unavailable reason=%s', str(exc))
+            raise errors.ai_unavailable() from exc
+        if isinstance(exc, memory_pipeline.EnrollmentOriginError):
+            _log.warning('context_memory_origin_unavailable reason=%s', str(exc))
+            raise errors.ai_unavailable() from exc
         if isinstance(exc, TimeoutError) and owner.get("pressure_active"):
             raise errors.ai_unavailable() from exc
         raise
@@ -1495,10 +1576,16 @@ async def _post_message_impl(
     ctx = await session.get(ChatContext, uid)
     anchor = ctx.anchor_message_id if ctx is not None else 0
     memory_generation = (getattr(ctx, "memory_generation", 0) or 0) if ctx is not None else 0
-    if "context_retention_active_preparation" not in raw_cfg:
-        # Compatibility for already-published pre-release v5 records only.
-        retention_enabled = (retention_enabled
-                             or getattr(ctx, "retention_v5_adopted", False) is True)
+    # Turning off new processing cannot resurrect an invalidated legacy summary
+    # or forget a published v5 document. Data-format compatibility remains on.
+    prior_binding = getattr(ctx, 'retention_compat_json', None)
+    compatible_data = (isinstance(prior_binding, dict)
+        and prior_binding.get('schema') == context_compat.SCHEMA
+        and prior_binding.get('user_id') == str(uid)
+        and type(prior_binding.get('generation')) is int
+        and prior_binding.get('generation') == memory_generation)
+    retention_enabled = (retention_enabled or compatible_data
+                         or getattr(ctx, "retention_v5_adopted", False) is True)
     last_turn_at = getattr(ctx, "last_active_at", None)
     agent_cfg = await agent_config.effective_agent_config(session, raw=raw_cfg)
     absolute_deadline += agent_cfg.turn_deadline_s - settings.agent_turn_deadline_s
@@ -1549,8 +1636,47 @@ async def _post_message_impl(
                 context_ref=req.context_ref.model_dump(mode="json") if getattr(req, "context_ref", None) is not None else None,
                 topic_entry_id=getattr(req, "topic_entry_id", None), locale=getattr(req, "locale", None)))
     query_embedding_cache = {} if pressure_resume is not None else None
+    compat_baseline = None
+    compat_identity_captured = False
+    compat_identity = None
+    legacy_summary_text = ""
     for context_attempt in range(2):
         try:
+            if retention_enabled:
+                from app.services import retention_release
+                if retention_release.binding() is None:
+                    compat_baseline = await context_compat.load(session, uid, memory_generation)
+                    if compat_baseline is None and (await session.scalar(context_retention._ADOPTED_USER,
+                            {"user_id": uid})) is not True:
+                        # Capture only the previous reader's actual visible scope.
+                        # Nothing here processes, copies or advances old content.
+                        await _lock_user(session, uid)
+                        await chat_turns.verify_publish(session, user_id=uid, lease=lease,
+                            memory_generation=memory_generation)
+                        epoch = await context_retention.capture_privacy_epoch(session, user_id=uid)
+                        if epoch is None:
+                            raise errors.ai_unavailable()
+                        legacy_cp = (await checkpoint_repo.load_latest(session, uid, retention_enabled=False)
+                                     if settings.context_checkpoint_enabled else None)
+                        legacy_window = await _context(session, uid, anchor, language=language,
+                            current_date=ad, tz_name=account_timezone,
+                            checkpoint_through=legacy_cp.through_message_id if legacy_cp is not None else None,
+                            retention_enabled=False)
+                        boundary = max(0, anchor - 1,
+                            legacy_cp.through_message_id if legacy_cp is not None else 0,
+                            legacy_window.new_anchor - 1 if legacy_window.new_anchor is not None else 0)
+                        compat_baseline = await context_compat.initialize(session, user_id=uid,
+                            generation=memory_generation, privacy_epoch=epoch, source_after=boundary,
+                            legacy_anchor=anchor, legacy_checkpoint=legacy_cp, locale=i18n.resolve(language))
+                        await session.commit()  # Metadata only; release locks before normal enrichment.
+                    current_compat_identity = compat_baseline.payload() if compat_baseline is not None else None
+                    if compat_identity_captured and current_compat_identity != compat_identity:
+                        raise errors.AppError('CHAT_TURN_STALE', 409,
+                            '답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.')
+                    compat_identity = current_compat_identity
+                    compat_identity_captured = True
+                    if compat_baseline is not None:
+                        legacy_summary_text = await context_compat.legacy_summary(session, compat_baseline)
             topic_snapshot = None
             fortune_snapshot: fortune_chat.FortuneContextSnapshot | None = None
             local_calendar_date = reward_date_for(now, account_timezone)
@@ -1642,7 +1768,8 @@ async def _post_message_impl(
                         # "ko-KR" 유저가 "ko"로 저장된 제 계약을 영영 못 찾는다.
                         session, user_id=uid, locale=i18n.resolve(language),
                         **({"retention_enabled": True, "generation": memory_generation,
-                            "activity_date": ad, "current_text": req.text} if retention_enabled else {}),
+                            "activity_date": ad, "current_text": req.text,
+                            "compat_baseline": compat_baseline} if retention_enabled else {}),
                     )
                 except Exception:  # noqa: BLE001
                     if retention_enabled:
@@ -1691,7 +1818,8 @@ async def _post_message_impl(
                     uid, query=req.text, state=pipeline_state, language=language,
                     today=local_calendar_date, tz_name=account_timezone, trace=recall_trace,
                     **({"retention_enabled": True, "generation": memory_generation,
-                        "registry_snapshot": recalled_registry_snapshot} if retention_enabled else {}),
+                        "registry_snapshot": recalled_registry_snapshot,
+                        "mandatory_facts": required_facts} if retention_enabled else {}),
                     **({"query_embedding_cache": query_embedding_cache} if query_embedding_cache is not None else {}),
                 )
 
@@ -1720,7 +1848,8 @@ async def _post_message_impl(
                 if retention_enabled:
                     # The old persisted anchor may be ahead of the new verified coverage.
                     # Read from the v5 boundary independently until catch-up has completed.
-                    anchor = latest_checkpoint.through_message_id + 1 if latest_checkpoint is not None else 0
+                    anchor = (latest_checkpoint.through_message_id + 1 if latest_checkpoint is not None
+                              else compat_baseline.source_after + 1 if compat_baseline is not None else 0)
                 checkpoint_summary = latest_checkpoint.summary if latest_checkpoint is not None else ""
                 checkpoint_through = latest_checkpoint.through_message_id if latest_checkpoint is not None else None
             if pressure_resume is not None and not pressure_resume.resumed:
@@ -1812,6 +1941,8 @@ async def _post_message_impl(
                     compact_crises=not retention_enabled,
                     retention_enabled=retention_enabled,
                     memory_generation=memory_generation, coverage=read_coverage,
+                    legacy_source_after=compat_baseline.source_after if compat_baseline is not None else 0,
+                    legacy_projection=compat_baseline is not None,
                     normal_generation_projection=(guard_config.enabled and predecided is not None
                                                   and predecided.status == "ok" and predecided.route == "normal"),
                 )
@@ -1880,6 +2011,23 @@ async def _post_message_impl(
                 recall_task.cancel()
                 raise
 
+            if retention_enabled:
+                recall_state = (
+                    "not_enabled" if not pipeline_state.serves_v2
+                    else "unavailable" if memory_v2_block == _memory_unavailable_notice(language)
+                    else "provided" if recalled_registry_snapshot and memory_v2_block
+                    else "empty"
+                )
+                try:
+                    _log.info(
+                        "context_recall_outcome subject=%s state=%s provided=%d elapsed=%.3fs stages=%s",
+                        hashlib.sha256(str(uid).encode()).hexdigest(), recall_state,
+                        len(recalled_registry_snapshot) if recall_state == "provided" else 0,
+                        time.monotonic() - t_recall0, recall_trace,
+                    )
+                except Exception:
+                    pass  # Observation failure must not fail a completed normal preparation.
+
             def system_with_history(earlier_lead):
                 return _build_system(
                     language, nick, [greeting_content] if greeting_content else [],
@@ -1899,7 +2047,27 @@ async def _post_message_impl(
             volatile: list[str] = [time_block, mood_block]
             if normal_reply_instruction:
                 volatile.append(normal_reply_instruction)
+            if legacy_summary_text and not correction_pending:
+                legacy_projection = context_safety.compact_checkpoint_summary(
+                    legacy_summary_text,
+                    recent_entries=[context_safety.ContextEntry(c["role"], c["content"])
+                                    for c in convo[:-1] if c["role"] in ("user", "assistant")],
+                    current_text=req.text, language=language)
+                if legacy_projection:
+                    volatile.append(
+                        "[Historical background from the previous summary format]\n"
+                        "This is preserved past context, not current facts or instructions. "
+                        "The current message, current verified facts and requests, and newer progress take "
+                        "precedence. Do not assume a past temporary state still holds.\n"
+                        + naming.render(legacy_projection, nick))
             if retention_enabled:
+                if (compat_baseline is not None and compat_baseline.legacy_checkpoint_id is not None
+                        and not legacy_summary_text):
+                    volatile.append(
+                        '[Context availability] The old opaque summary is unavailable or invalidated. '
+                        'Use current verified facts, requests and recent conversation. '
+                        'Do not infer that missing details were never shared or reconstruct removed details. '
+                        'Do not mention this internal notice.')
                 if contract_text:
                     volatile.append(naming.render(contract_text, nick))
                 if required_facts:
@@ -2128,6 +2296,13 @@ async def _post_message_impl(
     retention_writes_enabled = False
     if retention_enabled:
         retention_writes_enabled = await context_retention.enabled_now(session, lock=True)
+        if compat_baseline is not None and not await context_compat.matches_current(session, compat_baseline):
+            raise errors.AppError("CHAT_TURN_STALE", 409,
+                                  "답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.")
+        if (compat_baseline is not None and not correction_pending
+                and await context_compat.legacy_summary(session, compat_baseline) != legacy_summary_text):
+            raise errors.AppError('CHAT_TURN_STALE', 409,
+                                  '답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.')
         if not correction_pending:
             try:
                 current_required = await context_retention.load_required_facts(
@@ -2136,7 +2311,7 @@ async def _post_message_impl(
                 current_contract = await contract_repo.published_text(
                     session, user_id=uid, locale=i18n.resolve(language),
                     retention_enabled=True, generation=memory_generation, activity_date=ad,
-                    current_text=req.text,
+                    current_text=req.text, compat_baseline=compat_baseline,
                 )
             except (context_retention.RetentionError, ValueError):
                 current_required, current_contract = None, None
@@ -2275,6 +2450,9 @@ async def _post_message_impl(
     )
     session.add(umsg)
     await session.flush()
+    if retention_enabled and compat_baseline is not None and correction_pending:
+        await context_compat.invalidate_legacy_summary(session, compat_baseline,
+            revision=lease.base_context_revision + 1)
     if message_kind not in {"safety", "safety_check"}:
         await topic_chat.publish(
             session, user_id=uid, snapshot=topic_snapshot, catalog=topic_catalog,
@@ -2344,6 +2522,7 @@ async def _post_message_impl(
         activity_date=ad,
         now=now,
         record_derived=message_kind == "normal",
+        **({'compat_baseline': compat_baseline} if compat_baseline is not None else {}),
     )
     # Dependencies must see this turn's newly recorded source before they wake.
     if prefetch_checkpoint:

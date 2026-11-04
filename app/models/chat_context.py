@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import BigInteger, CheckConstraint, DateTime, select, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, column_property, mapped_column
 
 from app.core.db import Base
@@ -25,6 +25,12 @@ class ChatContext(Base):
     memory_generation: Mapped[int] = mapped_column(
         BigInteger, nullable=False, server_default=text("0")
     )
+    # Immutable metadata only: the old reader's visible boundary and opaque
+    # legacy document identities. Existing messages/documents are never copied.
+    retention_compat_json: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    # Opaque legacy prose has no item-level evidence. After an explicit
+    # correction/withdrawal it cannot safely be injected again as background.
+    retention_compat_summary_invalidated_revision: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     # Reader adoption survives a disabled/deleted rollout setting. This is a
     # correlated read-only expression, not another database column.
     retention_v5_adopted: Mapped[bool] = column_property(

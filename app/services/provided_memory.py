@@ -12,7 +12,7 @@ import hashlib
 import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from sqlalchemy import text
 
@@ -55,6 +55,7 @@ class ProvidedMemory:
     today: date | None
     tz_name: str
     when_label: str | None
+    canonical_from_legacy: bool = False
 
 
 _ROWS = text("""
@@ -135,6 +136,25 @@ def _source(row) -> ProvidedSource:
     )
 
 
+def certified_legacy_text(value, content_hash: str) -> str:
+    """A request-local read adapter, never a canonical column repair."""
+    if (not isinstance(value, str) or not mem0_ingest.normalize(value)
+            or mem0_ingest.candidate_hash(value) != content_hash):
+        raise ProvidedMemoryError("provided_memory_legacy_hash")
+    return mem0_ingest.normalize(value)
+
+
+def _overrides(values, identities):
+    if values is None:
+        return {}
+    if not isinstance(values, Mapping):
+        raise ProvidedMemoryError("provided_memory_legacy_identity")
+    keys = _ids(values.keys())
+    if not set(keys).issubset(identities):
+        raise ProvidedMemoryError("provided_memory_legacy_identity")
+    return dict(zip(keys, values.values(), strict=True))
+
+
 async def capture(
     session,
     *,
@@ -144,12 +164,14 @@ async def capture(
     language: str | None = None,
     today: date | None = None,
     tz_name: str = "Asia/Seoul",
+    canonical_overrides: Mapping | None = None,
 ) -> tuple[ProvidedMemory, ...]:
     """Certify exactly these optional IDs; callers render canonical_text/occurred_at."""
     if type(generation) is not int or generation < 0:
         raise ProvidedMemoryError("provided_memory_generation")
     owner = _ids((user_id,))[0]
     identities = _ids(ids)
+    overrides = _overrides(canonical_overrides, identities)
     if not identities:
         return ()
     params = {"user_id": owner, "generation": generation, "ids": identities}
@@ -169,6 +191,9 @@ async def capture(
     for identity in identities:
         row = indexed[identity]
         canonical = row["canonical_text"]
+        from_legacy = canonical is None
+        if from_legacy and identity in overrides:
+            canonical = certified_legacy_text(overrides[identity], row["content_hash"])
         if (
             not isinstance(canonical, str)
             or not memory.sanitize_text(canonical)
@@ -201,6 +226,7 @@ async def capture(
                 today,
                 tz_name,
                 label,
+                from_legacy,
             )
         )
     return tuple(result)
@@ -217,7 +243,7 @@ async def validate(
     if (
         type(generation) is not int
         or generation < 0
-        or any(not isinstance(item, ProvidedMemory) for item in snapshots)
+        or any(not isinstance(item, ProvidedMemory) or type(item.canonical_from_legacy) is not bool for item in snapshots)
     ):
         return False
     try:
@@ -225,7 +251,9 @@ async def validate(
         if any(item.user_id != owner or item.generation != generation for item in snapshots):
             return False
         identities = _ids(item.registry_id for item in snapshots)
-        current = await capture(session, user_id=owner, generation=generation, ids=identities)
+        current = await capture(session, user_id=owner, generation=generation, ids=identities,
+            canonical_overrides={item.registry_id: item.canonical_text for item in snapshots
+                                 if item.canonical_from_legacy})
     except ProvidedMemoryError:
         return False
     indexed = {item.registry_id: item for item in current}

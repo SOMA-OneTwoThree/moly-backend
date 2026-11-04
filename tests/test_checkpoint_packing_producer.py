@@ -1,12 +1,19 @@
 """New roots adopt packing; existing execution snapshots keep their protocol."""
 import json
 import uuid
+from dataclasses import replace
 from datetime import datetime, timezone
+from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
 
 from app.services import checkpoint as cp, checkpoint_repo as repo, context_retention, jobs
+
+
+@pytest.fixture(autouse=True)
+def no_compat_baseline(monkeypatch):
+    monkeypatch.setattr(repo, "load_compat_baseline", AsyncMock(return_value=None))
 
 
 def plan(version=cp.RETENTION_SUMMARIZER_VERSION):
@@ -40,7 +47,9 @@ async def test_only_new_retention_root_gets_strategy_without_changing_shared_pla
 ])
 async def test_ready_merge_preserves_strategy_and_never_rebinds_execution_metadata(monkeypatch, metadata, merged):
     uid, identity = uuid.uuid4(), uuid.uuid4()
-    old = {**plan().payload(), "through_message_id": 2, **metadata}
+    baseline = {"source_after": 0, "generation": 0, "privacy_epoch": 0}
+    bound_plan = replace(plan(), baseline_binding=baseline)
+    old = {**bound_plan.payload(), "through_message_id": 2, **metadata}
     writes = []
 
     class Result:
@@ -62,7 +71,9 @@ async def test_ready_merge_preserves_strategy_and_never_rebinds_execution_metada
     monkeypatch.setattr(repo, "advisory_xact_lock", AsyncMock())
     monkeypatch.setattr(repo, "load_latest", AsyncMock(return_value=None))
     monkeypatch.setattr(repo, "read_memory_generation", AsyncMock(return_value=0))
-    monkeypatch.setattr(cp, "plan", lambda *args, **kwargs: plan())
+    monkeypatch.setattr(repo, "load_compat_baseline", AsyncMock(return_value=SimpleNamespace(
+        payload=lambda: baseline)))
+    monkeypatch.setattr(cp, "plan", lambda *args, **kwargs: bound_plan)
     monkeypatch.setattr(context_retention, "privacy_epoch_matches", AsyncMock(return_value=True))
     monkeypatch.setattr(repo, "reserve_checkpoint_dependencies", AsyncMock())
     sources = [cp.SourceMessage(i, "user", "normal", f"synthetic {i}") for i in range(1, 5)]
@@ -75,4 +86,4 @@ async def test_ready_merge_preserves_strategy_and_never_rebinds_execution_metada
         assert actual["through_message_id"] == 4
         assert actual.get("packing_version") == old.get("packing_version")
         assert ("packing_version" in actual) == ("packing_version" in old)
-    assert old == {**plan().payload(), "through_message_id": 2, **metadata}
+    assert old == {**bound_plan.payload(), "through_message_id": 2, **metadata}

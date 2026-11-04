@@ -53,7 +53,7 @@ LIMIT 1
 """)
 
 _LATEST_RETENTION_SQL = text(str(_LATEST_SQL).replace(
-    "c.source_hash\n", "c.source_hash, c.state_json, c.validation_json\n"
+    "c.source_hash\n", "c.source_hash, c.state_json, c.validation_json, c.memory_generation\n"
 ).replace("c.version <> 'conversation-checkpoint-summary-v5'",
           "c.version = 'conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL"))
 
@@ -126,7 +126,9 @@ SELECT :user_id,:through_message_id,:summary,:version,:source_hash,:expected_gen
        CAST(:state AS jsonb),CAST(:validation AS jsonb),CAST(:previous_id AS uuid),
        :coverage_from,:through_message_id,:through_message_id,CAST(:preparation_id AS uuid),:preparation_state
 WHERE EXISTS (SELECT 1 FROM chat_contexts cc
-              WHERE cc.user_id=:user_id AND cc.memory_generation=:expected_generation)
+              WHERE cc.user_id=:user_id AND cc.memory_generation=:expected_generation
+                AND (:skip_baseline OR COALESCE(cc.retention_compat_json,'null'::jsonb)
+                     =CAST(:baseline_binding AS jsonb)))
   AND (SELECT c.id FROM conversation_checkpoints c
        WHERE c.user_id=:user_id AND c.memory_generation=:expected_generation
          AND c.version='conversation-checkpoint-summary-v5' AND c.preparation_id IS NULL AND c.publish_state='published'
@@ -136,6 +138,29 @@ ON CONFLICT (user_id, through_message_id, source_hash) DO NOTHING RETURNING id
 """)
 
 _USER_STATE_SQL = text("SELECT nickname, language FROM profiles WHERE id = :user_id")
+
+
+async def load_compat_baseline(session, *, user_id, generation):
+    if retention_release.binding() is not None:
+        return None
+    from app.services import context_compat
+    return await context_compat.load(session, user_id=user_id, generation=generation)
+
+
+async def compat_binding_matches(session, *, user_id, generation, binding):
+    baseline = await load_compat_baseline(session, user_id=user_id, generation=generation)
+    return (baseline.payload() if baseline is not None else None) == binding
+
+
+def validate_compat_state(state, binding):
+    """Old opaque summary never becomes evidence for an incremental v5 item."""
+    if binding is None:
+        return
+    from app.services import context_retention
+    state = context_retention.validate_state(state)
+    if any(evidence["message_id"] <= binding["source_after"]
+           for item in state["items"] for evidence in item["evidence"]):
+        raise context_retention.RetentionError("compat_baseline_evidence")
 
 
 async def read_memory_generation(session: AsyncSession, user_id: uuid.UUID | str) -> int:
@@ -173,6 +198,11 @@ async def load_latest(
         from app.services.context_retention import RetentionError, validate_progress_sources
         if value.state_json is None or not isinstance(value.validation_json, dict) or value.validation_json.get("processing_complete") is not True:
             raise RetentionError("checkpoint_not_validated")
+        generation = int(row[7]) if len(row) > 7 else await read_memory_generation(session, user_id)
+        bound = value.validation_json.get("baseline_binding")
+        if not await compat_binding_matches(session, user_id=user_id, generation=generation, binding=bound):
+            raise RetentionError("compat_baseline_changed")
+        validate_compat_state(value.state_json, bound)
         await validate_progress_sources(session, user_id=user_id, state=value.state_json)
     return value
 
@@ -193,12 +223,16 @@ async def coverage_for_checkpoint(session, *, user_id, generation: int,
     if (not isinstance(value.validation_json, dict)
             or value.validation_json.get("processing_complete") is not True):
         return None
+    bound = value.validation_json.get("baseline_binding")
+    if not await compat_binding_matches(session, user_id=user_id, generation=generation, binding=bound):
+        return None
     if not await context_retention.processing_complete(session, user_id=user_id,
             generation=generation, through_id=value.through_message_id):
         return None
     return VerifiedCoverage(uuid.UUID(str(user_id)), generation, uuid.UUID(str(value.id)),
         value.through_message_id, value.source_hash,
-        frozenset(value.validation_json.get("policy_excluded_ids", [])))
+        frozenset(value.validation_json.get("policy_excluded_ids", [])),
+        after_message_id=bound["source_after"] if bound else 0)
 
 
 async def count(session: AsyncSession, user_id: uuid.UUID | str, *, retention_enabled: bool = False) -> int:
@@ -272,6 +306,10 @@ async def insert(
     """
     if version == checkpoint.RETENTION_SUMMARIZER_VERSION:
         await retention_release.require_binding(session, lock=True)
+        bound = (validation_json or {}).get("baseline_binding")
+        if not await compat_binding_matches(session, user_id=user_id, generation=expected_generation, binding=bound):
+            return None
+        validate_compat_state(state_json, bound)
     row = (
         await retention_release.execute(session,
             _INSERT_RETENTION_SQL if version == checkpoint.RETENTION_SUMMARIZER_VERSION else _INSERT_SQL,
@@ -288,6 +326,8 @@ async def insert(
                 "coverage_from": coverage_from,
                 "preparation_id": retention_release.preparation_id(),
                 "preparation_state": "ready" if retention_release.binding() is not None and retention_release.binding().building else "published",
+                "baseline_binding": json.dumps((validation_json or {}).get("baseline_binding")),
+                "skip_baseline": retention_release.binding() is not None,
             },
         )
     ).first()
@@ -304,11 +344,16 @@ async def enqueue_checkpoint(
     """
     if plan.version == checkpoint.RETENTION_SUMMARIZER_VERSION:
         from app.services import context_retention
+        if not await compat_binding_matches(session, user_id=user_id,
+                generation=plan.memory_generation, binding=plan.baseline_binding):
+            return None
         epoch = plan.privacy_epoch
         if epoch is None:
             epoch = await context_retention.capture_privacy_epoch(session, user_id=user_id)
         if epoch is None or not await context_retention.privacy_epoch_matches(
                 session, user_id=user_id, privacy_epoch=epoch):
+            return None
+        if plan.baseline_binding is not None and epoch != plan.baseline_binding["privacy_epoch"]:
             return None
         plan = replace(plan, privacy_epoch=epoch)
     payload = plan.payload()
@@ -447,10 +492,14 @@ async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
     await advisory_xact_lock(session, user_id)
     previous = await load_latest(session, user_id, retention_enabled=True)
     generation = await read_memory_generation(session, user_id)
+    baseline = await load_compat_baseline(session, user_id=user_id, generation=generation)
+    if previous is None and baseline is None and retention_release.binding() is None:
+        return None  # Only a foreground request may initialize a legacy suffix.
     plan = checkpoint.plan(messages, previous=previous, preparation_id=retention_release.preparation_id(), keep_from_message_id=keep_from_message_id,
         memory_generation=generation, reset_triggered=reset_triggered,
         version=checkpoint.RETENTION_SUMMARIZER_VERSION,
         through_message_id=pressure_through_message_id,
+        baseline_binding=baseline.payload() if baseline else None,
         reason="input_pressure" if pressure else None)
     if plan is None:
         return None
@@ -460,6 +509,8 @@ async def _maybe_enqueue_retention(session: AsyncSession, *, user_id,
     pending = (await retention_release.execute(session, _RETENTION_PENDING, {"user_id": user_id})).first()
     if pending is not None:
         payload = pending[4] if isinstance(pending[4], dict) else json.loads(pending[4])
+        if payload.get("baseline_binding") != plan.baseline_binding:
+            return None
         if (not pressure and (len(pending)<6 or pending[5] is None)
                 and payload.get("reason") != "input_pressure"
                 and payload.get("mode") is None and "progress_state" not in payload
@@ -730,6 +781,12 @@ async def request_pressure(session: AsyncSession, *, user_id, generation: int,
     if boundary is None:
         return PressureReservation("no_source")
     previous = await load_latest(session, user_id, retention_enabled=True)
+    baseline = await load_compat_baseline(session, user_id=user_id, generation=generation)
+    if previous is None and baseline is None and retention_release.binding() is None:
+        return PressureReservation("not_initialized")
+    source_after = baseline.source_after if baseline else 0
+    if int(boundary) <= source_after:
+        return PressureReservation("no_source")
     if previous is not None and previous.through_message_id>=int(boundary):
         if await context_retention.processing_complete(session, user_id=user_id,
                 generation=generation, through_id=previous.through_message_id):
@@ -751,7 +808,7 @@ async def request_pressure(session: AsyncSession, *, user_id, generation: int,
     if (await retention_release.execute(session, _RETENTION_PENDING, {"user_id": user_id})).first() is not None:
         return PressureReservation("pending", int(target))
     sources = await load_pressure_sources(session, user_id,
-        after_id=previous.through_message_id if previous else 0, through_id=int(target))
+        after_id=previous.through_message_id if previous else source_after, through_id=int(target))
     if not sources:
         return PressureReservation("pending", int(target))
     made = await maybe_enqueue(session, user_id=user_id, messages=sources,

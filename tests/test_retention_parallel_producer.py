@@ -5,7 +5,7 @@ import uuid
 
 import pytest
 
-from app.services import checkpoint, checkpoint_repo as repo, context_retention as retention, jobs, privacy
+from app.services import checkpoint, checkpoint_repo as repo, context_retention as retention, jobs, privacy, contract_repo
 from tests.test_checkpoint_parallel_publish import env as env
 
 
@@ -14,6 +14,13 @@ class Result:
         self.row = row
     def first(self):
         return self.row
+
+
+@pytest.fixture(autouse=True)
+def existing_unbound_v5_scope(monkeypatch):
+    monkeypatch.setattr(repo, "load_compat_baseline", AsyncMock(return_value=None))
+    monkeypatch.setattr(retention.context_compat, "load", AsyncMock(return_value=None))
+    monkeypatch.setattr(contract_repo, "effective_contract_cursor", AsyncMock(return_value=0))
 
 
 @pytest.mark.parametrize("mode,barrier,epoch,expected", [
@@ -188,6 +195,8 @@ async def test_retention_contract_first_and_resumed_jobs_use_memory_max_three_wi
                "privacy_epoch": terminal_epoch, "after_message_id": 0}
     class Session:
         async def scalar(self, sql, params):
+            if sql is retention._ADOPTED_USER:
+                return True
             return None if sql is retention._CONTRACT_ACTIVE else 0
         async def execute(self, sql, params):
             if sql is retention._CONTRACT_LATEST_TERMINAL:
@@ -214,6 +223,8 @@ async def test_new_retention_contract_binds_epoch_and_memory_budget_on_first_res
     monkeypatch.setattr(retention, "privacy_epoch_matches", AsyncMock(return_value=True))
     class Session:
         async def scalar(self, sql, params):
+            if sql is retention._ADOPTED_USER:
+                return True
             return None if sql is retention._CONTRACT_ACTIVE else 0
         async def execute(self, sql, params):
             return Result()

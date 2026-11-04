@@ -181,6 +181,13 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
         return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
     after = json.loads(contract.CONTRACT.read_bytes())
     restored_catalog = deepcopy(after["catalog"])
+    # Separately reviewed, nullable reader metadata; no existing catalog object changes.
+    for key, kind in {
+        'public.chat_contexts.retention_compat_json': 'jsonb',
+        'public.chat_contexts.retention_compat_summary_invalidated_revision': 'bigint',
+        'public.user_interaction_contracts.validation_json': 'jsonb',
+    }.items():
+        assert restored_catalog['columns'].pop(key) == {**_COL, 'type': kind}
     for section, additions in online_allowed.items():
         for key, expected in additions.items():
             assert digest(restored_catalog[section].pop(key)) == expected
@@ -204,8 +211,17 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
     assert digest(restored_catalog) == _BASELINE_CATALOG_SHA256
 
     main_source = contract.SCHEMA.read_text()
-    assert hashlib.sha256(main_source.encode()).hexdigest() == expected_guard_source
     assert after["schema_sha256"] == hashlib.sha256(main_source.encode()).hexdigest()
+    for added in ('    retention_compat_json jsonb,\n',
+                  '    retention_compat_summary_invalidated_revision bigint,\n'):
+        assert main_source.count(added) == 1
+        main_source = main_source.replace(added, '', 1)
+    contract_begin = main_source.index('CREATE TABLE public.user_interaction_contracts (')
+    contract_end = main_source.index('\n);', contract_begin)
+    block = main_source[contract_begin:contract_end]
+    assert block.count('    validation_json jsonb,\n') == 1
+    main_source = main_source[:contract_begin] + block.replace('    validation_json jsonb,\n', '', 1) + main_source[contract_end:]
+    assert hashlib.sha256(main_source.encode()).hexdigest() == expected_guard_source
     online_marker = "\n-- 무중단 가드레일/맥락 준비용 additive 구조.\n"
     assert main_source.count(online_marker) == 1
     main_source = main_source.split(online_marker, 1)[0] + "\nCOMMIT;\n"

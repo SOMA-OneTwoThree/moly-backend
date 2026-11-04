@@ -46,7 +46,7 @@ def create_app() -> FastAPI:
     # 프로세스 종료 때 유실돼 reconciler(24h)까지 unknown으로 밀린다).
     @contextlib.asynccontextmanager
     async def _lifespan(app: FastAPI):
-        from app.services import crisis_chat, training_catalog, usage_ledger
+        from app.services import chat, crisis_chat, training_catalog, usage_ledger
         from app.services.banner_catalog import BannerCatalog
         from app.services.topic_catalog import TopicCatalog
 
@@ -62,6 +62,9 @@ def create_app() -> FastAPI:
             logging.getLogger('moly-backend').error('topic catalog unavailable: %s', type(exc).__name__)
         # 트레이닝 원고를 부팅 때 한 번 검증한다. 깨졌으면 로그를 남기고 빈 목록으로 둔다.
         training_catalog.current()
+        # Build local SDK/collection metadata before the first reply's short
+        # recall budget starts. This performs no model, DB or vector request.
+        await chat.prepare_recall_clients()
         stop = asyncio.Event()
         flusher = asyncio.ensure_future(usage_ledger.run_close_flusher(stop))
         try:

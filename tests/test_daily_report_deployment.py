@@ -141,3 +141,9 @@ def test_diagnostic_keyring_reason_is_fixed_and_secret_free(tmp_path,raw,expecte
     assert result.returncode==expected
     assert result.stdout==result.stderr==''
     assert not list(tmp_path.glob('tmp.*'))
+
+
+def test_generated_remote_scripts_do_not_contain_accidental_actions_expressions():
+    workflow = yaml.safe_load((ROOT / '.github/workflows/deploy-dev.yml').read_text())
+    for step in workflow['jobs']['build-and-deploy']['steps']:
+        assert '${{' not in step.get('run', ''), 'Shell/f-string braces must not become Actions expressions'

@@ -369,8 +369,8 @@ jobs:
               command += f"""umask 077
           diagnostic_log="$(mktemp)"
           diagnostic_keyring=""
-          trap 'rm -f "$diagnostic_log" "${{diagnostic_keyring:-}}"' EXIT
-          grep -q '^PREFLIGHT_ONLY="${{DEPLOY_PREFLIGHT_ONLY:-0}}"$' deploy.sh || exit 186
+          trap 'rm -f "$diagnostic_log" "$diagnostic_keyring"' EXIT
+          grep -q '^PREFLIGHT_ONLY=' deploy.sh && grep -q DEPLOY_PREFLIGHT_ONLY deploy.sh || exit 186
           if sudo env DEPLOY_PREFLIGHT_ONLY=1 bash deploy.sh {tag} >"$diagnostic_log" 2>&1; then
             exit 0
           fi

@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import uuid
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, replace
@@ -73,6 +74,36 @@ class CheckpointError(Exception):
 
 class NameLeakError(CheckpointError):
     """마스킹 후에도 실명 stem이 남았다. 저장 표면에 실명을 남기느니 요약을 버린다."""
+
+
+# 이 모듈의 한국어 고정 오류 문구 → 로그용 이유 코드. 앞부분만 비교한다(뒤에 id 목록이 붙는 문구가 있다).
+_ERROR_REASON_PREFIXES = (
+    ("provider가 빈 응답을 줬다", "empty_provider_output"),
+    ("마스킹·살균 후 요약이 비었다", "empty_after_sanitize"),
+    ("요약 길이 초과", "summary_too_long"),
+    ("요약할 메시지가 없다", "no_messages"),
+    ("요약할 허용 메시지가 없다", "no_allowed_messages"),
+    ("요약 입력에 중복 message id가 있다", "duplicate_message_ids"),
+    ("message id는 양수여야 한다", "nonpositive_message_ids"),
+    ("구형 줄글을 구조화 상태의 원본으로 승격할 수 없다", "legacy_summary_not_promotable"),
+    ("요약에 마스킹되지 않은 실명이 남았다", "name_leak"),
+)
+_ERROR_REASON_CODE = re.compile(r"[a-z][a-z0-9_]{0,63}")
+
+
+def error_reason_code(exc: BaseException) -> str:
+    """로그에 남겨도 되는 고정 이유 코드.
+
+    영문 snake_case 코드는 그대로, 알려진 한국어 고정 문구는 대응 코드로, 나머지는 "other".
+    오류 문구 원문은 내보내지 않는다(message id 목록 등이 섞일 수 있다).
+    """
+    message = exc.args[0] if exc.args and isinstance(exc.args[0], str) else ""
+    if _ERROR_REASON_CODE.fullmatch(message):
+        return message
+    for prefix, code in _ERROR_REASON_PREFIXES:
+        if message.startswith(prefix):
+            return code
+    return "other"
 
 
 @dataclass(frozen=True, slots=True)

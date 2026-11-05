@@ -760,14 +760,12 @@ _CONTRACT_CONTENT_DEAD_CODES = frozenset({
     "contract_retention_evidence", "contract_retention_schema", "contract_retention_length",
     "contract_retention_merge", "contract_retention_budget", "contract_retention_incomplete",
 })
-_CONTRACT_REDO_FIRST_DELAY = timedelta(minutes=30)
-_CONTRACT_REDO_MAX_DELAY = timedelta(hours=24)
-_CONTRACT_REDO_DEPTH_UNKNOWN = 64  # 형식이 깨진 깊이는 원본으로 보지 않고 최대 간격을 쓴다.
 
 
 def contract_redo_delay(depth: int) -> timedelta:
     """재생성 깊이별 대기: 원본 dead 30분, 1회차 1시간, 2시간 … 최대 24시간."""
-    return min(_CONTRACT_REDO_MAX_DELAY, _CONTRACT_REDO_FIRST_DELAY * (2 ** min(max(depth, 0), 16)))
+    from app.services import jobs
+    return jobs.redo_delay(depth)
 
 
 def contract_redo_depth(row, *, now: datetime) -> int | None:
@@ -775,23 +773,9 @@ def contract_redo_depth(row, *, now: datetime) -> int | None:
 
     row = `_CONTRACT_LATEST_TERMINAL` 결과(state, id, finished_at, last_error_code, redo_depth).
     """
-    state, _, finished_at, code, raw_depth = row
-    if state != "dead" or finished_at is None:
-        return None
-    original = raw_depth is None
-    try:
-        depth = 0 if original else int(raw_depth)
-    except (TypeError, ValueError):
-        depth = _CONTRACT_REDO_DEPTH_UNKNOWN
-    if depth < 0:
-        depth = _CONTRACT_REDO_DEPTH_UNKNOWN
-    if code not in _CONTRACT_TRANSIENT_DEAD_CODES and not (original and code in _CONTRACT_CONTENT_DEAD_CODES):
-        return None
-    if finished_at.tzinfo is None:
-        finished_at = finished_at.replace(tzinfo=timezone.utc)
-    if now < finished_at + contract_redo_delay(depth):
-        return None
-    return depth + 1
+    from app.services import jobs
+    return jobs.dead_redo_depth(row, now=now, repeat_codes=_CONTRACT_TRANSIENT_DEAD_CODES,
+                                original_once_codes=_CONTRACT_CONTENT_DEAD_CODES)
 
 
 async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UUID | str,

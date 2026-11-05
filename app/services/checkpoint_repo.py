@@ -339,11 +339,12 @@ async def insert(
 
 async def enqueue_checkpoint(
     session: AsyncSession, *, user_id: uuid.UUID | str, plan: checkpoint.CheckpointPlan,
-    delay_s: float = 0,
+    delay_s: float = 0, redo: tuple[str, int] | None = None,
 ) -> uuid.UUID | None:
     """요약 잡 등록(커밋하지 않는다 — 메시지 insert와 **같은 트랜잭션**에서 불러야 한다).
 
     dedup key가 `(through, source_hash, summarizer)`를 담아 같은 입력은 한 번만 돈다(§W11-3).
+    `redo=(dead id, 깊이)`면 같은 계획이 dead로 막혀 있을 때 새 행으로 다시 만든다(dead마다 한 건).
     """
     if plan.version == checkpoint.RETENTION_SUMMARIZER_VERSION:
         from app.services import context_retention
@@ -364,12 +365,17 @@ async def enqueue_checkpoint(
         # Only a newly created regular root adopts packing. Shared source-plan
         # comparisons and existing partial/completed jobs retain their format.
         payload["packing_version"] = checkpoint.PACKING_VERSION
+    dedup_key = plan.dedup_key(user_id)
+    if redo is not None:
+        dead_id, depth = redo
+        payload.update(redo_of=str(dead_id), redo_depth=int(depth))
+        dedup_key = f"checkpoint-redo:{dead_id}"
     made = await jobs.enqueue(
         session,
         queue=jobs.QUEUE_CONTENT,
         job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT,
         user_id=user_id,
-        dedup_key=plan.dedup_key(user_id),
+        dedup_key=dedup_key,
         payload=payload,
         **({"available_at": datetime.now(timezone.utc)+timedelta(seconds=delay_s)} if delay_s else {}),
     )

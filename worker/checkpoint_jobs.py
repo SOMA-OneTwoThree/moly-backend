@@ -201,6 +201,16 @@ def _packing_dedup(payload: dict) -> str:
     return f":{PACKING_VERSION}:{payload.get('progress_next_chunk', 0)}:{payload.get('packing_chunk_cap', 'auto')}"
 
 
+def _redo_dedup(payload: dict) -> str:
+    """dead 뒤 다시 만든 요약(memory_sweep_jobs)의 후속 작업 키를 죽은 작업의 키와 구분한다.
+
+    같은 계획(source_hash)이라 붙이지 않으면 죽은 작업이 이미 만든 다음 쪽·게시 키와 겹쳐
+    조용히 끊긴다.
+    """
+    redo_of = payload.get("redo_of")
+    return f":redo:{redo_of}" if isinstance(redo_of, str) and redo_of else ""
+
+
 @dataclass(frozen=True, slots=True)
 class _Request:
     """잡 payload에서 꺼낸 요약 요청. 여기까지 왔으면 형식은 이미 검증됐다."""
@@ -791,6 +801,9 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
         _log.warning("요약 실명 회귀 검사 실패(재시도) — job_id=%s: %s", job.id, e)
         raise JobRetry("summary_name_leak") from e
     except checkpoint.CheckpointError as e:  # 빈 요약 등 — 다음 샘플에 기대고 재시도
+        # 오류 문구에는 message id 목록이 섞일 수 있으므로 고정 이유 코드만 남긴다.
+        _log.warning("요약 형식 검사 실패(재시도) — job_id=%s attempt=%s reason=%s",
+                     job.id, job.attempt, checkpoint.error_reason_code(e))
         raise JobRetry("summary_invalid") from e
     except Exception as e:  # noqa: BLE001  # provider 타임아웃·429·일시 장애 — backoff 재시도
         raise JobRetry("summary_llm_failed") from e
@@ -858,7 +871,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 state=state_json)
             await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
                 job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
-                dedup_key=f"checkpoint-progress:{req.user_id}:{req.memory_generation}:{req.source_hash}:{continuation.next_chunk}{_packing_dedup(control_payload)}",
+                dedup_key=f"checkpoint-progress:{req.user_id}:{req.memory_generation}:{req.source_hash}:{continuation.next_chunk}{_packing_dedup(control_payload)}{_redo_dedup(control_payload)}",
                 payload={**control_payload, "progress_state": state_json,
                          "progress_next_chunk": continuation.next_chunk,
                          "progress_manifest": continuation.manifest,
@@ -883,7 +896,7 @@ async def handle_checkpoint(job: ClaimedJob) -> JobResult:
                 return
             await jobs.enqueue(session, queue=jobs.QUEUE_CONTENT,
                 job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT, user_id=req.user_id,
-                dedup_key=f"checkpoint-publish:{req.user_id}:{req.memory_generation}:{req.source_hash}{_packing_dedup(control_payload)}",
+                dedup_key=f"checkpoint-publish:{req.user_id}:{req.memory_generation}:{req.source_hash}{_packing_dedup(control_payload)}{_redo_dedup(control_payload)}",
                 payload=payload, max_attempts=3)
             return
         inserted_id = await checkpoint_repo.insert(

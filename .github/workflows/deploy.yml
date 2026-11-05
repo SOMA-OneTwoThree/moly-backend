@@ -52,6 +52,9 @@ env:
   DEPLOY_TAG: ${{ inputs.image_tag || github.sha }}
   VERIFY_DAILY_REPORT: ${{ inputs.image_tag == '' && 'true' || 'false' }}
   VERIFY_MORNING_PUSH: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.verify_morning_push)) && 'true' || 'false' }}
+  CRYPTO_INFRA_SHA: e2b982da5eab32ae97fee067d901ee2783458a83
+  CRYPTO_RESCUE_SHA: adc94a495d9c5bebe5d4fbe281fa81825c85beba
+  CRYPTO_RELEASE: ${{ inputs.image_tag == '' && 'true' || 'false' }}
   DEPLOY_EVENT: ${{ github.event_name }}
   PREVIOUS_SHA: ${{ github.event.before }}
 
@@ -59,6 +62,20 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate production release inputs before credentials
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = SOMA-OneTwoThree/moly-backend
+          test "$GITHUB_REF" = refs/heads/main
+          [[ "$DEPLOY_TAG" =~ ^[0-9a-f]{40}$ ]] && [[ ! "$DEPLOY_TAG" =~ ^0{40}$ ]]
+          [[ "$CRYPTO_INFRA_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$CRYPTO_RESCUE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$EXPECTED_INSTANCES" =~ ^[12]$ ]]
+          if [ "$CRYPTO_RELEASE" = true ]; then
+            test "$EXPECTED_INSTANCES" = 2
+            test "$DEPLOY_TAG" != "$CRYPTO_RESCUE_SHA"
+          fi
+
       # 1. 코드 체크아웃
       - name: Checkout
         uses: actions/checkout@v4
@@ -95,6 +112,34 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Checkout immutable crypto-aware rescue source
+        if: ${{ env.CRYPTO_RELEASE == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CRYPTO_RESCUE_SHA }}
+          path: .crypto-rescue-source
+
+      - name: Verify rescue source identity
+        if: ${{ env.CRYPTO_RELEASE == 'true' }}
+        run: |
+          set -euo pipefail
+          test "$(git -C .crypto-rescue-source rev-parse HEAD)" = "$CRYPTO_RESCUE_SHA"
+          test -z "$(git -C .crypto-rescue-source status --porcelain)"
+          test "$CRYPTO_RESCUE_SHA" != "$DEPLOY_TAG"
+
+      - name: Build and push immutable crypto-aware rescue
+        if: ${{ env.CRYPTO_RELEASE == 'true' }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .crypto-rescue-source
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.CRYPTO_RESCUE_SHA }}
+          build-args: |
+            GIT_SHA=${{ env.CRYPTO_RESCUE_SHA }}
+          cache-from: type=gha,scope=crypto-rescue
+          cache-to: type=gha,mode=max,scope=crypto-rescue
+
       - name: Validate deployed banner catalog and assets
         run: |
           set -euo pipefail
@@ -127,7 +172,7 @@ jobs:
             local cmd_id="$1" instance_id="$2"
             local STATUS="Pending" GRACE_POLLS=3 MAX_QUERY_FAILS=3
             local query_fails=0 finished=0 i err_file err_msg
-            for i in $(seq 1 60); do
+            for i in $(seq 1 120); do
               sleep 10
               err_file="$(mktemp)"
               if STATUS="$(aws ssm get-command-invocation \
@@ -148,7 +193,7 @@ jobs:
                 else
                   query_fails=$((query_fails + 1))
                   echo "  [$i] get-command-invocation 조회 실패 (${query_fails}/${MAX_QUERY_FAILS}):" >&2
-                  printf '%s\n' "$err_msg" >&2
+                  echo "SSM_STATUS_QUERY_FAILED" >&2
                   if [ "$query_fails" -ge "$MAX_QUERY_FAILS" ]; then
                     rm -f "$err_file"
                     echo "==> 조회 연속 ${MAX_QUERY_FAILS}회 실패 — 배포 상태 확인 불가, 실패 처리" >&2
@@ -159,14 +204,19 @@ jobs:
               rm -f "$err_file"
             done
 
-            echo "==> [$instance_id] 배포 표준출력 ----------------------------"
-            aws ssm get-command-invocation --region "$AWS_REGION" \
-              --command-id "$cmd_id" --instance-id "$instance_id" \
-              --query "StandardOutputContent" --output text || true
-            echo "==> [$instance_id] 배포 표준에러 ----------------------------"
-            aws ssm get-command-invocation --region "$AWS_REGION" \
-              --command-id "$cmd_id" --instance-id "$instance_id" \
-              --query "StandardErrorContent" --output text || true
+            # Remote text can contain diagnostics; preserve privately, never print.
+            local private_dir="$RUNNER_TEMP/chat-crypto-release/remote" stream
+            umask 077
+            mkdir -p "$private_dir"
+            chmod 700 "$private_dir"
+            for stream in StandardOutputContent StandardErrorContent; do
+              if ! aws ssm get-command-invocation --region "$AWS_REGION" \
+                --command-id "$cmd_id" --instance-id "$instance_id" \
+                --query "$stream" --output text >"$private_dir/$cmd_id-$instance_id-$stream" 2>/dev/null; then
+                echo "SSM_PRIVATE_DIAGNOSTIC_UNAVAILABLE" >&2
+                return 1
+              fi
+            done
 
             if [ "$finished" -ne 1 ]; then
               echo "[$instance_id] 배포 실패: 타임아웃 (마지막 status=$STATUS)" >&2
@@ -275,12 +325,21 @@ jobs:
             done
           fi
 
+          if [ "$CRYPTO_RELEASE" = true ]; then
+            crypto_args=(--environment production --sha "$DEPLOY_TAG" --rescue-sha "$CRYPTO_RESCUE_SHA"
+              --infra-sha "$CRYPTO_INFRA_SHA" --release-id "$GITHUB_RUN_ID"
+              --state "$RUNNER_TEMP/chat-crypto-release/state.json")
+            for ID in $INSTANCE_IDS; do crypto_args+=(--instance-id "$ID"); done
+            python scripts/chat_crypto_release_workflow.py prepare "${crypto_args[@]}"
+          fi
+
           # 사전점검 — ALB에서 빼기 전에 모든 인스턴스에서 이미지 pull + DB 계약 검증만 돌린다.
           # deregister 뒤 deploy.sh preflight가 실패하면 그 인스턴스는 수동 복구 전까지 로테이션 밖에 남는다.
           # preflight-only는 live 파일·컨테이너를 건드리지 않으므로 실패해도 서비스 영향이 없고, 아래 롤링과
           # 실패 처리는 그대로다.
           # deploy.sh에 이 모드가 없으면(moly-infra 미반영) 플래그가 무시되고 ALB에 붙은 채 전체 배포가 돌므로 먼저 확인한다.
           # 주석이 아니라 대입 줄(줄 맨 앞 PREFLIGHT_ONLY=)로 확인한다 — 모드를 지우고 주석만 남은 경우도 거부.
+          if [ "$CRYPTO_RELEASE" != true ]; then
           for ID in $INSTANCE_IDS; do
             echo "==> [$ID] 사전점검 ${DEPLOY_TAG::7} (pull + DB 계약 검증, ALB에서 빼기 전)"
             CMD_ID="$(aws ssm send-command \
@@ -288,7 +347,7 @@ jobs:
               --instance-ids "$ID" \
               --document-name "AWS-RunShellScript" \
               --comment "Preflight moly-backend ${DEPLOY_TAG::7}" \
-              --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && if grep -q '^PREFLIGHT_ONLY=' deploy.sh; then sudo env DEPLOY_PREFLIGHT_ONLY=1 bash deploy.sh ${DEPLOY_TAG}; else echo 'deploy.sh has no DEPLOY_PREFLIGHT_ONLY mode - merge moly-infra first' >&2; exit 1; fi\"]" \
+              --parameters "commands=[\"cd /root/moly-infra && git diff --quiet && git diff --cached --quiet && git remote get-url origin | grep -Fxq https://github.com/SOMA-OneTwoThree/moly-infra.git && git fetch origin ${CRYPTO_INFRA_SHA} && git checkout --detach ${CRYPTO_INFRA_SHA} && if grep -q '^PREFLIGHT_ONLY=' deploy.sh; then sudo env DEPLOY_PREFLIGHT_ONLY=1 bash deploy.sh ${DEPLOY_TAG}; else echo 'deploy.sh has no DEPLOY_PREFLIGHT_ONLY mode - merge moly-infra first' >&2; exit 1; fi\"]" \
               --query "Command.CommandId" \
               --output text)"
             echo "CommandId: $CMD_ID"
@@ -298,6 +357,7 @@ jobs:
               exit 1
             fi
           done
+          fi
           echo "==> 사전점검 통과 (${COUNT}대) — 롤링 시작"
 
           for ID in $INSTANCE_IDS; do
@@ -313,7 +373,7 @@ jobs:
               --instance-ids "$ID" \
               --document-name "AWS-RunShellScript" \
               --comment "Deploy moly-backend ${DEPLOY_TAG::7}" \
-              --parameters "commands=[\"cd /root/moly-infra && git pull --ff-only && sudo bash deploy.sh ${DEPLOY_TAG} && docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi'\"]" \
+              --parameters "commands=[\"cd /root/moly-infra && git diff --quiet && git diff --cached --quiet && git remote get-url origin | grep -Fxq https://github.com/SOMA-OneTwoThree/moly-infra.git && git fetch origin ${CRYPTO_INFRA_SHA} && git checkout --detach ${CRYPTO_INFRA_SHA} && sudo bash deploy.sh ${DEPLOY_TAG} && docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi'\"]" \
               --query "Command.CommandId" \
               --output text)"
             echo "CommandId: $CMD_ID"
@@ -440,3 +500,21 @@ jobs:
 
           # 헬스 실패면 워크플로 red(신호용, 자동복구는 안 함)
           [ "$fail" = "0" ]
+
+      - name: Atomically activate verified encryption and guard
+        if: ${{ env.CRYPTO_RELEASE == 'true' }}
+        run: |
+          set -euo pipefail
+          python - <<'CRYPTO_FINALIZE'
+          import json, os
+          from pathlib import Path
+          from scripts.chat_crypto_release_workflow import main
+          path=Path(os.environ['RUNNER_TEMP'])/'chat-crypto-release/state.json'
+          state=json.loads(path.read_text())
+          args=['finalize','--environment','production','--sha',os.environ['DEPLOY_TAG'],
+                '--rescue-sha',os.environ['CRYPTO_RESCUE_SHA'],'--infra-sha',os.environ['CRYPTO_INFRA_SHA'],
+                '--release-id',os.environ['GITHUB_RUN_ID'],'--state',str(path)]
+          for identity in state['identity']['instance_ids']:
+              args.extend(['--instance-id',identity])
+          raise SystemExit(main(args))
+          CRYPTO_FINALIZE

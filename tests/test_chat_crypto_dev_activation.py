@@ -67,5 +67,15 @@ def test_runtime_activation_dependencies_are_packaged():
     from pathlib import Path
     source = (Path(__file__).resolve().parents[1] / "Dockerfile").read_text()
     assert "db/envfile.py ./db/" in source
-    assert "scripts/activate_chat_content_crypto_dev.py ./scripts/" in source
+    copied_scripts = {
+        item for line in source.splitlines() if line.startswith("COPY ") and line.endswith(" ./scripts/")
+        for item in line.split()[1:-1]
+    }
+    assert {
+        "scripts/activate_chat_content_crypto_dev.py",
+        "scripts/activate_chat_content_crypto.py",
+        "scripts/preflight_chat_content_encryption.py",
+        "scripts/check_chat_content_crypto.py",
+    } <= copied_scripts
+    assert "COPY db/changes/chat_content_encryption.sql ./db/changes/" in source
     assert "scripts/check_chat_content_crypto.py" in source

@@ -27,6 +27,11 @@ on:
         type: boolean
         required: false
         default: false
+      crypto_release:
+        description: "Rehearse combined encryption/guard activation and compatible rescue checks"
+        type: boolean
+        required: false
+        default: false
       infra_sha:
         description: "Reviewed chat-encryption infra branch commit (40 hex)"
         required: false
@@ -49,7 +54,9 @@ env:
   DEPLOY_TAG: ${{ inputs.image_tag || format('dev-{0}', github.sha) }}
   # Reviewed candidate infra commit; main/prod is not changed by this workflow.
   # Never fall back to the old checkout/main during the encryption rollout.
-  DEV_INFRA_SHA: ${{ inputs.infra_sha || '9e86e88ec456bad4e8a9307d5e8f21a478816a4c' }}
+  DEV_INFRA_SHA: ${{ inputs.infra_sha || 'e2b982da5eab32ae97fee067d901ee2783458a83' }}
+  CRYPTO_RELEASE: ${{ inputs.crypto_release && 'true' || 'false' }}
+  RESCUE_SHA: adc94a495d9c5bebe5d4fbe281fa81825c85beba
   VERIFY_DAILY_REPORT: "true"
   PREFLIGHT_ONLY: ${{ inputs.preflight_only && 'true' || 'false' }}
 
@@ -70,6 +77,10 @@ jobs:
           fi
           if [[ "$PREFLIGHT_ONLY" != true && "$PREFLIGHT_ONLY" != false ]]; then
             echo "INVALID_PREFLIGHT_MODE" >&2
+            exit 1
+          fi
+          if [[ "$CRYPTO_RELEASE" = true && "$PREFLIGHT_ONLY" = true ]]; then
+            echo "CRYPTO_RELEASE_CANNOT_BE_PREFLIGHT_ONLY" >&2
             exit 1
           fi
           if [[ "$PREFLIGHT_ONLY" = true ]] && { [[ "$EVENT_NAME" != workflow_dispatch ]] || [[ ! "$REQUESTED_IMAGE_TAG" =~ ^dev-[0-9a-f]{40}$ ]]; }; then
@@ -132,6 +143,16 @@ jobs:
             echo "DEV_BANNER_VALIDATION_FAILED" >&2
             exit 1
           fi
+
+      - name: Prepare combined crypto release on development
+        if: ${{ inputs.crypto_release }}
+        run: |
+          set -euo pipefail
+          umask 077
+          ID="$(aws ec2 describe-instances --region "$AWS_REGION" --filters "Name=tag:Role,Values=moly-backend-dev" "Name=instance-state-name,Values=running" --query 'Reservations[].Instances[].InstanceId' --output text)"
+          [[ "$ID" =~ ^i-[0-9a-f]{17}$ ]] || exit 1
+          printf '%s' "$ID" > "$RUNNER_TEMP/chat-crypto-dev-instance"
+          python scripts/chat_crypto_release_workflow.py prepare --environment development --sha "${DEPLOY_TAG#dev-}" --rescue-sha "$RESCUE_SHA" --infra-sha "$DEV_INFRA_SHA" --release-id "$GITHUB_RUN_ID" --instance-id "$ID" --state "$RUNNER_TEMP/chat-crypto-release.json"
 
       - name: Deploy via SSM (single dev instance)
         run: |
@@ -360,7 +381,7 @@ jobs:
           cd /root/moly-infra || exit 101
           test -z "$(git status --porcelain)" || exit 102
           test "$(git remote get-url origin)" = https://github.com/SOMA-OneTwoThree/moly-infra.git || exit 102
-          git fetch origin refs/heads/feat/chat-encryption-dev-20261105 || exit 102
+          git fetch origin {infra} || exit 102
           test "$(git rev-parse FETCH_HEAD)" = {infra} || exit 102
           git checkout --detach {infra} || exit 102
           test "$(git rev-parse HEAD)" = {infra} || exit 102
@@ -393,12 +414,14 @@ jobs:
           if [ "{os.environ['VERIFY_DAILY_REPORT']}" = true ]; then
             docker exec moly-backend python scripts/check_daily_report.py --environment development --expected-sha {tag.removeprefix("dev-")} || exit 105
           fi
-          python3 -c {shlex.quote(activation_proof)} .deploy-state/chat-content-moly-backend.json .deploy-state/chat-content-moly-consumer.json | docker exec -i moly-backend python scripts/activate_chat_content_crypto_dev.py --expected-sha {tag.removeprefix("dev-")} || exit 106
+          if [ "{os.environ.get('CRYPTO_RELEASE', 'false')}" != true ]; then
+            python3 -c {shlex.quote(activation_proof)} .deploy-state/chat-content-moly-backend.json .deploy-state/chat-content-moly-consumer.json | docker exec -i moly-backend python scripts/activate_chat_content_crypto_dev.py --expected-sha {tag.removeprefix("dev-")} || exit 106
+          fi
           """
-          command = "python3 - <<'READ_ONLY_CRYPTO_DIAG'\nimport glob,json,subprocess,os\nfrom pathlib import Path\nstages={'==> chat content crypto candidate preflight OK':'crypto_preflight','==> 컨테이너 기동':'container_start','==> async job consumer 모듈 확인':'consumer_probe','==> 헬스 게이트':'health_gate','==> DB schema preflight':'schema','==> chat content API/consumer capability verified':'role_proofs','==> chat content old worker drain complete':'worker_drained'}\nerrors={'unbound variable':'shell_unbound','command not found':'missing_command','cannot stat':'missing_source_file','cannot create':'file_write','ERROR: chat content timer state unavailable':'timer_state','ERROR: chat content worker launch configuration mismatch':'worker_config','ERROR: chat content worker launch capability check failed':'worker_checker','ERROR: chat content worker launch key/policy mismatch':'worker_key','ERROR: chat content runtime image mismatch':'runtime_image','ERROR: chat content runtime capability check failed':'runtime_checker','ERROR: chat content runtime key/policy mismatch':'runtime_key','ERROR: consumer inventory unavailable':'consumer_inventory','ERROR: unverified extra consumer is running':'consumer_extra'}\nrows=[]\nfiles=sorted(glob.glob('/var/lib/amazon/ssm/*/document/orchestration/*/awsrunShellScript/*/stdout'),key=os.path.getmtime,reverse=True)[:6]\nfor filename in files:\n text=Path(filename).read_text(errors='replace')[-300000:]\n matches=[label for line in text.splitlines() for prefix,label in stages.items() if line.startswith(prefix)]\n errorfiles=[Path(filename).with_name('stderr')]\n err=''.join(p.read_text(errors='replace')[-30000:] for p in errorfiles if p.exists())\n found=sorted(label for fragment,label in errors.items() if fragment in err or fragment in text)\n rows.append({'stages':matches,'known_errors':found,'has_stderr':bool(err.strip())})\nresult={'readonly':True,'recent_deployments':rows,'containers':{}}\nfor name in ('moly-backend','moly-consumer'):\n r=subprocess.run(['docker','inspect','--format','{{.Config.Image}}',name],capture_output=True,text=True)\n value=r.stdout.strip().split(':')[-1]\n result['containers'][name]=value if value.startswith('dev-') and len(value)==44 else 'unknown'\nfor unit in ('moly-worker.timer','moly-worker.service'):\n r=subprocess.run(['systemctl','is-active',unit],capture_output=True,text=True)\n result[unit]=r.stdout.strip() if r.stdout.strip() in {'active','inactive','failed','activating','deactivating','unknown'} else 'unknown'\nfor label,flags in (('compose_default',[]),('compose_worker',['--profile','worker']),('compose_roles',['--profile','*'])):\n r=subprocess.run(['docker','compose','--env-file','/root/moly-infra/.env','-f','/root/moly-infra/docker-compose.yml',*flags,'config',*(['--no-env-resolution'] if label=='compose_roles' else []),'--format','json'],capture_output=True,text=True)\n try:\n  services=json.loads(r.stdout)['services'];w=services.get('worker');result[label]={'returncode':r.returncode,'worker_present':w is not None,'worker_command_valid':w is not None and w.get('command')==['python','-m','worker'],'worker_image_valid':w is not None and w.get('image')=='676972757138.dkr.ecr.ap-northeast-2.amazonaws.com/moly-backend-dev:dev-27fe96eae0cf44075eaf727e41a601a2777ce4ce'}\n except Exception:result[label]={'returncode':r.returncode,'json_valid':False}\nprint(json.dumps(result,sort_keys=True))\nREAD_ONLY_CRYPTO_DIAG"
           with open(sys.argv[1], "w") as out:
               json.dump({"commands": [command], "executionTimeout": ["1200"]}, out)
           PYTHON
+
           if ! CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
             --instance-ids "$ID" --document-name AWS-RunShellScript \
             --parameters "file://$params_file" \
@@ -411,7 +434,6 @@ jobs:
             exit 1
           fi
           poll_ssm "$CMD_ID"
-          aws ssm get-command-invocation --region "$AWS_REGION" --command-id "$CMD_ID" --instance-id "$ID" --query StandardOutputContent --output text
 
       - name: Verify via public endpoint
         if: ${{ !inputs.preflight_only }}
@@ -455,3 +477,10 @@ jobs:
           else:
               raise SystemExit("DEV_PUBLIC_HEALTH_READY_FAILED")
           PYTHON
+
+      - name: Adopt combined crypto release on development
+        if: ${{ inputs.crypto_release }}
+        run: |
+          set -euo pipefail
+          ID="$(cat "$RUNNER_TEMP/chat-crypto-dev-instance")"
+          python scripts/chat_crypto_release_workflow.py finalize --environment development --sha "${DEPLOY_TAG#dev-}" --rescue-sha "$RESCUE_SHA" --infra-sha "$DEV_INFRA_SHA" --release-id "$GITHUB_RUN_ID" --instance-id "$ID" --state "$RUNNER_TEMP/chat-crypto-release.json"

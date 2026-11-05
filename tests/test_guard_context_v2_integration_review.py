@@ -176,6 +176,7 @@ async def test_fixed_guidance_bypasses_all_normal_state_and_charges_zero(setup, 
     session = Session()
     result = await chat.post_message(session, UID, request(), "fixed-test")
     assert result.reply.content == crisis_guard.fixed_reply(language)
+    assert result.reply.kind == "safety"
     assert result.greeting is None and result.reply.references == [] and not result.review_prompt
     assert result.tokens_used == gate.tokens_used
     assert decision.await_count == 1

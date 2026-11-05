@@ -132,6 +132,9 @@ class ReplyMessage(CreatedMessage):
     content: str
     # Optional/additive on the wire: old idempotency JSONB without the key remains valid.
     references: list[ChatReference] = Field(default_factory=list, max_length=3)
+    # 위기 가드의 고정 응답을 클라이언트가 구분하도록 messages.kind를 그대로 알린다.
+    # 키가 없는 기존 멱등 JSONB는 일반 답변으로 읽힌다.
+    kind: Literal["normal", "safety_check", "safety"] = "normal"
 
 
 class PostMessageResponse(StrictResponse):

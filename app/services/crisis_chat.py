@@ -124,8 +124,9 @@ async def recorded_decision(
         raise
     _finish_cost(finalize(decision))
     _log.info(
-        "crisis_guard route=%s status=%s followup=%s method_status=%s latency_ms=%d",
-        decision.route, decision.status, decision.followup, decision.method_status, round(decision.latency_ms),
+        "crisis_guard route=%s status=%s followup=%s method_status=%s question_history_status=%s latency_ms=%d",
+        decision.route, decision.status, decision.followup, decision.method_status,
+        decision.question_history_status, round(decision.latency_ms),
     )
     return decision
 

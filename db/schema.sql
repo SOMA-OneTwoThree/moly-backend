@@ -618,7 +618,8 @@ CREATE TABLE public.greetings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     context text NOT NULL,
-    content text NOT NULL,
+    content text,
+    content_ciphertext bytea,
     activity_date date NOT NULL,
     committed_message_id bigint,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -653,6 +654,7 @@ CREATE TABLE public.idempotency_keys (
     user_id uuid NOT NULL,
     key text NOT NULL,
     response jsonb,
+    response_ciphertext bytea,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     request_hash text,
     response_schema_version bigint DEFAULT 1 NOT NULL,
@@ -833,7 +835,9 @@ CREATE TABLE public.messages (
     user_id uuid NOT NULL,
     sender text NOT NULL,
     kind text DEFAULT 'normal'::text NOT NULL,
-    content text NOT NULL,
+    content text,
+    content_ciphertext bytea,
+    content_chars integer,
     input_tokens integer,
     output_tokens integer,
     cache_read_tokens integer,
@@ -3367,7 +3371,7 @@ BEGIN
   DELETE FROM public.chat_topic_entries WHERE user_id = p_user_id;
   DELETE FROM public.user_topic_states WHERE user_id = p_user_id;
   UPDATE public.idempotency_keys
-  SET response = NULL, terminal_status = 'redacted', redacted_at = now()
+  SET response = NULL, response_ciphertext = NULL, terminal_status = 'redacted', redacted_at = now()
   WHERE user_id = p_user_id;
   UPDATE public.chat_response_references
   SET state = 'unavailable', diary_id = NULL, rendered_metadata = '{}'::jsonb,
@@ -3772,3 +3776,32 @@ AFTER INSERT OR UPDATE OR DELETE ON public.mem0_ingest_candidates
 FOR EACH ROW EXECUTE FUNCTION public.bump_retention_preparation_revision();
 
 COMMIT;
+
+-- New-content checks intentionally remain NOT VALID; old rows are not scanned.
+ALTER TABLE public.messages ADD CONSTRAINT messages_content_storage_ck CHECK ((content_ciphertext IS NULL AND content IS NOT NULL AND content_chars IS NULL)
+ OR (content_ciphertext IS NOT NULL AND content IS NULL AND content_chars IS NOT NULL
+     AND content_chars >= 0 AND content_chars <= 1048576
+     AND CASE WHEN octet_length(content_ciphertext) BETWEEN 32 AND 1048608 THEN
+         substring(content_ciphertext FROM 1 FOR 2) = decode('0100','hex')
+         AND (get_byte(content_ciphertext,2) > 0 OR get_byte(content_ciphertext,3) > 0)
+         AND content_chars <= octet_length(content_ciphertext)-32
+         AND octet_length(content_ciphertext)-32 <= content_chars*4
+         ELSE false END)) NOT VALID;
+ALTER TABLE public.greetings ADD CONSTRAINT greetings_content_storage_ck CHECK ((content_ciphertext IS NULL AND content IS NOT NULL)
+ OR (content_ciphertext IS NOT NULL AND content IS NULL
+     AND CASE WHEN octet_length(content_ciphertext) BETWEEN 32 AND 1048608 THEN
+         substring(content_ciphertext FROM 1 FOR 2) = decode('0100','hex')
+         AND (get_byte(content_ciphertext,2) > 0 OR get_byte(content_ciphertext,3) > 0)
+         ELSE false END)) NOT VALID;
+ALTER TABLE public.idempotency_keys ADD CONSTRAINT idempotency_response_storage_ck CHECK ((response_schema_version <> 3 AND response_ciphertext IS NULL)
+ OR (response_schema_version = 3 AND
+     ((response IS NULL AND response_ciphertext IS NULL
+       AND (redacted_at IS NOT NULL OR terminal_status IN ('expired','redacted')))
+      OR (response IS NOT NULL AND response = '{}'::jsonb AND response_ciphertext IS NOT NULL
+          AND redacted_at IS NULL AND terminal_status = 'succeeded'
+          AND request_hash IS NOT NULL AND request_hash <> ''
+          AND key NOT LIKE 'shop-purchase:%' AND key NOT LIKE 'topic-prepare:%'
+          AND CASE WHEN octet_length(response_ciphertext) BETWEEN 32 AND 4194336 THEN
+              substring(response_ciphertext FROM 1 FOR 2) = decode('0100','hex')
+              AND (get_byte(response_ciphertext,2) > 0 OR get_byte(response_ciphertext,3) > 0)
+              ELSE false END)))) NOT VALID;

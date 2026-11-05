@@ -466,7 +466,7 @@ def test_replay_lookup_excludes_all_successful_descendants_and_current_work():
 
 def test_discovery_uses_real_source_size_and_privacy_not_dead_row_count():
     sql = str(sweep._RETENTION_RESUME_USERS)
-    assert "sum(octet_length(COALESCE(m.content,''))+24)>=4096" in sql
+    assert "sum(COALESCE(CASE WHEN m.content_ciphertext IS NULL THEN octet_length(m.content) ELSE octet_length(m.content_ciphertext)-32 END,0)+24)>=4096" in sql
     assert "privacy_subject_barriers" in sql and "b.state<>'active'" in sql
     assert "'conversation-checkpoint-summary-v5'" in sql
     assert "interval '60 seconds'" in sql and "LIMIT :limit" in sql

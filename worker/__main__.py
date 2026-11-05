@@ -17,6 +17,10 @@ _log = logging.getLogger("moly-worker")
 
 async def _tick_then_flush() -> dict[str, int]:
     from app.services import usage_ledger
+    from app.core.db import get_sessionmaker
+    from app.services.chat_content_encryption import prepare_reader
+    async with get_sessionmaker()() as crypto_session:
+        await prepare_reader(crypto_session)
 
     # 합성 점검은 틱 본 작업과 동시에 돈다(API 건강 — 경보만, 데드맨과 분리).
     probe = synthetic_probe.start()

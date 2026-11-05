@@ -98,7 +98,16 @@ async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSON
     )
 
 
+async def _content_crypto_error_handler(request: Request, exc) -> JSONResponse:
+    # Decryption failures must not echo data or trigger plaintext/cursor fallbacks.
+    _log.error("conversation storage unavailable code=%s", exc.code)
+    return JSONResponse(status_code=503, content=_body(
+        "CHAT_STORAGE_UNAVAILABLE", "대화 기록을 잠시 불러올 수 없어요. 잠시 후 다시 시도해 주세요.", {}))
+
+
 def register_error_handlers(app: FastAPI) -> None:
+    from app.core.content_crypto import ContentCryptoError
+    app.add_exception_handler(ContentCryptoError, _content_crypto_error_handler)
     app.add_exception_handler(AppError, _app_error_handler)
     app.add_exception_handler(RequestValidationError, _validation_error_handler)
     app.add_exception_handler(StarletteHTTPException, _http_exception_handler)

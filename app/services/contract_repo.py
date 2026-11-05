@@ -9,6 +9,8 @@
 """
 from __future__ import annotations
 
+from app.services import message_content
+
 import json
 import hashlib
 import uuid
@@ -62,19 +64,24 @@ ORDER BY c.published_at DESC,c.version DESC,c.id LIMIT 1
 """)
 
 _VALID_SOURCES = text("""
-SELECT id,content FROM messages
+SELECT id,content,content_ciphertext,content_chars FROM messages
 WHERE user_id=:user_id AND id=ANY(CAST(:ids AS bigint[]))
   AND sender='user' AND kind='normal'
 """)
 
 _PENDING_CONVERSATION_ENDS = text("""
-SELECT m.id,m.content FROM messages m JOIN chat_contexts cc ON cc.user_id=m.user_id
+SELECT m.id,m.content,m.content_ciphertext,m.content_chars FROM messages m JOIN chat_contexts cc ON cc.user_id=m.user_id
 WHERE m.user_id=:user_id AND cc.memory_generation=:generation
   AND m.sender='user' AND m.kind='normal'
   AND m.id>cc.contract_processed_through_message_id
   AND m.id>:after
 ORDER BY m.id LIMIT 200
 """)
+
+
+def _source_pairs(rows, user_id):
+    return [(row[0], message_content.read_message_content(user_id=user_id, legacy_text=row[1],
+        ciphertext=row[2] if len(row)>2 else None, chars=row[3] if len(row)>3 else None)) for row in rows]
 
 
 def active_retained_items(items: list[dict], *, activity_date: date | None = None) -> list[dict]:
@@ -391,7 +398,8 @@ async def validate_retained_items(session: AsyncSession, *, user_id: uuid.UUID,
             if type(ref.get("source_message_id")) is not int or ref["source_message_id"] <= max(compat_baseline.source_after, compat_baseline.legacy_contract_after):
                 raise ic.ContractViolation("기존 계약 변경이 신규 원문 범위 밖이다")
             refs.append((item, projection, ref))
-        sources = {row[0]: row[1] or "" for row in (await session.execute(_VALID_SOURCES,
+        sources = {row[0]: message_content.read_message_content(user_id=user_id, legacy_text=row[1],
+            ciphertext=row[2] if len(row)>2 else None, chars=row[3] if len(row)>3 else None) for row in (await session.execute(_VALID_SOURCES,
             {"user_id": user_id, "ids": [ref["source_message_id"] for _, _, ref in refs]})).all()} if refs else {}
         for item, projection, ref in refs:
             quote = _validate_reference(ref, sources)
@@ -419,7 +427,8 @@ async def validate_retained_items(session: AsyncSession, *, user_id: uuid.UUID,
             ids.append(end["source_message_id"])
     if any(type(value) is not int or value <= 0 for value in ids):
         raise ic.ContractViolation("계약 근거 메시지 ID가 잘못됐다")
-    sources = {row[0]: row[1] or "" for row in (await session.execute(
+    sources = {row[0]: message_content.read_message_content(user_id=user_id, legacy_text=row[1],
+            ciphertext=row[2] if len(row)>2 else None, chars=row[3] if len(row)>3 else None) for row in (await session.execute(
         _VALID_SOURCES, {"user_id": user_id, "ids": ids},
     )).all()}
     for item in items:
@@ -469,6 +478,7 @@ async def published_text(
             while any(item.get("scope", "persistent") == "persistent" for item in active):
                 pending = (await session.execute(_PENDING_CONVERSATION_ENDS, {"user_id": user_id,
                     "generation": generation, "after": after})).all()
+                pending = _source_pairs(pending, user_id)
                 active = [item for item in active if not (item.get("scope", "persistent") == "persistent" and any(
                     mid > (item.get("source_message_id") or 0) and legacy_end_applies(body, item) for mid, body in pending))]
                 if len(pending) < 200:
@@ -486,6 +496,7 @@ async def published_text(
                     pending = (await session.execute(end_sql, {**end_params,
                         "user_id": user_id, "generation": generation, "after": after,
                     })).all()
+                    pending = _source_pairs(pending, user_id)
                     ends.extend((int(mid), conversation_scope_end_targets(body)) for mid, body in pending
                                 if conversation_scope_end_candidate(body))
                     if len(pending) < 200 or all(

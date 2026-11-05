@@ -5,6 +5,8 @@
 """
 from __future__ import annotations
 
+from app.services import message_content
+
 import copy
 import hashlib
 import json
@@ -155,7 +157,14 @@ def token_upper_bound(value: str) -> int:
 
 
 def source_tokens(messages: Sequence[Any]) -> int:
-    return sum(token_upper_bound(m.content or "") + 24 for m in messages)
+    total = 0
+    for message in messages:
+        body = message.content or ""
+        if hasattr(message, "content_ciphertext") or hasattr(message, "content_chars"):
+            body = message_content.read_message_content(user_id=message.user_id, legacy_text=message.content,
+                ciphertext=getattr(message, "content_ciphertext", None), chars=getattr(message, "content_chars", None))
+        total += token_upper_bound(body) + 24
+    return total
 
 
 def assert_input_budget(system, messages, *, tools=(), input_limit: int = 16_384,
@@ -385,7 +394,7 @@ def build_delta_input(*, previous_state: dict[str, Any] | None, previous_id: uui
 
 
 _PROGRESS_SOURCES = text("""
-SELECT id,kind,content FROM messages
+SELECT id,kind,content,content_ciphertext,content_chars FROM messages
 WHERE user_id=:user_id AND id=ANY(CAST(:ids AS bigint[]))
 """)
 
@@ -430,7 +439,9 @@ async def validate_progress_sources(session: AsyncSession, *, user_id: uuid.UUID
     rows = (await session.execute(_PROGRESS_SOURCES, {
         "user_id": user_id, "ids": sorted({ref["message_id"] for ref in refs}),
     })).all()
-    sources = {row[0]: (row[1], row[2] or "") for row in rows}
+    sources = {row[0]: (row[1], message_content.read_message_content(user_id=user_id,
+        legacy_text=row[2], ciphertext=row[3] if len(row)>3 else None,
+        chars=row[4] if len(row)>4 else None)) for row in rows}
     for ref in refs:
         source = sources.get(ref["message_id"])
         if source is None or source[0] in SUMMARY_EXCLUDED_MESSAGE_KINDS:
@@ -460,7 +471,7 @@ ORDER BY r.id LIMIT 257
 
 _REQUIRED_SOURCES = text("""
 SELECT s.registry_id,s.source_message_id,s.source_sender,s.authority,
-       s.evidence_start_utf8,s.evidence_end_utf8,s.source_content_hash,m.content,m.kind,m.sender
+       s.evidence_start_utf8,s.evidence_end_utf8,s.source_content_hash,m.content,m.kind,m.sender,m.content_ciphertext,m.content_chars
 FROM mem0_memory_sources s
 JOIN messages m ON m.id=s.source_message_id AND m.user_id=s.user_id
 WHERE s.user_id=:user_id AND s.registry_id=ANY(CAST(:ids AS uuid[]))
@@ -541,7 +552,9 @@ async def load_required_facts(session: AsyncSession, *, user_id: uuid.UUID | str
             if (source[8] != "normal" or source[2] != "user" or source[9] != "user"
                     or source[3] not in {"explicit_user", "confirmed_user"}):
                 raise RetentionError("required_source_excluded")
-            data = memory.sanitize_text(source[7] or "").encode("utf-8")
+            data = memory.sanitize_text(message_content.read_message_content(user_id=user_id,
+                legacy_text=source[7], ciphertext=source[10] if len(source)>10 else None,
+                chars=source[11] if len(source)>11 else None)).encode("utf-8")
             start, end = source[4], source[5]
             if type(start) is not int or type(end) is not int or not 0 <= start < end <= len(data):
                 raise RetentionError("required_source_span")
@@ -593,7 +606,7 @@ _CORRECTION = re.compile(
     r"訂正|言い間違|じゃなく|ではなく|もう.{0,30}(?:ない|ません)", re.IGNORECASE,
 )
 _PENDING_CORRECTIONS = text("""
-SELECT m.id,m.content FROM messages m
+SELECT m.id,m.content,m.content_ciphertext,m.content_chars FROM messages m
 JOIN chat_contexts cc ON cc.user_id=m.user_id
 LEFT JOIN memory_pipeline_states p ON p.user_id=m.user_id
 WHERE m.user_id=:user_id AND cc.memory_generation=:generation
@@ -648,7 +661,10 @@ async def pending_correction(session: AsyncSession, *, user_id: uuid.UUID | str,
             "user_id": user_id, "generation": generation, "after_id": after_id,
             "page_size": CORRECTION_PAGE_SIZE,
         }))).all()
-        for identity, content in rows:
+        for row in rows:
+            identity = row[0]
+            content = message_content.read_message_content(user_id=user_id, legacy_text=row[1],
+                ciphertext=row[2] if len(row)>2 else None, chars=row[3] if len(row)>3 else None)
             if type(identity) is not int or identity<=after_id:
                 raise RetentionError("correction_source_order")
             after_id = identity

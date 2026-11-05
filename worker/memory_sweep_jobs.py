@@ -95,7 +95,7 @@ AND (
         AND pending_message.id<cc.pending_anchor_message_id
     )
     OR COALESCE((
-      SELECT sum(octet_length(COALESCE(pending_message.content,''))+24)
+      SELECT sum(COALESCE(CASE WHEN pending_message.content_ciphertext IS NULL THEN octet_length(pending_message.content) ELSE octet_length(pending_message.content_ciphertext)-32 END,0)+24)
       FROM messages pending_message WHERE pending_message.user_id=cc.user_id
         AND pending_message.id>COALESCE(latest.through_message_id,CASE WHEN CAST(:allow_unbound AS boolean) THEN 0 ELSE (cc.retention_compat_json->>'source_after')::bigint END,0)
         AND pending_message.id<cc.pending_anchor_message_id
@@ -104,7 +104,7 @@ AND (
   OR EXISTS (
     SELECT 1 FROM messages m
     WHERE m.user_id=cc.user_id AND m.id>COALESCE(latest.through_message_id,CASE WHEN CAST(:allow_unbound AS boolean) THEN 0 ELSE (cc.retention_compat_json->>'source_after')::bigint END,0)
-    GROUP BY m.user_id HAVING sum(octet_length(COALESCE(m.content,''))+24)>=4096
+    GROUP BY m.user_id HAVING sum(COALESCE(CASE WHEN m.content_ciphertext IS NULL THEN octet_length(m.content) ELSE octet_length(m.content_ciphertext)-32 END,0)+24)>=4096
   )
 )
 ORDER BY cc.user_id

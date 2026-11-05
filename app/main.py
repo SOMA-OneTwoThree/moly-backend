@@ -50,6 +50,8 @@ def create_app() -> FastAPI:
         from app.services.banner_catalog import BannerCatalog
         from app.services.topic_catalog import TopicCatalog
 
+        from app.services.chat_content_encryption import prepare_runtime
+        await prepare_runtime()
         app.state.banner_catalog = None
         try:
             app.state.banner_catalog = BannerCatalog.load()

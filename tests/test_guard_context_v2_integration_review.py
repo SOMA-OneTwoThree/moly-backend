@@ -503,10 +503,13 @@ def test_independent_route_table_oracle(case, intervention, answer):
         items.append(choice("followup", answer, answers))
     if case in {"self_intent_plan", "self_preparation_action"}:
         expected = "safety"
-    elif case == "not_applicable" or intervention == "safety":
+    elif case == "not_applicable":
         expected = "normal"
     elif intervention == "safety_check":
-        expected = "safety" if answer == "same_confirmed" else "normal"
+        if answer == "same_confirmed":
+            expected = "safety"
+        else:
+            expected = "normal"
     else:
         expected = "ask"
     parsed = crisis_guard.parse_decision({"answers": items}, last_intervention=intervention)
@@ -532,8 +535,8 @@ def test_independent_action_is_not_lowered_by_auxiliary_failure(case, auxiliary)
     assert parsed.route == "safety" and parsed.case == case
 
 
-@pytest.mark.parametrize("distance,expected", [(5, "safety_check"), (6, None), (7, None)])
-def test_independent_six_message_boundary_is_messages_and_assistant_only(distance, expected):
+@pytest.mark.parametrize("distance,expected", [(5, None), (6, None), (7, None)])
+def test_independent_six_message_context_does_not_turn_old_question_into_state(distance, expected):
     history = [crisis_guard.GuardMessage("assistant", "합성 질문", "safety_check", 1)]
     history += [crisis_guard.GuardMessage("user" if n % 2 else "assistant", "합성 문맥", "normal", n + 2)
                 for n in range(distance)]

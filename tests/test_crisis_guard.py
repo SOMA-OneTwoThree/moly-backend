@@ -33,8 +33,11 @@ def test_complete_route_priority(case, intervention, answer):
     data = payload(case, answer if intervention == "safety_check" else None)
     result = cg.parse_decision(data, last_intervention=intervention)
     expected = ("safety" if case in cg.ACTION_CASES else
-                "normal" if case == "not_applicable" or intervention == "safety" else
-                ("safety" if answer == "same_confirmed" else "normal") if intervention == "safety_check" else "ask")
+                "normal" if case == "not_applicable" else
+                "ask" if intervention != "safety_check" else
+                "safety" if answer == "same_confirmed" else
+                "normal" if answer == "same_denied" else
+                "normal")
     assert result.route == expected and result.case == case
     assert result.status == ("conflict" if case == "not_applicable" and intervention == "safety_check"
                              and answer == "same_confirmed" else "ok")

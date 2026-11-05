@@ -524,6 +524,9 @@ async def run_consumer(
     reap: bool = True,
 ) -> None:
     """큐 루프 + reaper 루프를 함께 돈다. stop이 set되면 드레인 후 반환."""
+    from app.services.chat_content_encryption import prepare_reader
+    async with get_sessionmaker()() as crypto_session:
+        await prepare_reader(crypto_session)
     _register_handlers()
 
     stop = stop or asyncio.Event()

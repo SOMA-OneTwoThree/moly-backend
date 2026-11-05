@@ -418,7 +418,7 @@ def _greeting_session(*, spoke, issued):
     return SeqSession(
         get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko",
                                             nickname="지훈", id=UID)},
-        sequences=[[], [1] if spoke else [], ["g-1"] if issued else []],  # 락 · 오늘 발화 · 오늘 발급
+        sequences=[[(None, {"started": False, "format_version": 1, "active_key_id": 1, "required_key_ids": [1]})], [1] if spoke else [], ["g-1"] if issued else []],  # 락 · 오늘 발화 · 오늘 발급
     )
 
 
@@ -480,7 +480,7 @@ def _pushed_session(*, variant="c.missing.2", replied=False, evening_issued=Fals
     return _NestedSeqSession(
         get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko",
                                             nickname="지훈", id=UID)},
-        sequences=[[], [(_PUSHED_AT, variant)], [1] if replied else [], ["g-e"] if evening_issued else [],
+        sequences=[[(None, {"started": False, "format_version": 1, "active_key_id": 1, "required_key_ids": [1]})], [(_PUSHED_AT, variant)], [1] if replied else [], ["g-e"] if evening_issued else [],
                    [1] if spoke else [], ["g-1"] if issued else []],
     )
 
@@ -508,7 +508,7 @@ async def test_greeting_falls_back_to_current_rules(case):
         # 대화 문구가 아니면 발화·첫마디 조회 없이 바로 지금 규칙(오늘 발화 · 오늘 발급)으로 간다.
         session = _NestedSeqSession(
             get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko", nickname="지훈", id=UID)},
-            sequences=[[], [(_PUSHED_AT, "rr")], [1], []],
+            sequences=[[(None, {"started": False, "format_version": 1, "active_key_id": 1, "required_key_ids": [1]})], [(_PUSHED_AT, "rr")], [1], []],
         )
     else:
         session = _pushed_session(replied=case == "replied", evening_issued=case == "evening_issued", spoke=True)
@@ -520,7 +520,7 @@ async def test_onboarding_greeting_is_not_replaced_by_push():
     """가입 직후 첫인사(onboarding)는 저녁 푸시 기록을 보지 않는다 — 락 · 오늘 발화 · 오늘 발급만."""
     session = _NestedSeqSession(
         get_map={"Profile": SimpleNamespace(timezone="Asia/Seoul", language="ko", nickname="지훈", id=UID)},
-        sequences=[[], [], []],
+        sequences=[[(None, {"started": False, "format_version": 1, "active_key_id": 1, "required_key_ids": [1]})], [], []],
     )
     out = await chat_service.get_greeting(session, UID, "onboarding")
     assert out["content"] and session.added[0].context == "onboarding"

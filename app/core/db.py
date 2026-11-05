@@ -45,6 +45,7 @@ def get_engine() -> AsyncEngine:
         _engine = create_async_engine(
             _async_dsn(),
             pool_pre_ping=True,
+            hide_parameters=True,
             # 상한 산정 근거는 settings 주석 참조 — prod max_connections=60, 롤링 배포 2배 계수.
             pool_size=settings.db_pool_size,
             max_overflow=settings.db_max_overflow,

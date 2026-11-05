@@ -12,6 +12,8 @@
 """
 from __future__ import annotations
 
+from app.services import message_content
+
 import json
 import hashlib
 import logging
@@ -87,7 +89,7 @@ _GENERATION_SQL = text(
 
 # 요약 대상 구간. after_id는 이전 checkpoint의 through(없으면 0) — 열린 하한, 닫힌 상한이다.
 _RANGE_SQL = text("""
-SELECT id, sender, kind, content, created_at
+SELECT id, sender, kind, content, created_at, content_ciphertext, content_chars
 FROM messages
 WHERE user_id = :user_id AND id > :after_id AND id <= :through_id
   AND kind NOT IN ('fortune_context_root','fortune_derived','safety_check','safety')
@@ -277,7 +279,8 @@ async def load_range(
     ).mappings().all()
     return [
         checkpoint.SourceMessage(
-            id=int(r["id"]), sender=r["sender"], kind=r["kind"], content=r["content"] or "",
+            id=int(r["id"]), sender=r["sender"], kind=r["kind"], content=message_content.read_message_content(user_id=user_id,
+                ciphertext=r.get("content_ciphertext"), legacy_text=r["content"], chars=r.get("content_chars")),
             created_at=r["created_at"],
         )
         for r in rows

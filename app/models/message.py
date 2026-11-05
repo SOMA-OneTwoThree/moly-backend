@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import BigInteger, CheckConstraint, Date, DateTime, Integer, SmallInteger, String, UniqueConstraint, text
+from sqlalchemy import BigInteger, CheckConstraint, Date, DateTime, Integer, LargeBinary, SmallInteger, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -39,7 +39,9 @@ class Message(Base):
     kind: Mapped[str] = mapped_column(String, server_default=text("'normal'"))
     turn_seq: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     turn_position: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
-    content: Mapped[str] = mapped_column(String)
+    content: Mapped[str | None] = mapped_column(String, nullable=True)
+    content_ciphertext: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    content_chars: Mapped[int | None] = mapped_column(Integer, nullable=True)
     input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # 캐시 텔레메트리(실원가·히트율 집계용) + 청구 스냅샷(가중치 변경 후 재감사).

@@ -16,6 +16,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import errors
+from app.services.chat_content_encryption import parse_mode
 
 
 @dataclass(frozen=True)
@@ -93,6 +94,13 @@ WHERE a.user_id=:user_id AND a.lease_token=:token AND a.lease_until>=now()
 FOR UPDATE OF a,c
 """)
 
+_VERIFY_ENCRYPTED = text(str(_VERIFY).replace(
+    'SELECT a.turn_seq,a.base_context_revision',
+    "WITH encryption_mode AS MATERIALIZED (SELECT value FROM app_config "
+    "WHERE key='chat_content_encryption_state' FOR SHARE) "
+    "SELECT a.turn_seq,a.base_context_revision,(SELECT value FROM encryption_mode)"
+))
+
 _PUBLISH = text("""
 UPDATE chat_contexts SET
   context_revision=context_revision+1,
@@ -144,11 +152,12 @@ async def acquire(
 async def verify_publish(
     session: AsyncSession, *, user_id: uuid.UUID, lease: Lease,
     memory_generation: int | None = None,
-) -> None:
+    encryption_mode: bool = False,
+):
     # Hold the context row through publish: a generation change cannot race an anchor
     # update made from checkpoint coverage read before inference.
     row = (
-        await session.execute(_VERIFY, {
+        await session.execute(_VERIFY_ENCRYPTED if encryption_mode else _VERIFY, {
             "user_id": user_id, "token": lease.token, "memory_generation": memory_generation,
         })
     ).first()
@@ -156,6 +165,14 @@ async def verify_publish(
         raise errors.AppError(
             "CHAT_TURN_STALE", 409, "답변 순서가 바뀌었어요. 같은 요청을 다시 보내 주세요."
         )
+
+    if encryption_mode:
+        mode = parse_mode(row[2])
+        if mode.started:
+            from app.core.content_crypto import initialize_content_crypto
+            initialize_content_crypto(required_key_ids=mode.required_key_ids)
+        return mode
+    return None
 
 
 async def finish_publish(

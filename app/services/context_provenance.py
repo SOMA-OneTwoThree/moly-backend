@@ -6,6 +6,8 @@ Missing provenance is mandatory input, including legacy callers.
 """
 from __future__ import annotations
 
+from app.services import message_content
+
 import hashlib
 import uuid
 from dataclasses import dataclass, replace
@@ -36,8 +38,12 @@ class SourceRef:
         if (type(message.id) is not int or message.id <= 0
                 or type(generation) is not int or generation < 0):
             raise ProvenanceError("invalid_source_identity")
+        body = message.content or ""
+        if hasattr(message, "content_ciphertext") or hasattr(message, "content_chars"):
+            body = message_content.read_message_content(user_id=user_id, legacy_text=message.content,
+                ciphertext=getattr(message, "content_ciphertext", None), chars=getattr(message, "content_chars", None))
         return cls(uuid.UUID(str(user_id)), message.id, generation,
-                   hashlib.sha256((message.content or "").encode("utf-8")).hexdigest())
+                   hashlib.sha256(body.encode("utf-8")).hexdigest())
 
 
 @dataclass(frozen=True, slots=True)

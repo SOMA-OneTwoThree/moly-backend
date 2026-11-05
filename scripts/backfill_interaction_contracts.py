@@ -37,7 +37,7 @@ from app.config import settings
 from app.core.db import get_sessionmaker
 from app.services import contract_compiler as cc
 from app.services import interaction_contract as ic
-from app.services import llm, usage_ledger
+from app.services import llm, message_content, usage_ledger
 from db.envfile import announce, configure_application_db, split_env_arg
 from db.maintenance import MaintenanceBlocked, lock_active_subject
 
@@ -56,7 +56,7 @@ LIMIT :limit
 """)
 
 _MESSAGES = text("""
-SELECT id, sender, content
+SELECT id, sender, content, content_ciphertext, content_chars
 FROM messages
 WHERE user_id = :user_id AND kind = 'normal'
 ORDER BY id
@@ -126,7 +126,9 @@ async def _compile_for_user(maker, uid: uuid.UUID):
     if not rows:
         return [], ["원문 없음"], locale, epoch, rows
 
-    messages = [_Msg(r[0], r[1], r[2] or "") for r in rows]
+    messages = [_Msg(r[0], r[1], message_content.read_message_content(user_id=uid,
+        legacy_text=r[2], ciphertext=r[3] if len(r)>3 else None, chars=r[4] if len(r)>4 else None))
+        for r in rows]
     user_ids = {m.id for m in messages if m.sender == "user"}
     result = await llm.generate(
         cc.SYSTEM,

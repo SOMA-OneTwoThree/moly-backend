@@ -156,7 +156,7 @@ BEGIN
     SELECT COALESCE(jsonb_agg(to_jsonb(u)),'[]'::jsonb) INTO v_new
     FROM ({population}) u JOIN new_ids n ON n.user_id=u.user_id;
   SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY id),'[]'::jsonb) INTO v_tail FROM (
-    SELECT user_id,id,sender,kind,content FROM messages WHERE user_id=ANY(v_ids)
+    SELECT user_id,id,sender,kind,content,encode(content_ciphertext,'hex') AS content_ciphertext_hex,content_chars FROM messages WHERE user_id=ANY(v_ids)
       AND id>COALESCE(((v_payload->'tail_bounds')->>user_id::text)::bigint,0)
       ORDER BY id FOR SHARE NOWAIT) m;
   INSERT INTO pg_temp.{table_name} VALUES(jsonb_build_object(

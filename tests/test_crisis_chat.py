@@ -185,6 +185,7 @@ async def test_chat_stores_selected_kind_on_both_messages(monkeypatch, route, st
     )
     messages = [m for m in session.added if isinstance(m, Message)]
     assert [m.kind for m in messages] == [crisis_guard.message_kind(route)] * 2
+    assert result.reply.kind == crisis_guard.message_kind(route)
     assert result.greeting is None
     if route == "safety":
         assert result.reply.content == crisis_guard.fixed_reply("ko", "지훈")

@@ -22,7 +22,7 @@ def test_deployed_dev_probe_requires_the_packaged_script(tmp_path, fresh, missin
     shell = next(s["run"] for s in steps if s["name"] == "Deploy via SSM (single dev instance)")
     python = textwrap.dedent(shell.split("<<'PYTHON'", 1)[1].split("\nPYTHON", 1)[0])
     params = tmp_path/"params.json"
-    env = dict(os.environ, DEPLOY_TAG="dev-"+SHA, VERIFY_DAILY_REPORT="true" if fresh else "false")
+    env = dict(os.environ, DEPLOY_TAG="dev-"+SHA, DEV_INFRA_SHA="b"*40, VERIFY_DAILY_REPORT="true" if fresh else "false")
     subprocess.run([sys.executable, "-c", python, str(params)], env=env, check=True)
     command = json.loads(params.read_text())["commands"][0]
     start = command.index('if [ "'+env["VERIFY_DAILY_REPORT"]+'" = true ]; then')
@@ -55,3 +55,14 @@ def test_production_probe_does_not_silently_skip_a_missing_script():
     probe = shell[shell.index('if [ "$VERIFY_DAILY_REPORT" = true ]; then'):]
     assert "docker exec moly-backend python scripts/check_daily_report.py" in probe
     assert "if [ -f scripts/check_daily_report.py ]" not in probe
+
+
+def test_encryption_deploy_uses_reviewed_infra_without_key_provisioning():
+    source=(ROOT/".github/workflows/deploy-dev.yml").read_text()
+    assert "provision" not in source
+    assert "MOLY_DEV_CHAT_CONTENT_KEYRING" not in source
+    assert 'git checkout --detach {infra}' in source
+    assert 'git rev-parse FETCH_HEAD' in source
+    assert 'REVIEWED_DEV_INFRA_SHA_REQUIRED' in source
+    assert '"executionTimeout": ["1200"]' in source
+    assert 'seq 1 120' in source

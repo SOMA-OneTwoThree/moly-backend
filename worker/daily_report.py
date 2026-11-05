@@ -155,9 +155,9 @@ FROM events
 
 _DIARIES_SQL = text("""
 WITH conversations AS (
- SELECT user_id,activity_date,sum(char_length(content)) chars FROM messages
+ SELECT user_id,activity_date,sum(CASE WHEN m.content_ciphertext IS NULL THEN char_length(m.content) ELSE m.content_chars END) chars FROM messages m
  WHERE sender='user' AND kind='normal' AND activity_date BETWEEN :floor AND :ceiling
- GROUP BY 1,2 HAVING sum(char_length(content))>=:gate
+ GROUP BY 1,2 HAVING sum(CASE WHEN m.content_ciphertext IS NULL THEN char_length(m.content) ELSE m.content_chars END)>=:gate
 ), dates AS (
  SELECT m.*,p.timezone,p.created_at,p.app_trial_started_at,p.app_trial_ends_at,p.trial_ends_at,
  ((m.activity_date+1)+time '04:00') AT TIME ZONE p.timezone-interval '1 microsecond' boundary,

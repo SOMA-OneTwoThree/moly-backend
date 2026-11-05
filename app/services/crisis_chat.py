@@ -87,6 +87,7 @@ def ledger_tokens(raw: Mapping) -> dict[str, int] | None:
 async def recorded_decision(
     text: str, recent: Sequence[crisis_guard.GuardMessage], *, config: GuardConfig,
     deadline: float, ledger: usage_ledger.LedgerContext,
+    recheck_evidence: Sequence[crisis_guard.GuardMessage] = (),
 ) -> crisis_guard.DecisionResult:
     """판정 비용은 사용자 응답 토큰과 구분해 회사 원장에 남긴다."""
     check_deadline = min(deadline, time.monotonic() + config.timeout_s)
@@ -118,14 +119,16 @@ async def recorded_decision(
             text, recent, api_key=settings.openai_api_key, deadline=check_deadline,
             timeout_s=config.timeout_s,
             history_limit=config.history_messages,
+            recheck_evidence=recheck_evidence,
         )
     except BaseException:
         _finish_cost(finalize())
         raise
     _finish_cost(finalize(decision))
     _log.info(
-        "crisis_guard route=%s status=%s followup=%s method_status=%s latency_ms=%d",
-        decision.route, decision.status, decision.followup, decision.method_status, round(decision.latency_ms),
+        "crisis_guard route=%s status=%s followup=%s method_status=%s question_history_status=%s latency_ms=%d",
+        decision.route, decision.status, decision.followup, decision.method_status,
+        decision.question_history_status, round(decision.latency_ms),
     )
     return decision
 

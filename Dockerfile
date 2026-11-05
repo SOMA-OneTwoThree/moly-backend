@@ -14,8 +14,8 @@ RUN uv sync --frozen --no-dev
 
 COPY app ./app
 COPY worker ./worker
-COPY db/catalog.py db/schema_contract.py db/schema_contract.json db/schema.sql ./db/
-COPY scripts/validate_banners.py scripts/check_running_banners.py scripts/check_daily_report.py ./scripts/
+COPY db/catalog.py db/schema_contract.py db/schema_contract.json db/schema.sql db/envfile.py ./db/
+COPY scripts/validate_banners.py scripts/check_running_banners.py scripts/check_daily_report.py scripts/check_chat_content_crypto.py scripts/activate_chat_content_crypto_dev.py ./scripts/
 RUN .venv/bin/python scripts/validate_banners.py
 
 EXPOSE 8000

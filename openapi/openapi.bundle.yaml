@@ -7090,6 +7090,15 @@ components:
           maxItems: 3
           items:
             $ref: '#/components/schemas/ChatReference'
+        kind:
+          type: string
+          enum:
+          - normal
+          - safety_check
+          - safety
+          default: normal
+          title: Kind
+          description: 답변 종류. safety_check는 위기 가드의 고정 재질문, safety는 고정 안내다.
       type: object
       required:
       - message_id

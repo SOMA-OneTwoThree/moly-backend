@@ -66,6 +66,9 @@ class FakeConnection:
             },
             {"user_id": "u2", "key": "legacy-key", "response": {"reply": {}}},
         ]
+        for row in self.rows:
+            row.update(response_schema_version=1, response_ciphertext=None, request_hash=None,
+                       redacted_at=None, terminal_status="succeeded")
         self.deleted = None
         self.closed = False
 

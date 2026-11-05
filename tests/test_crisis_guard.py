@@ -30,13 +30,16 @@ def payload(case="not_applicable", answer=None, method=False):
 @pytest.mark.parametrize("intervention", [None, "safety", "safety_check"])
 @pytest.mark.parametrize("answer", cg.ANSWERS)
 def test_complete_route_priority(case, intervention, answer):
-    data = payload(case, answer if intervention == "safety_check" else None)
+    data = payload(case, answer if intervention is not None else None)
     result = cg.parse_decision(data, last_intervention=intervention)
     expected = ("safety" if case in cg.ACTION_CASES else
-                "normal" if case == "not_applicable" or intervention == "safety" else
-                ("safety" if answer == "same_confirmed" else "normal") if intervention == "safety_check" else "ask")
+                "normal" if case == "not_applicable" else
+                "ask" if intervention is None else
+                "safety" if answer == "same_confirmed" else
+                "normal" if answer == "same_denied" else
+                "ask" if answer == "different_topic" or intervention == "safety" else "normal")
     assert result.route == expected and result.case == case
-    assert result.status == ("conflict" if case == "not_applicable" and intervention == "safety_check"
+    assert result.status == ("conflict" if case == "not_applicable" and intervention is not None
                              and answer == "same_confirmed" else "ok")
     assert cg.message_kind(result.route) == {"normal": "normal", "ask": "safety_check", "safety": "safety"}[expected]
 
@@ -154,7 +157,7 @@ def test_latest_actual_assistant_intervention_and_last_six_only():
                cg.GuardMessage("user", "reply", "safety_check"),
                cg.GuardMessage("assistant", "guide", "safety")]
     inputs, followup = cg.prepare_input("current", history)
-    assert not followup and cg.latest_intervention(history) == "safety"
+    assert followup and cg.latest_intervention(history) == "safety"
     assert inputs[-1] == {"role": "user", "content": "current"}
     assert len(inputs) == 4 and all(set(item) == {"role", "content"} for item in inputs)
     assert cg.latest_intervention([cg.GuardMessage("user", "text", "safety")]) is None

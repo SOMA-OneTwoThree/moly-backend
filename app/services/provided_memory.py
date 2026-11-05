@@ -8,6 +8,8 @@ rows until caller commit. No domain writes, provider calls, or persisted proofs.
 
 from __future__ import annotations
 
+from app.services import message_content
+
 import hashlib
 import uuid
 from dataclasses import dataclass, field
@@ -80,7 +82,8 @@ SELECT s.registry_id,s.source_message_id,s.source_sender,s.authority,
        s.evidence_start_utf8 AS start_utf8,s.evidence_end_utf8 AS end_utf8,
        s.source_content_hash AS span_hash,s.source_occurred_at,
        m.id AS actual_message_id,m.sender AS message_sender,
-       m.kind AS message_kind,m.content AS message_content
+       m.kind AS message_kind,m.content AS message_content,
+       m.content_ciphertext AS message_ciphertext,m.content_chars AS message_chars
 FROM mem0_memory_sources s
 LEFT JOIN messages m ON m.id=s.source_message_id AND m.user_id=s.user_id
 WHERE s.user_id=:user_id AND s.registry_id=ANY(CAST(:ids AS uuid[]))
@@ -101,17 +104,20 @@ def _ids(values) -> tuple[uuid.UUID, ...]:
     return result
 
 
-def _source(row) -> ProvidedSource:
+def _source(row, *, user_id=None) -> ProvidedSource:
+    raw = row["message_content"]
+    if user_id is not None or row.get("message_ciphertext") is not None:
+        raw = message_content.read_message_content(user_id=user_id, legacy_text=raw,
+            ciphertext=row.get("message_ciphertext"), chars=row.get("message_chars"))
     if (
         row["actual_message_id"] != row["source_message_id"]
         or row["message_kind"] != "normal"
         or row["message_sender"] != "user"
         or row["source_sender"] != "user"
         or row["authority"] not in {"explicit_user", "confirmed_user"}
-        or not isinstance(row["message_content"], str)
+        or not isinstance(raw, str)
     ):
         raise ProvidedMemoryError("provided_memory_source_excluded")
-    raw = row["message_content"]
     body = memory.sanitize_text(raw).encode("utf-8")
     start, end = row["start_utf8"], row["end_utf8"]
     if type(start) is not int or type(end) is not int or not 0 <= start < end <= len(body):
@@ -185,7 +191,7 @@ async def capture(
         identity = uuid.UUID(str(row["registry_id"]))
         if identity not in evidence:
             raise ProvidedMemoryError("provided_memory_source_identity")
-        evidence[identity].add(_source(row))
+        evidence[identity].add(_source(row, user_id=owner))
     lang = i18n.resolve(language) if language is not None else None
     result = []
     for identity in identities:

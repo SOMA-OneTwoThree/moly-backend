@@ -1,6 +1,8 @@
 """Private preparation storage and exact release binding; no public promotion here."""
 from __future__ import annotations
 
+from app.services import message_content
+
 import hashlib
 import json
 import uuid
@@ -266,9 +268,12 @@ async def validate_contract_chain(session, *, user_id, generation, through_id):
                     or interaction_contract.document_hash(json.dumps(document, ensure_ascii=False,
                         sort_keys=True)) != digest):
                 return False
-            sources = (await session.execute(text("""SELECT id,sender,content,activity_date FROM messages
+            sources = (await session.execute(text("""SELECT id,sender,content,activity_date,content_ciphertext,content_chars FROM messages
               WHERE user_id=:user_id AND kind='normal' AND id>:after AND id<=:through ORDER BY id"""),
               {"user_id": user_id, "after": after, "through": through})).all()
+            sources = [(r[0], r[1], message_content.read_message_content(user_id=user_id,
+                legacy_text=r[2], ciphertext=r[4] if len(r)>4 else None,
+                chars=r[5] if len(r)>5 else None), r[3]) for r in sources]
             boundary_exists = await session.scalar(text("""SELECT EXISTS(SELECT 1 FROM messages
               WHERE user_id=:user_id AND id=:through)"""), {"user_id": user_id, "through": through})
             if (boundary_exists is not True

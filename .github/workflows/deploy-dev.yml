@@ -22,6 +22,10 @@ on:
         description: "배포할 이미지 태그(dev-<sha> 전체). 비우면 현재 커밋을 빌드해서 배포"
         required: false
         default: ""
+      infra_sha:
+        description: "Reviewed chat-encryption infra branch commit (40 hex)"
+        required: false
+        default: ""
 
 permissions:
   id-token: write
@@ -38,7 +42,10 @@ env:
   ROLE_ARN: arn:aws:iam::676972757138:role/moly-github-actions-dev-role
   # dev- 접두사: prod sha 태그와 네임스페이스를 시각적으로도 구분
   DEPLOY_TAG: ${{ inputs.image_tag || format('dev-{0}', github.sha) }}
-  VERIFY_DAILY_REPORT: ${{ inputs.image_tag == '' && 'true' || 'false' }}
+  # Reviewed candidate infra commit; main/prod is not changed by this workflow.
+  # Never fall back to the old checkout/main during the encryption rollout.
+  DEV_INFRA_SHA: ${{ inputs.infra_sha || 'd6e7301c0b9c81663f4586382146f401e2ccb685' }}
+  VERIFY_DAILY_REPORT: "true"
 
 jobs:
   build-and-deploy:
@@ -52,6 +59,10 @@ jobs:
           set -euo pipefail
           if [[ "$REF_NAME" != "refs/heads/dev" ]] || [[ ! "$EVENT_NAME" =~ ^(push|workflow_dispatch)$ ]]; then
             echo "DEV_REF_REQUIRED" >&2
+            exit 1
+          fi
+          if [[ ! "$DEV_INFRA_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "REVIEWED_DEV_INFRA_SHA_REQUIRED" >&2
             exit 1
           fi
           if [[ ! "$DEPLOY_TAG" =~ ^dev-[0-9a-f]{40}$ ]]; then
@@ -133,7 +144,7 @@ jobs:
           poll_ssm() {
             local cmd_id="$1" status="Pending" query_fails=0 finished=0 i err_file response_code reason
             err_file="$(mktemp)"
-            for i in $(seq 1 60); do
+            for i in $(seq 1 120); do
               sleep 10
               if status="$(aws ssm get-command-invocation --region "$AWS_REGION" \
                 --command-id "$cmd_id" --instance-id "$ID" \
@@ -195,6 +206,7 @@ jobs:
                 103) reason=INFRA_DEPLOY ;;
                 104) reason=POST_BANNERS ;;
                 105) reason=POST_DAILY_REPORT ;;
+                106) reason=CHAT_ENCRYPTION_ACTIVATION ;;
                 *) reason=UNCLASSIFIED ;;
               esac
               echo "DEV_SSM_FAILED:$status:$reason" >&2
@@ -213,6 +225,9 @@ jobs:
           import shlex
           import sys
           tag = os.environ["DEPLOY_TAG"]
+          infra = os.environ["DEV_INFRA_SHA"]
+          if not re.fullmatch(r"[0-9a-f]{40}", infra):
+              raise SystemExit("REVIEWED_DEV_INFRA_SHA_REQUIRED")
           if not re.fullmatch(r"dev-[0-9a-f]{40}", tag):
               raise SystemExit("INVALID_DEV_IMAGE_TAG")
           container_probe = """import hashlib
@@ -242,6 +257,7 @@ jobs:
               raise SystemExit(base + 4)
           print(fingerprint)
           """
+          activation_proof = "import json,sys;print(json.dumps(dict(api=json.load(open(sys.argv[1])),consumer=json.load(open(sys.argv[2])))))"
           command = f"""set -eu
           check_dev() {{
             phase="$1"
@@ -283,16 +299,22 @@ jobs:
           }}
           check_dev pre ''
           cd /root/moly-infra || exit 101
-          git pull --ff-only || exit 102
+          test -z "$(git status --porcelain)" || exit 102
+          test "$(git remote get-url origin)" = https://github.com/SOMA-OneTwoThree/moly-infra.git || exit 102
+          git fetch origin refs/heads/feat/chat-encryption-dev-20261105 || exit 102
+          test "$(git rev-parse FETCH_HEAD)" = {infra} || exit 102
+          git checkout --detach {infra} || exit 102
+          test "$(git rev-parse HEAD)" = {infra} || exit 102
           sudo bash deploy.sh {tag} || exit 103
           check_dev post {tag.removeprefix("dev-")}
           docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi' || exit 104
           if [ "{os.environ['VERIFY_DAILY_REPORT']}" = true ]; then
             docker exec moly-backend python scripts/check_daily_report.py --environment development --expected-sha {tag.removeprefix("dev-")} || exit 105
           fi
+          python3 -c {shlex.quote(activation_proof)} .deploy-state/chat-content-moly-backend.json .deploy-state/chat-content-moly-consumer.json | docker exec -i moly-backend python scripts/activate_chat_content_crypto_dev.py --expected-sha {tag.removeprefix("dev-")} || exit 106
           """
           with open(sys.argv[1], "w") as out:
-              json.dump({"commands": [command], "executionTimeout": ["600"]}, out)
+              json.dump({"commands": [command], "executionTimeout": ["1200"]}, out)
           PYTHON
           if ! CMD_ID="$(aws ssm send-command --region "$AWS_REGION" \
             --instance-ids "$ID" --document-name AWS-RunShellScript \

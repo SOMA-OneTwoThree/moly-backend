@@ -2655,8 +2655,16 @@
         "default": null,
         "generated": "",
         "identity": "",
-        "not_null": true,
+        "not_null": false,
         "type": "text"
+      },
+      "public.greetings.content_ciphertext": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "bytea"
       },
       "public.greetings.context": {
         "collation": "\"default\"",
@@ -2825,6 +2833,14 @@
         "identity": "",
         "not_null": false,
         "type": "jsonb"
+      },
+      "public.idempotency_keys.response_ciphertext": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "bytea"
       },
       "public.idempotency_keys.response_expires_at": {
         "collation": null,
@@ -3711,8 +3727,24 @@
         "default": null,
         "generated": "",
         "identity": "",
-        "not_null": true,
+        "not_null": false,
         "type": "text"
+      },
+      "public.messages.content_chars": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "integer"
+      },
+      "public.messages.content_ciphertext": {
+        "collation": null,
+        "default": null,
+        "generated": "",
+        "identity": "",
+        "not_null": false,
+        "type": "bytea"
       },
       "public.messages.created_at": {
         "collation": null,
@@ -8277,6 +8309,13 @@
         ],
         "validated": true
       },
+      "public.greetings.greetings_content_storage_ck": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((content_ciphertext IS NULL) AND (content IS NOT NULL)) OR ((content_ciphertext IS NOT NULL) AND (content IS NULL) AND\nCASE\n    WHEN ((octet_length(content_ciphertext) >= 32) AND (octet_length(content_ciphertext) <= 1048608)) THEN ((SUBSTRING(content_ciphertext FROM 1 FOR 2) = decode('0100'::text, 'hex'::text)) AND ((get_byte(content_ciphertext, 2) > 0) OR (get_byte(content_ciphertext, 3) > 0)))\n    ELSE false\nEND))) NOT VALID",
+        "enforcement_triggers": [],
+        "validated": false
+      },
       "public.greetings.greetings_context_check": {
         "deferrable": false,
         "deferred": false,
@@ -8385,6 +8424,13 @@
           "public.messages:9:O"
         ],
         "validated": true
+      },
+      "public.idempotency_keys.idempotency_response_storage_ck": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((response_schema_version <> 3) AND (response_ciphertext IS NULL)) OR ((response_schema_version = 3) AND (((response IS NULL) AND (response_ciphertext IS NULL) AND ((redacted_at IS NOT NULL) OR (terminal_status = ANY (ARRAY['expired'::text, 'redacted'::text])))) OR ((response IS NOT NULL) AND (response = '{}'::jsonb) AND (response_ciphertext IS NOT NULL) AND (redacted_at IS NULL) AND (terminal_status = 'succeeded'::text) AND (request_hash IS NOT NULL) AND (request_hash <> ''::text) AND (key !~~ 'shop-purchase:%'::text) AND (key !~~ 'topic-prepare:%'::text) AND\nCASE\n    WHEN ((octet_length(response_ciphertext) >= 32) AND (octet_length(response_ciphertext) <= 4194336)) THEN ((SUBSTRING(response_ciphertext FROM 1 FOR 2) = decode('0100'::text, 'hex'::text)) AND ((get_byte(response_ciphertext, 2) > 0) OR (get_byte(response_ciphertext, 3) > 0)))\n    ELSE false\nEND))))) NOT VALID",
+        "enforcement_triggers": [],
+        "validated": false
       },
       "public.idempotency_keys.idempotency_terminal_status_ck": {
         "deferrable": false,
@@ -8761,6 +8807,13 @@
           "public.profiles:9:O"
         ],
         "validated": true
+      },
+      "public.messages.messages_content_storage_ck": {
+        "deferrable": false,
+        "deferred": false,
+        "definition": "CHECK ((((content_ciphertext IS NULL) AND (content IS NOT NULL) AND (content_chars IS NULL)) OR ((content_ciphertext IS NOT NULL) AND (content IS NULL) AND (content_chars IS NOT NULL) AND (content_chars >= 0) AND (content_chars <= 1048576) AND\nCASE\n    WHEN ((octet_length(content_ciphertext) >= 32) AND (octet_length(content_ciphertext) <= 1048608)) THEN ((SUBSTRING(content_ciphertext FROM 1 FOR 2) = decode('0100'::text, 'hex'::text)) AND ((get_byte(content_ciphertext, 2) > 0) OR (get_byte(content_ciphertext, 3) > 0)) AND (content_chars <= (octet_length(content_ciphertext) - 32)) AND ((octet_length(content_ciphertext) - 32) <= (content_chars * 4)))\n    ELSE false\nEND))) NOT VALID",
+        "enforcement_triggers": [],
+        "validated": false
       },
       "public.messages.messages_kind_check": {
         "deferrable": false,
@@ -10704,7 +10757,7 @@
         "owner": "postgres"
       },
       "public.begin_subject_deletion(uuid,uuid)": {
-        "definition": "CREATE OR REPLACE FUNCTION public.begin_subject_deletion(p_user_id uuid, p_operation_id uuid)\n RETURNS bigint\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_watermark bigint;\nBEGIN\n  IF p_user_id IS NULL OR p_operation_id IS NULL THEN\n    RAISE EXCEPTION 'user and operation are required';\n  END IF;\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  -- Every deletion attempt is a new epoch; work queued in an earlier epoch is rejected.\n  INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)\n  SELECT p_user_id, 'deleting', p_operation_id, c.memory_source_watermark\n  FROM public.chat_contexts c WHERE c.user_id = p_user_id\n  ON CONFLICT (user_id) DO UPDATE SET\n    state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,\n    high_watermark = GREATEST(b.high_watermark, EXCLUDED.high_watermark), updated_at = now()\n  RETURNING b.high_watermark INTO v_watermark;\n  IF NOT FOUND THEN\n    -- An account that never chatted has no chat context.\n    INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)\n    VALUES (p_user_id, 'deleting', p_operation_id, 0)\n    ON CONFLICT (user_id) DO UPDATE SET\n      state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,\n      updated_at = now();\n    v_watermark := 0;\n  END IF;\n\n  DELETE FROM public.chat_topic_entries WHERE user_id = p_user_id;\n  DELETE FROM public.user_topic_states WHERE user_id = p_user_id;\n  UPDATE public.idempotency_keys\n  SET response = NULL, terminal_status = 'redacted', redacted_at = now()\n  WHERE user_id = p_user_id;\n  UPDATE public.chat_response_references\n  SET state = 'unavailable', diary_id = NULL, rendered_metadata = '{}'::jsonb,\n      redacted_at = now(), redaction_reason = 'subject_deleting'\n  WHERE user_id = p_user_id;\n  UPDATE public.async_jobs\n  SET state = CASE WHEN state = 'ready' THEN 'cancelled' ELSE state END,\n      payload = '{}'::jsonb, result_detail = NULL, payload_redacted_at = now(),\n      finished_at = CASE WHEN state = 'ready' THEN now() ELSE finished_at END,\n      result_code = CASE WHEN state = 'ready' THEN 'subject_deleting' ELSE result_code END\n  WHERE user_id = p_user_id AND state IN ('ready', 'running', 'succeeded', 'dead', 'cancelled');\n\n  INSERT INTO public.privacy_ledger_events(operation_id, user_id, event, high_watermark)\n  VALUES (p_operation_id, p_user_id, 'serving_blocked_and_redacted', v_watermark);\n  RETURN v_watermark;\nEND;\n$function$\n",
+        "definition": "CREATE OR REPLACE FUNCTION public.begin_subject_deletion(p_user_id uuid, p_operation_id uuid)\n RETURNS bigint\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  v_watermark bigint;\nBEGIN\n  IF p_user_id IS NULL OR p_operation_id IS NULL THEN\n    RAISE EXCEPTION 'user and operation are required';\n  END IF;\n  PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 0));\n  -- Every deletion attempt is a new epoch; work queued in an earlier epoch is rejected.\n  INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)\n  SELECT p_user_id, 'deleting', p_operation_id, c.memory_source_watermark\n  FROM public.chat_contexts c WHERE c.user_id = p_user_id\n  ON CONFLICT (user_id) DO UPDATE SET\n    state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,\n    high_watermark = GREATEST(b.high_watermark, EXCLUDED.high_watermark), updated_at = now()\n  RETURNING b.high_watermark INTO v_watermark;\n  IF NOT FOUND THEN\n    -- An account that never chatted has no chat context.\n    INSERT INTO public.privacy_subject_barriers AS b (user_id, state, operation_id, high_watermark)\n    VALUES (p_user_id, 'deleting', p_operation_id, 0)\n    ON CONFLICT (user_id) DO UPDATE SET\n      state = 'deleting', operation_id = EXCLUDED.operation_id, epoch = b.epoch + 1,\n      updated_at = now();\n    v_watermark := 0;\n  END IF;\n\n  DELETE FROM public.chat_topic_entries WHERE user_id = p_user_id;\n  DELETE FROM public.user_topic_states WHERE user_id = p_user_id;\n  UPDATE public.idempotency_keys\n  SET response = NULL, response_ciphertext = NULL, terminal_status = 'redacted', redacted_at = now()\n  WHERE user_id = p_user_id;\n  UPDATE public.chat_response_references\n  SET state = 'unavailable', diary_id = NULL, rendered_metadata = '{}'::jsonb,\n      redacted_at = now(), redaction_reason = 'subject_deleting'\n  WHERE user_id = p_user_id;\n  UPDATE public.async_jobs\n  SET state = CASE WHEN state = 'ready' THEN 'cancelled' ELSE state END,\n      payload = '{}'::jsonb, result_detail = NULL, payload_redacted_at = now(),\n      finished_at = CASE WHEN state = 'ready' THEN now() ELSE finished_at END,\n      result_code = CASE WHEN state = 'ready' THEN 'subject_deleting' ELSE result_code END\n  WHERE user_id = p_user_id AND state IN ('ready', 'running', 'succeeded', 'dead', 'cancelled');\n\n  INSERT INTO public.privacy_ledger_events(operation_id, user_id, event, high_watermark)\n  VALUES (p_operation_id, p_user_id, 'serving_blocked_and_redacted', v_watermark);\n  RETURN v_watermark;\nEND;\n$function$\n",
         "owner": "postgres"
       },
       "public.bootstrap_user(uuid,timestamp with time zone)": {
@@ -17649,5 +17702,5 @@
       }
     }
   },
-  "schema_sha256": "d8f243ed807d77615a43535e678336bed98309169a26aa07c1b560d614095c70"
+  "schema_sha256": "abfe0c3644ae077cb75b963bb35021ee16977e55f7d9f3fbface08e13d387d43"
 }

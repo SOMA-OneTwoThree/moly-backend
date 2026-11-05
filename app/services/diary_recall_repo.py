@@ -1,6 +1,8 @@
 """Suppression-safe diary recall projection and provenance writes."""
 from __future__ import annotations
 
+from app.services import message_content
+
 import hashlib
 import logging
 import uuid
@@ -20,7 +22,7 @@ INDEX_VERSION = "diary-recall-v1"
 JOB_DIARY_RECALL_EMBED = "diary_recall_embed"
 
 _MESSAGES = text(
-    "SELECT id,sender,content FROM messages WHERE user_id=:user_id AND id IN :ids"
+    "SELECT id,sender,content,content_ciphertext,content_chars FROM messages WHERE user_id=:user_id AND id IN :ids"
 ).bindparams(bindparam("ids", expanding=True))
 
 _INSERT_SOURCE = text("""
@@ -118,7 +120,9 @@ async def record_diary_sources(
     if set(found) != set(ids) or any(row["sender"] != "user" for row in rows):
         raise ValueError("diary provenance must contain only owned user messages")
     for message_id in ids:
-        content = found[message_id]["content"] or ""
+        row = found[message_id]
+        content = message_content.read_message_content(user_id=user_id, legacy_text=row["content"],
+            ciphertext=row.get("content_ciphertext"), chars=row.get("content_chars"))
         await session.execute(
             _INSERT_SOURCE,
             {

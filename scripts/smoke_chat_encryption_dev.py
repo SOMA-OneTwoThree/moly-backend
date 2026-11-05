@@ -51,20 +51,52 @@ KINDS = ("normal", "safety_check", "safety", "safety", "safety_check", "normal",
          "normal", "safety", "normal", "normal", "safety_check", "safety")
 
 
+def long_normal(language, prefix):
+    """One real opening/request, followed by uniquely numbered ordinary notes."""
+    items = {
+        "ko": ("쌀", "사과", "우유", "당근", "감자", "빵", "두부", "양파"),
+        "en": ("rice", "apples", "milk", "carrots", "potatoes", "bread", "tofu", "onions"),
+        "ja": ("米", "りんご", "牛乳", "にんじん", "じゃがいも", "パン", "豆腐", "玉ねぎ"),
+    }[language]
+    value = prefix
+    number = 1
+    while len(value) < 1850:
+        item = items[(number - 1) % len(items)]
+        quantity = number % 4 + 1
+        note = {
+            "ko": f"메모 {number:03d}: {item} {quantity}개를 식재료 목록에 적었어. ",
+            "en": f"Note {number:03d}: I listed {quantity} portions of {item} for meals. ",
+            "ja": f"メモ{number:03d}：食材リストに{item}を{quantity}つ書いたよ。 ",
+        }[language]
+        value += note
+        number += 1
+    return value[:1850]
+
+
 def steps(language):
     result = []
     for index, (text, kind) in enumerate(zip(WORDS[language], KINDS, strict=True)):
         if index in {0, 5, 8}:
             # Bounded long ordinary inputs trigger the existing worker path.
-            text = (text * 150)[:1850]
+            text = long_normal(language, text)
         result.append({"text": text, "kind": kind, "replay": True,
                        "allow_recovery": kind == "normal", "allow_transient_retry": kind == "normal"})
     return result
 
 
+def failure_code(error):
+    if isinstance(error, replay.ReplayError):
+        return str(error)
+    from app.core.content_crypto import ContentCryptoError
+    if isinstance(error, ContentCryptoError):
+        return error.code  # Codec guarantees a bounded fixed ASCII code only.
+    return type(error).__name__.lower()
+
+
 class EncryptionRunner(CompatRunner):
     async def verify_turn_storage(self, uid, record):
         from app.services import message_content, naming
+        from app.schemas.chat import PostMessageResponse
         payload = record["payload"]
         ids = [int(payload["user_message"]["message_id"]), int(payload["reply"]["message_id"])]
         if payload.get("greeting"):
@@ -76,7 +108,7 @@ class EncryptionRunner(CompatRunner):
         for row in rows:
             replay.require(row["content"] is None and row["content_ciphertext"] is not None
                            and type(row["content_chars"]) is int, "new_message_not_encrypted")
-            by_id[row["id"]] = message_content.project_message(row, user_id=uid)
+            by_id[row["id"]] = message_content.project_message(dict(row), user_id=uid)
         nick = await self.db.fetchval("SELECT nickname FROM profiles WHERE id=$1", uid)
         replay.require(naming.render(by_id[ids[0]]["content"], nick) == record["body"]["text"],
                        "encrypted_input_roundtrip_mismatch")
@@ -93,7 +125,8 @@ class EncryptionRunner(CompatRunner):
         value = message_content.read_response(user_id=uid, key=record["key"], request_hash=row["request_hash"],
             version=3, response=row["response"], ciphertext=row["response_ciphertext"],
             redacted_at=row["redacted_at"], terminal_status=row["terminal_status"])
-        replay.require(value == payload, "encrypted_replay_dto_mismatch")
+        replay.require(PostMessageResponse.model_validate(value).model_dump(mode="json") == payload,
+                       "encrypted_replay_dto_mismatch")
 
     async def seed_plaintext(self, uid, language):
         text = WORDS[language][0]
@@ -133,7 +166,7 @@ class EncryptionRunner(CompatRunner):
         rows = await self.db.fetch("SELECT id,content,content_ciphertext,content_chars FROM messages WHERE user_id=$1", uid)
         nick = await self.db.fetchval("SELECT nickname FROM profiles WHERE id=$1", uid)
         for row in rows:
-            decoded = message_content.project_message(row, user_id=uid)
+            decoded = message_content.project_message(dict(row), user_id=uid)
             replay.require(actual.get(row["id"]) == naming.render(decoded["content"], nick), "mixed_history_mismatch")
             replay.require((row["content_ciphertext"] is None and row["content"] is not None)
                            if row["id"] in legacy_ids else row["content"] is None and row["content_ciphertext"] is not None,
@@ -177,7 +210,7 @@ class EncryptionRunner(CompatRunner):
             replay.require(bool(ids), "mixed_contract_receipt_sources_missing")
             stored = await self.db.fetch("SELECT id,sender,content,activity_date,content_ciphertext,content_chars "
                 "FROM messages WHERE user_id=$1 AND id=ANY($2::bigint[]) ORDER BY id", uid, ids)
-            rows = [message_content.project_message(row, user_id=uid) for row in stored]
+            rows = [message_content.project_message(dict(row), user_id=uid) for row in stored]
             replay.require([row["id"] for row in rows] == ids and digest([
                 [row["id"], row["sender"], row["content"], row["activity_date"]] for row in rows
             ]) == validation.get("source_hash"), "mixed_contract_source_hash_changed")
@@ -264,6 +297,8 @@ async def run(args):
                             step = {**step, "greeting_id": greeting_id}
                         await runner.send(uid, token, scenario, step)
                         await runner.verify_turn_storage(uid, client.turns[-1])
+                        if index == 0:
+                            await runner.verify_history(uid, token, legacy_ids)
                     await runner.wait_native_checkpoint(uid, 0, app_db)
                     await runner.wait_owned_facts(uid)
                     await runner.verify_workers(uid, legacy_ids, app_db)
@@ -275,7 +310,7 @@ async def run(args):
                     chat_content_encryption.STATE_KEY) == marker_before, "encryption_marker_changed")
                 success = True
             except Exception as error:
-                failure = str(error) if isinstance(error, replay.ReplayError) else type(error).__name__.lower()
+                failure = failure_code(error)
             finally:
                 cleaned = await runner.cleanup(state, journal)
     finally:
@@ -312,7 +347,7 @@ def main(argv=None):
         replay.require(0 < args.drain_timeout <= 300, "drain_timeout_out_of_bounds")
         return asyncio.run(run(args))
     except BaseException as error:
-        reason = str(error) if isinstance(error, replay.ReplayError) else type(error).__name__.lower()
+        reason = failure_code(error)
         print(json.dumps({"success": False, "failure": reason}), flush=True)
         return 1
 

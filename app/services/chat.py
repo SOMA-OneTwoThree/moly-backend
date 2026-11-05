@@ -14,7 +14,7 @@ from math import ceil, isfinite
 from typing import Any
 
 from pydantic import ValidationError
-from sqlalchemy import func, select, text as sql_text, or_
+from sqlalchemy import func, select, text as sql_text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -1162,42 +1162,21 @@ async def _accumulate_tokens(
 
 
 # --- POST /chat/messages ---
-class _GuardHistory(list):
-    """Short current window plus the exact latest asked concern, in RAM only."""
-    def __init__(self, recent, recheck_evidence=()):
-        super().__init__(recent)
-        self.recheck_evidence = tuple(recheck_evidence)
-
-
 def _guard_source_proof(messages) -> tuple:
-    def proof(rows):
-        return tuple((m.message_id, m.role, m.kind, m.content) for m in rows)
-    return (proof(messages), proof(getattr(messages, "recheck_evidence", ())))
+    """Exact bounded source proof; old interventions do not create hidden state."""
+    return tuple((m.message_id, m.role, m.kind, m.content) for m in messages)
 
 
 async def _guard_recent(session, uid, limit: int):
-    recent_ids = select(Message.id).where(Message.user_id == uid).order_by(Message.id.desc()).limit(limit)
-    last_ask = (select(Message.id).where(Message.user_id == uid,
-        Message.sender == "moly", Message.kind == "safety_check")
-        .order_by(Message.id.desc()).limit(1).scalar_subquery())
-    ask_user = (select(Message.id).where(Message.user_id == uid,
-        Message.sender == "user", Message.id < last_ask)
-        .order_by(Message.id.desc()).limit(1).scalar_subquery())
     rows = (await session.execute(
-        select(Message).where(Message.user_id == uid,
-            or_(Message.id.in_(recent_ids), Message.id == last_ask, Message.id == ask_user))
-        .order_by(Message.id.desc()).execution_options(populate_existing=True)
+        select(Message).where(Message.user_id == uid)
+        .order_by(Message.id.desc()).limit(limit)
+        .execution_options(populate_existing=True)
     )).scalars().all()
-    ordered = [crisis_guard.GuardMessage(
+    return [crisis_guard.GuardMessage(
         "assistant" if m.sender == "moly" else "user",
         _message_text(m), kind=m.kind, message_id=m.id,
     ) for m in reversed(rows)]
-    asked = next((i for i in range(len(ordered) - 1, -1, -1)
-                  if ordered[i].role == "assistant" and ordered[i].kind == "safety_check"), None)
-    pair = ()
-    if asked is not None and asked > 0 and ordered[asked - 1].role == "user":
-        pair = (ordered[asked - 1], ordered[asked])
-    return _GuardHistory(ordered[-limit:], pair)
 
 
 @dataclass
@@ -1658,7 +1637,6 @@ async def _post_message_impl(
         common_phase_ms = _ms(t0, time.monotonic())
         predecided = await crisis_chat.recorded_decision(
             req.text, decision_recent, config=guard_config,
-            recheck_evidence=getattr(decision_recent, "recheck_evidence", ()),
             deadline=absolute_deadline, ledger=ledger_ctx,
         )
         if predecided.route != "normal":

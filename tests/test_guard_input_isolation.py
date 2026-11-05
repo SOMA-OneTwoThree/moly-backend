@@ -152,8 +152,7 @@ async def test_guard_recent_still_returns_six_original_messages_of_all_kinds():
     assert [message.content for message in recent] == [m.content for m in original]
     query = session.queries[0]
     assert 6 in query.compile().params.values()
-    # Recent messages retain all kinds; the extra exact recheck pair is queried
-    # only as bounded semantic evidence, never as a six-message suppression gate.
-    assert "messages.id IN" in str(query)
-    assert "safety_check" in query.compile().params.values()
+    # Context stays raw and bounded; there is no historical-question union.
+    assert "messages.id IN" not in str(query)
+    assert "safety_check" not in query.compile().params.values()
     assert len(recent) == 6

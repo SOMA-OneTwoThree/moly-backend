@@ -22,6 +22,11 @@ on:
         description: "배포할 이미지 태그(dev-<sha> 전체). 비우면 현재 커밋을 빌드해서 배포"
         required: false
         default: ""
+      preflight_only:
+        description: "Read-only dev deployment preflight; requires an existing image_tag"
+        type: boolean
+        required: false
+        default: false
       infra_sha:
         description: "Reviewed chat-encryption infra branch commit (40 hex)"
         required: false
@@ -46,6 +51,7 @@ env:
   # Never fall back to the old checkout/main during the encryption rollout.
   DEV_INFRA_SHA: ${{ inputs.infra_sha || 'd6e7301c0b9c81663f4586382146f401e2ccb685' }}
   VERIFY_DAILY_REPORT: "true"
+  PREFLIGHT_ONLY: ${{ inputs.preflight_only && 'true' || 'false' }}
 
 jobs:
   build-and-deploy:
@@ -55,10 +61,19 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           REF_NAME: ${{ github.ref }}
+          REQUESTED_IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
           set -euo pipefail
           if [[ "$REF_NAME" != "refs/heads/dev" ]] || [[ ! "$EVENT_NAME" =~ ^(push|workflow_dispatch)$ ]]; then
             echo "DEV_REF_REQUIRED" >&2
+            exit 1
+          fi
+          if [[ "$PREFLIGHT_ONLY" != true && "$PREFLIGHT_ONLY" != false ]]; then
+            echo "INVALID_PREFLIGHT_MODE" >&2
+            exit 1
+          fi
+          if [[ "$PREFLIGHT_ONLY" = true ]] && { [[ "$EVENT_NAME" != workflow_dispatch ]] || [[ ! "$REQUESTED_IMAGE_TAG" =~ ^dev-[0-9a-f]{40}$ ]]; }; then
+            echo "PREFLIGHT_EXISTING_DEV_IMAGE_REQUIRED" >&2
             exit 1
           fi
           if [[ ! "$DEV_INFRA_SHA" =~ ^[0-9a-f]{40}$ ]]; then
@@ -87,7 +102,7 @@ jobs:
 
       # dispatch로 기존 태그를 지정한 경우 빌드 스킵 — 롤백은 빌드가 아니라 재배포다
       - name: Build and push image
-        if: ${{ inputs.image_tag == '' || github.event_name == 'push' }}
+        if: ${{ !inputs.preflight_only && (inputs.image_tag == '' || github.event_name == 'push') }}
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -207,6 +222,17 @@ jobs:
                 104) reason=POST_BANNERS ;;
                 105) reason=POST_DAILY_REPORT ;;
                 106) reason=CHAT_ENCRYPTION_ACTIVATION ;;
+                181) reason=PREFLIGHT_KEYRING_INVALID ;;
+                182) reason=PREFLIGHT_KEY_CAPABILITY ;;
+                183) reason=PREFLIGHT_CANDIDATE_PROOF ;;
+                184) reason=PREFLIGHT_DOWNGRADE_FLOOR ;;
+                185) reason=PREFLIGHT_DB_SCHEMA ;;
+                186) reason=PREFLIGHT_OTHER ;;
+                187) reason=PREFLIGHT_KEYRING_JSON ;;
+                188) reason=PREFLIGHT_KEYRING_ENVIRONMENT ;;
+                189) reason=PREFLIGHT_KEYRING_STRUCTURE ;;
+                190) reason=PREFLIGHT_KEYRING_ENCODING ;;
+                191) reason=PREFLIGHT_KEYRING_READ ;;
                 *) reason=UNCLASSIFIED ;;
               esac
               echo "DEV_SSM_FAILED:$status:$reason" >&2
@@ -230,6 +256,9 @@ jobs:
               raise SystemExit("REVIEWED_DEV_INFRA_SHA_REQUIRED")
           if not re.fullmatch(r"dev-[0-9a-f]{40}", tag):
               raise SystemExit("INVALID_DEV_IMAGE_TAG")
+          preflight = os.environ.get("PREFLIGHT_ONLY", "false")
+          if preflight not in {"true", "false"}:
+              raise SystemExit("INVALID_PREFLIGHT_MODE")
           container_probe = """import hashlib
           import json
           import sys
@@ -256,6 +285,36 @@ jobs:
           if expected and version != expected:
               raise SystemExit(base + 4)
           print(fingerprint)
+          """
+          keyring_reason = """import base64,json,re,sys
+          def pairs(items):
+              result={}
+              for key,value in items:
+                  if key in result: raise ValueError()
+                  result[key]=value
+              return result
+          try:
+              with open(sys.argv[1]) as source: raw=source.read(65537)
+              if len(raw)>65536: raise ValueError()
+              value=json.loads(raw,object_pairs_hook=pairs)
+          except Exception:
+              raise SystemExit(187)
+          if not isinstance(value,dict): raise SystemExit(189)
+          if value.get('environment')!='development': raise SystemExit(188)
+          if set(value)!={'environment','keys'} or not isinstance(value['keys'],dict) or not value['keys']:
+              raise SystemExit(189)
+          seen=set()
+          try:
+              for number,encoded in value['keys'].items():
+                  if not re.fullmatch(r'[1-9][0-9]{0,4}',number) or int(number)>65535 or not isinstance(encoded,str):
+                      raise SystemExit(189)
+                  decoded=base64.b64decode(encoded,validate=True)
+                  if len(decoded)!=32 or base64.b64encode(decoded).decode('ascii')!=encoded or decoded in seen:
+                      raise ValueError()
+                  seen.add(decoded)
+          except Exception:
+              raise SystemExit(190)
+          raise SystemExit(181)
           """
           activation_proof = "import json,sys;print(json.dumps(dict(api=json.load(open(sys.argv[1])),consumer=json.load(open(sys.argv[2])))))"
           command = f"""set -eu
@@ -305,7 +364,30 @@ jobs:
           test "$(git rev-parse FETCH_HEAD)" = {infra} || exit 102
           git checkout --detach {infra} || exit 102
           test "$(git rev-parse HEAD)" = {infra} || exit 102
-          sudo bash deploy.sh {tag} || exit 103
+          """
+          if preflight == "true":
+              command += f"""umask 077
+          diagnostic_log="$(mktemp)"
+          diagnostic_keyring=""
+          trap 'rm -f "$diagnostic_log" "${{diagnostic_keyring:-}}"' EXIT
+          grep -q '^PREFLIGHT_ONLY="${{DEPLOY_PREFLIGHT_ONLY:-0}}"$' deploy.sh || exit 186
+          if sudo env DEPLOY_PREFLIGHT_ONLY=1 bash deploy.sh {tag} >"$diagnostic_log" 2>&1; then
+            exit 0
+          fi
+          if grep -qF 'ERROR: chat_content_keyring_invalid' "$diagnostic_log"; then
+            diagnostic_keyring="$(mktemp)"
+            if ! aws ssm get-parameter --name /moly/dev/chat-content-keyring --with-decryption --region ap-northeast-2 --query Parameter.Value --output text >"$diagnostic_keyring" 2>/dev/null; then exit 191; fi
+            python3 -c {shlex.quote(keyring_reason)} "$diagnostic_keyring" >/dev/null 2>&1
+            exit 181
+          fi
+          if grep -qF 'ERROR: chat content crypto key/capability preflight failed' "$diagnostic_log"; then exit 182; fi
+          if grep -qF 'ERROR: chat content crypto candidate proof invalid' "$diagnostic_log"; then exit 183; fi
+          if grep -qF 'ERROR: chat content encryption downgrade floor rejected candidate' "$diagnostic_log"; then exit 184; fi
+          if grep -qF '==> DB schema preflight' "$diagnostic_log"; then exit 185; fi
+          exit 186
+          """
+          else:
+              command += f"""          sudo bash deploy.sh {tag} || exit 103
           check_dev post {tag.removeprefix("dev-")}
           docker exec moly-backend sh -ec 'if [ -f scripts/check_running_banners.py ]; then python scripts/check_running_banners.py; fi' || exit 104
           if [ "{os.environ['VERIFY_DAILY_REPORT']}" = true ]; then
@@ -330,6 +412,7 @@ jobs:
           poll_ssm "$CMD_ID"
 
       - name: Verify via public endpoint
+        if: ${{ !inputs.preflight_only }}
         run: |
           set -euo pipefail
           python - <<'PYTHON'

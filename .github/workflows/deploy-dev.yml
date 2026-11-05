@@ -49,7 +49,7 @@ env:
   DEPLOY_TAG: ${{ inputs.image_tag || format('dev-{0}', github.sha) }}
   # Reviewed candidate infra commit; main/prod is not changed by this workflow.
   # Never fall back to the old checkout/main during the encryption rollout.
-  DEV_INFRA_SHA: ${{ inputs.infra_sha || 'd6e7301c0b9c81663f4586382146f401e2ccb685' }}
+  DEV_INFRA_SHA: ${{ inputs.infra_sha || '9e86e88ec456bad4e8a9307d5e8f21a478816a4c' }}
   VERIFY_DAILY_REPORT: "true"
   PREFLIGHT_ONLY: ${{ inputs.preflight_only && 'true' || 'false' }}
 

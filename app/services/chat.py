@@ -1346,7 +1346,7 @@ async def _publish_fixed_guard(
         "greeting": None,
         "user_message": {"message_id": str(user_message.id), "created_at": _iso(now)},
         "reply": {"message_id": str(reply.id), "content": content,
-                  "created_at": _iso(now), "references": []},
+                  "created_at": _iso(now), "references": [], "kind": kind},
         "tokens_used": new_used, "tokens_remaining": max(0, limit - new_used),
         "review_prompt": False,
     }

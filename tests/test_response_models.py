@@ -197,6 +197,7 @@ def test_utc_datetime_keeps_offset_wire_format():
     ).model_dump(mode="json")
     assert dumped["user_message"]["created_at"] == NOW
     assert dumped["reply"]["created_at"] == NOW
+    assert dumped["reply"]["kind"] == "normal"
 
 
 def test_all_json_success_routes_use_concrete_base_models():

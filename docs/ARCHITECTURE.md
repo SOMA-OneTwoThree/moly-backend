@@ -303,8 +303,15 @@ privacy epoch를 확인해 오래된 작업이 새 컨텍스트를 덮어쓰지 
 선호 작업(`contract_compile`)은 마지막 시도의 내용 실패(형식 오류·빈 응답·길이 초과·근거 불일치·병합
 오류·문서 2KB 초과)를 dead로 끝내지 않는다. 모델 후보를 버리고 커서를 넘기며, 버린 이유와 개수는
 `result_detail`에 남긴다. 선호·요약 작업이 일시 장애(분류되지 않은 예외·시간 초과·처리 권한 만료 등)로
-dead가 되면 같은 범위의 중복 방지 키가 막혀 처리가 멈추므로, 새 행으로 다시 만든다. 요약은 형식 검사
-실패(`summary_invalid`)도 포함한다. 간격은 30분에서 시작해 다시 만들 때마다 두 배, 최대 24시간이다.
+dead가 되면 같은 범위의 중복 방지 키가 막혀 처리가 멈추므로, 새 행으로 다시 만든다. 요약은 모델 출력의
+내용 실패(`summary_invalid`·`summary_name_leak`·`summary_length`·`summary_packing_length_snapshot`)도 포함한다.
+payload 형식 오류 같은 결정적 실패는 다시 만들지 않는다(제외 목록과 이유는 `worker/memory_sweep_jobs.py`).
+간격은 30분·1시간·2시간·4시간이고, 같은 범위에서 이어진 작업 전체를 최대 4번(`jobs.REDO_MAX_DEPTH`)까지만
+다시 만든다. 한 번에 3회 시도하므로 같은 입력에서 늘 실패해도 모델 호출은 원본 포함 15회로 끝난다.
+상한에 닿으면 요약은 더 만들지 않고 `checkpoint_redo_exhausted`(작업 id·코드·깊이)만 남긴다. 대화는 줄인 최근
+기록으로 계속된다. 선호는 모델을 부르지 않는 마지막 작업(`no_model`, 키 `contract-retention-skip:{dead id}`)
+한 건을 만든다. 이 작업은 지금 문서를 그대로 두고 일반 확정 경로로 커서만 목표까지 넘긴다(`result_detail`에
+`skipped_after_redo_cap`). 개인정보 epoch·세대·호환 기준선 검사는 그대로 거치며, 이 작업이 dead가 되면 다시 만들지 않는다.
 dead 행은 그대로 두고 payload는 지금 기준으로 새로 만들며, 같은 dead마다 한 건만 생긴다. 선호 작업은
 선호 처리를 예약하는 곳(대화 턴·요약 게시 대기 등)에서, 요약 작업은 예약 순회(memory sweep)에서 다시 만든다.
 

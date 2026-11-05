@@ -701,8 +701,9 @@ SELECT id FROM async_jobs WHERE (payload->>'retention_preparation_id') IS NULL A
  AND dedup_key=:dedup_key LIMIT 1
 """)
 # 0번째 열(state)은 그대로 두고 dead 재생성 판단에 쓰는 열만 뒤에 붙인다.
+# 마지막 열(no_model)은 상한 뒤 모델 없이 진행만 하는 마지막 작업 표시다.
 _CONTRACT_LATEST_TERMINAL = text("""
-SELECT j.state,j.id,j.finished_at,j.last_error_code,j.payload->>'redo_depth' FROM async_jobs j
+SELECT j.state,j.id,j.finished_at,j.last_error_code,j.payload->>'redo_depth',j.payload->>'no_model' FROM async_jobs j
 WHERE j.user_id=:user_id AND j.job_type='contract_compile'
  AND j.payload->'retention_enabled'='true'::jsonb
  AND (j.payload->>'retention_preparation_id') IS NULL
@@ -768,19 +769,23 @@ _CONTRACT_CONTENT_DEAD_CODES = frozenset({
 
 
 def contract_redo_delay(depth: int) -> timedelta:
-    """재생성 깊이별 대기: 원본 dead 30분, 1회차 1시간, 2시간 … 최대 24시간."""
+    """재생성 깊이별 대기: 원본 dead 30분, 1회차 1시간, 2시간, 3회차 4시간."""
     from app.services import jobs
     return jobs.redo_delay(depth)
 
 
-def contract_redo_depth(row, *, now: datetime) -> int | None:
-    """마지막 종료 작업이 다시 만들 dead면 새 작업의 redo_depth, 아니면 None.
+def contract_redo(row, *, now: datetime):
+    """마지막 종료 작업(row)이 dead일 때 다시 만들 작업(`jobs.DeadRedo`), 아니면 None.
 
-    row = `_CONTRACT_LATEST_TERMINAL` 결과(state, id, finished_at, last_error_code, redo_depth).
+    row = `_CONTRACT_LATEST_TERMINAL` 결과(state, id, finished_at, last_error_code, redo_depth, no_model).
+    `exhausted`면 모델을 다시 부르지 않고 커서만 넘기는 마지막 작업 한 건을 만든다.
+    그 마지막 작업(no_model)이 dead가 되면 아무것도 만들지 않는다(같은 작업이 반복되지 않게).
     """
     from app.services import jobs
-    return jobs.dead_redo_depth(row, now=now, repeat_codes=_CONTRACT_TRANSIENT_DEAD_CODES,
-                                original_once_codes=_CONTRACT_CONTENT_DEAD_CODES)
+    if len(row) > 5 and row[5] == "true":
+        return None
+    return jobs.dead_redo(row, now=now, repeat_codes=_CONTRACT_TRANSIENT_DEAD_CODES,
+                          original_once_codes=_CONTRACT_CONTENT_DEAD_CODES)
 
 
 async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UUID | str,
@@ -818,23 +823,30 @@ async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UU
         return None
     latest_terminal = (await session.execute(retention_release.job_sql(_CONTRACT_LATEST_TERMINAL), retention_release.params(params))).first()
     if latest_terminal is not None and latest_terminal[0] == "dead":
-        # 일시 장애로 dead가 된 경우만 시간을 두고(30분·1시간·2시간 … 최대 24시간) 한 번씩
-        # 다시 만든다. 결정적 실패(예: 입력 한도)는 다시 만들지 않는다. 같은 dead마다 한 건만
-        # 생기도록 dead id로 dedup하고, payload는 죽은 작업 것을 복제하지 않고 지금 기준으로 새로 만든다.
-        redo_depth = contract_redo_depth(latest_terminal, now=datetime.now(timezone.utc))
-        if redo_depth is None:
+        # 일시 장애로 dead가 된 경우만 시간을 두고(30분·1시간·2시간·4시간) 다시 만든다.
+        # 결정적 실패(예: 입력 한도)는 다시 만들지 않는다. 같은 dead마다 한 건만 생기도록
+        # dead id로 dedup하고, payload는 죽은 작업 것을 복제하지 않고 지금 기준으로 새로 만든다.
+        redo = contract_redo(latest_terminal, now=datetime.now(timezone.utc))
+        if redo is None:
             return None
         dead_id = str(latest_terminal[1])
         payload = {"retention_enabled": True, "memory_generation": generation,
                    "through_message_id": through_id, "after_message_id": int(cursor), "privacy_epoch": epoch,
-                   "redo_of": dead_id, "redo_depth": redo_depth}
+                   "redo_of": dead_id, "redo_depth": redo.depth}
+        key = f"contract-retention-redo:{dead_id}"
+        if redo.exhausted:
+            # 상한(jobs.REDO_MAX_DEPTH): 모델을 다시 부르지 않는 마지막 작업 한 건. 문서는 그대로 두고
+            # 이 범위의 커서만 넘겨 요약 게시가 영구히 멈추지 않게 한다(worker/contract_jobs.py).
+            payload["no_model"] = True
+            key = f"contract-retention-skip:{dead_id}"
         if baseline is not None:
             payload['baseline_binding'] = baseline.payload()
         made = await jobs.enqueue(session, queue=jobs.QUEUE_MEMORY, job_type="contract_compile",
-            user_id=user_id, dedup_key=f"contract-retention-redo:{dead_id}", payload=payload, max_attempts=3)
+            user_id=user_id, dedup_key=key, payload=payload, max_attempts=3)
         if made is not None:
-            _log.info("contract_redo_enqueued dead_job=%s error_code=%s redo_depth=%d",
-                      dead_id, latest_terminal[3], redo_depth)
+            _log.info("%s dead_job=%s error_code=%s redo_depth=%d",
+                      "contract_redo_exhausted_skip_enqueued" if redo.exhausted else "contract_redo_enqueued",
+                      dead_id, latest_terminal[3], redo.depth)
         return made
     existing = (await session.execute(retention_release.job_sql(_CONTRACT_BASE_JOB), retention_release.params(params))).first()
     if existing is None and latest_terminal is None:

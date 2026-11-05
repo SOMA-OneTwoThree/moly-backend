@@ -337,7 +337,7 @@ async def test_unpublished_success_of_a_redo_after_the_dead_root_is_resumed(monk
     assert not any(name == "redo_enqueue" for name, _data in setup.calls)
 
 
-@pytest.mark.parametrize("code", ["summary_name_leak", "invalid_payload", "checkpoint_completed_proof_invalid"])
+@pytest.mark.parametrize("code", ["invalid_payload", "checkpoint_completed_proof_invalid"])
 async def test_other_dead_codes_keep_the_durable_stop(monkeypatch, code):
     dead = uuid.uuid4()
     setup = install(monkeypatch, made=False, dead=dead,
@@ -345,6 +345,46 @@ async def test_other_dead_codes_keep_the_durable_stop(monkeypatch, code):
     result = await sweep._resume_retention_checkpoints()
     assert result.blocked == 1 and result.enqueued == 0
     assert not any(name == "redo_enqueue" for name, _data in setup.calls)
+
+
+@pytest.mark.parametrize("code", ["summary_name_leak", "summary_length", "summary_packing_length_snapshot"])
+async def test_content_failure_codes_from_the_handler_are_recreated(monkeypatch, code):
+    # 요약 처리기가 재시도 끝에 이 코드로 dead를 남기면 예전에는 그 사용자의 요약이 영구히 멈췄다.
+    dead = uuid.uuid4()
+    setup = install(monkeypatch, made=False, dead=dead,
+                    plan_terminal=just_died(dead, code, ago=timedelta(minutes=31)))
+    result = await sweep._resume_retention_checkpoints()
+    assert result.enqueued == 1 and result.blocked == 0
+    redo = next(data for name, data in setup.calls if name == "redo_enqueue")
+    assert redo["redo"] == (str(dead), 1)
+
+
+@pytest.mark.parametrize("depth,wait", [(None, timedelta(minutes=30)), (1, timedelta(hours=1)),
+                                        (2, timedelta(hours=2)), (3, timedelta(hours=4))])
+async def test_lineage_is_recreated_with_growing_intervals_up_to_the_cap(monkeypatch, depth, wait):
+    dead = uuid.uuid4()
+    early = install(monkeypatch, made=False, dead=dead,
+                    plan_terminal=just_died(dead, ago=wait - timedelta(minutes=1), depth=depth))
+    assert (await sweep._resume_retention_checkpoints()).enqueued == 0
+    assert not any(name == "redo_enqueue" for name, _data in early.calls)
+    setup = install(monkeypatch, made=False, dead=dead,
+                    plan_terminal=just_died(dead, ago=wait, depth=depth))
+    assert (await sweep._resume_retention_checkpoints()).enqueued == 1
+    redo = next(data for name, data in setup.calls if name == "redo_enqueue")
+    assert redo["redo"] == (str(dead), (depth or 0) + 1)
+
+
+@pytest.mark.parametrize("dead_root", [True, False])
+async def test_lineage_stops_at_the_cap_and_logs_only_ids(monkeypatch, caplog, dead_root):
+    capped = uuid.uuid4()
+    setup = install(monkeypatch, made=False, dead=uuid.uuid4() if dead_root else None,
+                    plan_terminal=just_died(capped, "summary_invalid", ago=timedelta(days=3), depth=4))
+    with caplog.at_level("WARNING", logger="moly-worker"):
+        result = await sweep._resume_retention_checkpoints()
+    assert result.enqueued == 0 and result.blocked == 1
+    assert not any(name == "redo_enqueue" for name, _data in setup.calls)
+    logged = [record.getMessage() for record in caplog.records if "checkpoint_redo_exhausted" in record.getMessage()]
+    assert logged == [f"checkpoint_redo_exhausted dead_job={capped} error_code=summary_invalid redo_depth=4"]
 
 
 def test_plan_terminal_lookup_reads_only_the_same_plan_and_changes_nothing():

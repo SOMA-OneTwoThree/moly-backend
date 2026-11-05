@@ -56,7 +56,7 @@ env:
   # Never fall back to the old checkout/main during the encryption rollout.
   DEV_INFRA_SHA: ${{ inputs.infra_sha || 'c235bc460ef56434a9fb8a51604f5146d54f635e' }}
   CRYPTO_RELEASE: ${{ inputs.crypto_release && 'true' || 'false' }}
-  RESCUE_SHA: adc94a495d9c5bebe5d4fbe281fa81825c85beba
+  RESCUE_SHA: 27fe96eae0cf44075eaf727e41a601a2777ce4ce
   VERIFY_DAILY_REPORT: "true"
   PREFLIGHT_ONLY: ${{ inputs.preflight_only && 'true' || 'false' }}
 

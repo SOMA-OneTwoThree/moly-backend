@@ -107,9 +107,9 @@ def attach(conversation: list[Mapping[str, str]], opening: OpeningSnapshot | Non
 
 
 _REFERENCE_NOTE = {
-    'ko': '짧은 답은 바로 앞에 표시된 인사말에 대한 답으로 먼저 이해해. 다만 상대가 이전 주제를 명시하거나 새 주제를 꺼내면 그 뜻을 따라가.',
-    'en': 'Interpret a short reply as responding to the opening shown immediately before it. An explicit reference to an earlier subject or an explicit new subject takes precedence.',
-    'ja': '短い返事は、直前に表示された声かけへの返事としてまず理解して。ただし、相手が以前の話題を明示したり、新しい話題を出したりした場合は、その意味を優先して。',
+    'ko': '짧은 답은 바로 앞에 표시된 인사말에 대한 답으로 먼저 이해하고, 그 인사말의 상황 안에서 답해. 상대가 먼저 꺼내지 않은 이전 주제나 제안·계획을 다시 이어가지 마. 다만 상대가 이전 주제를 명시하거나 새 주제를 꺼내면 그 뜻을 따라가.',
+    'en': "Interpret a short reply as responding to the opening shown immediately before it, and keep your answer within that opening's situation. Do not resume an older subject, suggestion or plan unless the user brings it up. An explicit reference to an earlier subject or an explicit new subject takes precedence.",
+    'ja': '短い返事は、直前に表示された声かけへの返事としてまず理解して、その声かけの話の中で答えて。相手が先に持ち出していない以前の話題や提案・予定を再開しないで。ただし、相手が以前の話題を明示したり、新しい話題を出したりした場合は、その意味を優先して。',
 }
 
 

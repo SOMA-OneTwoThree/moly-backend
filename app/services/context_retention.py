@@ -587,10 +587,11 @@ SELECT cc.memory_generation, cc.contract_generation,
        n.last_id, n.last_turn, n.unsequenced,
        EXISTS (SELECT 1 FROM mem0_ingest_candidates c
                WHERE c.user_id=cc.user_id AND c.turn_seq BETWEEN n.first_turn AND n.last_turn AND c.status='planned'),
+       -- 배포 전 기억은 canonical_text 없이 그대로 쓴다(옛 자료 변환 없음). 그 빈 칸은 앞으로도
+       -- 채워지지 않으므로 완료 조건에 넣으면 요약 게시가 끝없이 대기한다. 새 기억은 넣을 때 채운다.
        EXISTS (SELECT 1 FROM mem0_memory_registry r
                WHERE r.user_id=cc.user_id AND r.source_turn_seq BETWEEN n.first_turn AND n.last_turn
-                 AND (r.semantic_status='pending' OR
-                     (r.semantic_status='active' AND r.canonical_text IS NULL)))
+                 AND r.semantic_status='pending')
 FROM chat_contexts cc
 LEFT JOIN memory_pipeline_states p ON p.user_id=cc.user_id
 CROSS JOIN normal_source n

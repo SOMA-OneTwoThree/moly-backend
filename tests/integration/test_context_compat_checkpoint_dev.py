@@ -76,7 +76,8 @@ async def test_real_suffix_completion_ignores_old_pending_but_blocks_new(checkpo
         await registry(session, uid, 10, "pending" if suffix_failure == "pending" else "active")
     assert await context_compat.matches_current(session, baseline)
     result = await context_retention.processing_complete(session, user_id=uid, generation=0, through_id=last)
-    assert result is (suffix_failure is None)
+    # canonical_text가 빈 active 기억은 배포 전 기억이다. 변환하지 않고 쓰므로 게시를 막지 않는다.
+    assert result is (suffix_failure in {None, "canonical_null"})
     assert await session.scalar(text("SELECT count(*) FROM mem0_memory_registry WHERE user_id=:u"),
                                 {"u": uid}) >= 2
 

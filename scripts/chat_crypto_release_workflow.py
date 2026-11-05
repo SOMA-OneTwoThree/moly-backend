@@ -12,7 +12,7 @@ import time
 
 ACCOUNT = '676972757138'
 REGION = 'ap-northeast-2'
-RESCUE_SHA = '9fa54dd9690148bf829301db71a6cd02f93b7deb'
+RESCUE_SHA = 'f781f6c4e6bb2fd36633028a63a78f55c1ee417d'
 SQL_SHA = 'b6b80ea155570de38c9ef4645ec3fc3874e17e67d0cc23604b90eb87112c1f8b'
 TARGETS = {
     'production': ('main', 'moly-github-actions-role', 'moly-backend', 'qkgjlgzsharnilxnkytd', 2),

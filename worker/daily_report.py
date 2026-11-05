@@ -153,7 +153,11 @@ SELECT (SELECT count(*) FROM current_users) total,
 FROM events
 """)
 
-_DIARIES_SQL = text("""
+# Previous diaries query. Joining pg_timezone_names keeps only zones PostgreSQL
+# knows, but the catalog join alone costs about 0.77s on a cold read. It is kept
+# only as the one-time fallback when _DIARIES_SQL meets a zone PostgreSQL rejects
+# (sqlstate 22023: Python resolves it, PostgreSQL does not).
+_DIARIES_JOIN_SQL = text("""
 WITH conversations AS (
  SELECT user_id,activity_date,sum(CASE WHEN m.content_ciphertext IS NULL THEN char_length(m.content) ELSE m.content_chars END) chars FROM messages m
  WHERE sender='user' AND kind='normal' AND activity_date BETWEEN :floor AND :ceiling
@@ -194,6 +198,58 @@ SELECT count(*) expected,
 FROM eligible x
 """)
 
+# :tz_excluded = zones the worker tick could not resolve in Python (it records
+# them under WORKER_TZ_UNRESOLVABLE_KEY; those users get no diary). Rows in those
+# zones are filtered out, and every AT TIME ZONE also sits inside a CASE on the
+# same check: PostgreSQL may apply filters in any order, but a CASE branch is
+# never evaluated when its condition is false, so a bad zone cannot raise here.
+_DIARIES_SQL = text("""
+WITH conversations AS (
+ SELECT user_id,activity_date,sum(CASE WHEN m.content_ciphertext IS NULL THEN char_length(m.content) ELSE m.content_chars END) chars FROM messages m
+ WHERE sender='user' AND kind='normal' AND activity_date BETWEEN :floor AND :ceiling
+ GROUP BY 1,2 HAVING sum(CASE WHEN m.content_ciphertext IS NULL THEN char_length(m.content) ELSE m.content_chars END)>=:gate
+), dates AS (
+ SELECT m.*,p.timezone,p.created_at,p.app_trial_started_at,p.app_trial_ends_at,p.trial_ends_at,
+ CASE WHEN p.timezone<>'' AND p.timezone<>ALL(CAST(:tz_excluded AS text[]))
+ THEN ((m.activity_date+1)+time '04:00') AT TIME ZONE p.timezone END-interval '1 microsecond' boundary,
+ CASE WHEN p.timezone<>'' AND p.timezone<>ALL(CAST(:tz_excluded AS text[]))
+ THEN ((m.activity_date+1)+time '09:00') AT TIME ZONE p.timezone END publication,
+ CASE WHEN p.timezone<>'' AND p.timezone<>ALL(CAST(:tz_excluded AS text[]))
+ THEN ((p.created_at AT TIME ZONE p.timezone)-interval '4 hours')::date END signup_date
+ FROM conversations m JOIN profiles p ON p.id=m.user_id
+ WHERE p.timezone<>'' AND p.timezone<>ALL(CAST(:tz_excluded AS text[]))
+ AND NOT EXISTS(SELECT 1 FROM privacy_subject_barriers b WHERE b.user_id=m.user_id AND b.state<>'active')
+), eligible AS (
+ SELECT x.* FROM dates x WHERE publication>=:start AND publication<:end AND (
+ x.boundary<:launch_until OR
+ x.signup_date=x.activity_date OR
+ CASE WHEN x.app_trial_started_at IS NOT NULL THEN x.app_trial_ends_at
+ WHEN :launch_until IS NULL OR x.trial_ends_at-interval '48 hours'>=:launch_until THEN x.trial_ends_at END>x.boundary OR
+ EXISTS(SELECT 1 FROM subscriptions s WHERE s.user_id=x.user_id
+ AND s.status IN ('active','grace_period','expired') AND s.expires_at>x.boundary
+ AND (s.ownership_changed_at IS NULL OR s.ownership_changed_at<=x.boundary)
+ AND (s.purchased_at<=x.boundary OR EXISTS(
+ SELECT 1 FROM revenuecat_events e WHERE e.status='processed'
+ AND e.payload->>'type' IN ('INITIAL_PURCHASE','RENEWAL')
+ AND e.payload->>'original_transaction_id'=s.original_transaction_id
+ AND e.payload->>'environment'=s.environment
+ AND (s.ownership_changed_at IS NOT NULL OR e.payload->>'app_user_id'=s.user_id::text)
+ AND CASE WHEN e.payload->>'purchased_at_ms'~'^[0-9]+$' THEN to_timestamp((e.payload->>'purchased_at_ms')::numeric/1000) END<=x.boundary
+ AND (CASE WHEN e.payload->>'expiration_at_ms'~'^[0-9]+$' THEN to_timestamp((e.payload->>'expiration_at_ms')::numeric/1000) END>x.boundary
+ OR (e.payload->>'transaction_id'=s.latest_transaction_id
+ AND CASE WHEN e.payload->>'expiration_at_ms'~'^[0-9]+$' THEN to_timestamp((e.payload->>'expiration_at_ms')::numeric/1000) END<=s.expires_at))))))
+)
+SELECT count(*) expected,
+ count(*) FILTER(WHERE EXISTS(SELECT 1 FROM diaries d WHERE d.user_id=x.user_id
+ AND d.activity_date=x.activity_date AND d.kind='shared_day' AND d.record_status='published'
+ AND d.deleted_at IS NULL AND d.published_at<=:now)) completed,
+ count(*) FILTER(WHERE EXISTS(SELECT 1 FROM diaries d WHERE d.user_id=x.user_id
+ AND d.activity_date=x.activity_date AND d.deleted_at IS NOT NULL AND d.kind IN ('shared_day','capi_day'))) deleted
+FROM eligible x
+""")
+# Metrics that get one more attempt after a timeout (57014 or the outer 3s limit).
+_RETRY_TIMEOUT = frozenset({"activity", "diaries"})
+
 
 async def read_row(query, params: dict) -> dict:
     async with get_sessionmaker()() as session:
@@ -222,7 +278,11 @@ def log_failure(metric: str, now: datetime, exc: Exception, started: float,
     )
 
 
-async def read_metric(name: str, query, params: dict, *, retry_timeout: bool = False):
+async def read_metric(name: str, query, params: dict, *, retry_timeout: bool = False,
+                      fallback=None):
+    """At most two attempts. The second one is either the same query again after a
+    timeout (`retry_timeout`: sqlstate 57014 or the outer 3s limit) or `fallback`
+    once when PostgreSQL rejects a time zone (sqlstate 22023)."""
     for attempt in (1, 2):
         started = monotonic()
         try:
@@ -236,13 +296,24 @@ async def read_metric(name: str, query, params: dict, *, retry_timeout: bool = F
                           int((monotonic()-started)*1000))
             return row, None
         except Exception as exc:
-            retry = retry_timeout and attempt == 1 and sqlstate(exc) == "57014"
+            code = sqlstate(exc)
+            timed_out = code == "57014" or isinstance(exc, TimeoutError)
+            switch = attempt == 1 and fallback is not None and code == "22023"
+            retry = attempt == 1 and (switch or (retry_timeout and timed_out))
             log_failure(name, params["now"], exc, started, attempt=attempt, retry=retry)
             if not retry:
-                reason = "조회 실패"
-                if sqlstate(exc) == "57014" or isinstance(exc, TimeoutError):
-                    reason = "시간 초과"
-                return None, reason
+                return None, "시간 초과" if timed_out else "조회 실패"
+            if switch:
+                _log.warning("report_query metric=%s day=%s outcome=fallback reason=timezone_unrecognized",
+                             name, window(params["now"])[0].astimezone(KST).date())
+                query = fallback
+
+
+def _zone_list(value) -> list[str]:
+    # Never None: `<> ALL(NULL)` is NULL and would drop every row.
+    if not isinstance(value, list):
+        return []
+    return sorted({zone for zone in value if isinstance(zone, str)})
 
 
 async def business(now: datetime, config: dict) -> dict:
@@ -250,10 +321,12 @@ async def business(now: datetime, config: dict) -> dict:
     params = dict(start=start, end=end, now=now, prior_start=start-timedelta(days=1),
                   month_start=end-timedelta(days=30), floor=start.date()-timedelta(days=2),
                   ceiling=end.date()+timedelta(days=1), gate=config["diary_min_user_chars"],
-                  launch_until=config["launch_until"])
+                  launch_until=config["launch_until"],
+                  tz_excluded=_zone_list(config.get("tz_unresolvable")))
     queries = (("signups", _SIGNUPS_SQL), ("activity", _ACTIVITY_SQL),
                ("subscriptions", _SUBSCRIPTIONS_SQL), ("diaries", _DIARIES_SQL))
-    rows = await asyncio.gather(*(read_metric(name, query, params, retry_timeout=name == "activity")
+    rows = await asyncio.gather(*(read_metric(name, query, params, retry_timeout=name in _RETRY_TIMEOUT,
+                                              fallback=_DIARIES_JOIN_SQL if name == "diaries" else None)
                                   for name, query in queries))
     result = {name: row for (name, _), (row, _) in zip(queries, rows)}
     result["errors"] = {name: error for (name, _), (_, error) in zip(queries, rows) if error}

@@ -136,6 +136,24 @@ async def test_daily_snapshot_keeps_idle_failure_visible_and_uses_existing_age(o
     assert reader.await_count == 1
 
 
+@pytest.mark.parametrize("stored,expected", [(["Not/AZone"], ["Not/AZone"]), (None, None)])
+async def test_daily_report_receives_unresolvable_zones_already_read(observe, monkeypatch, stored, expected):
+    rc, _ = observe
+    values = {} if stored is None else {monitoring.config_store.WORKER_TZ_UNRESOLVABLE_KEY: stored}
+    reader = AsyncMock(return_value=values)
+    monkeypatch.setattr(monitoring.config_store, "get_config_values", reader)
+    monkeypatch.setattr(monitoring.jobs, "queue_stats", AsyncMock(return_value={}))
+    business = AsyncMock(return_value={"signups": None, "activity": None, "subscriptions": None,
+                                       "diaries": None, "errors": {}})
+    monkeypatch.setattr(monitoring.daily_report, "business", business)
+    monkeypatch.setattr(monitoring.daily_report, "read_metric", AsyncMock(return_value=(None, "조회 실패")))
+    await monitoring._daily_message(NOW, rc)
+    assert business.await_args.args[1]["tz_unresolvable"] == expected
+    # The list comes from the single config read that already happens; no new query.
+    assert reader.await_count == 1
+    assert monitoring.config_store.WORKER_TZ_UNRESOLVABLE_KEY in reader.await_args.args[1]
+
+
 async def test_slack_transport_log_body_and_url_are_not_exposed(monkeypatch, caplog):
     import logging
     caplog.set_level(logging.DEBUG)

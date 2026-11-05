@@ -29,13 +29,16 @@ async def test_only_fixed_required_coverage_finishes_wait(monkeypatch, steps):
 
 async def test_partial_coverage_keeps_waiting_until_deadline(monkeypatch):
     session = SimpleNamespace(expunge_all=lambda: None, commit=AsyncMock(), rollback=AsyncMock())
-    state = SimpleNamespace(deadline=time.monotonic()+0.03, model_reserve=0, generation=0,
-                            baseline_through=100, required_through=400)
+    # The wait also leaves time to prepare again after it stops.
+    state = SimpleNamespace(deadline=time.monotonic()+chat._PRESSURE_REPREPARE_S+0.03, model_reserve=0,
+                            generation=0, baseline_through=100, required_through=400)
     monkeypatch.setattr(chat, '_validate_pressure_resume', AsyncMock())
-    monkeypatch.setattr(chat.checkpoint_repo, 'load_latest', AsyncMock(return_value=200))
+    load = AsyncMock(return_value=200)
+    monkeypatch.setattr(chat.checkpoint_repo, 'load_latest', load)
     monkeypatch.setattr(chat.checkpoint_repo, 'coverage_for_checkpoint',
                         AsyncMock(return_value=SimpleNamespace(through_message_id=200)))
     assert not await chat._wait_for_context_progress(session, 'synthetic-user', state)
+    assert load.await_count >= 1
 
 
 @pytest.mark.parametrize('queue', [jobs.QUEUE_MEMORY, jobs.QUEUE_CONTENT, jobs.QUEUE_CRITICAL])

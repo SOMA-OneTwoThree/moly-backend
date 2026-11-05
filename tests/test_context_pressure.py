@@ -118,6 +118,18 @@ async def test_active_normal_or_pressure_job_payload_is_never_changed(reservatio
     assert not env.state["queued"]
 
 
+async def test_pending_reservation_reports_existing_job_start_without_changing_identity(reservation):
+    from datetime import datetime, timezone
+    env = reservation
+    created = datetime(2026, 11, 5, 3, 0, tzinfo=timezone.utc)
+    env.state["active"] = (uuid.uuid4(), "ready", 7, created, {})
+    result = await repo.request_pressure(env.session, user_id=env.uid, generation=7)
+    assert result.status == "pending" and result.waiting_since == created
+    # The start time is only advice for the chat wait; it is not part of the reservation identity.
+    assert result == repo.PressureReservation("pending", 2)
+    assert sum(sql is repo._RETENTION_PENDING for sql, _ in env.state["queries"]) == 1
+
+
 @pytest.mark.parametrize(("field", "value", "status"), [
     ("enabled", False, "disabled"), ("adopted", False, "not_adopted"),
     ("boundary", None, "no_source"), ("generation", 8, "no_source"),

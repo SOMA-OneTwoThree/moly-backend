@@ -197,6 +197,8 @@ curl --fail --silent --show-error https://voice.moly.asia/health/ready
 - `context_checkpoint_temporal_enabled`를 바꾸기 전 API/consumer 버전, 진행 중 작업과 구/신 checkpoint 읽기 호환을 확인한다. 롤백 전에 새 쓰기를 끄더라도 기존 저장본이 사라지지는 않는다.
 - worker는 15분 단위 슬롯에서 사용자 현지 시간과 일 경계를 해석한다. tzdata와 legacy timezone alias를 유지한다. 잘못된 타임존을 임의 UTC로 처리해 발송 시각을 바꾸지 않는다.
 - worker의 사용자 처리 soft deadline과 systemd hard timeout을 함께 보존한다. 운영 알림 emit에는 전체 15초 제한이 있어 남은 관측·통지가 다음 tick으로 밀릴 수 있다. 외부 취소는 전파한다.
+- 한 tick 안에서 그 시각의 마지막 tick(현지 :45)인 시간대를 먼저 처리하고 soft deadline보다 60초 더 준다. 나머지 시간대는 soft deadline까지다. 어느 사용자도 soft deadline + 사용자 1명 한도를 넘겨 돌지 않는다.
+- 현지 04시에 못 만든 어제 일기는 현지 05:00·05:15 tick이 이어 만든다. 04시와 같은 대상 날짜·`diary_gen_claims`(같은 사용자·날짜 일기를 동시에 만들지 않게 하는 표시 행)·기존 일기 확인을 쓰고, 일기 말고 다른 작업은 하지 않는다.
 
 ### 모델·사용량·비용
 

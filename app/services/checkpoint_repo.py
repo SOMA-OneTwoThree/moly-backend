@@ -20,7 +20,7 @@ import logging
 import uuid
 from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -339,11 +339,12 @@ async def insert(
 
 async def enqueue_checkpoint(
     session: AsyncSession, *, user_id: uuid.UUID | str, plan: checkpoint.CheckpointPlan,
-    delay_s: float = 0,
+    delay_s: float = 0, redo: tuple[str, int] | None = None,
 ) -> uuid.UUID | None:
     """요약 잡 등록(커밋하지 않는다 — 메시지 insert와 **같은 트랜잭션**에서 불러야 한다).
 
     dedup key가 `(through, source_hash, summarizer)`를 담아 같은 입력은 한 번만 돈다(§W11-3).
+    `redo=(dead id, 깊이)`면 같은 계획이 dead로 막혀 있을 때 새 행으로 다시 만든다(dead마다 한 건).
     """
     if plan.version == checkpoint.RETENTION_SUMMARIZER_VERSION:
         from app.services import context_retention
@@ -364,12 +365,17 @@ async def enqueue_checkpoint(
         # Only a newly created regular root adopts packing. Shared source-plan
         # comparisons and existing partial/completed jobs retain their format.
         payload["packing_version"] = checkpoint.PACKING_VERSION
+    dedup_key = plan.dedup_key(user_id)
+    if redo is not None:
+        dead_id, depth = redo
+        payload.update(redo_of=str(dead_id), redo_depth=int(depth))
+        dedup_key = f"checkpoint-redo:{dead_id}"
     made = await jobs.enqueue(
         session,
         queue=jobs.QUEUE_CONTENT,
         job_type=checkpoint.JOB_CONVERSATION_CHECKPOINT,
         user_id=user_id,
-        dedup_key=plan.dedup_key(user_id),
+        dedup_key=dedup_key,
         payload=payload,
         **({"available_at": datetime.now(timezone.utc)+timedelta(seconds=delay_s)} if delay_s else {}),
     )
@@ -555,6 +561,8 @@ class PressureReservation:
     status: str
     through_message_id: int | None = None
     job_id: uuid.UUID | None = None
+    # "pending"일 때 이미 대기 중인 요약 작업의 생성 시각. 대화가 기다릴지 판단하는 참고값일 뿐이다.
+    waiting_since: datetime | None = field(default=None, compare=False)
 
 
 _WAKE_CHECKPOINT_INGEST = text("""
@@ -808,8 +816,10 @@ async def request_pressure(session: AsyncSession, *, user_id, generation: int,
     await wake_checkpoint_ingest(session, user_id=user_id, generation=generation,
                                 through_id=int(target))
     # 실행 중 원본 payload와 준비 중인 normal 계획도 변경하지 않는다.
-    if (await retention_release.execute(session, _RETENTION_PENDING, {"user_id": user_id})).first() is not None:
-        return PressureReservation("pending", int(target))
+    pending = (await retention_release.execute(session, _RETENTION_PENDING, {"user_id": user_id})).first()
+    if pending is not None:
+        return PressureReservation("pending", int(target),
+                                   waiting_since=pending[3] if len(pending) > 3 else None)
     sources = await load_pressure_sources(session, user_id,
         after_id=previous.through_message_id if previous else source_after, through_id=int(target))
     if not sources:

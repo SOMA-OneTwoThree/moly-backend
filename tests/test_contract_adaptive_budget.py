@@ -165,11 +165,18 @@ async def test_only_enlarged_length_uses_one_durable_small_planner_child(fallbac
 
 
 async def test_no_fallback_child_when_the_failed_call_exhausted_its_attempts(fallback_env,monkeypatch):
-    state,_=fallback_env
+    state,session=fallback_env
     monkeypatch.setattr(llm,"generate",AsyncMock(return_value=llm.LLMResult("partial",1,1,finish_reason="length")))
-    with pytest.raises(JobRetry,match="contract_retention_length"):
-        await worker.handle_contract_compile(retention_job(attempt=3,max_attempts=3))
-    assert not state["queued"] and not state["cap_writes"] and state["cursor"]==0
+    def forbidden(*args,**kwargs):
+        pytest.fail("truncated output cannot be parsed")
+    monkeypatch.setattr(worker.cc,"parse",forbidden)
+    # 마지막 시도의 길이 초과는 대체 출력 작업도 dead도 아니다: 잘린 출력은 버리고 진행한다.
+    result=await worker.handle_contract_compile(retention_job(attempt=3,max_attempts=3))
+    assert result.result_code=="ok" and result.result_detail["discarded"]=={"length":0}
+    assert not state["cap_writes"]
+    await result.apply_domain(session)
+    assert not any("output-fallback" in queued["dedup_key"] for queued in state["queued"])
+    assert not state["published"]
 
 
 @pytest.mark.parametrize("reason",["length","content_filter"])
@@ -177,8 +184,8 @@ async def test_small_length_or_refusal_never_starts_output_adaptation(fallback_e
     state,_=fallback_env
     state["body"]="short source"
     monkeypatch.setattr(llm,"generate",AsyncMock(return_value=llm.LLMResult("partial",1,1,finish_reason=reason)))
-    expected=JobRetry if reason=="length" else llm.IncompleteResponseError
-    with pytest.raises(expected):
+    expected="contract_retention_length" if reason=="length" else "contract_retention_incomplete"
+    with pytest.raises(JobRetry,match=expected):
         await worker.handle_contract_compile(retention_job())
     assert not state["queued"] and not state["cap_writes"] and state["cursor"]==0
 
@@ -202,8 +209,10 @@ async def test_fallback_failure_off_on_new_row_does_not_refill_durable_cap(fallb
     resumed=replace(cancelled,id=uuid.uuid4(),attempt=1,max_attempts=3)
     model.side_effect=None
     model.return_value=llm.LLMResult("partial",1,1,finish_reason="length")
-    with pytest.raises(JobRetry,match="contract_retention_length"):
-        await worker.handle_contract_compile(resumed)
+    # 남은 대체 출력 호출이 1이면 이번이 마지막 호출이다. 재시도해도 다음 시도는 JobFatal이므로
+    # 잘린 출력은 버리고 진행한다(dead 대신).
+    result=await worker.handle_contract_compile(resumed)
+    assert result.result_detail["discarded"]=={"length":0}
     assert state["stored_payload"]["adaptive_output_attempts_remaining"]==0
     exhausted=replace(resumed,id=uuid.uuid4(),payload=copy.deepcopy(state["stored_payload"]))
     with pytest.raises(JobFatal,match="attempts_exhausted"):
@@ -268,3 +277,378 @@ async def test_durable_cap_sql_is_same_job_lease_generation_and_privacy_fenced(m
     assert json.loads(params["payload"])==after and json.loads(params["before"])==current.payload
     assert params["payload_hash"]==hashlib.sha256(params["payload"].encode()).hexdigest()
     assert captured[-1]=="commit"
+
+
+def _valid_and_unproven_candidates():
+    valid = {"kind": "response_style", "action": "prefer", "condition": "always",
+             "target_literal": "short replies", "source_message_id": 1,
+             "scope": "conversation", "evidence_quote": "use short replies"}
+    unproven = {**valid, "target_literal": "long replies", "evidence_quote": "never said in the source"}
+    return llm.LLMResult(json.dumps([valid, unproven]), 5, 3, finish_reason="stop")
+
+
+async def test_unproven_item_retries_while_attempts_remain(fallback_env, monkeypatch):
+    state, _ = fallback_env
+    state["body"] = "This conversation, use short replies."
+    monkeypatch.setattr(llm, "generate", AsyncMock(return_value=_valid_and_unproven_candidates()))
+    with pytest.raises(JobRetry, match="contract_retention_evidence"):
+        await worker.handle_contract_compile(retention_job(attempt=2, max_attempts=3))
+    assert state["cursor"] == 0 and not state["published"]
+
+
+async def test_last_attempt_keeps_only_proven_items_and_advances_instead_of_dying(fallback_env, monkeypatch):
+    state, session = fallback_env
+    state["body"] = "This conversation, use short replies."
+    monkeypatch.setattr(llm, "generate", AsyncMock(return_value=_valid_and_unproven_candidates()))
+    result = await worker.handle_contract_compile(retention_job(attempt=3, max_attempts=3))
+    await result.apply_domain(session)
+    assert state["cursor"] == 1
+    literals = json.dumps(state["published"], ensure_ascii=False)
+    assert "short replies" in literals and "long replies" not in literals
+
+
+# ── 마지막 시도의 내용 실패는 dead 대신 진행한다 ─────────────────────────
+
+_SHORT = "This conversation, use short replies."
+
+
+def _model_output(kind):
+    if kind == "schema":
+        return llm.LLMResult("not a json array", 5, 3, finish_reason="stop")
+    if kind == "incomplete":
+        return llm.LLMResult(None, 5, 3, finish_reason="content_filter")
+    if kind == "length":
+        return llm.LLMResult('[{"kind":', 5, 3, finish_reason="length")
+    raise AssertionError(kind)
+
+
+@pytest.mark.parametrize("kind", ["schema", "incomplete", "length"])
+async def test_content_failure_retries_while_attempts_remain(fallback_env, monkeypatch, kind):
+    state, _ = fallback_env
+    state["body"] = _SHORT
+    monkeypatch.setattr(llm, "generate", AsyncMock(return_value=_model_output(kind)))
+    with pytest.raises(JobRetry, match=f"contract_retention_{kind}"):
+        await worker.handle_contract_compile(retention_job(attempt=2, max_attempts=3))
+    assert state["cursor"] == 0 and not state["queued"]
+
+
+@pytest.mark.parametrize("kind", ["schema", "incomplete", "length"])
+async def test_last_attempt_content_failure_advances_with_nothing_kept(fallback_env, monkeypatch, kind):
+    state, session = fallback_env
+    state["body"] = _SHORT
+    monkeypatch.setattr(llm, "generate", AsyncMock(return_value=_model_output(kind)))
+    if kind != "schema":
+        def forbidden(*args, **kwargs):
+            pytest.fail("incomplete or truncated output must not be parsed")
+        monkeypatch.setattr(worker.cc, "parse", forbidden)
+    result = await worker.handle_contract_compile(retention_job(attempt=3, max_attempts=3))
+    assert result.result_code == "ok"
+    assert result.result_detail["discarded"] == {kind: 0}
+    assert result.result_detail["kept"] == 0 and result.result_detail["document_kept"] is False
+    await result.apply_domain(session)
+    assert state["cursor"] == 1 and not state["published"] and not state["queued"]
+
+
+def _fail_merge_with_model_candidates(monkeypatch, *, always=False):
+    original = worker.merge_retained_items
+
+    def merge(previous, candidates, *, generation):
+        if always or candidates:
+            raise worker.cc.CompilerRejection("synthetic merge rejection")
+        return original(previous, candidates, generation=generation)
+    monkeypatch.setattr(worker, "merge_retained_items", merge)
+
+
+async def test_merge_failure_retries_while_attempts_remain(fallback_env, monkeypatch):
+    state, _ = fallback_env
+    state["body"] = _SHORT
+    _fail_merge_with_model_candidates(monkeypatch)
+    with pytest.raises(JobRetry, match="contract_retention_merge"):
+        await worker.handle_contract_compile(retention_job(attempt=2, max_attempts=3))
+    assert state["cursor"] == 0
+
+
+async def test_last_attempt_merge_failure_drops_model_candidates_and_advances(fallback_env, monkeypatch):
+    state, session = fallback_env
+    state["body"] = _SHORT
+    _fail_merge_with_model_candidates(monkeypatch)
+    result = await worker.handle_contract_compile(retention_job(attempt=3, max_attempts=3))
+    assert result.result_detail["discarded"] == {"merge": 1}
+    assert result.result_detail["document_kept"] is False
+    await result.apply_domain(session)
+    assert state["cursor"] == 1 and not state["published"]
+    assert state["calls"] == 1  # 모델을 다시 부르지 않는다.
+
+
+async def test_last_attempt_budget_overflow_drops_model_candidates_and_advances(fallback_env, monkeypatch):
+    state, session = fallback_env
+    state["body"] = _SHORT
+    original = worker.ic.render_document
+    monkeypatch.setattr(worker.ic, "render_document",
+                        lambda directives, **kwargs: "x" * 3000 if directives else original(directives, **kwargs))
+    with pytest.raises(JobRetry, match="contract_retention_budget"):
+        await worker.handle_contract_compile(retention_job(attempt=1, max_attempts=3))
+    result = await worker.handle_contract_compile(retention_job(attempt=3, max_attempts=3))
+    assert result.result_detail["discarded"] == {"budget": 1}
+    await result.apply_domain(session)
+    assert state["cursor"] == 1 and not state["published"]
+
+
+async def test_last_attempt_keeps_document_and_only_advances_when_recompute_also_fails(fallback_env, monkeypatch):
+    state, session = fallback_env
+    original = worker._Msg(1, "user", _SHORT)
+    candidate = {"kind": "response_style", "action": "prefer", "condition": "always",
+                 "target_literal": "short replies", "source_message_id": 1,
+                 "scope": "conversation", "evidence_quote": "use short replies"}
+    kept, dropped = worker.cc.parse(json.dumps([candidate]), user_message_ids={1}, source_messages=[original])
+    assert not dropped
+    existing = worker.merge_retained_items([], kept, generation=0)
+    state["published"] = copy.deepcopy(existing)
+    state.update(body="another synthetic message", cursor=1, message_id=2)
+    _fail_merge_with_model_candidates(monkeypatch, always=True)
+    result = await worker.handle_contract_compile(replace(retention_job(attempt=3, max_attempts=3),
+        payload={"retention_enabled": True, "memory_generation": 0, "through_message_id": 2,
+                 "privacy_epoch": 0}))
+    assert result.result_detail["discarded"] == {"merge": 0}
+    assert result.result_detail["document_kept"] is True
+    await result.apply_domain(session)
+    assert state["cursor"] == 2 and state["published"] == existing
+
+
+@pytest.mark.parametrize("remaining,dies", [(1, False), (2, True)])
+async def test_adaptive_output_mode_counts_its_remaining_model_calls_as_the_last_attempt(
+        fallback_env, monkeypatch, remaining, dies):
+    state, _ = fallback_env
+    state["body"] = _SHORT
+    monkeypatch.setattr(llm, "generate", AsyncMock(return_value=_model_output("schema")))
+    current = retention_job(attempt=1, max_attempts=3)
+    current = replace(current, payload={**current.payload, "adaptive_output_fallback": True,
+                                        "adaptive_output_attempts_remaining": remaining})
+    if dies:
+        with pytest.raises(JobRetry, match="contract_retention_schema"):
+            await worker.handle_contract_compile(current)
+    else:
+        result = await worker.handle_contract_compile(current)
+        assert result.result_detail["discarded"] == {"schema": 0}
+    assert state["stored_payload"]["adaptive_output_attempts_remaining"] == remaining - 1
+
+
+async def test_input_budget_failure_has_its_own_code(fallback_env, monkeypatch):
+    state, _ = fallback_env
+    state["body"] = _SHORT
+
+    def too_large(*args, **kwargs):
+        raise retention.RetentionError("context_input_budget")
+    # 원문 선택은 통과했는데 모델 호출 직전 검사만 실패하는 경우(결정적 실패).
+    monkeypatch.setattr(worker.context_retention, "fits_input_budget", lambda *args, **kwargs: True)
+    monkeypatch.setattr(worker.context_retention, "assert_input_budget", too_large)
+    with pytest.raises(JobRetry, match="contract_retention_input_budget"):
+        await worker.handle_contract_compile(retention_job(attempt=3, max_attempts=3))
+
+
+# ── dead 뒤 다시 만든 작업의 후속 작업 ─────────────────────────────────
+
+_REDO = {"redo_of": "00000000-0000-0000-0000-0000000002bc", "redo_depth": 2}
+
+
+async def test_redo_partial_followup_key_does_not_collide_with_the_dead_chain(fallback_env):
+    state, session = fallback_env
+    current = retention_job()
+    result = await worker.handle_contract_compile(replace(current, payload={**current.payload, **_REDO}))
+    await result.apply_domain(session)
+    queued = state["queued"][-1]
+    assert queued["payload"]["partial_offset"] > 0
+    assert queued["dedup_key"].endswith(f":redo:{_REDO['redo_of']}")
+    assert queued["payload"]["redo_of"] == _REDO["redo_of"] and queued["payload"]["redo_depth"] == 2
+    plain = await worker.handle_contract_compile(current)
+    await plain.apply_domain(session)
+    assert ":redo:" not in state["queued"][-1]["dedup_key"]
+
+
+async def test_redo_boundary_followup_key_does_not_collide_with_the_dead_chain(fallback_env, monkeypatch):
+    state, session = fallback_env
+    state["body"] = _SHORT
+    monkeypatch.setattr(worker, "_MAX_SOURCE", 1)
+    current = retention_job()
+    payload = {**current.payload, "through_message_id": 5, **_REDO}
+    result = await worker.handle_contract_compile(replace(current, payload=payload))
+    await result.apply_domain(session)
+    queued = state["queued"][-1]
+    assert state["cursor"] == 1
+    assert queued["dedup_key"] == f"contract-retention:{current.user_id}:0:1:5:redo:{_REDO['redo_of']}"
+    assert queued["payload"]["after_message_id"] == 1 and queued["payload"]["redo_depth"] == 2
+
+
+async def test_restart_current_carries_cursor_and_redo_marker(fallback_env):
+    state, session = fallback_env
+    current = retention_job()
+    result = await worker.handle_contract_compile(replace(current, payload={**current.payload, **_REDO}))
+    state["body"] += " synthetic source change"
+    await result.apply_domain(session)
+    payload = state["queued"][-1]["payload"]
+    assert payload == {"retention_enabled": True, "memory_generation": 0, "through_message_id": 1,
+                       "after_message_id": 0, "privacy_epoch": 0, **_REDO}
+
+
+def _locked_state(session, monkeypatch, row):
+    """처리기 앞부분은 원래 상태를, 확정(apply)의 잠금 조회만 `row`를 보게 한다."""
+    original = session.execute
+
+    async def execute(statement, params):
+        if statement is worker._RETENTION_STATE_LOCK:
+            return SimpleNamespace(first=lambda: row)
+        return await original(statement, params)
+    monkeypatch.setattr(session, "execute", execute)
+
+
+async def test_restart_current_uses_zero_cursor_when_the_contract_generation_differs(fallback_env, monkeypatch):
+    # 선호 세대가 다르면 처리기는 커서를 0으로 본다. 다시 거는 작업의 after_message_id·키도 같아야
+    # 대기 쪽이 이 작업을 현재 커서의 작업으로 찾는다(예전에는 옛 세대의 커서 5를 그대로 썼다).
+    state, session = fallback_env
+    current = retention_job()
+    result = await worker.handle_contract_compile(current)
+    _locked_state(session, monkeypatch, (0, 1, 5))
+    await result.apply_domain(session)
+    queued = state["queued"][-1]
+    assert queued["payload"]["after_message_id"] == 0
+    assert queued["dedup_key"] == f"contract-retention:{current.user_id}:0:0:1:after:{current.id}"
+    assert state["cursor"] == 0 and not state["published"]
+
+
+async def test_restart_current_raises_the_cursor_to_the_compat_baseline(fallback_env, monkeypatch):
+    from tests.test_context_compat_retention_review import baseline
+    state, session = fallback_env
+    value = baseline()  # source_after=100, legacy_contract_after=80
+    monkeypatch.setattr(worker.context_compat, "load", AsyncMock(return_value=value))
+    state.update(body="synthetic message without a directive", message_id=103)
+    current = retention_job()
+    current = replace(current, payload={**current.payload, "through_message_id": 105,
+                                        "baseline_binding": value.payload()})
+    result = await worker.handle_contract_compile(current)
+    # 다른 작업이 옛 커서를 50까지 옮겼어도 실제 커서는 기준선 경계(100)다.
+    _locked_state(session, monkeypatch, (0, 0, 50))
+    await result.apply_domain(session)
+    queued = state["queued"][-1]
+    assert queued["payload"]["after_message_id"] == 100
+    assert queued["payload"]["baseline_binding"] == value.payload()
+    assert queued["dedup_key"] == f"contract-retention:{current.user_id}:0:100:105:after:{current.id}"
+
+
+# ── 다시 만들기 상한 뒤 모델 없이 커서만 넘기는 마지막 작업 ─────────────────
+
+_SKIP = {"redo_of": "00000000-0000-0000-0000-0000000003e8", "redo_depth": 5, "no_model": True}
+
+
+def _forbid_model(monkeypatch):
+    def forbidden(*args, **kwargs):
+        pytest.fail("the capped skip job must not call, batch for or parse a model")
+    monkeypatch.setattr(llm, "generate", forbidden)
+    monkeypatch.setattr(worker, "contract_batch", forbidden)
+    monkeypatch.setattr(worker.cc, "parse", forbidden)
+
+
+def _skip_job(**payload):
+    current = retention_job()
+    return replace(current, payload={**current.payload, "after_message_id": 0, **_SKIP, **payload})
+
+
+async def test_skip_job_keeps_the_document_and_advances_the_cursor_without_a_model(fallback_env, monkeypatch, caplog):
+    state, session = fallback_env
+    original = worker._Msg(1, "user", _SHORT)
+    candidate = {"kind": "response_style", "action": "prefer", "condition": "always",
+                 "target_literal": "short replies", "source_message_id": 1,
+                 "scope": "conversation", "evidence_quote": "use short replies"}
+    kept, _ = worker.cc.parse(json.dumps([candidate]), user_message_ids={1}, source_messages=[original])
+    existing = worker.merge_retained_items([], kept, generation=0)
+    state["published"] = copy.deepcopy(existing)
+    state.update(body="Please use long replies from now on.", cursor=1, message_id=2)
+    _forbid_model(monkeypatch)
+    with caplog.at_level("WARNING", logger="moly-worker"):
+        result = await worker.handle_contract_compile(_skip_job(through_message_id=2))
+    assert result.result_code == "ok"
+    assert result.result_detail["skipped_after_redo_cap"] is True
+    assert result.result_detail["kept"] == 0 and result.result_detail["through"] == 2
+    await result.apply_domain(session)
+    assert state["cursor"] == 2 and state["published"] == existing
+    assert state["calls"] == 0 and not state["queued"]
+    logged = "\n".join(record.getMessage() for record in caplog.records)
+    assert "contract_redo_cap_skip" in logged and "long replies" not in logged
+
+
+async def test_skip_job_follow_up_stays_without_a_model(fallback_env, monkeypatch):
+    state, session = fallback_env
+    state["body"] = _SHORT
+    monkeypatch.setattr(worker, "_MAX_SOURCE", 1)
+    _forbid_model(monkeypatch)
+    current = _skip_job(through_message_id=5)
+    result = await worker.handle_contract_compile(current)
+    await result.apply_domain(session)
+    queued = state["queued"][-1]
+    assert state["cursor"] == 1
+    assert queued["payload"]["no_model"] is True and queued["payload"]["after_message_id"] == 1
+    assert queued["dedup_key"] == (f"contract-retention:{current.user_id}:0:1:5"
+                                   f":redo:{_SKIP['redo_of']}:skip")
+
+
+async def test_skip_job_restart_carries_the_flag(fallback_env, monkeypatch):
+    state, session = fallback_env
+    _forbid_model(monkeypatch)
+    result = await worker.handle_contract_compile(_skip_job())
+    state["body"] += " synthetic source change"
+    await result.apply_domain(session)
+    assert state["queued"][-1]["payload"] == {"retention_enabled": True, "memory_generation": 0,
+        "through_message_id": 1, "after_message_id": 0, "privacy_epoch": 0, **_SKIP}
+    assert state["cursor"] == 0
+
+
+@pytest.mark.parametrize("change,error", [
+    ({"privacy_epoch": 9}, "contract_privacy_epoch_changed"),
+    ({"memory_generation": 1}, "stale_contract_generation"),
+    ({"baseline_binding": {"synthetic": True}}, "contract_compat_baseline_changed"),
+])
+async def test_skip_job_keeps_privacy_generation_and_baseline_fences(fallback_env, monkeypatch, change, error):
+    state, _ = fallback_env
+    _forbid_model(monkeypatch)
+    with pytest.raises(JobCancelled, match=error):
+        await worker.handle_contract_compile(_skip_job(**change))
+    assert state["cursor"] == 0 and not state["queued"]
+
+
+async def test_skip_job_apply_is_fenced_by_the_privacy_epoch(fallback_env, monkeypatch):
+    state, session = fallback_env
+    _forbid_model(monkeypatch)
+    result = await worker.handle_contract_compile(_skip_job())
+    state["privacy_epoch"] = 1  # 확정 직전에 삭제 요청 등으로 epoch가 바뀌었다
+    await result.apply_domain(session)
+    assert state["cursor"] == 0 and not state["queued"] and not state["docs"]
+
+
+@pytest.mark.parametrize("payload", [
+    {"no_model": "yes"},
+    {"adaptive_output_fallback": True, "adaptive_output_attempts_remaining": 2},
+    {"partial_message_id": 1, "partial_offset": 10},
+])
+async def test_skip_flag_must_be_a_plain_boolean_on_a_fresh_payload(fallback_env, monkeypatch, payload):
+    _forbid_model(monkeypatch)
+    with pytest.raises(JobFatal, match="invalid_contract_retention_payload"):
+        await worker.handle_contract_compile(_skip_job(**payload))
+
+
+async def test_skip_job_still_applies_rule_based_scope_end_without_a_model(fallback_env, monkeypatch):
+    """상한 뒤 건너뛰기에서도 사용자가 직접 끝낸 대화 선호는 규칙으로 끝낸다(모델 없음)."""
+    state, session = fallback_env
+    original = worker._Msg(1, "user", _SHORT)
+    candidate = {"kind": "response_style", "action": "prefer", "condition": "always",
+                 "target_literal": "short replies", "source_message_id": 1,
+                 "scope": "conversation", "evidence_quote": "use short replies"}
+    kept, _ = worker.cc.parse(json.dumps([candidate]), user_message_ids={1}, source_messages=[original])
+    existing = worker.merge_retained_items([], kept, generation=0)
+    state["published"] = copy.deepcopy(existing)
+    state.update(body="그 말투 그만 써", cursor=1, message_id=2)
+    _forbid_model(monkeypatch)
+    result = await worker.handle_contract_compile(_skip_job(through_message_id=2))
+    assert result.result_code == "ok" and result.result_detail["skipped_after_redo_cap"] is True
+    await result.apply_domain(session)
+    assert state["cursor"] == 2 and state["calls"] == 0
+    active = [entry for entry in state["published"] if entry.get("status") == "active"]
+    assert not any(entry["item_key"] == existing[0]["item_key"] for entry in active)

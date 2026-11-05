@@ -1,5 +1,5 @@
-"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성 / 09:00 루틴·10:00 일기·20:00 저녁 푸시
-+ RC 웹훅 inbox 드레인과 지속 상태 기반 운영 알림."""
+"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성(못 만든 일기는 현지 5시 네 틱에 이어 만들기)
+/ 09:00 루틴·10:00 일기·20:00 저녁 푸시 + RC 웹훅 inbox 드레인과 지속 상태 기반 운영 알림."""
 from __future__ import annotations
 
 import asyncio
@@ -33,6 +33,13 @@ _RC_DEP_RESERVED = _RC_INBOX_BATCH // 4  # dependency 예약 슬롯(=50) — 신
 
 _log = logging.getLogger("moly-worker")
 DIARY_HOUR = 4  # 로컬 04:00 일기 생성
+# 04시에 못 만든 일기(소프트 데드라인·타임아웃·실패·워커 중단)는 현지 5시 네 틱(05:00·05:15·05:30·05:45)에서
+# 이어 만든다. 05:15에 큰 :45 묶음이 먼저 돌아 시간을 다 써 넘겨진 시간대도 뒤 틱이 받는다. 05:45는 그 시각의
+# 마지막 틱이라 먼저 처리되는 묶음에 들어간다. 대상 날짜(어제)·클레임·이미 있는 일기 확인은 04시와 같다.
+# 일기만 이어 만들고 푸시 등 다른 작업은 없다.
+DIARY_CATCHUP_HOUR = DIARY_HOUR + 1
+# 그 시각의 마지막 틱(현지 :45)에 걸린 시간대 묶음에 더 주는 시간(초). 기본 660+60 = 시작부터 720초.
+_LAST_TICK_EXTRA_S = 60.0
 ROUTINE_MORNING_HOUR = notify.ROUTINE_MORNING_HOUR  # 09:00 루틴 아침 푸시
 MORNING_HOUR = notify.DIARY_MORNING_HOUR  # 10:00 아침 일기 푸시
 EVENING_HOUR = notify.EVENING_HOUR  # 20:00 저녁 푸시(공지·스트릭 위기·대화 중 하나)
@@ -60,6 +67,11 @@ _TZ_KO = {
     "America/Los_Angeles": "미국(서부)",
     "Europe/London": "영국",
 }
+
+
+def _is_diary_catchup(local: datetime) -> bool:
+    """현지 5시 틱인지(05:00·05:15·05:30·05:45) — 04시에 못 만든 어제 일기를 이어 만드는 시각."""
+    return local.hour == DIARY_CATCHUP_HOUR
 
 
 def _zone_line(tz: str, now: datetime) -> str:
@@ -147,6 +159,7 @@ async def _process_user(
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0, "memory_ok": 0, "memory_failed": 0, "morning": 0, "evening": 0,
         "routine_morning": 0, "routine_check_failed": 0, "diary_attempted": 0, "active_tz": None,
+        "diary_catchup_existing": 0,
         **{k: 0 for k in notify.PUSH_STAT_KEYS},  # 발송 결과 분류(notify._account_push가 채움)
     }
     async with get_sessionmaker()() as session:
@@ -155,17 +168,27 @@ async def _process_user(
             return out  # 틱 도중 탈퇴 — 스킵
         # tz 해석 방어 — 잘못된 timezone 하나가 배치를 무너뜨리지 않게(SOMA-348).
         try:
-            hour = now.astimezone(ZoneInfo(p.timezone)).hour
+            local = now.astimezone(ZoneInfo(p.timezone))
         except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
             _log.warning("틱: 잘못된 timezone %r (user=%s) — 스킵: %r", p.timezone, pid, e)
             return out
+        hour = local.hour
+        catchup = _is_diary_catchup(local)
         try:
-            if hour == DIARY_HOUR:
+            if hour == DIARY_HOUR or catchup:
+                # 05시도 활동일 경계(04:00) 뒤라 04시와 같은 "어제"가 나온다.
+                target = activity_date_for(now, p.timezone) - timedelta(days=1)
+                # 이어 만들기 대상은 대부분 04시에 이미 끝난 사용자다. 클레임 행을 쓰기 전에 읽기만으로
+                # 거른다(일기 또는 미발행·원고 확정 결과가 있으면 끝). 아래 클레임·생성 함수의 재확인은 그대로.
+                # 이 사용자는 일기 시도·스킵·처리 시간대로 세지 않는다(5시 네 틱마다 대부분이 여기로 오므로
+                # 세면 관측 수치가 부풀려진다). 따로 diary_catchup_existing으로만 센다.
+                if catchup and await diary_generation._diary_exists(session, pid, target):
+                    out["diary_catchup_existing"] = 1
+                    return out
                 out["diary_attempted"] = 1
                 out["active_tz"] = p.timezone
                 if diary_policy is None:
                     raise RuntimeError("diary policy unavailable; generation stopped")
-                target = activity_date_for(now, p.timezone) - timedelta(days=1)
                 # 워커 틱 중첩(15분 케이던스·재시도) 시 같은 (유저,날짜) 일기를 두 프로세스가 동시에
                 # LLM 생성하지 않도록 커밋된 클레임 행으로 상호배제(SOMA-373). 세션 advisory lock은
                 # SQLAlchemy 커넥션 풀 반환·pgbouncer 트랜잭션 풀링과 안 맞아(내부 커밋 시 락이 다른
@@ -226,8 +249,11 @@ async def _process_user(
         except Exception as e:  # noqa: BLE001  # 한 유저 실패가 배치를 멈추지 않게
             _log.exception("틱 처리 실패(user=%s hour=%s): %r", pid, hour, e)
             await session.rollback()
-            if hour == DIARY_HOUR:
+            if hour == DIARY_HOUR or catchup:
                 out["diary_failed"] = 1
+                # 사전 확인에서 실패해도 시도로 센다(실패 ≤ 시도).
+                out["diary_attempted"] = 1
+                out["active_tz"] = p.timezone
     return out
 
 
@@ -323,7 +349,8 @@ async def _drain_rc_inbox(now: datetime) -> dict:
 
 
 async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = None) -> set[str]:
-    """이 틱에서 일기/루틴 아침/아침 일기/저녁 시각(로컬 04·09·10·20시)에 걸리는 timezone 문자열 집합(#16+#24).
+    """이 틱에서 일기/루틴 아침/아침 일기/저녁 시각(로컬 04·09·10·20시)과 일기 이어 만들기
+    시각(로컬 5시 전체)에 걸리는 timezone 문자열 집합(#16+#24).
 
     판정은 전부 파이썬(ZoneInfo)이다 — SQL `AT TIME ZONE`은 금지: 이상 tz 문자열 1행이
     쿼리 전체를 에러로 죽여 **그날 일기·푸시가 전멸**한다. 여기서는 해석 실패 tz를 경고만
@@ -337,13 +364,16 @@ async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = Non
         if not tz:
             continue  # NOT NULL DEFAULT 'Asia/Seoul'이지만 방어
         try:
-            hour = now.astimezone(ZoneInfo(tz)).hour
+            local = now.astimezone(ZoneInfo(tz))
         except Exception as e:  # noqa: BLE001  # 잘못된/알 수 없는 IANA tz
             _log.warning("틱: 해석 불가 timezone %r — 이 tz 유저 전원 스킵: %r", tz, e)
             if unresolvable is not None:
                 unresolvable.add(tz)  # 관측 출구(요약·헬스·일 1회 경보)
             continue
-        if hour in (DIARY_HOUR, ROUTINE_MORNING_HOUR, MORNING_HOUR, EVENING_HOUR):
+        if (
+            local.hour in (DIARY_HOUR, ROUTINE_MORNING_HOUR, MORNING_HOUR, EVENING_HOUR)
+            or _is_diary_catchup(local)
+        ):
             relevant.add(tz)
     return relevant
 
@@ -395,6 +425,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         # 발송 결과 분류(수락·무효 토큰·정리·페이로드·설정·일시) — 같은 이유로 여기 있어야 한다.
         **{k: 0 for k in notify.PUSH_STAT_KEYS},
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
+        # 5시 이어 만들기에서 이미 어제 일기가 있어 바로 넘긴 유저 수. 시도·스킵·처리 시간대에는 넣지 않는다.
+        "diary_catchup_existing": 0,
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
         "deadline_skipped": 0,  # 소프트 데드라인 뒤 건너뛴 유저 수(다음 틱 인계)
         "users": 0,
@@ -428,37 +460,60 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
                 diary_policy = None
                 _log.error("일기 전환 설정 조회/검증 실패 — 이번 틱 일기 생성 중단")
 
-        # 소프트 데드라인 — systemd 하드킬(TimeoutStartSec) 전에 스스로 유저 루프를 멈춘다. 하드킬은
+        # 소프트 데드라인 — systemd 하드킬(TimeoutStartSec 14분) 전에 스스로 유저 루프를 멈춘다. 하드킬은
         # compose 클라이언트만 죽이고 컨테이너는 계속 돌아(로그 유실·요약/핑 누락) 다음 틱과 겹친다.
-        # 남은 유저는 같은 시각의 다음 틱이 이어받는다. 그 시각의 마지막 틱(현지 :45)은 이어받을 틱이
-        # 없으므로 걸지 않는다 — 끝까지 처리한다(종전 동작, 놓친 일기·알림은 소급하지 않으므로).
-        soft_deadline = settings.worker_tick_soft_deadline_s
-        if any(now.astimezone(ZoneInfo(tz)).minute >= 45 for tz in tzs):
-            soft_deadline = 0
+        # 남은 유저는 같은 시각의 다음 틱이, 04시 일기는 05시 이어 만들기가 받는다.
+        # 시간대를 두 묶음으로 나눠 차례로 처리한다(상한은 둘 다 틱 시작부터 잰다).
+        #  1) 그 시각의 마지막 틱(현지 :45)인 시간대 — 같은 시각에 이어받을 틱이 없어 먼저, soft+60초(720초)까지.
+        #     현지 05:45(이어 만들기의 마지막 틱)인 시간대도 여기 들어간다.
+        #     예전처럼 상한을 아예 없애면 안 된다: 04:15 KST에 다윈(04:45) 하나 때문에 같은 틱의 서울·도쿄
+        #     전체가 무제한으로 돌다 14분에 하드킬됐다. 서울·도쿄가 직접 :45일 때는 이 묶음이 가장 크다.
+        #  2) 나머지 — 종전대로 soft(660초)까지.
+        # 마지막 묶음에서 660초 뒤에 시작한 유저는 유저별 한도를 남은 시간으로 줄여 soft+user_timeout(780초)을
+        # 넘겨 돌지 않게 한다. 종전 최악 종료 시각과 같으므로 뒤 단계(RC 처리·retention 예약·heartbeat·
+        # sweep 예약·핑 5초·monitoring 15초)와 컨테이너 기동이 14분(840초) 안에 그대로 들어간다.
+        soft = settings.worker_tick_soft_deadline_s
+        if soft > 0:
+            last_cap, other_cap, hard_end = soft + _LAST_TICK_EXTRA_S, soft, soft + timeout
+        else:
+            last_cap = other_cap = hard_end = 0  # 0 = 비활성(종전 동작)
+        last_tzs = {tz for tz in tzs if now.astimezone(ZoneInfo(tz)).minute >= 45}
 
-        async def _guarded(pid) -> dict:
+        async def _guarded(pid, cap: float) -> dict:
             async with sem:  # 동시 실행 유저 수 상한
-                if soft_deadline > 0 and time.monotonic() - start > soft_deadline:
-                    return {"deadline_skipped": 1}
+                limit = timeout
+                if cap > 0:
+                    elapsed = time.monotonic() - start
+                    limit = min(timeout, hard_end - elapsed)
+                    if elapsed > cap or limit <= 0:
+                        return {"deadline_skipped": 1}
                 try:
-                    return await asyncio.wait_for(_process_user(now, pid, cfg, diary_policy=diary_policy), timeout=timeout)
+                    return await asyncio.wait_for(_process_user(now, pid, cfg, diary_policy=diary_policy), timeout=limit)
                 except (asyncio.TimeoutError, TimeoutError):
+                    if limit < timeout:
+                        # 틱 실행 시간이 끝나 멈춘 것이지 멈춘 LLM/DB가 아니다 — 타임아웃 경보로 세지 않는다.
+                        # 클레임은 _process_user의 finally가 지웠으므로 다음 틱(05시 이어 만들기 포함)이 받는다.
+                        _log.warning("틱: 실행 시간 끝 — 유저 처리 중단(user=%s, %.0fs) — 다음 틱 인계", pid, limit)
+                        return {"deadline_skipped": 1}
                     _log.warning("틱: 유저 처리 타임아웃(user=%s, %.0fs) — 스킵", pid, timeout)
                     return {"timed_out": 1}
 
-        async for pids in _profile_id_batches(settings.worker_batch_size, tzs):
-            counts["users"] += len(pids)
-            for r in await asyncio.gather(*(_guarded(pid) for pid in pids)):
-                for k, v in r.items():
-                    if k == "active_tz":
-                        if v:
-                            active_tzs.add(v)
-                    elif k in counts:
-                        counts[k] += v
+        for group, cap in ((last_tzs, last_cap), (tzs - last_tzs, other_cap)):
+            if not group:
+                continue  # 빈 묶음은 조회하지 않는다
+            async for pids in _profile_id_batches(settings.worker_batch_size, group):
+                counts["users"] += len(pids)
+                for r in await asyncio.gather(*(_guarded(pid, cap) for pid in pids)):
+                    for k, v in r.items():
+                        if k == "active_tz":
+                            if v:
+                                active_tzs.add(v)
+                        elif k in counts:
+                            counts[k] += v
         if counts["deadline_skipped"]:
             _log.warning(
                 "틱: 소프트 데드라인(%.0fs) 도달 — 미처리 %d명(다음 틱 인계)",
-                soft_deadline, counts["deadline_skipped"],
+                soft, counts["deadline_skipped"],
             )
         # 수락이 하나도 없는데 무효 토큰이 여럿이면 토큰보다 공통 원인(FCM·APNs 설정 등)일 수 있다.
         # 비활성 표시가 켜져 있으면 OPERATIONS.md의 되돌리기로 잘못된 표시를 되돌린다. 로그만 남긴다

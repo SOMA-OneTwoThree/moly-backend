@@ -108,6 +108,19 @@ async def test_publish_wait_never_calls_model_and_preserves_exact_draft(env):
     env.enqueue.assert_not_awaited()  # JobDeferred retains the same claimed job.
 
 
+@pytest.mark.parametrize("attempt,delay", [(1, 5.0), (120, 5.0), (121, 60.0), (170, 60.0),
+                                           (171, 300.0), (10_000, 300.0)])
+async def test_publish_wait_widens_its_interval_by_claim_count_and_never_gives_up(env, attempt, delay):
+    job = await ready_draft(env)
+    job.attempt, job.max_attempts = attempt, attempt + 2  # 대기는 매번 max_attempts를 같이 늘린다.
+    env.model.reset_mock()
+    env.complete.return_value = False
+    with pytest.raises(JobDeferred, match="checkpoint_source_processing_pending") as caught:
+        await worker.handle_checkpoint(job)
+    assert caught.value.delay_s == delay
+    env.model.assert_not_awaited()
+
+
 async def test_final_apply_regression_durably_requeues_same_draft_without_resetting_failure_budget(env):
     job = await ready_draft(env)
     job.attempt, job.max_attempts = 5, 5  # two deferrals and two failures; one remaining.

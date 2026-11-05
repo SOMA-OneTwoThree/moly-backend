@@ -283,7 +283,7 @@ async def test_retention_changed_source_restarts_current_range_without_old_draft
     assert not state["docs"] and state["cursor"] == 0
     payload = state["queued"][0]["payload"]
     assert payload == {"retention_enabled": True, "memory_generation": 0, "through_message_id": 1,
-                       "privacy_epoch": 0}
+                       "after_message_id": 0, "privacy_epoch": 0}
 
 
 async def test_retention_partial_hash_mismatch_cannot_call_model(contract_environment):
@@ -352,7 +352,7 @@ async def test_concurrent_contract_targets_publish_once_then_resume_latest_curso
     queued = state["queued"][-1]
     assert queued["queue"] == jobs.QUEUE_MEMORY and queued["max_attempts"] == 3
     assert queued["payload"] == {"retention_enabled": True, "memory_generation": 0,
-                                 "through_message_id": 2, "privacy_epoch": 0}
+                                 "through_message_id": 2, "after_message_id": 1, "privacy_epoch": 0}
     async def same(*args, **kwargs):
         return True
     monkeypatch.setattr(worker.contract_repo, "has_same_document", same)

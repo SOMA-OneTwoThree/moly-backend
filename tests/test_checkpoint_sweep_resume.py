@@ -1,5 +1,5 @@
 """추가 발화 없이 후속 요약을 예약한다. 잡 확정과 사용자 예약의 잠금을 분리한다."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from dataclasses import replace
 from types import SimpleNamespace
 import uuid
@@ -35,7 +35,7 @@ def previous(through=13):
 
 def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, busy=False,
             stale=False, enabled=True, second_enabled=True, made=True, dead=None, fail_commit=False,
-            terminal=None, adopted=True, pressure=None):
+            terminal=None, adopted=True, pressure=None, plan_terminal=None):
     uid = uuid.uuid4()
     history = messages or [message(27), message(37, "moly", "safety"), message(41), message(55, "moly")]
     checkpoint_value = checkpoint_value or previous()
@@ -80,6 +80,9 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
             if sql is sweep._RETENTION_UNPUBLISHED_SUCCESS:
                 calls.append(("unpublished", params))
                 return Result([terminal] if terminal else [])
+            if sql is sweep._RETENTION_PLAN_LATEST_TERMINAL:
+                calls.append(("plan_terminal", params))
+                return Result([plan_terminal] if plan_terminal else [])
             raise AssertionError("unexpected query")
 
         async def commit(self):
@@ -128,6 +131,10 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
         calls.append(("resume_enqueue", kwargs))
         return uuid.uuid4()
 
+    async def redo_enqueue(session, **kwargs):
+        calls.append(("redo_enqueue", kwargs))
+        return uuid.uuid4()
+
     async def cursor_read(session):
         return None
 
@@ -147,6 +154,7 @@ def install(monkeypatch, *, pending=41, checkpoint_value=None, messages=None, bu
     monkeypatch.setattr(sweep.checkpoint_repo, "load_compat_baseline", no_compat_baseline)
     monkeypatch.setattr(sweep.checkpoint_repo, "load_range", load_range)
     monkeypatch.setattr(sweep.checkpoint_repo, "maybe_enqueue", enqueue)
+    monkeypatch.setattr(sweep.checkpoint_repo, "enqueue_checkpoint", redo_enqueue)
     monkeypatch.setattr(sweep.jobs, "replay_dead", replay)
     monkeypatch.setattr(sweep.jobs, "enqueue", resume_enqueue)
     monkeypatch.setattr(sweep.context_retention, "adopted_user", cohort)
@@ -256,9 +264,14 @@ async def test_commit_failure_does_not_report_a_completed_reservation(monkeypatc
     assert any(name == "enqueue" for name, _kwargs in setup.calls)
 
 
+def just_died(job_id, code="summary_invalid", *, ago=timedelta(minutes=1), depth=None):
+    return ("dead", job_id, datetime.now(timezone.utc) - ago, code,
+            None if depth is None else str(depth))
+
+
 async def test_exact_current_dead_plan_is_blocked_without_a_new_attempt_budget(monkeypatch):
     dead = uuid.uuid4()
-    setup = install(monkeypatch, made=False, dead=dead)
+    setup = install(monkeypatch, made=False, dead=dead, plan_terminal=just_died(dead))
     result = await sweep._resume_retention_checkpoints()
     assert result.replayed == result.enqueued == 0 and result.blocked == 1
     criteria = next(data for name, data in setup.calls if name == "dead")
@@ -266,20 +279,121 @@ async def test_exact_current_dead_plan_is_blocked_without_a_new_attempt_budget(m
     assert criteria["through_id"] == 37
     assert criteria["previous_id"] == str(setup.previous.id)
     assert checkpoint.RETENTION_SUMMARIZER_VERSION in criteria["dedup_key"]
-    assert not any(name in {"replay", "unpublished", "resume_enqueue"}
+    assert not any(name in {"replay", "unpublished", "resume_enqueue", "redo_enqueue"}
                    for name, _data in setup.calls)
     assert ("user", "commit") in setup.events
 
 
 async def test_repeated_sweeps_do_not_create_new_jobs_or_reset_dead_attempts(monkeypatch):
     dead = uuid.uuid4()
-    setup = install(monkeypatch, made=False, dead=dead)
+    setup = install(monkeypatch, made=False, dead=dead, plan_terminal=just_died(dead))
     for _ in range(4):
         result = await sweep._resume_retention_checkpoints()
         assert result.blocked == 1 and result.enqueued == result.replayed == 0
     assert len([data for name, data in setup.calls if name == "dead"]) == 4
-    assert not any(name in {"replay", "unpublished", "resume_enqueue"}
+    assert not any(name in {"replay", "unpublished", "resume_enqueue", "redo_enqueue"}
                    for name, _data in setup.calls)
+
+
+async def test_dead_plan_is_recreated_as_a_fresh_job_after_its_interval(monkeypatch):
+    dead = uuid.uuid4()
+    setup = install(monkeypatch, made=False, dead=dead,
+                    plan_terminal=just_died(dead, ago=timedelta(minutes=31)))
+    result = await sweep._resume_retention_checkpoints()
+    assert result.enqueued == 1 and result.blocked == 0
+    lookup = next(data for name, data in setup.calls if name == "plan_terminal")
+    redo = next(data for name, data in setup.calls if name == "redo_enqueue")
+    assert lookup["source_hash"] == redo["plan"].source_hash and lookup["generation"] == 7
+    assert redo["redo"] == (str(dead), 1) and redo["user_id"] == setup.uid
+    assert not any(name in {"replay", "resume_enqueue"} for name, _data in setup.calls)
+
+
+async def test_dead_progress_page_blocks_resume_but_is_recreated_after_its_interval(monkeypatch):
+    # 원본은 성공하고 다음 쪽 작업이 dead면 _RETENTION_DEAD_PLAN에는 안 잡히고 이어받기도 막힌다.
+    page = uuid.uuid4()
+    setup = install(monkeypatch, made=False,
+                    plan_terminal=just_died(page, ago=timedelta(hours=3), depth=2))
+    result = await sweep._resume_retention_checkpoints()
+    assert result.enqueued == 1
+    redo = next(data for name, data in setup.calls if name == "redo_enqueue")
+    assert redo["redo"] == (str(page), 3)
+
+
+async def test_unpublished_success_of_a_redo_after_the_dead_root_is_resumed(monkeypatch):
+    # 원본은 dead로 남아 있어도(재생성 작업은 replay_of로 이어지지 않는다) 그 뒤 다시 만든
+    # 작업이 성공으로 끝났으면 그 durable 상태에서 이어받는다.
+    old, history, plan = resume_plan()
+    redo_id = uuid.uuid4()
+    payload = {**plan.payload(), **{"redo_of": str(uuid.uuid4()), "redo_depth": 1},
+               "progress_state": context_retention.empty_state(),
+               "progress_next_chunk": 2, "progress_manifest": "c"*64}
+    setup = install(monkeypatch, checkpoint_value=old, messages=history, made=False,
+        dead=uuid.uuid4(), terminal=(redo_id, payload),
+        plan_terminal=("succeeded", redo_id, datetime.now(timezone.utc), None, "1"))
+    result = await sweep._resume_retention_checkpoints()
+    assert result.enqueued == 1 and result.blocked == 0
+    queued = next(value for name, value in setup.calls if name == "resume_enqueue")
+    assert queued["dedup_key"] == f"checkpoint-resume:{redo_id}" and queued["payload"] == payload
+    assert not any(name == "redo_enqueue" for name, _data in setup.calls)
+
+
+@pytest.mark.parametrize("code", ["invalid_payload", "checkpoint_completed_proof_invalid"])
+async def test_other_dead_codes_keep_the_durable_stop(monkeypatch, code):
+    dead = uuid.uuid4()
+    setup = install(monkeypatch, made=False, dead=dead,
+                    plan_terminal=just_died(dead, code, ago=timedelta(days=2)))
+    result = await sweep._resume_retention_checkpoints()
+    assert result.blocked == 1 and result.enqueued == 0
+    assert not any(name == "redo_enqueue" for name, _data in setup.calls)
+
+
+@pytest.mark.parametrize("code", ["summary_name_leak", "summary_length", "summary_packing_length_snapshot"])
+async def test_content_failure_codes_from_the_handler_are_recreated(monkeypatch, code):
+    # 요약 처리기가 재시도 끝에 이 코드로 dead를 남기면 예전에는 그 사용자의 요약이 영구히 멈췄다.
+    dead = uuid.uuid4()
+    setup = install(monkeypatch, made=False, dead=dead,
+                    plan_terminal=just_died(dead, code, ago=timedelta(minutes=31)))
+    result = await sweep._resume_retention_checkpoints()
+    assert result.enqueued == 1 and result.blocked == 0
+    redo = next(data for name, data in setup.calls if name == "redo_enqueue")
+    assert redo["redo"] == (str(dead), 1)
+
+
+@pytest.mark.parametrize("depth,wait", [(None, timedelta(minutes=30)), (1, timedelta(hours=1)),
+                                        (2, timedelta(hours=2)), (3, timedelta(hours=4))])
+async def test_lineage_is_recreated_with_growing_intervals_up_to_the_cap(monkeypatch, depth, wait):
+    dead = uuid.uuid4()
+    early = install(monkeypatch, made=False, dead=dead,
+                    plan_terminal=just_died(dead, ago=wait - timedelta(minutes=1), depth=depth))
+    assert (await sweep._resume_retention_checkpoints()).enqueued == 0
+    assert not any(name == "redo_enqueue" for name, _data in early.calls)
+    setup = install(monkeypatch, made=False, dead=dead,
+                    plan_terminal=just_died(dead, ago=wait, depth=depth))
+    assert (await sweep._resume_retention_checkpoints()).enqueued == 1
+    redo = next(data for name, data in setup.calls if name == "redo_enqueue")
+    assert redo["redo"] == (str(dead), (depth or 0) + 1)
+
+
+@pytest.mark.parametrize("dead_root", [True, False])
+async def test_lineage_stops_at_the_cap_and_logs_only_ids(monkeypatch, caplog, dead_root):
+    capped = uuid.uuid4()
+    setup = install(monkeypatch, made=False, dead=uuid.uuid4() if dead_root else None,
+                    plan_terminal=just_died(capped, "summary_invalid", ago=timedelta(days=3), depth=4))
+    with caplog.at_level("WARNING", logger="moly-worker"):
+        result = await sweep._resume_retention_checkpoints()
+    assert result.enqueued == 0 and result.blocked == 1
+    assert not any(name == "redo_enqueue" for name, _data in setup.calls)
+    logged = [record.getMessage() for record in caplog.records if "checkpoint_redo_exhausted" in record.getMessage()]
+    assert logged == [f"checkpoint_redo_exhausted dead_job={capped} error_code=summary_invalid redo_depth=4"]
+
+
+def test_plan_terminal_lookup_reads_only_the_same_plan_and_changes_nothing():
+    sql = str(sweep._RETENTION_PLAN_LATEST_TERMINAL)
+    assert sql.strip().startswith("SELECT j.state,j.id,j.finished_at,j.last_error_code,j.payload->>'redo_depth'")
+    assert "j.payload->>'source_hash'=:source_hash" in sql
+    assert "cc.memory_generation=:generation" in sql
+    assert "ORDER BY j.finished_at DESC,j.id DESC LIMIT 1" in sql
+    assert "UPDATE" not in sql and "DELETE" not in sql
 
 
 async def test_no_unresolved_dead_plan_means_no_replay(monkeypatch):

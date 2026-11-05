@@ -630,6 +630,10 @@ async def finalize_retryable(
     return state
 
 
+_DEFER_DEFAULT_MAX_S = 60.0
+_DEFER_MAX_S = {"checkpoint_source_processing_pending": 300.0}
+
+
 async def finalize_deferred(
     session: AsyncSession, job: ClaimedJob, *, reason: str, delay_s: float = 5.0,
 ) -> bool:
@@ -642,7 +646,10 @@ async def finalize_deferred(
     """
     if job.job_type != "conversation_checkpoint":
         raise ValueError("defer is only supported before checkpoint model execution")
-    available_at = datetime.now(timezone.utc) + timedelta(seconds=max(1.0, min(delay_s, 60.0)))
+    # 요약 게시의 선행 처리 대기만 5분까지 늘릴 수 있다(오래 막히면 확인 간격을 넓힌다).
+    # 그 밖의 대기(개인정보 잠금 경합 등)는 지금처럼 60초가 상한이다.
+    cap = _DEFER_MAX_S.get(reason, _DEFER_DEFAULT_MAX_S)
+    available_at = datetime.now(timezone.utc) + timedelta(seconds=max(1.0, min(delay_s, cap)))
     row = (await session.execute(_DEFER_SQL, {
         **_fence_params(job), "available_at": available_at, "reason": reason,
     })).first()
@@ -721,6 +728,75 @@ def next_retry_at(
     if retry_after_s is not None and retry_after_s > 0:
         at = max(at, now + timedelta(seconds=retry_after_s))
     return at
+
+
+# ─────────────────────────────────────────────────────────────
+# dead 재생성 간격 — 같은 범위가 다시 걸리지 않아 사용자 처리가 영구히 멈추는 작업(약속 정리·요약)을
+# 새 행으로 다시 만들 때의 공통 규칙. dead 행 자체는 되살리지 않는다(불변식 5).
+# ─────────────────────────────────────────────────────────────
+REDO_FIRST_DELAY = timedelta(minutes=30)
+REDO_MAX_DELAY = timedelta(hours=24)
+# 한 범위(원본에서 이어진 작업 전체)를 다시 만드는 최대 횟수. 간격은 30분·1시간·2시간·4시간이다.
+# 한 번에 3회 시도하므로 같은 범위의 모델 호출은 원본 3회 + 다시 만든 작업 4×3회로 끝난다.
+# 상한이 없으면 같은 입력에서 늘 실패하는 경우 유료 모델 호출이 끝없이 반복된다.
+REDO_MAX_DEPTH = 4
+_REDO_DEPTH_UNKNOWN = 64  # 형식이 깨진 깊이는 원본으로 보지 않고 상한에 닿은 것으로 본다.
+
+
+def redo_delay(depth: int) -> timedelta:
+    """재생성 깊이별 대기: 원본 dead 30분, 1회차 1시간, 2시간, 3회차 4시간(상한 4회).
+
+    `REDO_MAX_DELAY`(24시간)는 깊이 상한을 바꿀 때를 위한 안전 한도다.
+    """
+    return min(REDO_MAX_DELAY, REDO_FIRST_DELAY * (2 ** min(max(depth, 0), 16)))
+
+
+@dataclass(frozen=True, slots=True)
+class DeadRedo:
+    """dead 작업 뒤에 무엇을 만들지.
+
+    `depth`는 새 작업의 redo_depth(죽은 작업의 깊이 + 1)다. `exhausted`가 참이면 상한에
+    닿았다는 뜻이다. 이때 모델을 부르는 작업은 더 만들지 않는다. 호출자가 멈추거나, 모델
+    없이 진행만 하는 마지막 작업 한 건을 만든다.
+    """
+
+    depth: int
+    exhausted: bool = False
+
+
+def dead_redo(row: Any, *, now: datetime, repeat_codes: frozenset[str],
+              original_once_codes: frozenset[str] = frozenset()) -> DeadRedo | None:
+    """마지막 종료 작업(row)이 dead일 때 다시 만들 작업, 아니면 None.
+
+    row = (state, id, finished_at, last_error_code, payload의 redo_depth 텍스트, ...).
+    `repeat_codes`는 깊이마다 간격을 늘려 `REDO_MAX_DEPTH`번까지 다시 만든다.
+    `original_once_codes`는 원본 작업(redo_depth 없음)일 때만 한 번 다시 만든다.
+    상한에 닿은 dead는 간격을 기다리지 않고 바로 `exhausted`로 돌려준다(모델 호출이 없으므로).
+    목록에 없는 코드(결정적 실패 등)는 None이다.
+    """
+    state, finished_at, code, raw_depth = row[0], row[2], row[3], row[4]
+    if state != "dead" or finished_at is None:
+        return None
+    original = raw_depth is None
+    try:
+        depth = 0 if original else int(raw_depth)
+    except (TypeError, ValueError):
+        depth = _REDO_DEPTH_UNKNOWN
+    if depth < 0:
+        depth = _REDO_DEPTH_UNKNOWN
+    if code in repeat_codes:
+        limit = REDO_MAX_DEPTH
+    elif code in original_once_codes:
+        limit = 1
+    else:
+        return None
+    if depth >= limit:
+        return DeadRedo(depth + 1, exhausted=True)
+    if finished_at.tzinfo is None:
+        finished_at = finished_at.replace(tzinfo=timezone.utc)
+    if now < finished_at + redo_delay(depth):
+        return None
+    return DeadRedo(depth + 1)
 
 
 # ─────────────────────────────────────────────────────────────

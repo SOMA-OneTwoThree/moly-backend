@@ -192,6 +192,21 @@ async def test_last_tick_group_is_capped_at_720s(monkeypatch):
     assert batches == [{"Asia/Seoul"}, {"Australia/Darwin"}]
 
 
+async def test_hour5_last_catchup_tick_is_processed_first(monkeypatch):
+    """KST 05:15: 다윈은 05:45(이어 만들기의 마지막 틱)이라 먼저 처리되는 묶음에 들어간다.
+
+    예전에는 05:15까지만 이어 만들어, 05:15 틱에서 큰 :45 묶음이 시간을 다 쓰면 넘겨진 시간대를
+    아무도 받지 못했다. 이제 서울은 05:30·05:45 틱이 다시 받고, 다윈(05:45)은 맨 앞에서 끝난다."""
+    profiles, seen, batches = _clocked(
+        monkeypatch, {"Asia/Seoul": 10, "Australia/Darwin": 2}, cost=100,
+    )
+    counts = await tick.run_tick(datetime(2026, 10, 5, 20, 15, tzinfo=timezone.utc))
+    darwin = {p.id for p in profiles["Australia/Darwin"]}
+    assert set(seen[:2]) == darwin
+    assert batches == [{"Australia/Darwin"}, {"Asia/Seoul"}]
+    assert counts["users"] == 12 and counts["deadline_skipped"] == 5
+
+
 async def test_last_tick_user_is_cut_at_tick_end_not_counted_as_timeout(monkeypatch):
     """마지막 묶음에서 660초 뒤 시작한 유저는 soft+user_timeout을 넘겨 돌지 않는다.
 

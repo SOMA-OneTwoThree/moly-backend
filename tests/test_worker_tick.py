@@ -448,8 +448,9 @@ def _no_pushes(monkeypatch):
 @pytest.mark.parametrize("hour,minute,relevant", [
     (20, 0, True),    # KST 05:00 — 이어 만들기
     (20, 15, True),   # KST 05:15 — 이어 만들기
-    (20, 30, False),  # KST 05:30 — 끝
-    (21, 0, False),   # KST 06:00
+    (20, 30, True),   # KST 05:30 — 이어 만들기(앞 틱에서 넘겨진 시간대를 받는다)
+    (20, 45, True),   # KST 05:45 — 이어 만들기의 마지막 틱
+    (21, 0, False),   # KST 06:00 — 끝
 ])
 async def test_relevant_timezones_include_diary_catchup_slots(monkeypatch, hour, minute, relevant):
     p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
@@ -491,8 +492,11 @@ async def test_hour5_catchup_generates_only_missing_diary(monkeypatch):
     releases = [params["u"] for sql, params in executed if "DELETE FROM diary_gen_claims" in sql]
     assert claims == [missing.id] and releases == [missing.id]
     assert counts["diaries"] == counts["diary_llm"] == 1
-    assert counts["diary_skipped"] == 1 and counts["diary_failed"] == 0
-    assert counts["users"] == counts["diary_attempted"] == 2
+    # 이미 있는 사용자는 시도·스킵으로 세지 않고 따로만 센다(5시 네 틱마다 관측 수치가 부풀지 않게).
+    assert counts["diary_catchup_existing"] == 1
+    assert counts["diary_skipped"] == 0 and counts["diary_failed"] == 0
+    assert counts["diary_attempted"] == 1
+    assert counts["users"] == 2  # 후보 시간대 사용자 수(시간 초과 경보 분모)는 그대로
     for mock in pushes.values():
         mock.assert_not_awaited()
 
@@ -518,8 +522,8 @@ async def test_hour5_catchup_respects_live_claim(monkeypatch):
     generate.assert_not_awaited()
 
 
-@pytest.mark.parametrize("exists,failed,skipped", [(True, 0, 1), (False, 1, 0)])
-async def test_hour5_catchup_policy_failure_only_fails_missing_users(monkeypatch, exists, failed, skipped):
+@pytest.mark.parametrize("exists,failed,existing", [(True, 0, 1), (False, 1, 0)])
+async def test_hour5_catchup_policy_failure_only_fails_missing_users(monkeypatch, exists, failed, existing):
     """정책 조회가 실패해도 이미 일기가 있는 사용자를 실패로 세지 않는다(04시에 끝난 대부분)."""
     p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
     monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
@@ -528,18 +532,40 @@ async def test_hour5_catchup_policy_failure_only_fails_missing_users(monkeypatch
     monkeypatch.setattr(tick.diary_generation, "generate_for_user", generate)
     counts = await tick._process_user(datetime(2026, 10, 5, 20, 0, tzinfo=timezone.utc),
                                       p.id, {}, diary_policy=None)
-    assert counts["diary_failed"] == failed and counts["diary_skipped"] == skipped
+    assert counts["diary_failed"] == failed and counts["diary_skipped"] == 0
+    assert counts["diary_catchup_existing"] == existing
+    assert counts["diary_attempted"] == 1 - existing
+    assert counts["active_tz"] == (None if exists else "Asia/Seoul")
     generate.assert_not_awaited()
 
 
+@pytest.mark.parametrize("minute", [30, 45])
+async def test_late_hour5_ticks_still_catch_up_missing_diaries(monkeypatch, minute):
+    """KST 05:30·05:45도 이어 만든다 — 05:15에 데드라인으로 넘겨진 시간대를 뒤 틱이 받는다."""
+    p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
+    monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
+    _quiet_post_loop(monkeypatch)
+    pushes = _no_pushes(monkeypatch)
+    monkeypatch.setattr(tick.diary_generation, "load_policy",
+                        AsyncMock(return_value=tick.diary_generation.DiaryPolicy()))
+    monkeypatch.setattr(tick.diary_generation, "_diary_exists", AsyncMock(return_value=False))
+    generate = AsyncMock(return_value={"created": True, "skipped": False, "source": "llm"})
+    monkeypatch.setattr(tick.diary_generation, "generate_for_user", generate)
+    counts = await tick.run_tick(datetime(2026, 10, 5, 20, minute, tzinfo=timezone.utc))
+    assert counts["diaries"] == counts["diary_attempted"] == counts["users"] == 1
+    assert generate.await_args.args[2] == date(2026, 10, 5)
+    for mock in pushes.values():
+        mock.assert_not_awaited()
+
+
 async def test_after_catchup_window_no_diary_work(monkeypatch):
-    """KST 05:30부터는 이어 만들기도 없다 — 유저 순회 자체를 하지 않는다."""
+    """KST 06:00부터는 이어 만들기도 없다 — 유저 순회 자체를 하지 않는다."""
     p = SimpleNamespace(id=uuid.uuid4(), timezone="Asia/Seoul")
     monkeypatch.setattr(tick, "get_sessionmaker", _fake_get_sessionmaker([p]))
     _quiet_post_loop(monkeypatch)
     generate = AsyncMock()
     monkeypatch.setattr(tick.diary_generation, "generate_for_user", generate)
-    counts = await tick.run_tick(datetime(2026, 10, 5, 20, 30, tzinfo=timezone.utc))
+    counts = await tick.run_tick(datetime(2026, 10, 5, 21, 0, tzinfo=timezone.utc))
     assert counts["users"] == counts["diary_attempted"] == 0
     generate.assert_not_awaited()
 

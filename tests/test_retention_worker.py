@@ -334,6 +334,27 @@ async def test_defer_preserves_history_and_failure_budget():
     assert len(session.calls) == 1 and session.commits == 1 and values["lease_token"] == job.lease_token
 
 
+@pytest.mark.parametrize("reason,delay,cap", [
+    ("checkpoint_source_processing_pending", 300.0, 300.0),
+    ("checkpoint_source_processing_pending", 900.0, 300.0),
+    ("checkpoint_source_processing_pending", 60.0, 60.0),
+    ("checkpoint_privacy_busy", 300.0, 60.0),
+    ("dependency_pending", 0.1, 1.0),
+])
+async def test_defer_cap_is_five_minutes_only_for_the_publish_dependency_wait(reason, delay, cap):
+    job = make_job([checkpoint.SourceMessage(1, "user", "normal", "hello")])
+    class DeferredSession(Session):
+        async def execute(self, statement, params):
+            self.calls.append((str(statement), params))
+            return SimpleNamespace(first=lambda: (job.id,))
+    session = DeferredSession()
+    before = datetime.now(timezone.utc)
+    assert await jobs.finalize_deferred(session, job, reason=reason, delay_s=delay)
+    after = datetime.now(timezone.utc)
+    available_at = session.calls[0][1]["available_at"]
+    assert before + timedelta(seconds=cap) <= available_at <= after + timedelta(seconds=cap)
+
+
 async def test_defer_with_lost_lease_does_not_touch_history():
     job = make_job([checkpoint.SourceMessage(1, "user", "normal", "hello")])
     class LostSession(Session):

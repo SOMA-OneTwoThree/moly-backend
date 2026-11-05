@@ -77,6 +77,18 @@ def request(text="합성 검증 입력", **kwargs):
     return SimpleNamespace(text=text, greeting_id=None, **kwargs)
 
 
+def raw_pressure_until_shortened(monkeypatch):
+    """Raw history overflows the read limit; only the one shortened read succeeds."""
+    original = chat._context
+
+    async def context(*args, **kwargs):
+        if not kwargs.get("truncate_unread"):
+            raise chat._HistoryReadPressure()
+        return await original(*args, **kwargs)
+
+    monkeypatch.setattr(chat, "_context", context)
+
+
 @pytest.mark.parametrize("language,reply", [
     ("ko", "오늘 하늘이 맑구나."), ("en", "The sky is clear today."), ("ja", "今日は晴れているんだね。"),
 ])
@@ -146,17 +158,20 @@ async def test_history_recovery_budget_includes_the_same_normal_reply_guidance(s
 
     monkeypatch.setattr(chat.context_retention, "fits_input_budget", essential_budget)
     if boundary == "raw":
-        monkeypatch.setattr(chat, "_context", AsyncMock(side_effect=chat._HistoryReadPressure))
+        raw_pressure_until_shortened(monkeypatch)
     else:
         def assembled_budget(system, messages, **kwargs):
             assert sum(instruction in message["content"] for message in messages) == 1
             raise chat.context_retention.RetentionError("context_input_budget")
         monkeypatch.setattr(chat.context_retention, "assert_input_budget", assembled_budget)
-    with pytest.raises(errors.AppError) as caught:
-        await chat.post_message(Session(), UID, request(), "guidance-budget")
-    assert caught.value.code == "AI_UNAVAILABLE" and len(checked) == 1
-    chat.llm.generate.assert_not_awaited()
-    chat.checkpoint_repo.request_pressure.assert_awaited_once()
+    await chat.post_message(Session(), UID, request(), "guidance-budget")
+    # The first check is the essential-input check that decides the reservation.
+    assert len(checked[0]) == 2
+    first = chat.checkpoint_repo.request_pressure.await_args_list[0]
+    assert first.kwargs == {"user_id": chat._uid(UID), "generation": 0}
+    # The shortened-history answer carries the same guidance exactly once.
+    _, messages = chat.llm.generate.await_args.args[:2]
+    assert sum(instruction in message["content"] for message in messages) == 1
 
 
 @pytest.mark.parametrize("language", ["ko", "en", "ja"])
@@ -302,16 +317,25 @@ async def test_pressure_pause_reserves_real_work_and_commits_without_current_tur
 
     monkeypatch.setattr(chat.context_retention, "assert_input_budget", over_budget)
     session = Session()
-    with pytest.raises(errors.AppError) as caught:
-        await chat.post_message(session, UID, request(), "pressure-pause")
-    assert caught.value.code == "AI_UNAVAILABLE"
-    assert session.added == [] and session.commits >= 3
-    chat.checkpoint_repo.request_pressure.assert_awaited_once()
-    assert chat.checkpoint_repo.request_pressure.await_args.kwargs == {
-        "user_id": chat._uid(UID), "generation": 0,
-    }
-    chat._accumulate_tokens.assert_not_awaited()
-    chat.llm.generate.assert_not_awaited()
+    stored_at_commit = []
+    commit = session.commit
+
+    async def counted_commit():
+        stored_at_commit.append(len([x for x in session.added if isinstance(x, Message)]))
+        await commit()
+
+    session.commit = counted_commit
+    result = await chat.post_message(session, UID, request(), "pressure-pause")
+    # The reservation commits before any current-turn row exists; the shortened-history
+    # answer then stores the turn exactly once at the final publish commit.
+    calls = chat.checkpoint_repo.request_pressure.await_args_list
+    assert calls[0].kwargs == {"user_id": chat._uid(UID), "generation": 0}
+    assert len(stored_at_commit) >= 3 and set(stored_at_commit[:-1]) == {0}
+    assert stored_at_commit[-1] == 2
+    assert calls[-1].kwargs["through_id"] == int(result.reply.message_id)
+    chat._accumulate_tokens.assert_awaited_once()
+    chat.llm.generate.assert_awaited_once()
+    chat.chat_turns.release.assert_not_awaited()
 
 
 async def test_irreducible_current_input_does_not_reserve_endless_pressure_work(setup, monkeypatch):
@@ -599,27 +623,85 @@ async def test_both_history_pressure_boundaries_use_one_fenced_committed_reserva
     monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
         "ok", case="not_applicable")))
     if boundary == "raw":
-        monkeypatch.setattr(chat, "_context", AsyncMock(side_effect=chat._HistoryReadPressure))
+        raw_pressure_until_shortened(monkeypatch)
     else:
         def too_large(*args, **kwargs):
             assert kwargs["input_limit"] == 32_768
             raise chat.context_retention.RetentionError("context_input_budget")
         monkeypatch.setattr(chat.context_retention, "assert_input_budget", too_large)
-    verify = AsyncMock()
+    # Record every fence while keeping the default publish behavior (encryption mode).
+    verify = AsyncMock(wraps=chat.chat_turns.verify_publish)
     monkeypatch.setattr(chat.chat_turns, "verify_publish", verify)
     session = Session()
+    result = await chat.post_message(session, UID, request(), "history-boundary")
+    assert result.reply.content == "합성 답변이야."
+    calls = chat.checkpoint_repo.request_pressure.await_args_list
+    assert calls[0].kwargs == {"user_id": chat._uid(UID), "generation": 0}
+    assert len(calls) == 2 and calls[1].kwargs["through_id"] == int(result.reply.message_id)
+    # One lease fences the pause, the shortened-history restart and the final publish.
+    assert verify.await_count == 3
+    lease = verify.await_args_list[0].kwargs["lease"]
+    assert all(call.kwargs["lease"] is lease for call in verify.await_args_list)
+    chat.chat_turns.release.assert_not_awaited()
+    chat._accumulate_tokens.assert_awaited_once()
+    chat.llm.generate.assert_awaited_once()
+    assert len([x for x in session.added if isinstance(x, Message)]) == 2 and session.commits >= 3
+
+
+async def test_shortened_history_keeps_newest_turns_required_input_and_headroom(setup, monkeypatch):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        "ok", case="not_applicable")))
+    uid = chat._uid(UID)
+    texts = [f"synthetic turn {i:03d} " + "가" * 300 for i in range(1, 61)]  # about 54k bytes in all
+
+    def stored(message_id, text):
+        ref = SourceRef(uid, message_id, 0, hashlib.sha256(text.encode()).hexdigest())
+        return HistoryEntry("user" if message_id % 2 else "assistant", text, source_ref=ref)
+
+    history = [stored(message_id, text) for message_id, text in enumerate(texts, start=1)]
+    current = "synthetic current question"
+
+    async def context(*args, **kwargs):
+        if not kwargs.get("truncate_unread"):
+            raise chat._HistoryReadPressure()
+        return chat.ContextWindow([*history, HistoryEntry("user", current)], None, [], incomplete=True)
+
+    monkeypatch.setattr(chat, "_context", context)
+    chat.context_retention.load_required_facts.return_value = "required stable fact"
+    monkeypatch.setattr(chat.context_retention, "assert_input_budget", ACTUAL_ASSERT_BUDGET)
+    monkeypatch.setattr(chat.context_retention, "fits_input_budget", ACTUAL_FITS_BUDGET)
+    result = await chat.post_message(Session(), UID, request(current), "shortened-real-budget")
+    assert result.reply.content == "합성 답변이야."
+    system, messages = chat.llm.generate.await_args.args[:2]
+    sent = str(messages)
+    kept = [text for text in texts if text in sent]
+    assert kept and kept == texts[-len(kept):] and texts[0] not in sent
+    assert [m for m in messages if m["role"] != "system"][0]["role"] == "user"
+    assert messages[-1]["content"].endswith(current)
+    assert "required stable fact" in sent and "Earlier conversation may be missing" in sent
+    assert ACTUAL_FITS_BUDGET(system, messages, input_limit=32_768, output_reserve=8_192)
+
+
+@pytest.mark.parametrize("boundary", ["raw", "assembled"])
+@pytest.mark.parametrize("status", ["timeout", "error", "invalid"])
+async def test_failed_crisis_decision_keeps_503_at_both_pressure_boundaries(setup, monkeypatch, boundary, status):
+    monkeypatch.setattr(crisis_chat, "recorded_decision", AsyncMock(return_value=crisis_guard.DecisionResult(
+        status, route="normal")))
+    if boundary == "raw":
+        raw_pressure_until_shortened(monkeypatch)
+    else:
+        def too_large(*args, **kwargs):
+            raise chat.context_retention.RetentionError("context_input_budget")
+        monkeypatch.setattr(chat.context_retention, "assert_input_budget", too_large)
+    session = Session()
     with pytest.raises(errors.AppError) as caught:
-        await chat.post_message(session, UID, request(), "history-boundary")
+        await chat.post_message(session, UID, request(), "decision-failed-pressure")
     assert caught.value.code == "AI_UNAVAILABLE"
     chat.checkpoint_repo.request_pressure.assert_awaited_once()
-    assert chat.checkpoint_repo.request_pressure.await_args.kwargs == {
-        "user_id": chat._uid(UID), "generation": 0,
-    }
-    verify.assert_awaited_once()
     chat.chat_turns.release.assert_awaited_once()
-    chat._accumulate_tokens.assert_not_awaited()
     chat.llm.generate.assert_not_awaited()
-    assert session.added == [] and session.commits >= 2
+    chat._accumulate_tokens.assert_not_awaited()
+    assert session.added == []
 
 
 @pytest.mark.parametrize("change", ["generation", "privacy", "recent_source"])

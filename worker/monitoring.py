@@ -187,6 +187,8 @@ async def _daily_message(now: datetime, rc: dict | None, counts: dict | None = N
     data, (cost, _) = await asyncio.gather(daily_report.business(now, {
         "diary_min_user_chars": cfg["diary_min_user_chars"],
         "launch_until": _parse_dt(cfg["free_launch_until"]),
+        # Already read above with the other keys; no extra query.
+        "tz_unresolvable": values.get(config_store.WORKER_TZ_UNRESOLVABLE_KEY),
     }), daily_report.read_metric("cost", _COST_SQL, {"start": start, "end": end, "now": now}))
     change = None
     if data["subscriptions"] is not None:

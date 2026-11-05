@@ -119,10 +119,14 @@ T = TypeVar("T")
 
 
 def without_covered(entries: list[T], coverage: VerifiedCoverage | None) -> list[T]:
-    """The ONLY budget compaction operation: filter individually granted sources.
+    """The coverage-based budget compaction: filter individually granted sources.
 
     Mandatory items retain their object, order and contents. Tools/current input/
     volatile instructions do not acquire permission by matching a raw string.
+    Only this filter may treat raw history as summarized. The one other reduction
+    is chat's pressure fallback after a summary wait could not complete: it drops
+    the oldest sourced raw history for that request only, adds the "earlier
+    conversation may be missing" notice, and never grants coverage or moves the anchor.
     """
     if coverage is None:
         return list(entries)

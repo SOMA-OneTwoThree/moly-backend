@@ -538,6 +538,17 @@ async def _retention_state(session, uid, generation, *, lock=False):
     return row
 
 
+def _effective_cursor(state, generation: int, baseline) -> int:
+    """실제로 이어 읽을 커서. 선호 세대가 다르면 0, 호환 기준선이 있으면 그 경계까지 올린다.
+
+    state = `_retention_state` 결과(memory_generation, contract_generation, 처리한 마지막 message id).
+    """
+    cursor = int(state[2]) if int(state[1]) == generation else 0
+    if baseline is not None:
+        cursor = max(cursor, baseline.source_after, baseline.legacy_contract_after)
+    return cursor
+
+
 async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
     if job.user_id is None:
         raise JobFatal("missing_user")
@@ -556,6 +567,19 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
     target = payload.get("through_message_id")
     if type(generation) is not int or generation < 0 or type(target) is not int or target <= 0:
         raise JobFatal("invalid_contract_retention_payload")
+    # dead 뒤 다시 만든 작업(context_retention.enqueue_contract_processing)의 표시. 이어지는 작업의
+    # dedup_key에 붙여, 죽은 작업이 이미 만들어 둔 같은 범위의 키와 겹쳐 조용히 끊기지 않게 한다.
+    redo_of, redo_depth = payload.get("redo_of"), payload.get("redo_depth")
+    redo_marker = ({"redo_of": redo_of, "redo_depth": redo_depth}
+                   if type(redo_of) is str and redo_of and type(redo_depth) is int and redo_depth > 0
+                   else {})
+    # 다시 만들기 상한 뒤의 마지막 작업(context_retention.enqueue_contract_processing). 모델을 부르지
+    # 않고 지금 문서를 그대로 둔 채 이 범위의 커서만 넘긴다. 이어지는 작업에도 그대로 넘긴다.
+    no_model = payload.get("no_model", False)
+    if type(no_model) is not bool or (no_model and (fallback_planner
+                                                   or payload.get("partial_message_id") is not None)):
+        raise JobFatal("invalid_contract_retention_payload")
+    redo_suffix = (f":redo:{redo_of}" if redo_marker else "") + (":skip" if no_model else "")
     async with get_sessionmaker()() as session:
         if not await context_retention.privacy_epoch_matches(session, user_id=uid, privacy_epoch=privacy_epoch):
             raise JobCancelled("contract_privacy_epoch_changed")
@@ -571,9 +595,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         base = await _retention_state(session, uid, generation)
         if base is None or int(base[0]) != generation:
             raise JobCancelled("stale_contract_generation")
-        cursor = int(base[2]) if int(base[1]) == generation else 0
-        if baseline is not None:
-            cursor = max(cursor, baseline.source_after, baseline.legacy_contract_after)
+        cursor = _effective_cursor(base, generation, baseline)
         if cursor >= target:
             return JobResult(result_code="already_processed")
         rows = (await session.execute(_RETENTION_MESSAGES, {
@@ -598,12 +620,16 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
                 items=contract_repo.decode_document(payload.get("partial_drafts", [])))
     locale = i18n.resolve(profile[1])
     messages = [_Msg(row[0], row[1], row[2] or "", row[3]) for row in rows]
-    try:
-        batch = contract_batch(messages, previous=working, system=cc.RETENTION_SYSTEM,
-                               start_offset=partial_offset,
-                               retention_enabled=not fallback_planner) if messages else ContractBatch((), 0, 0)
-    except cc.CompilerRejection as exc:
-        raise JobRetry("contract_background_budget") from exc
+    if no_model:
+        # 모델 입력을 만들지 않으므로 나누기(contract_batch)도 하지 않는다. 읽은 원문 전체를 넘긴다.
+        batch = ContractBatch(tuple(messages), len(messages), 0)
+    else:
+        try:
+            batch = contract_batch(messages, previous=working, system=cc.RETENTION_SYSTEM,
+                                   start_offset=partial_offset,
+                                   retention_enabled=not fallback_planner) if messages else ContractBatch((), 0, 0)
+        except cc.CompilerRejection as exc:
+            raise JobRetry("contract_background_budget") from exc
     selected = list(batch.messages)
     async with get_sessionmaker()() as session:
         if not await context_retention.privacy_epoch_matches(session, user_id=uid, privacy_epoch=privacy_epoch):
@@ -617,10 +643,23 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         boundary = messages[batch.next_index-1].id
     kept, dropped = [], []
     output_fallback = False
-    if any(message.sender == "user" for message in selected):
+    # 마지막 시도: 이번 실패 뒤에 재시도가 없다. 대체 출력 모드는 payload의 남은 모델 호출 수도
+    # 본다(호출 직전에 1 줄여 저장하므로, 1이면 이번이 마지막이고 다음 시도는
+    # `contract_fallback_attempts_exhausted` JobFatal로 끝난다).
+    final_attempt = (job.max_attempts - job.attempt <= 0
+                     or (fallback_planner and fallback_available <= 1))
+    # 마지막 시도에서 내용 실패로 버린 모델 후보: 이유 → 개수. dead 대신 진행한 흔적이다.
+    discarded: dict[str, int] = {}
+    document_kept = False
+    if not no_model and any(message.sender == "user" for message in selected):
         model_input = _model_input(selected, working)
-        context_retention.assert_input_budget(cc.RETENTION_SYSTEM, model_input,
-                                              output_reserve=_MAX_OUTPUT_TOKENS)
+        try:
+            context_retention.assert_input_budget(cc.RETENTION_SYSTEM, model_input,
+                                                  output_reserve=_MAX_OUTPUT_TOKENS)
+        except context_retention.RetentionError as exc:
+            # 모델 호출 전의 결정적 실패다. 일반 예외(unexpected_error)로 두면 일시 장애처럼
+            # 보여 dead 뒤 재생성 대상이 되므로 고유 코드로 구분한다.
+            raise JobRetry("contract_retention_input_budget") from exc
         if fallback_planner:
             # Persist before inference: a later OFF/cancel/new-row resume must
             # not forget a failed call merely because its physical attempt reset.
@@ -632,6 +671,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             ledger=usage_ledger.LedgerContext(lane=usage_ledger.LANE_BACKGROUND,
                 purpose="contract_compile", user_id=uid, job_id=job.id, attempt=job.attempt),
         )
+        parse_output = True
         if result.finish_reason == "length":
             enlarged = sum(len(message.content.encode("utf-8")) for message in selected) > checkpoint.BACKGROUND_SEGMENT_BYTES
             if not fallback_planner and enlarged and job.max_attempts - job.attempt > 0:
@@ -640,22 +680,42 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
                 await _persist_output_fallback(job, payload, {**payload,
                     "adaptive_output_fallback": True,
                     "adaptive_output_attempts_remaining": fallback_available})
-            else:
+            elif not final_attempt:
                 raise JobRetry("contract_retention_length")
-        if not output_fallback:
-            llm.require_completed_text(result.text, result.finish_reason)
+            else:
+                # 잘린 출력은 읽지 않는다(부분 JSON을 해석·병합·발행하지 않음).
+                parse_output = False
+                discarded["length"] = 0
+        if not output_fallback and parse_output:
             try:
-                kept, dropped = cc.parse(result.text,
-                    user_message_ids={message.id for message in selected if message.sender == "user"},
-                    source_messages=selected, existing_items=working)
-            except cc.CompilerRejection as exc:
-                raise JobRetry("contract_retention_schema") from exc
-            if dropped:
-                raise JobRetry("contract_retention_evidence")
+                llm.require_completed_text(result.text, result.finish_reason)
+            except llm.IncompleteResponseError as exc:
+                # 빈 응답·content_filter 등. 출력 내용은 오류·로그에 넣지 않는다.
+                if not final_attempt:
+                    raise JobRetry("contract_retention_incomplete") from exc
+                discarded["incomplete"] = 0
+            else:
+                try:
+                    kept, dropped = cc.parse(result.text,
+                        user_message_ids={message.id for message in selected if message.sender == "user"},
+                        source_messages=selected, existing_items=working)
+                except cc.CompilerRejection as exc:
+                    if not final_attempt:
+                        raise JobRetry("contract_retention_schema") from exc
+                    discarded["schema"] = 0
+                    kept, dropped = [], []
+                if dropped:
+                    if not final_attempt:
+                        raise JobRetry("contract_retention_evidence")
+                    # 마지막 시도: 검증된 항목만 쓰고 커서를 넘긴다. 여기서 dead가 되면 같은 범위의
+                    # 새 작업이 생기지 않아 이 사용자의 약속 정리와 요약 게시가 계속 멈춘다.
+                    # 버린 항목은 저장하지 않으므로 검증 안 된 약속이 들어가지는 않는다.
+                    discarded["evidence"] = len(dropped)
     if not output_fallback:
-        ordinary = [candidate for candidate in kept if candidate.operation == "end" or candidate.directive.kind not in HIGH_IMPACT]
-        drafts = [candidate for candidate in kept if candidate.operation != "end" and candidate.directive.kind in HIGH_IMPACT]
-        try:
+
+        def merge_candidates(candidates):
+            ordinary = [candidate for candidate in candidates if candidate.operation == "end" or candidate.directive.kind not in HIGH_IMPACT]
+            drafts = [candidate for candidate in candidates if candidate.operation != "end" and candidate.directive.kind in HIGH_IMPACT]
             # 닫힌 긍정 종료는 모델 누락([]) 뒤 커서만 전진하여 옛 선호가 부활하지 않게 한다.
             setters = [candidate for candidate in ordinary if candidate.operation != "end"]
             prospective = merge_retained_items(working, setters, generation=generation)
@@ -668,14 +728,54 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             merged = merge_retained_items(working, ordinary, generation=generation)
             if baseline is not None:
                 merged = contract_repo.apply_legacy_ends(merged, selected)
-            active = contract_repo.active_retained_items(merged,
+            return ordinary, drafts, merged, render_items(merged)
+
+        def render_items(items):
+            active = contract_repo.active_retained_items(items,
                 activity_date=selected[-1].activity_date if selected else None)
-            rendered = ic.render_document([contract_repo.directive_from_item(item) for item in active],
-                                          language=locale) if active else ""
-        except (cc.CompilerRejection, ic.ContractViolation) as exc:
-            raise JobRetry("contract_retention_merge") from exc
-        if len(rendered.encode()) > 2_048:
-            raise JobRetry("contract_retention_budget")
+            return ic.render_document([contract_repo.directive_from_item(item) for item in active],
+                                      language=locale) if active else ""
+
+        def checked_merge(candidates):
+            """(병합 결과, None) 또는 (None, (오류 코드, 원인 예외))."""
+            try:
+                values = merge_candidates(candidates)
+            except (cc.CompilerRejection, ic.ContractViolation) as exc:
+                return None, ("contract_retention_merge", exc)
+            if len(values[3].encode()) > 2_048:
+                return None, ("contract_retention_budget", None)
+            return values, None
+
+        if no_model:
+            # 상한 뒤 마지막 작업: 모델 후보 없이 규칙 기반 종료(사용자가 직접 끝낸 대화 선호)만 적용한다.
+            # 모델은 부르지 않는다. 그것도 실패하면 문서는 그대로 두고 커서만 넘긴다.
+            values, failure = checked_merge([])
+            if failure is not None:
+                values, failure = ([], [], working, render_items(working)), None
+                document_kept = True
+        else:
+            values, failure = checked_merge(kept)
+        if failure is not None:
+            code, cause = failure
+            if not final_attempt:
+                raise JobRetry(code) from cause
+            # 마지막 시도: 모델 후보를 모두 버리고 기존 문서 + 규칙 기반 종료만으로 다시 계산한다.
+            discarded[code.removeprefix("contract_retention_")] = len(kept)
+            values, failure = checked_merge([])
+            if failure is not None:
+                # 그래도 안 되면 문서는 그대로 두고 커서만 넘긴다(모델을 다시 부르지 않는다).
+                # 크기 검사는 하지 않는다: 이미 검증된 문서를 키우지 않고 그대로 다시 쓴다.
+                values = ([], [], working, render_items(working))
+                document_kept = True
+        ordinary, drafts, merged, rendered = values
+    if discarded:
+        _log.warning("계약 마지막 시도 내용 실패 — 모델 후보 폐기 후 진행 job=%s attempt=%s discarded=%s document_kept=%s",
+                     job.id, job.attempt, discarded, document_kept)
+    if no_model:
+        # 개수와 식별자만 남긴다(원문 없음).
+        _log.warning("contract_redo_cap_skip job=%s redo_of=%s redo_depth=%s messages=%d through=%s",
+                     job.id, redo_of if redo_marker else None, redo_depth if redo_marker else None,
+                     len(selected), boundary)
 
     async def _apply(session) -> None:
         if not await context_retention.privacy_epoch_matches(session, user_id=uid,
@@ -692,23 +792,32 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         if fresh is None or int(fresh[0]) != generation:
             return
 
+        # 새로 읽은 상태의 실제 커서. 처리기 앞부분(cursor)과 같은 규칙으로 계산해야 한다:
+        # 선호 세대가 다르면 0이고, 호환 기준선이 있으면 그 경계까지 올린다.
+        fresh_cursor = _effective_cursor(fresh, generation, baseline)
+
         async def restart_current() -> None:
             from app.services import jobs
+            # after_message_id: 대기 쪽(enqueue_contract_processing)이 이 작업을 현재 커서의
+            # 작업으로 찾는 조건이다. 재생성·모델 없음 표시는 이어지는 작업에도 그대로 넘긴다.
             restart_payload = {"retention_enabled": True, "memory_generation": generation,
-                               "through_message_id": target, "privacy_epoch": privacy_epoch}
+                               "through_message_id": target, "after_message_id": fresh_cursor,
+                               "privacy_epoch": privacy_epoch, **redo_marker}
+            if no_model:
+                restart_payload["no_model"] = True
             if baseline is not None:
                 restart_payload["baseline_binding"] = baseline.payload()
             if fallback_planner or output_fallback:
                 restart_payload["adaptive_output_fallback"] = True
                 restart_payload["adaptive_output_attempts_remaining"] = fallback_available
             await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
-                user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{int(fresh[2])}:{target}:after:{job.id}",
+                user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{fresh_cursor}:{target}:after:{job.id}",
                 payload=restart_payload,
                 max_attempts=fallback_available if fallback_planner or output_fallback else 3)
 
         if tuple(fresh) != tuple(base):
             # 다른 정상 작업이 앞 구간을 처리했어도 남은 목표를 새 커서에서 이어 간다.
-            if int(fresh[1]) != generation or int(fresh[2]) < target:
+            if fresh_cursor < target:
                 await restart_current()
             return
         # 모델 실행 중 원문이 바뀌거나 safety로 재분류되면 처리 완료로 넘기지 않는다.
@@ -744,7 +853,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             if fallback_planner:
                 next_payload["adaptive_output_attempts_remaining"] = fallback_available
             await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
-                user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{cursor}:{target}:source:{first.id}:{source_hash}:{previous_hash}:{batch.next_offset}",
+                user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{cursor}:{target}:source:{first.id}:{source_hash}:{previous_hash}:{batch.next_offset}{redo_suffix}",
                 payload=next_payload,
                 max_attempts=fallback_available if fallback_planner else 3)
             return  # 원문 전체를 읽기 전 커서 전진·중간 선호 발행을 하지 않는다.
@@ -793,13 +902,20 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             if fallback_planner:
                 next_payload["adaptive_output_attempts_remaining"] = fallback_available
             await jobs.enqueue(session, queue=job.queue, job_type=JOB_CONTRACT_COMPILE,
-                user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{boundary}:{target}",
+                user_id=uid, dedup_key=f"contract-retention:{uid}:{generation}:{boundary}:{target}{redo_suffix}",
                 payload={**next_payload, "after_message_id": boundary},
                 max_attempts=fallback_available if fallback_planner else 3)
-    return JobResult(result_code="ok", result_detail={
+    detail = {
         "kept": 0 if output_fallback else len(ordinary), "draft": 0 if output_fallback else len(drafts),
         "through": cursor if output_fallback else boundary,
-        "adaptive_output_fallback": output_fallback}, apply_domain=_apply)
+        "adaptive_output_fallback": output_fallback}
+    if discarded:
+        # result_code는 "ok"로 둔다(이어받기 조건). 버린 이유·개수만 남긴다(원문 없음).
+        detail.update(discarded=discarded, document_kept=document_kept)
+    if no_model:
+        detail.update(skipped_after_redo_cap=True, skipped_messages=len(selected),
+                      document_kept=document_kept)
+    return JobResult(result_code="ok", result_detail=detail, apply_domain=_apply)
 
 
 consumer.register(JOB_CONTRACT_COMPILE, handle_contract_compile)

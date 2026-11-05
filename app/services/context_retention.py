@@ -10,9 +10,11 @@ from app.services import message_content
 import copy
 import hashlib
 import json
+import logging
 import re
 import uuid
 from collections.abc import Sequence
+from datetime import datetime, timedelta, timezone
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, ValidationError
@@ -22,6 +24,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.message import SUMMARY_EXCLUDED_MESSAGE_KINDS
 from app.services import context_compat, memory, naming, retention_release
 from app.config import settings
+
+_log = logging.getLogger("moly-backend")
 
 STATE_SCHEMA = "conversation-progress-v1"
 MAX_STATE_BYTES = 24_000
@@ -169,7 +173,12 @@ def source_tokens(messages: Sequence[Any]) -> int:
 
 def assert_input_budget(system, messages, *, tools=(), input_limit: int = 16_384,
                         output_reserve: int = 1_024) -> int:
-    """전체 직렬화 입력의 보수 상한을 검사한다. 초과를 조용한 원문 삭제로 고치지 않는다."""
+    """전체 직렬화 입력의 보수 상한을 검사한다. 이 함수는 초과를 고치지 않는다.
+
+    원문을 덜 보내는 경우는 둘뿐이다. 게시된 요약이 덮은 원문을 빼는 경우(`without_covered`)와,
+    요약 게시를 기다리지 못한 대화 요청이 그 요청에서만 가장 오래된 원문부터 빼고 "앞 대화가
+    빠졌을 수 있다" 안내를 붙이는 경우다. 뒤의 경우도 앵커와 요약 범위는 바꾸지 않는다.
+    """
     payload = json.dumps({"system": system, "messages": messages, "tools": tools},
                          ensure_ascii=False, sort_keys=True, default=str)
     bound = token_upper_bound(payload) + 1_024 + max(0, output_reserve)
@@ -691,8 +700,10 @@ _CONTRACT_BASE_JOB = text("""
 SELECT id FROM async_jobs WHERE (payload->>'retention_preparation_id') IS NULL AND user_id=:user_id AND job_type='contract_compile'
  AND dedup_key=:dedup_key LIMIT 1
 """)
+# 0번째 열(state)은 그대로 두고 dead 재생성 판단에 쓰는 열만 뒤에 붙인다.
+# 마지막 열(no_model)은 상한 뒤 모델 없이 진행만 하는 마지막 작업 표시다.
 _CONTRACT_LATEST_TERMINAL = text("""
-SELECT j.state FROM async_jobs j
+SELECT j.state,j.id,j.finished_at,j.last_error_code,j.payload->>'redo_depth',j.payload->>'no_model' FROM async_jobs j
 WHERE j.user_id=:user_id AND j.job_type='contract_compile'
  AND j.payload->'retention_enabled'='true'::jsonb
  AND (j.payload->>'retention_preparation_id') IS NULL
@@ -738,6 +749,44 @@ ORDER BY COALESCE((j.payload->>'partial_offset')::bigint,0) DESC,
          j.finished_at DESC,j.id DESC LIMIT 1
 """)
 
+# dead가 된 약속 정리 작업을 시간을 두고 다시 만드는 일시 장애 코드. 소비자·회수 작업이 실제로
+# 남기는 값이다(app/services/jobs.py ERROR_* 상수와 worker/consumer.py).
+_CONTRACT_TRANSIENT_DEAD_CODES = frozenset({
+    "unexpected_error",      # worker/consumer.py: 분류되지 않은 예외(모델 호출 장애 등)
+    "timeout",               # worker/consumer.py: 작업 시간 초과
+    "lease_expired",         # jobs.ERROR_LEASE_EXPIRED: 처리 권한 만료 후 회수
+    "attempts_exhausted",    # jobs.ERROR_ATTEMPTS_EXHAUSTED: 처리 권한 만료 상태로 시도 소진
+    # 대체 출력 모드의 남은 호출 수가 0인 채로 다시 잡힌 경우. 내용 실패는 마지막 호출에서
+    # 진행하므로(worker/contract_jobs.py), 여기 오는 것은 앞 호출의 일시 장애 뒤뿐이다.
+    "contract_fallback_attempts_exhausted",
+})
+# 내용 실패 코드. 마지막 시도에서는 더 이상 dead가 되지 않는다. 그 전에 이미 dead가 된
+# 원본 작업(redo_depth 없음)만 한 번 다시 만든다.
+_CONTRACT_CONTENT_DEAD_CODES = frozenset({
+    "contract_retention_evidence", "contract_retention_schema", "contract_retention_length",
+    "contract_retention_merge", "contract_retention_budget", "contract_retention_incomplete",
+})
+
+
+def contract_redo_delay(depth: int) -> timedelta:
+    """재생성 깊이별 대기: 원본 dead 30분, 1회차 1시간, 2시간, 3회차 4시간."""
+    from app.services import jobs
+    return jobs.redo_delay(depth)
+
+
+def contract_redo(row, *, now: datetime):
+    """마지막 종료 작업(row)이 dead일 때 다시 만들 작업(`jobs.DeadRedo`), 아니면 None.
+
+    row = `_CONTRACT_LATEST_TERMINAL` 결과(state, id, finished_at, last_error_code, redo_depth, no_model).
+    `exhausted`면 모델을 다시 부르지 않고 커서만 넘기는 마지막 작업 한 건을 만든다.
+    그 마지막 작업(no_model)이 dead가 되면 아무것도 만들지 않는다(같은 작업이 반복되지 않게).
+    """
+    from app.services import jobs
+    if len(row) > 5 and row[5] == "true":
+        return None
+    return jobs.dead_redo(row, now=now, repeat_codes=_CONTRACT_TRANSIENT_DEAD_CODES,
+                          original_once_codes=_CONTRACT_CONTENT_DEAD_CODES)
+
 
 async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UUID | str,
                                       generation: int, through_id: int, privacy_epoch: int | None = None,
@@ -774,7 +823,31 @@ async def enqueue_contract_processing(session: AsyncSession, *, user_id: uuid.UU
         return None
     latest_terminal = (await session.execute(retention_release.job_sql(_CONTRACT_LATEST_TERMINAL), retention_release.params(params))).first()
     if latest_terminal is not None and latest_terminal[0] == "dead":
-        return None  # suffix-only 계획도 새 base로 실패 재시도 예산을 초기화하지 않는다.
+        # 일시 장애로 dead가 된 경우만 시간을 두고(30분·1시간·2시간·4시간) 다시 만든다.
+        # 결정적 실패(예: 입력 한도)는 다시 만들지 않는다. 같은 dead마다 한 건만 생기도록
+        # dead id로 dedup하고, payload는 죽은 작업 것을 복제하지 않고 지금 기준으로 새로 만든다.
+        redo = contract_redo(latest_terminal, now=datetime.now(timezone.utc))
+        if redo is None:
+            return None
+        dead_id = str(latest_terminal[1])
+        payload = {"retention_enabled": True, "memory_generation": generation,
+                   "through_message_id": through_id, "after_message_id": int(cursor), "privacy_epoch": epoch,
+                   "redo_of": dead_id, "redo_depth": redo.depth}
+        key = f"contract-retention-redo:{dead_id}"
+        if redo.exhausted:
+            # 상한(jobs.REDO_MAX_DEPTH): 모델을 다시 부르지 않는 마지막 작업 한 건. 문서는 그대로 두고
+            # 이 범위의 커서만 넘겨 요약 게시가 영구히 멈추지 않게 한다(worker/contract_jobs.py).
+            payload["no_model"] = True
+            key = f"contract-retention-skip:{dead_id}"
+        if baseline is not None:
+            payload['baseline_binding'] = baseline.payload()
+        made = await jobs.enqueue(session, queue=jobs.QUEUE_MEMORY, job_type="contract_compile",
+            user_id=user_id, dedup_key=key, payload=payload, max_attempts=3)
+        if made is not None:
+            _log.info("%s dead_job=%s error_code=%s redo_depth=%d",
+                      "contract_redo_exhausted_skip_enqueued" if redo.exhausted else "contract_redo_enqueued",
+                      dead_id, latest_terminal[3], redo.depth)
+        return made
     existing = (await session.execute(retention_release.job_sql(_CONTRACT_BASE_JOB), retention_release.params(params))).first()
     if existing is None and latest_terminal is None:
         payload = {"retention_enabled": True, "memory_generation": generation,

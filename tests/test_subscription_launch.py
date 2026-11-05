@@ -312,6 +312,39 @@ async def test_zero_price_store_period_consumes_offer_and_reports_trial(monkeypa
     assert not any(isinstance(row, Payment) for row in session.added)
 
 
+@pytest.mark.parametrize("app_user_id,marks", [(UID, True), ("not-a-uuid", False), (None, False)])
+async def test_staged_play_free_trial_consumes_offer_claim(monkeypatch, app_user_id, marks):
+    from app.services import subscription_processing as processing
+
+    class CaptureSession:
+        def __init__(self):
+            self.statements = []
+
+        async def execute(self, statement, params=None):
+            self.statements.append(statement)
+            return SimpleNamespace()
+
+    monkeypatch.setattr(subscription, "_ownership_lock", AsyncMock())
+    monkeypatch.setattr(processing, "advisory_xact_lock", AsyncMock())
+    payload = _rc_event(type="INITIAL_PURCHASE", period_type="TRIAL", price_in_purchased_currency=0,
+                        store="PLAY_STORE", offer_code="legacy-month",
+                        product_id="com.geniusjun.moly.plus.monthly:monthly", app_user_id=app_user_id)
+    row = SimpleNamespace(payload=payload, processing_state=None)
+    prepared = processing.Prepared([], None, datetime.now(timezone.utc))
+    session = CaptureSession()
+    await processing.apply(session, row, prepared)
+
+    updates = [sql for sql in session.statements if "UPDATE public.subscription_offer_claims" in str(sql)]
+    if marks:
+        assert len(updates) == 1
+        assert "redeemed_at IS NULL" in str(updates[0])
+        assert updates[0].compile().params == {
+            "uid": UID_UUID, "offer": "legacy-month", "product": "com.geniusjun.moly.plus.monthly:monthly"}
+    else:
+        assert updates == []
+    assert row.processing_state["payment_record"] == row.processing_state["bonus"] == "not_applicable"
+
+
 @pytest.mark.parametrize("active_status", ["active", "grace_period"])
 async def test_current_monthly_wins_over_revoked_future_yearly(active_status):
     import uuid

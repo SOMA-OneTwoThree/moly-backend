@@ -435,6 +435,11 @@ async def _finance(session, event: dict, state: dict, pay: Payment | None, sub, 
         state["reason"] = "refunded payment: no bonus grant"
         return
     if old._free_subscription_period(event):
+        # Same as the legacy path: a store free period consumes the app's Android
+        # trial-offer claim. The UPDATE only touches unredeemed rows, so retries are no-ops.
+        uid = _uuid(event.get("app_user_id"))
+        if uid is not None:
+            await old._mark_store_trial_offer_redeemed(session, uid, event)
         state["payment_record"] = state["bonus"] = "not_applicable"
         return
     if sub is None or not prepared.targets:

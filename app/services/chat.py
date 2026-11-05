@@ -300,6 +300,7 @@ class ContextWindow:
     incomplete: bool = False
     retention_source_bytes: int = 0
     coverage: VerifiedCoverage | None = None
+    has_displayed_opening: bool = False
 
 
 class _HistoryReadPressure(Exception):
@@ -502,7 +503,9 @@ async def _context(
             SourceRef.from_message(m, user_id=uid, generation=memory_generation) for m in rows
         ])
     return ContextWindow(convo, new_anchor, lead, checkpoint_keep_from, incomplete,
-                         retention_source_bytes, coverage)
+                         retention_source_bytes, coverage,
+                         any(getattr(m, "kind", None) == "greeting"
+                             and getattr(m, "user_id", None) == uid for m in projection))
 
 
 async def _save_anchor(session: AsyncSession, uid: uuid.UUID, anchor: int) -> None:
@@ -1723,6 +1726,7 @@ async def _post_message_impl(
     compat_identity = None
     legacy_summary_text = ""
     for context_attempt in range(2):
+        has_displayed_opening = opening_snapshot is not None
         try:
             if retention_enabled:
                 from app.services import retention_release
@@ -1993,6 +1997,8 @@ async def _post_message_impl(
                         essential_blocks.append("[Current verified facts]\n" + naming.render(required_facts, nick))
                     if opening_snapshot is not None:
                         essential_blocks.append(greeting_context.reference_note(language))
+                    if has_displayed_opening:
+                        essential_blocks.append(greeting_context.identity_note(language))
                     essential_convo = [
                         {"role": "system", "content": "\n\n".join(essential_blocks)},
                         {"role": "user", "content": naming.render(
@@ -2033,6 +2039,7 @@ async def _post_message_impl(
             if correction_pending:
                 checkpoint_summary = ""
             convo = context_window.conversation
+            has_displayed_opening = has_displayed_opening or getattr(context_window, "has_displayed_opening", False) is True
             if retention_enabled:
                 read_coverage = context_window.coverage
             new_anchor = context_window.new_anchor
@@ -2184,6 +2191,8 @@ async def _post_message_impl(
                 volatile.append(fortune_snapshot.block)
             if opening_snapshot is not None:
                 volatile.append(greeting_context.reference_note(language))
+            if has_displayed_opening:
+                volatile.append(greeting_context.identity_note(language))
             if volatile:
                 convo.insert(
                     max(0, len(convo) - 1),

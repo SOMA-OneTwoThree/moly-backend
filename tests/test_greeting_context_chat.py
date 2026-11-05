@@ -11,7 +11,7 @@ from app.core.content_crypto import ContentCryptoError
 from app.models.greeting import Greeting
 from app.models.message import Message
 from app.services import chat, crisis_chat, crisis_guard, greeting_context, llm
-from tests.test_chat import UID
+from tests.test_chat import UID, FakeSession
 from tests.test_guard_context_v2_integration_review import Session, request, setup as _setup
 
 
@@ -67,6 +67,7 @@ async def test_opening_is_immediately_before_reply_and_commits_once(setup, monke
     assert opening.content not in "\n".join(system)
     assert any("에그인헬" in m["content"] for m in messages)
     assert sum(greeting_context.reference_note(language) in m["content"] for m in messages) == 1
+    assert sum(greeting_context.identity_note(language) in m["content"] for m in messages) == 1
     guard_recent = crisis_chat.recorded_decision.await_args.args[1]
     assert [(m.role, m.content, m.kind, m.message_id) for m in guard_recent] == [
         ("assistant", opening.content, "greeting", None)]
@@ -76,6 +77,7 @@ async def test_opening_is_immediately_before_reply_and_commits_once(setup, monke
     assert stored[0].turn_position == 0 and opening.committed_message_id == stored[0].id
     assert result.greeting.content == opening.content
     assert all(greeting_context.reference_note(language) not in m.content for m in stored)
+    assert all(greeting_context.identity_note(language) not in m.content for m in stored)
 
 
 @pytest.mark.parametrize("foreign,committed", [(True, False), (False, True)])
@@ -138,6 +140,7 @@ async def test_pressure_recovery_counts_opening_as_mandatory(setup, monkeypatch)
         checks.append(messages)
         assert messages[-2] == {"role": "assistant", "content": opening.content}
         assert "나도" in messages[-1]["content"]
+        assert sum(greeting_context.identity_note("ko") in m["content"] for m in messages) == 1
         return True
 
     monkeypatch.setattr(chat.context_retention, "fits_input_budget", essential)
@@ -146,3 +149,71 @@ async def test_pressure_recovery_counts_opening_as_mandatory(setup, monkeypatch)
     assert caught.value.code == "AI_UNAVAILABLE" and len(checks) == 1
     chat.llm.generate.assert_not_awaited()
     chat.checkpoint_repo.request_pressure.assert_awaited_once()
+
+
+@pytest.mark.parametrize("has_opening", [False, True])
+@pytest.mark.parametrize("language", ["ko", "en", "ja"])
+async def test_followup_identity_rule_requires_an_owned_opening_in_history(setup, monkeypatch, has_opening, language):
+    gate, _ = setup
+    gate.profile.language = language
+    normal_context(monkeypatch, "Where did you walk?")
+    opening = "I went for a walk."
+    convo = [{"role": "user", "content": "Earlier topic."}]
+    if has_opening:
+        convo.append({"role": "assistant", "content": opening})
+    convo.append({"role": "user", "content": "Where did you walk?"})
+    chat._context.return_value = chat.ContextWindow(convo, None, [], has_displayed_opening=has_opening)
+    chat.llm.generate.return_value = llm.LLMResult(
+        {"ko": "어디인지는 모르겠어.", "en": "I don't know that specific place.", "ja": "その場所までは分からないよ。"}[language],
+        10, 20, finish_reason="stop")
+    result = await chat.post_message(Session(), UID, request("Where did you walk?"), "opening-followup")
+    system, messages = chat.llm.generate.await_args.args[:2]
+    assert greeting_context.identity_note(language) not in "\n".join(system)
+    assert sum(greeting_context.identity_note(language) in m["content"] for m in messages) == int(has_opening)
+    assert sum(m["content"] == opening for m in messages) == int(has_opening)
+    assert all(greeting_context.reference_note(language) not in m["content"] for m in messages)
+    assert result.greeting is None
+
+
+async def test_followup_essential_budget_includes_the_same_identity_rule(setup, monkeypatch):
+    normal_context(monkeypatch)
+    chat._context.return_value = chat.ContextWindow(
+        [{"role": "assistant", "content": "I took a walk."}, {"role": "user", "content": "Where?"}],
+        None, [], has_displayed_opening=True)
+
+    def actual(system, messages, **kwargs):
+        assert any(greeting_context.identity_note("ko") in m["content"] for m in messages)
+        raise chat.context_retention.RetentionError("context_input_budget")
+
+    checked = []
+
+    def essential(system, messages, **kwargs):
+        checked.append(messages)
+        assert sum(greeting_context.identity_note("ko") in m["content"] for m in messages) == 1
+        assert all("I took a walk." not in m["content"] for m in messages)
+        return True
+
+    monkeypatch.setattr(chat.context_retention, "assert_input_budget", actual)
+    monkeypatch.setattr(chat.context_retention, "fits_input_budget", essential)
+    with pytest.raises(errors.AppError) as caught:
+        await chat.post_message(Session(), UID, request("Where?"), "opening-followup-pressure")
+    assert caught.value.code == "AI_UNAVAILABLE" and len(checked) == 1
+
+
+@pytest.mark.parametrize("retention", [False, True])
+@pytest.mark.parametrize("kind,foreign,leading,expected", [
+    ("greeting", False, False, True), ("greeting", False, True, True),
+    ("greeting", True, False, False), ("normal", False, False, False),
+])
+async def test_context_opening_flag_comes_from_owned_row_kind_not_matching_text(retention, kind, foreign, leading, expected):
+    uid = uuid.UUID(UID)
+    stamp = datetime(2026, 11, 5, tzinfo=timezone.utc)
+    opening = Message(id=12, user_id=uuid.uuid4() if foreign else uid,
+        sender="moly", kind=kind, content="A displayed opening.", activity_date=stamp.date(), created_at=stamp)
+    previous = Message(id=11, user_id=uid, sender="user", kind="normal", content="Earlier subject.",
+        activity_date=stamp.date(), created_at=stamp)
+    session = FakeSession(execute_items=[opening] if leading else [opening, previous])
+    context = await chat._context(session, uid, 0, current_text="Where?", current_date=stamp.date(),
+        current_at=stamp, retention_enabled=retention, normal_generation_projection=True)
+    assert context.has_displayed_opening is expected
+    assert len(context.lead) == int(leading)

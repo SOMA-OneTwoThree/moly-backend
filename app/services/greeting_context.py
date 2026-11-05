@@ -118,6 +118,18 @@ def reference_note(language: str | None) -> str:
     return _REFERENCE_NOTE[i18n.resolve(language)]
 
 
+_IDENTITY_NOTE = {
+    'ko': '상대가 현재 대화에 실제 남아 있는 캐피 인사말을 이어 물으면, 그 인사말의 화자와 이야기의 일관성을 유지해. 캐릭터로서 네가 한 말이며 상대가 한 말이 아니야. 네가 했다고 말한 일을 상대의 행동으로 뒤바꾸거나 반대로 부정하지 마. 원문에 없는 장소나 추가 경험은 만들지 말고, 모르는 세부는 모른다고 짧게 답해. 인사말 원문이 현재 대화에 없으면 그 내용이나 경험을 추측하지 마. 상대가 이전 주제나 새 주제를 명시하면 그 뜻을 따라가.',
+    'en': "If the user follows up on a Cappy opening that is actually present in the current conversation, preserve its speaker and story continuity. You said it as the character; it was not the user's statement. Do not reverse the action described in your opening or recast it as the user's action. Do not invent places or additional experiences absent from the original; briefly acknowledge details you do not know. If the original opening is absent from the current conversation, do not infer its contents or experiences. Follow an explicit reference to an earlier or new subject.",
+    'ja': '相手が、現在の会話に実際に残っているキャピーの声かけについて続けて尋ねたら、その声かけの話者と話の一貫性を保って。キャラクターとしてきみが言ったことで、相手が言ったことではないよ。きみがしたと話したことを相手の行動にすり替えたり、逆に否定したりしないで。原文にない場所や追加の経験は作らず、分からない細部は分からないと短く答えて。声かけの原文が現在の会話になければ、その内容や経験を推測しないで。相手が以前の話題や新しい話題を明示したら、その意味に従って。',
+}
+
+
+def identity_note(language: str | None) -> str:
+    """Conditional speaker continuity; no opening body or inferred facts."""
+    return _IDENTITY_NOTE[i18n.resolve(language)]
+
+
 def guard_history(raw_recent: Sequence[crisis_guard.GuardMessage], opening: OpeningSnapshot | None, *,
                   user_id: uuid.UUID, history_limit: int = 6):
     """Separate model projection; NEVER use it as the DB recent-message proof."""

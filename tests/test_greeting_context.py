@@ -148,6 +148,19 @@ def test_reference_note_is_equivalent_and_never_duplicates_the_opening(language,
     assert g.reference_note(language+'-'+language.upper())==note
 
 
+@pytest.mark.parametrize('language,fragments',[
+    ('ko',['현재 대화에 실제 남아','캐릭터로서 네가 한 말','상대의 행동으로 뒤바꾸거나','원문에 없는 장소','모르는 세부','원문이 현재 대화에 없으면','이전 주제나 새 주제를 명시']),
+    ('en',['actually present in the current conversation','You said it as the character',"not the user's statement",'Do not reverse the action','Do not invent places','details you do not know','original opening is absent','earlier or new subject']),
+    ('ja',['現在の会話に実際に残っている','キャラクターとしてきみが言った','相手が言ったことではない','相手の行動にすり替えたり','原文にない場所','分からない細部','原文が現在の会話になければ','以前の話題や新しい話題を明示']),
+])
+def test_identity_note_conditions_speaker_continuity_on_present_original(language,fragments):
+    note=g.identity_note(language)
+    assert all(fragment in note for fragment in fragments)
+    assert opening().text not in note
+    assert g.identity_note(language+'-'+language.upper())==note
+    assert g.reference_note(language)!=note
+
+
 @pytest.mark.parametrize('language,displayed,current',[
     ('ko','방금 산책을 다녀왔어.','나도.'),
     ('ko','방금 밥을 먹었어.','어제 메뉴 얘기로 돌아갈래.'),
@@ -162,7 +175,7 @@ def test_reference_note_is_equivalent_and_never_duplicates_the_opening(language,
 async def test_actual_direct_provider_payload_has_current_opening_adjacent_and_preserves_explicit_input(monkeypatch,language,displayed,current):
     snapshot=opening(displayed)
     messages=history(current)
-    messages[-2]['content']+='\n'+g.reference_note(language)
+    messages[-2]['content']+='\n'+g.reference_note(language)+'\n'+g.identity_note(language)
     arranged=g.attach(messages,snapshot,user_id=UID)
     create=AsyncMock(return_value=SimpleNamespace(choices=[SimpleNamespace(
         message=SimpleNamespace(content='synthetic reply'),finish_reason='stop')],usage=None,model='synthetic',id='synthetic'))
@@ -170,6 +183,7 @@ async def test_actual_direct_provider_payload_has_current_opening_adjacent_and_p
     await llm._generate_openai(['Stable persona'],arranged,model='gpt-6-luna',timeout=1)
     sent=create.await_args.kwargs['messages']
     assert_adjacent(sent,snapshot.text,current)
+    assert sum(g.identity_note(language) in (m.get('content') or '') for m in sent)==1
     assert 'Covered old breakfast' in [m['content'] for m in sent]
     assert all(set(m)=={'role','content'} for m in sent)
     # The typed agent serializer must agree on role/order, not invent a system lead.
@@ -180,6 +194,7 @@ async def test_actual_direct_provider_payload_has_current_opening_adjacent_and_p
 async def test_agent_two_hops_and_coverage_pruning_keep_mandatory_opening(monkeypatch):
     snapshot=opening('I just had dinner')
     messages=history('What did you eat?')
+    messages[-2]['content']+='\n'+g.identity_note('en')
     arranged=g.attach(messages,snapshot,user_id=UID)
     coverage=VerifiedCoverage(UID,0,uuid.UUID(int=9),2,'a'*64).bind_sources(m.source_ref for m in messages[:2])
     pruned=without_covered(arranged,coverage)
@@ -198,9 +213,21 @@ async def test_agent_two_hops_and_coverage_pruning_keep_mandatory_opening(monkey
     for call in fake.calls:
         sent=llm.to_openai_messages(['Stable persona'],call['transcript'])
         assert_adjacent(sent,snapshot.text,messages[-1]['content'])
+        assert sum(g.identity_note('en') in (m.get('content') or '') for m in sent)==1
         assert not any('Covered old' in (m.get('content') or '') for m in sent)
     final=llm.to_openai_messages([],fake.calls[-1]['transcript'])
     assert any(m['role']=='tool' for m in final)
+
+
+@pytest.mark.parametrize('language',['ko','en','ja'])
+def test_identity_note_does_not_reconstruct_absent_or_pruned_original(language):
+    current=HistoryEntry('user','Explicit different subject')
+    messages=[HistoryEntry('system',g.reference_note(language)+'\n'+g.identity_note(language)),current]
+    assert g.attach(messages,None,user_id=UID) is messages
+    wire=llm.to_openai_messages([],runtime._transcript(messages))
+    assert not any(m['role']=='assistant' for m in wire)
+    assert not any(opening().text in m['content'] for m in wire)
+    assert wire[-1]==dict(current)
 
 
 def test_guard_opening_is_separate_virtual_context_and_never_mutates_db_proof():

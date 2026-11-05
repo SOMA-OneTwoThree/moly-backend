@@ -242,14 +242,15 @@ def _profiled_services(argv,services):
             if name=='backend' or '*' in profiles or name in profiles}
 
 
-@pytest.mark.parametrize('mutation',[None,'environment_override','wrong_image','missing_profile'])
+@pytest.mark.parametrize('mutation',[None,'absent_production_marker','environment_override','wrong_image','missing_profile'])
 def test_remote_preflight_executes_fresh_check_and_proves_common_role_environment(tmp_path,monkeypatch,capsys,mutation):
     import subprocess
     root=tmp_path/'infra'
     state=root/'.deploy-state'
     state.mkdir(parents=True)
     marker=tmp_path/'environment'
-    marker.write_text('prod')
+    if mutation!='absent_production_marker':
+        marker.write_text('prod')
     target=state/'chat-content-proof.next.json'
     target.write_text(json.dumps({'stale':True}))
     config={'action':'preflight','environment':'production','sha':SHA,'tag':SHA,'infra_sha':INFRA,'image':'moly-backend'}
@@ -288,7 +289,7 @@ def test_remote_preflight_executes_fresh_check_and_proves_common_role_environmen
     source=w.REMOTE.replace('CONFIGURATION',repr(config),1).replace("Path('/root/moly-infra')",f'Path({str(root)!r})').replace("Path('/etc/moly-env')",f'Path({str(marker)!r})')
     if mutation=='missing_profile':
         source=source.replace("'--profile','*',",'')
-    if mutation:
+    if mutation in {'environment_override','wrong_image','missing_profile'}:
         with pytest.raises(SystemExit):
             exec(compile(source,'remote-preflight','exec'),{})
         blocked=json.loads(capsys.readouterr().out)
@@ -383,3 +384,43 @@ def test_failed_ssm_propagates_only_fixed_action_stage_and_reason(monkeypatch,re
     with pytest.raises(w.Blocked) as error:
         cloud.remote(IDS[0],{'action':'collect'})
     assert str(error.value)==expected and 'canary' not in str(error.value)
+
+
+@pytest.mark.parametrize('environment,marker,accepted',[
+    ('production',None,True),('production',b'prod\n',True),
+    ('development',b'dev\n',True),('development',None,False),
+    ('production',b'dev',False),('development',b'prod',False),
+    ('production',b'',False),('production',b' prod\n',False),
+    ('production',b'prod\r\n',False),('development',b'dev \n',False),
+])
+def test_remote_host_gate_matches_shell_legacy_default_without_cross_environment_fallback(
+        tmp_path,monkeypatch,capsys,environment,marker,accepted):
+    root=tmp_path/'infra'
+    root.mkdir()
+    path=tmp_path/'moly-env'
+    if marker is not None:
+        path.write_bytes(marker)
+    config={'action':'invalid','environment':environment}
+    source=w.REMOTE.replace('CONFIGURATION',repr(config),1).replace(
+        "Path('/root/moly-infra')",f'Path({str(root)!r})').replace(
+        "Path('/etc/moly-env')",f'Path({str(path)!r})')
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SystemExit):
+        exec(compile(source,'remote-host-gate','exec'),{})
+    value=json.loads(capsys.readouterr().out)
+    # An invalid action is reached only if the host gate accepted the target.
+    assert value['reason']==('unknown_action' if accepted else 'host_environment')
+
+
+def test_unreadable_host_marker_is_not_treated_as_legacy_production(tmp_path,monkeypatch,capsys):
+    path=tmp_path/'moly-env'
+    def unreadable(self):
+        raise PermissionError('private-marker-canary')
+    monkeypatch.setattr(Path,'read_bytes',unreadable)
+    source=w.REMOTE.replace('CONFIGURATION',repr({'action':'invalid','environment':'production'}),1).replace(
+        "Path('/etc/moly-env')",f'Path({str(path)!r})')
+    with pytest.raises(SystemExit):
+        exec(compile(source,'remote-host-gate','exec'),{})
+    raw=capsys.readouterr().out
+    assert json.loads(raw)['reason']=='command_failed'
+    assert 'canary' not in raw

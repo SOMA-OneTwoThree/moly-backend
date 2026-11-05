@@ -169,7 +169,12 @@ def source_tokens(messages: Sequence[Any]) -> int:
 
 def assert_input_budget(system, messages, *, tools=(), input_limit: int = 16_384,
                         output_reserve: int = 1_024) -> int:
-    """전체 직렬화 입력의 보수 상한을 검사한다. 초과를 조용한 원문 삭제로 고치지 않는다."""
+    """전체 직렬화 입력의 보수 상한을 검사한다. 이 함수는 초과를 고치지 않는다.
+
+    원문을 덜 보내는 경우는 둘뿐이다. 게시된 요약이 덮은 원문을 빼는 경우(`without_covered`)와,
+    요약 게시를 기다리지 못한 대화 요청이 그 요청에서만 가장 오래된 원문부터 빼고 "앞 대화가
+    빠졌을 수 있다" 안내를 붙이는 경우다. 뒤의 경우도 앵커와 요약 범위는 바꾸지 않는다.
+    """
     payload = json.dumps({"system": system, "messages": messages, "tools": tools},
                          ensure_ascii=False, sort_keys=True, default=str)
     bound = token_upper_bound(payload) + 1_024 + max(0, output_reserve)

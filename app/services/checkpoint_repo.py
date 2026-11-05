@@ -20,7 +20,7 @@ import logging
 import uuid
 from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -555,6 +555,8 @@ class PressureReservation:
     status: str
     through_message_id: int | None = None
     job_id: uuid.UUID | None = None
+    # "pending"일 때 이미 대기 중인 요약 작업의 생성 시각. 대화가 기다릴지 판단하는 참고값일 뿐이다.
+    waiting_since: datetime | None = field(default=None, compare=False)
 
 
 _WAKE_CHECKPOINT_INGEST = text("""
@@ -808,8 +810,10 @@ async def request_pressure(session: AsyncSession, *, user_id, generation: int,
     await wake_checkpoint_ingest(session, user_id=user_id, generation=generation,
                                 through_id=int(target))
     # 실행 중 원본 payload와 준비 중인 normal 계획도 변경하지 않는다.
-    if (await retention_release.execute(session, _RETENTION_PENDING, {"user_id": user_id})).first() is not None:
-        return PressureReservation("pending", int(target))
+    pending = (await retention_release.execute(session, _RETENTION_PENDING, {"user_id": user_id})).first()
+    if pending is not None:
+        return PressureReservation("pending", int(target),
+                                   waiting_since=pending[3] if len(pending) > 3 else None)
     sources = await load_pressure_sources(session, user_id,
         after_id=previous.through_message_id if previous else source_after, through_id=int(target))
     if not sources:

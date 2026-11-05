@@ -1,6 +1,6 @@
 """Same-request recovery owns one lease, classification, publication and charge."""
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import time
 from unittest.mock import AsyncMock
 
@@ -114,16 +114,15 @@ async def test_assembled_pressure_reloads_memory_and_preserves_one_embedding_cac
     chat.llm.generate.assert_awaited_once()
 
 
-@pytest.mark.parametrize('outcome', ['no_progress', 'cancel', 'replaced_lease', 'second_pressure'])
+@pytest.mark.parametrize('outcome', ['cancel', 'replaced_lease', 'unreadable_even_shortened'])
 async def test_failed_resume_never_publishes_or_charges(handoff, monkeypatch, outcome):
     *_, contexts, wait = handoff
-    if outcome == 'no_progress':
-        wait.return_value = False
-    elif outcome == 'cancel':
+    if outcome == 'cancel':
         wait.side_effect = asyncio.CancelledError()
     elif outcome == 'replaced_lease':
         chat.chat_turns.verify_publish = AsyncMock(side_effect=[None, errors.AppError('CHAT_TURN_STALE', 409, 'stale')])
     else:
+        # Even the one shortened-history preparation reports pressure: no second fallback.
         monkeypatch.setattr(chat, '_context', AsyncMock(side_effect=chat._HistoryReadPressure))
     session = ResumableSession()
     with pytest.raises((errors.AppError, asyncio.CancelledError)):
@@ -133,6 +132,94 @@ async def test_failed_resume_never_publishes_or_charges(handoff, monkeypatch, ou
     chat.llm.generate.assert_not_awaited()
     chat.chat_turns.release.assert_awaited_once()
     assert wait.await_count <= 1
+
+
+NOTICE = 'Earlier conversation may be missing'
+
+
+def _sent_notice():
+    return sum(NOTICE in message['content'] for message in chat.llm.generate.await_args.args[1])
+
+
+@pytest.mark.parametrize('outcome', ['no_progress', 'second_pressure'])
+async def test_failed_wait_answers_from_shortened_recent_history(handoff, monkeypatch, outcome):
+    _, _, decision, acquire, finish, contexts, wait = handoff
+    if outcome == 'no_progress':
+        wait.return_value = False
+    else:
+        recorded = chat._context  # The fixture wrapper records every call it receives.
+        async def pressure_until_shortened(*args, **kwargs):
+            if not kwargs.get('truncate_unread'):
+                contexts.append(kwargs)
+                raise chat._HistoryReadPressure()
+            return await recorded(*args, **kwargs)
+        monkeypatch.setattr(chat, '_context', pressure_until_shortened)
+    save_anchor = AsyncMock()
+    monkeypatch.setattr(chat, '_save_anchor', save_anchor)
+    session = ResumableSession()
+    result = await execute(session)
+    assert result.reply.content == '합성 답변이야.'
+    assert contexts[-1]['truncate_unread'] is True
+    assert not any(kw.get('truncate_unread') for kw in contexts[:-1])
+    wait.assert_awaited_once()
+    decision.assert_awaited_once()
+    acquire.assert_awaited_once()
+    finish.assert_awaited_once()
+    chat.chat_turns.release.assert_not_awaited()
+    chat.llm.generate.assert_awaited_once()
+    chat._accumulate_tokens.assert_awaited_once()
+    assert len([x for x in session.added if isinstance(x, Message)]) == 2
+    assert _sent_notice() == 1
+    # The anchor never moves for a shortened view; the summary goal is reserved again
+    # through this reply so normal behavior returns once it publishes.
+    save_anchor.assert_not_awaited()
+    calls = chat.checkpoint_repo.request_pressure.await_args_list
+    assert all('through_id' not in call.kwargs for call in calls[:-1])
+    assert calls[-1].kwargs['through_id'] == int(result.reply.message_id)
+    assert finish.await_args.kwargs['lease'] == wait.await_args.args[2].lease
+
+
+async def test_long_stalled_publish_answers_without_waiting(handoff):
+    *_, wait = handoff
+    chat.checkpoint_repo.request_pressure.return_value = chat.checkpoint_repo.PressureReservation(
+        'pending', 400, waiting_since=datetime.now(timezone.utc) - timedelta(seconds=61))
+    session = ResumableSession()
+    result = await execute(session)
+    wait.assert_not_awaited()
+    assert result.reply.content == '합성 답변이야.' and _sent_notice() == 1
+    chat.chat_turns.release.assert_not_awaited()
+    chat._accumulate_tokens.assert_awaited_once()
+
+
+async def test_recent_pending_publish_still_waits(handoff):
+    *_, wait = handoff
+    chat.checkpoint_repo.request_pressure.return_value = chat.checkpoint_repo.PressureReservation(
+        'pending', 400, waiting_since=datetime.now(timezone.utc) - timedelta(seconds=30))
+    await execute()
+    wait.assert_awaited_once()
+    assert _sent_notice() == 0
+
+
+async def test_shortened_history_that_still_does_not_fit_keeps_503(handoff, monkeypatch):
+    *_, wait = handoff
+    wait.return_value = False
+    def over_budget(*args, **kwargs):
+        raise chat.context_retention.RetentionError('context_input_budget')
+    monkeypatch.setattr(chat.context_retention, 'assert_input_budget', over_budget)
+    def fits(system, messages, **kwargs):
+        # The essential-input check (no history notice) fits; every shortened prompt does not.
+        return not any(NOTICE in message['content'] for message in messages)
+    monkeypatch.setattr(chat.context_retention, 'fits_input_budget', fits)
+    session = ResumableSession()
+    with pytest.raises(errors.AppError) as caught:
+        await execute(session)
+    assert caught.value.code == 'AI_UNAVAILABLE'
+    assert session.added == []
+    chat.llm.generate.assert_not_awaited()
+    chat._accumulate_tokens.assert_not_awaited()
+    chat.chat_turns.release.assert_awaited_once()
+    # Only the first pressure reserved the summary; the failed fallback does not repeat it.
+    chat.checkpoint_repo.request_pressure.assert_awaited_once()
 
 
 @pytest.mark.parametrize('change', ['config', 'config_deleted', 'timezone', 'language', 'day', 'recent', 'barrier'])
@@ -181,9 +268,17 @@ async def test_policy_change_during_generation_is_rejected_before_final_storage(
 
 async def test_technical_decision_failure_keeps_original_fallback(handoff):
     handoff[2].return_value = crisis_guard.DecisionResult('timeout', route='normal')
-    with pytest.raises(errors.AppError):
-        await execute()
+    session = ResumableSession()
+    with pytest.raises(errors.AppError) as caught:
+        await execute(session)
+    assert caught.value.code == 'AI_UNAVAILABLE'
     handoff[-1].assert_not_awaited()
+    # No shortened-history answer either: the request is released without storage.
+    assert len(handoff[-2]) == 1
+    assert session.added == []
+    chat.llm.generate.assert_not_awaited()
+    chat._accumulate_tokens.assert_not_awaited()
+    chat.chat_turns.release.assert_awaited_once()
 
 
 async def test_fixed_guide_never_enters_normal_pressure_preparation(handoff):
@@ -261,15 +356,112 @@ async def test_disabled_writers_do_not_enter_inline_wait(handoff):
     session = ResumableSession()
     session.get_map['ChatContext'] = SimpleNamespace(anchor_message_id=0, memory_generation=0,
         last_active_at=None, retention_v5_adopted=True)
-    with pytest.raises(errors.AppError):
-        await execute(session)
+    # No inline wait; the same lease answers once from a shortened recent history.
+    await execute(session)
     handoff[-1].assert_not_awaited()
+    assert handoff[-2][-1]['truncate_unread'] is True and _sent_notice() == 1
+    chat.chat_turns.release.assert_not_awaited()
 
 
 @pytest.mark.parametrize('status', ['disabled', 'not_adopted', 'no_source', 'stale_generation'])
 async def test_reservation_without_a_valid_target_never_waits(handoff, status):
     chat.checkpoint_repo.request_pressure.return_value = chat.checkpoint_repo.PressureReservation(status)
-    with pytest.raises(errors.AppError):
-        await execute()
+    session = ResumableSession()
+    await execute(session)
     handoff[-1].assert_not_awaited()
-    chat._accumulate_tokens.assert_not_awaited()
+    assert handoff[-2][-1]['truncate_unread'] is True and _sent_notice() == 1
+    chat._accumulate_tokens.assert_awaited_once()
+    assert len([x for x in session.added if isinstance(x, Message)]) == 2
+
+
+def _stored(uid, message_id, chars=133):
+    # 133 Hangul syllables = 399 UTF-8 bytes; 120 of them exceed the foreground read limit.
+    return Message(id=message_id, user_id=uid, sender='user' if message_id % 2 else 'moly',
+                   kind='normal', content='가' * chars, activity_date=datetime(2026, 11, 5).date(),
+                   created_at=None)
+
+
+class _PagedSession:
+    def __init__(self, page):
+        self.pages = [page]
+
+    async def execute(self, stmt, params=None):
+        from tests.test_chat import _Result
+        return _Result(self.pages.pop(0) if self.pages else [])
+
+
+@pytest.mark.parametrize('truncate', [False, True])
+async def test_shortened_read_keeps_newest_rows_without_anchor_or_coverage(truncate):
+    import uuid
+    from app.services.context_provenance import VerifiedCoverage
+    uid = chat._uid(UID)
+    page = [_stored(uid, message_id) for message_id in range(130, 10, -1)]  # newest first
+    coverage = VerifiedCoverage(uid, 0, uuid.UUID(int=9), 10, 'a' * 64)
+    kwargs = dict(current_text='synthetic current', current_date=datetime(2026, 11, 5).date(),
+                  retention_enabled=True, memory_generation=0, coverage=coverage,
+                  truncate_unread=truncate)
+    if not truncate:
+        with pytest.raises(chat._HistoryReadPressure):
+            await chat._context(_PagedSession(page), uid, 0, **kwargs)
+        return
+    window = await chat._context(_PagedSession(page), uid, 0, **kwargs)
+    limit = chat.context_retention.FOREGROUND_INPUT_LIMIT
+    history = [entry for entry in window.conversation if entry.source_ref is not None]
+    kept_ids = [entry.source_ref.message_id for entry in history]
+    lead_ids = [message.id for message in window.lead]
+    assert window.incomplete is True
+    # The anchor comes only from the published boundary (through=10), never from the cut.
+    assert window.new_anchor == 11
+    # Dropped rows are not granted as summarized; nothing fetched is covered either.
+    assert window.coverage.source_refs == frozenset()
+    # The kept view is the newest contiguous suffix within the read limit.
+    assert sorted(lead_ids + kept_ids) == list(range(min(lead_ids + kept_ids), 131))
+    assert min(lead_ids + kept_ids) > 11
+    assert chat.context_retention.source_tokens(
+        [m for m in page if m.id in set(lead_ids + kept_ids)]) <= limit
+    # The truncated size is not reported as the whole history.
+    assert window.retention_source_bytes > limit
+    assert window.conversation[-1]['content'].endswith('synthetic current')
+    assert window.conversation[-1].source_ref is None
+    assert history[0]['role'] == 'user'
+
+
+def test_trim_drops_only_oldest_sourced_history_and_a_leading_reply():
+    import hashlib
+    from app.services.context_provenance import HistoryEntry, SourceRef
+    uid = chat._uid(UID)
+    def sourced(message_id, role, text):
+        ref = SourceRef(uid, message_id, 0, hashlib.sha256(text.encode()).hexdigest())
+        return HistoryEntry(role, text, source_ref=ref)
+    lead = sourced(1, 'system', 'old lead')
+    convo = [lead, sourced(2, 'user', 'u2'), sourced(3, 'assistant', 'a3'),
+             sourced(4, 'user', 'u4'), sourced(5, 'assistant', 'a5'),
+             {'role': 'system', 'content': 'volatile summary memory facts'},
+             {'role': 'user', 'content': 'current'}]
+    budget = {'size': 5}
+    def fits(items):
+        return len(items) <= budget['size']
+    trimmed = chat._trim_oldest_history(convo, fits)
+    # lead, u2 dropped; a3 then leads and is dropped with them.
+    assert [item['content'] for item in trimmed] == ['u4', 'a5', 'volatile summary memory facts', 'current']
+    budget['size'] = 2
+    assert [item['content'] for item in chat._trim_oldest_history(convo, fits)] == [
+        'volatile summary memory facts', 'current']
+    budget['size'] = 1
+    assert chat._trim_oldest_history(convo, fits) is None
+    budget['size'] = 7
+    assert chat._trim_oldest_history(convo, fits) == convo
+
+
+async def test_wait_stops_early_enough_to_reprepare(monkeypatch):
+    from types import SimpleNamespace
+    session = SimpleNamespace(expunge_all=lambda: None, commit=AsyncMock(), rollback=AsyncMock())
+    started = time.monotonic()
+    state = SimpleNamespace(deadline=started + chat._PRESSURE_REPREPARE_S + 0.05, model_reserve=0,
+                            generation=0, baseline_through=100, required_through=400)
+    monkeypatch.setattr(chat, '_validate_pressure_resume', AsyncMock())
+    monkeypatch.setattr(chat.checkpoint_repo, 'load_latest', AsyncMock(return_value=None))
+    monkeypatch.setattr(chat.checkpoint_repo, 'coverage_for_checkpoint', AsyncMock(return_value=None))
+    assert not await chat._wait_for_context_progress(session, 'synthetic-user', state)
+    # It stops before deadline - model_reserve - reprepare, not at deadline - model_reserve.
+    assert time.monotonic() - started < chat._PRESSURE_REPREPARE_S

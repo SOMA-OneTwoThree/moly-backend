@@ -83,7 +83,13 @@ def same(a,b):
     return {k:v for k,v in a.items() if k!='started'}=={k:v for k,v in b.items() if k!='started'}
 try:
     marker='prod' if c['environment']=='production' else 'dev'
-    if Path('/etc/moly-env').read_text().strip()!=marker: raise ValueError('host_environment')
+    # Match deploy.sh: a missing marker is the legacy production default.
+    # Other read failures and malformed/empty markers must still fail closed.
+    try:
+        host_marker=Path('/etc/moly-env').read_bytes().rstrip(b'\n')
+    except FileNotFoundError:
+        host_marker=b'prod'
+    if host_marker!=marker.encode(): raise ValueError('host_environment')
     os.chdir(root)
     action=c['action']
     if action in ('bootstrap','expand','preflight'):

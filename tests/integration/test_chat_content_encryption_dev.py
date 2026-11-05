@@ -133,3 +133,64 @@ async def test_an_active_writer_prevents_cutover_until_its_transaction_finishes(
             await other.fetchval("SELECT value FROM app_config WHERE key='chat_content_encryption_state' FOR UPDATE NOWAIT")
     finally:
         await other.close()
+
+
+@pytest.mark.parametrize('retention', [False, True])
+@pytest.mark.parametrize('language,fact', [
+    ('ko', '새 대화에 저장한 {유저이름}의 확인 코드는 보라달-4729🙂야.'),
+    ('en', "The new conversation stores {유저이름}'s verification code VioletMoon-4729🙂."),
+    ('ja', '新しい会話に保存した{유저이름}の確認コードは紫月-4729🙂だよ。'),
+])
+@pytest.mark.parametrize('corrupt', [False, True])
+async def test_model_sdk_receives_decrypted_history_and_never_corrupt_ciphertext(
+    checkpoint_db, monkeypatch, retention, language, fact, corrupt,
+):
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+    from app.services import llm, naming
+    from app.services.context_provenance import wire_messages
+    session, (uid, _) = checkpoint_db
+    values = [('user', 'Synthetic legacy conversation.', False),
+              ('moly', 'Synthetic legacy reply.', False),
+              ('user', fact, True), ('moly', 'Synthetic stored acknowledgment.', True)]
+    stored = []
+    for sender, body, encrypted in values:
+        row = Message(user_id=uid, sender=sender, kind='normal', activity_date=date.today(),
+                      created_at=datetime.now(timezone.utc),
+                      **storage.encode_message(user_id=uid, text=body,
+                          mode=EncryptionMode(encrypted, 1, 1, (1,))))
+        session.add(row)
+        stored.append(row)
+    await session.flush()
+    if corrupt:
+        damaged = bytearray(stored[2].content_ciphertext)
+        damaged[-1] ^= 1
+        stored[2].content_ciphertext = bytes(damaged)
+        await session.flush()
+    create = AsyncMock(return_value=SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content='Synthetic completion.'), finish_reason='stop')],
+        usage=None, model='gpt-6-luna', id='synthetic-model-transport'))
+    monkeypatch.setattr(llm, '_get_openai_client', lambda: SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=create))))
+    if corrupt:
+        with pytest.raises(content_crypto.ContentCryptoError):
+            await chat._context(session, uid, 0, current_text='Repeat the verification code.',
+                current_date=date.today(), language=language, compact_crises=False,
+                retention_enabled=retention, memory_generation=0)
+        create.assert_not_awaited()
+        return
+    window = await chat._context(session, uid, 0, current_text='Repeat the verification code.',
+        current_date=date.today(), language=language, compact_crises=False,
+        retention_enabled=retention, memory_generation=0)
+    for entry in window.conversation:
+        entry['content'] = naming.render(entry['content'], 'Kai')
+    await llm.generate('Synthetic model input verification.', wire_messages(window.conversation),
+                       model='gpt-6-luna')
+    create.assert_awaited_once()
+    outgoing = create.await_args.kwargs['messages']
+    assert all(set(message) == {'role', 'content'} and isinstance(message['content'], str)
+               for message in outgoing)
+    assert any('Synthetic legacy conversation.' in message['content'] for message in outgoing)
+    assert any(fact.replace('{유저이름}', 'Kai') in message['content'] for message in outgoing)
+    assert all('content_ciphertext' not in message and 'content_chars' not in message for message in outgoing)
+    assert stored[2].content is None and stored[2].content_ciphertext and not session.dirty

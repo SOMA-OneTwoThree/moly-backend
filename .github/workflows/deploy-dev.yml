@@ -27,11 +27,6 @@ on:
         type: boolean
         required: false
         default: false
-      crypto_benchmark:
-        description: "Synthetic local codec timing only; requires preflight_only"
-        type: boolean
-        required: false
-        default: false
       infra_sha:
         description: "Reviewed chat-encryption infra branch commit (40 hex)"
         required: false
@@ -57,7 +52,6 @@ env:
   DEV_INFRA_SHA: ${{ inputs.infra_sha || '9e86e88ec456bad4e8a9307d5e8f21a478816a4c' }}
   VERIFY_DAILY_REPORT: "true"
   PREFLIGHT_ONLY: ${{ inputs.preflight_only && 'true' || 'false' }}
-  CRYPTO_BENCHMARK: ${{ inputs.crypto_benchmark && 'true' || 'false' }}
 
 jobs:
   build-and-deploy:
@@ -76,10 +70,6 @@ jobs:
           fi
           if [[ "$PREFLIGHT_ONLY" != true && "$PREFLIGHT_ONLY" != false ]]; then
             echo "INVALID_PREFLIGHT_MODE" >&2
-            exit 1
-          fi
-          if [[ "$CRYPTO_BENCHMARK" != true && "$CRYPTO_BENCHMARK" != false ]] || { [[ "$CRYPTO_BENCHMARK" = true ]] && [[ "$PREFLIGHT_ONLY" != true ]]; }; then
-            echo "CRYPTO_BENCHMARK_PREFLIGHT_REQUIRED" >&2
             exit 1
           fi
           if [[ "$PREFLIGHT_ONLY" = true ]] && { [[ "$EVENT_NAME" != workflow_dispatch ]] || [[ ! "$REQUESTED_IMAGE_TAG" =~ ^dev-[0-9a-f]{40}$ ]]; }; then
@@ -243,66 +233,10 @@ jobs:
                 189) reason=PREFLIGHT_KEYRING_STRUCTURE ;;
                 190) reason=PREFLIGHT_KEYRING_ENCODING ;;
                 191) reason=PREFLIGHT_KEYRING_READ ;;
-                192) reason=CRYPTO_BENCHMARK_FAILED ;;
                 *) reason=UNCLASSIFIED ;;
               esac
               echo "DEV_SSM_FAILED:$status:$reason" >&2
               return 1
-            fi
-            if [ "$CRYPTO_BENCHMARK" = true ]; then
-              local benchmark_file result
-              benchmark_file="$(mktemp)"
-              chmod 600 "$benchmark_file"
-              if ! aws ssm get-command-invocation --region "$AWS_REGION" \
-                --command-id "$cmd_id" --instance-id "$ID" \
-                --query StandardOutputContent --output text >"$benchmark_file" 2>/dev/null; then
-                rm -f "$benchmark_file"
-                echo "DEV_CRYPTO_BENCHMARK_OUTPUT_UNAVAILABLE" >&2
-                return 1
-              fi
-              if python - "$benchmark_file" <<'BENCHMARK_OUTPUT'
-          import json
-          import math
-          from pathlib import Path
-          import sys
-          try:
-              path = Path(sys.argv[1])
-              if path.stat().st_size > 65_536:
-                  raise ValueError()
-              prefix = "CHAT_CRYPTO_BENCHMARK "
-              lines = [line[len(prefix):] for line in path.read_text().splitlines() if line.startswith(prefix)]
-              if len(lines) != 1:
-                  raise ValueError()
-              def pairs(items):
-                  result = {}
-                  for key, value in items:
-                      if key in result:
-                          raise ValueError()
-                      result[key] = value
-                  return result
-              value = json.loads(lines[0], object_pairs_hook=pairs)
-              names = ("encrypted_turn", "plaintext_turn", "added_turn", "encrypted_window_decode", "plaintext_window_read", "added_window_read")
-              keys = {"samples", "warmup_samples", "window_messages", "message_chars", "storage_helpers_only"} | {
-                  name + suffix for name in names for suffix in ("_median_ms", "_p95_ms")}
-
-              if not isinstance(value, dict) or set(value) != keys:
-                  raise ValueError()
-              for key, item in value.items():
-                  minimum = -1000 if key.startswith("added_") else 0
-                  if type(item) not in (int, float) or not math.isfinite(item) or not minimum <= item <= 60_000:
-                      raise ValueError()
-              for key, expected in (("samples", 100), ("warmup_samples", 10), ("window_messages", 120), ("message_chars", 2000), ("storage_helpers_only", 1)):
-                  if type(value[key]) is not int or value[key] != expected:
-                      raise ValueError()
-              if any(value[name + "_p95_ms"] < value[name + "_median_ms"] for name in names):
-                  raise ValueError()
-              print(prefix + json.dumps(value, sort_keys=True, allow_nan=False))
-          except BaseException:
-              raise SystemExit("DEV_CRYPTO_BENCHMARK_OUTPUT_INVALID") from None
-          BENCHMARK_OUTPUT
-              then result=0; else result=1; fi
-              rm -f "$benchmark_file"
-              [ "$result" = 0 ] || return 1
             fi
             echo "DEV_SSM_SUCCESS"
           }
@@ -325,9 +259,6 @@ jobs:
           preflight = os.environ.get("PREFLIGHT_ONLY", "false")
           if preflight not in {"true", "false"}:
               raise SystemExit("INVALID_PREFLIGHT_MODE")
-          benchmark = os.environ.get("CRYPTO_BENCHMARK", "false")
-          if benchmark not in {"true", "false"} or (benchmark == "true" and preflight != "true"):
-              raise SystemExit("CRYPTO_BENCHMARK_PREFLIGHT_REQUIRED")
           container_probe = """import hashlib
           import json
           import sys
@@ -355,61 +286,6 @@ jobs:
               raise SystemExit(base + 4)
           print(fingerprint)
           """
-          crypto_benchmark = """import json,math,statistics,sys,time,uuid
-          try:
-              from app.config import settings
-              from app.core import content_crypto
-              from app.services.chat_content_encryption import EncryptionMode
-              from app.services import message_content
-              if settings.environment != 'development' or settings.git_sha != sys.argv[1]:
-                  raise ValueError()
-              content_crypto.initialize_content_crypto(required_key_ids=(1,))
-              modes = {'encrypted':EncryptionMode(True,1,1,(1,)), 'plaintext':EncryptionMode(False,1,1,(1,))}
-              owner = uuid.UUID(int=1)
-              text = '가' * 2000
-              response = {'messages':[{'role':'user','content':text},{'role':'assistant','content':text}]}
-              key, request_hash = 'synthetic-codec-benchmark', 'a' * 64
-              windows = {name:[message_content.encode_message(user_id=owner,text=text,mode=mode) for _ in range(120)]
-                         for name,mode in modes.items()}
-              names = ('encrypted_turn','plaintext_turn','added_turn','encrypted_window_decode','plaintext_window_read','added_window_read')
-              measurements = {name:[] for name in names}
-              for sample in range(110):
-                  turns,reads = {},{}
-                  order = ('encrypted','plaintext') if sample % 2 == 0 else ('plaintext','encrypted')
-                  for name in order:
-                      mode = modes[name]
-                      started = time.perf_counter_ns()
-                      first = message_content.encode_message(user_id=owner,text=text,mode=mode)
-                      second = message_content.encode_message(user_id=owner,text=text,mode=mode)
-                      saved = message_content.encode_response(user_id=owner,key=key,request_hash=request_hash,response=response,mode=mode)
-                      turns[name] = (time.perf_counter_ns() - started) / 1_000_000
-                      for item in (first,second):
-                          assert message_content.read_message_content(user_id=owner,legacy_text=item['content'],ciphertext=item['content_ciphertext'],chars=item['content_chars']) == text
-                      assert message_content.read_response(user_id=owner,key=key,request_hash=request_hash,
-                          version=saved['response_schema_version'],response=saved['response'],ciphertext=saved['response_ciphertext']) == response
-                  for name in order:
-                      started = time.perf_counter_ns()
-                      decoded = [message_content.read_message_content(user_id=owner,legacy_text=item['content'],
-                          ciphertext=item['content_ciphertext'],chars=item['content_chars']) for item in windows[name]]
-                      reads[name] = (time.perf_counter_ns() - started) / 1_000_000
-                      assert len(decoded) == 120 and all(value == text for value in decoded)
-                  if sample >= 10:
-                      for name,value in (('encrypted_turn',turns['encrypted']),('plaintext_turn',turns['plaintext']),
-                              ('added_turn',turns['encrypted']-turns['plaintext']),
-                              ('encrypted_window_decode',reads['encrypted']),('plaintext_window_read',reads['plaintext']),
-                              ('added_window_read',reads['encrypted']-reads['plaintext'])):
-                          measurements[name].append(value)
-              result = {'samples':100,'warmup_samples':10,'window_messages':120,'message_chars':2000,'storage_helpers_only':1}
-              for name,values in measurements.items():
-                  result[name+'_median_ms'] = statistics.median(values)
-                  result[name+'_p95_ms'] = sorted(values)[math.ceil(len(values)*.95)-1]
-              assert all(type(value) in (int,float) and math.isfinite(value) for value in result.values())
-              print('CHAT_CRYPTO_BENCHMARK ' + json.dumps(result,sort_keys=True,allow_nan=False))
-          except BaseException:
-              raise SystemExit(192) from None
-          """
-          benchmark_command = (f"docker exec moly-backend python -c {shlex.quote(crypto_benchmark)} {tag.removeprefix('dev-')} 2>/dev/null || exit 192"
-                               if benchmark == "true" else "")
           keyring_reason = """import base64,json,re,sys
           def pairs(items):
               result={}
@@ -496,7 +372,6 @@ jobs:
           trap 'rm -f "$diagnostic_log" "$diagnostic_keyring"' EXIT
           grep -q '^PREFLIGHT_ONLY=' deploy.sh && grep -q DEPLOY_PREFLIGHT_ONLY deploy.sh || exit 186
           if sudo env DEPLOY_PREFLIGHT_ONLY=1 bash deploy.sh {tag} >"$diagnostic_log" 2>&1; then
-            {benchmark_command}
             exit 0
           fi
           if grep -qF 'ERROR: chat_content_keyring_invalid' "$diagnostic_log"; then

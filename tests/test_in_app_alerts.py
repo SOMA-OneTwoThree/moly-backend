@@ -367,6 +367,21 @@ async def test_worker_entry_finishes_probe_even_when_tick_fails(monkeypatch):
     import worker.__main__ as entry
 
     order = []
+    from app.core import db
+    from app.services import chat_content_encryption
+
+    class CryptoSession:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return False
+
+    async def prepare(_session):
+        pass
+
+    monkeypatch.setattr(db, "get_sessionmaker", lambda: CryptoSession)
+    monkeypatch.setattr(chat_content_encryption, "prepare_reader", prepare)
 
     async def _tick(now):
         order.append("tick")

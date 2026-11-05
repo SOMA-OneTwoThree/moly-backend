@@ -5,12 +5,15 @@ raw messages and fact-pipeline cursors are never rewritten by this module.
 """
 from __future__ import annotations
 
+from app.services import message_content
+
 import asyncio
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
+import re
 import time
 import uuid
 
@@ -56,7 +59,7 @@ FROM profiles p LEFT JOIN chat_contexts cc ON cc.user_id=p.id
 LEFT JOIN privacy_subject_barriers b ON b.user_id=p.id
 LEFT JOIN memory_pipeline_states s ON s.user_id=p.id ORDER BY p.id
 """)
-_MESSAGES = """SELECT id,sender,kind,content,created_at,turn_seq,turn_position,xmin::text AS row_version
+_MESSAGES = """SELECT id,sender,kind,content,created_at,turn_seq,turn_position,xmin::text AS row_version,content_ciphertext,content_chars
 FROM messages WHERE user_id=:uid ORDER BY id"""
 _MEMORIES = """
 SELECT r.id,r.provider,r.collection_version,r.provider_memory_id,r.content_hash,
@@ -76,7 +79,7 @@ SELECT s.registry_id,s.source_message_id,s.source_sender,s.authority,s.xmin::tex
  s.evidence_start_utf8 AS start_utf8,s.evidence_end_utf8 AS end_utf8,
  s.source_content_hash AS span_hash,s.source_occurred_at,
  m.id AS actual_message_id,m.sender AS message_sender,m.kind AS message_kind,
- m.content AS message_content
+ m.content AS message_content,m.content_ciphertext AS message_ciphertext,m.content_chars AS message_chars
 FROM mem0_memory_sources s LEFT JOIN messages m
  ON m.id=s.source_message_id AND m.user_id=s.user_id
 WHERE s.user_id=:uid AND s.registry_id=ANY(CAST(:ids AS uuid[]))
@@ -154,7 +157,7 @@ async def read_user(session, user, *, lock=False, through_id=None):
             "WHERE x.registry_id=r.id AND x.user_id=r.user_id AND x.source_message_id<=:through) ORDER BY r.id")
         source_sql = source_sql.replace("ORDER BY s.registry_id",
             "AND s.source_message_id<=:through ORDER BY s.registry_id")
-    messages = [dict(r) for r in (await session.execute(
+    messages = [_logical_message(r, user_id=uid) for r in (await session.execute(
         text(message_sql + (" FOR SHARE" if lock else "")), parameters)).mappings().all()]
     memories = [dict(r) for r in (await session.execute(text(
         memory_sql + (" FOR UPDATE OF r" if lock else "")), parameters)).mappings().all()]
@@ -167,7 +170,7 @@ async def read_user(session, user, *, lock=False, through_id=None):
     sources = (await session.execute(text(source_sql), {**parameters, "ids": ids})).mappings().all() if ids else []
     evidence = {identity: [] for identity in ids}
     for source in sources:
-        proof = _source(source)
+        proof = _source(source, user_id=uid)
         evidence[source["registry_id"]].append(digest([
             proof.message_id, proof.source_sender, proof.authority, proof.start_utf8,
             proof.end_utf8, proof.span_hash, proof.raw_content_hash, proof.kind,
@@ -975,10 +978,10 @@ async def activate(session, token, *, deadline, prepared):
         # remain metadata until the same privacy policy explicitly permits them.
         new_ids = [uuid.UUID(str(user["user_id"])) for user in receipt["new_users"]
                    if authorize_metadata(user)]
-        all_messages = list(receipt["tail"])
+        all_messages = [_logical_message(row, receipt=True) for row in receipt["tail"]]
         if new_ids:
-            all_messages.extend((await session.execute(text(
-                "SELECT user_id,id,sender,kind,content FROM messages "
+            all_messages.extend(_logical_message(row) for row in (await session.execute(text(
+                "SELECT user_id,id,sender,kind,content,content_ciphertext,content_chars FROM messages "
                 "WHERE user_id=ANY(CAST(:ids AS uuid[])) ORDER BY id FOR SHARE NOWAIT"),
                 {"ids":new_ids})).mappings().all())
         grouped = {}
@@ -1048,6 +1051,23 @@ async def abort(session, identity):
         "FOR UPDATE SKIP LOCKED)"),
         {"id": str(identity)})
     return public_report(row["manifest_json"], preparation_id=identity)
+
+
+def _logical_message(row, *, user_id=None, receipt=False):
+    raw = dict(row._mapping if hasattr(row, "_mapping") else row)
+    if receipt:
+        if "content_ciphertext" in raw:
+            raise message_content.ContentCryptoError("content_receipt_hex_invalid")
+        encoded = raw.pop("content_ciphertext_hex", None)
+        if encoded is not None:
+            if (not isinstance(encoded, str) or not 64 <= len(encoded) <= 2 * (1_048_576 + 32)
+                    or len(encoded) % 2 or re.fullmatch(r"[0-9a-f]+", encoded) is None):
+                raise message_content.ContentCryptoError("content_receipt_hex_invalid")
+            raw["content_ciphertext"] = bytes.fromhex(encoded)
+    decoded = message_content.project_message(raw, user_id=user_id)
+    decoded.pop("content_ciphertext", None)
+    decoded.pop("content_chars", None)
+    return decoded
 
 
 def tail_digest(messages):

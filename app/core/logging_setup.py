@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import logging.config
+import re
 import time
 from typing import Any
 
@@ -32,6 +33,65 @@ def _access_args(record: logging.LogRecord) -> tuple | None:
     if record.name == "uvicorn.access" and isinstance(args, tuple) and len(args) == 5:
         return args
     return None
+
+
+class SensitiveDatabaseError(logging.Filter):
+    """Discard database server DETAIL, SQL/binds and cached traceback on every sink.
+
+    SQLAlchemy hide_parameters does not redact PostgreSQL's failing-row DETAIL.
+    Follow wrapped driver errors without formatting any object or changing the
+    exception itself, so retry/finalization/telemetry behavior stays unchanged.
+    """
+
+    @staticmethod
+    def _database_error(record):
+        from asyncpg import PostgresError
+        from sqlalchemy.exc import DBAPIError
+
+        pending = [record.msg, record.args]
+        if record.exc_info and isinstance(record.exc_info, tuple):
+            pending.append(record.exc_info[1])
+        seen = set()
+        selected = None
+        while pending:
+            item = pending.pop()
+            if id(item) in seen:
+                continue
+            seen.add(id(item))
+            if isinstance(item, BaseException):
+                if isinstance(item, (DBAPIError, PostgresError)):
+                    selected = item
+                pending.extend((item.__cause__, item.__context__, item.args))
+                if isinstance(item, DBAPIError):
+                    pending.append(item.orig)
+                if isinstance(item, BaseExceptionGroup):
+                    pending.extend(item.exceptions)
+            elif isinstance(item, dict):
+                pending.extend(item.values())
+            elif isinstance(item, (tuple, list)):
+                pending.extend(item)
+        return selected
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        error = self._database_error(record)
+        if error is None:
+            return True
+        error_type = type(error).__name__
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,79}", error_type):
+            error_type = "DatabaseError"
+        state = getattr(error, "sqlstate", None)
+        if not isinstance(state, str) or not re.fullmatch(r"[0-9A-Z]{5}", state):
+            state = "unknown"
+        # A fresh record also removes formatter-cached exc_text/message and all
+        # caller extras. No server exception/SQL/body survives for another sink.
+        safe = logging.LogRecord(record.name, record.levelno, "", 0,
+            "database_error error_type=%s sqlstate=%s", (error_type, state), None)
+        for key in ("created", "msecs", "relativeCreated"):
+            setattr(safe, key, getattr(record, key))
+        safe.error_type, safe.sqlstate = error_type, state
+        record.__dict__.clear()
+        record.__dict__.update(safe.__dict__)
+        return True
 
 
 class JsonFormatter(logging.Formatter):
@@ -92,12 +152,16 @@ def configure_logging(*, force: bool = False) -> None:
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {"std": formatter},
-        "filters": {"drop_health": {"()": "app.core.logging_setup.DropHealthAccess"}},
+        "filters": {
+            "drop_health": {"()": "app.core.logging_setup.DropHealthAccess"},
+            "database_safe": {"()": "app.core.logging_setup.SensitiveDatabaseError"},
+        },
         "handlers": {
             "stderr": {
                 "class": "logging.StreamHandler",
                 "stream": "ext://sys.stderr",
                 "formatter": "std",
+                "filters": ["database_safe"],
             },
         },
         "root": {"level": str(settings.log_level).upper(), "handlers": ["stderr"]},

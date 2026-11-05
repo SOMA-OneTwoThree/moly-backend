@@ -956,6 +956,62 @@ def derive_guard_context_candidate(*, baseline_schema: Path, baseline_contract: 
     return []
 
 
+
+_ENCRYPTION_COLUMNS = {
+    'public.messages.content_ciphertext': _column('bytea'),
+    'public.messages.content_chars': _column('integer'),
+    'public.greetings.content_ciphertext': _column('bytea'),
+    'public.idempotency_keys.response_ciphertext': _column('bytea'),
+}
+_ENCRYPTION_CONSTRAINT_KEYS = frozenset({
+    'public.messages.messages_content_storage_ck',
+    'public.greetings.greetings_content_storage_ck',
+    'public.idempotency_keys.idempotency_response_storage_ck',
+})
+
+
+# Canonical definitions from the reviewed development DDL (all remain unvalidated).
+_ENCRYPTION_CONSTRAINTS = {'public.greetings.greetings_content_storage_ck': {'definition': "CHECK ((((content_ciphertext IS NULL) AND (content IS NOT NULL)) OR ((content_ciphertext IS NOT NULL) AND (content IS NULL) AND\nCASE\n    WHEN ((octet_length(content_ciphertext) >= 32) AND (octet_length(content_ciphertext) <= 1048608)) THEN ((SUBSTRING(content_ciphertext FROM 1 FOR 2) = decode('0100'::text, 'hex'::text)) AND ((get_byte(content_ciphertext, 2) > 0) OR (get_byte(content_ciphertext, 3) > 0)))\n    ELSE false\nEND))) NOT VALID", 'validated': False, 'deferrable': False, 'deferred': False, 'enforcement_triggers': []}, 'public.idempotency_keys.idempotency_response_storage_ck': {'definition': "CHECK ((((response_schema_version <> 3) AND (response_ciphertext IS NULL)) OR ((response_schema_version = 3) AND (((response IS NULL) AND (response_ciphertext IS NULL) AND ((redacted_at IS NOT NULL) OR (terminal_status = ANY (ARRAY['expired'::text, 'redacted'::text])))) OR ((response IS NOT NULL) AND (response = '{}'::jsonb) AND (response_ciphertext IS NOT NULL) AND (redacted_at IS NULL) AND (terminal_status = 'succeeded'::text) AND (request_hash IS NOT NULL) AND (request_hash <> ''::text) AND (key !~~ 'shop-purchase:%'::text) AND (key !~~ 'topic-prepare:%'::text) AND\nCASE\n    WHEN ((octet_length(response_ciphertext) >= 32) AND (octet_length(response_ciphertext) <= 4194336)) THEN ((SUBSTRING(response_ciphertext FROM 1 FOR 2) = decode('0100'::text, 'hex'::text)) AND ((get_byte(response_ciphertext, 2) > 0) OR (get_byte(response_ciphertext, 3) > 0)))\n    ELSE false\nEND))))) NOT VALID", 'validated': False, 'deferrable': False, 'deferred': False, 'enforcement_triggers': []}, 'public.messages.messages_content_storage_ck': {'definition': "CHECK ((((content_ciphertext IS NULL) AND (content IS NOT NULL) AND (content_chars IS NULL)) OR ((content_ciphertext IS NOT NULL) AND (content IS NULL) AND (content_chars IS NOT NULL) AND (content_chars >= 0) AND (content_chars <= 1048576) AND\nCASE\n    WHEN ((octet_length(content_ciphertext) >= 32) AND (octet_length(content_ciphertext) <= 1048608)) THEN ((SUBSTRING(content_ciphertext FROM 1 FOR 2) = decode('0100'::text, 'hex'::text)) AND ((get_byte(content_ciphertext, 2) > 0) OR (get_byte(content_ciphertext, 3) > 0)) AND (content_chars <= (octet_length(content_ciphertext) - 32)) AND ((octet_length(content_ciphertext) - 32) <= (content_chars * 4)))\n    ELSE false\nEND))) NOT VALID", 'validated': False, 'deferrable': False, 'deferred': False, 'enforcement_triggers': []}}
+
+def reviewed_encryption_catalog_upgrade(baseline: dict, *, constraints: dict) -> dict:
+    """Derive only the reviewed encryption objects, preserving every baseline grant.
+
+    `constraints` contains PostgreSQL's canonical definitions read after applying
+    the reviewed SQL checksum to development. The release operator checks those
+    three definitions against that exact DDL; this helper never queries a DB or
+    imports unrelated live catalog objects. NOT VALID is an intentional property.
+    """
+    if constraints != _ENCRYPTION_CONSTRAINTS or set(constraints) != _ENCRYPTION_CONSTRAINT_KEYS:
+        raise ValueError('unexpected reviewed encryption constraints')
+    for value in constraints.values():
+        if (set(value) != {'definition', 'validated', 'deferrable', 'deferred', 'enforcement_triggers'}
+                or not isinstance(value['definition'], str)
+                or not value['definition'].startswith('CHECK (')
+                or not value['definition'].endswith('NOT VALID')
+                or value['validated'] is not False or value['deferrable'] is not False
+                or value['deferred'] is not False or value['enforcement_triggers'] != []):
+            raise ValueError('unexpected reviewed encryption constraint metadata')
+    result = deepcopy(baseline)
+    for key, definition in _ENCRYPTION_COLUMNS.items():
+        if key in result['columns']:
+            raise ValueError('encryption column already exists in baseline')
+        result['columns'][key] = deepcopy(definition)
+    for key in ('public.messages.content', 'public.greetings.content'):
+        if result['columns'][key] != _column('text', not_null=True):
+            raise ValueError('unexpected original plaintext column')
+        result['columns'][key]['not_null'] = False
+    for key, definition in constraints.items():
+        if key in result['constraints']:
+            raise ValueError('encryption constraint already exists in baseline')
+        result['constraints'][key] = deepcopy(definition)
+    deletion = result['functions']['public.begin_subject_deletion(uuid,uuid)']
+    old = "SET response = NULL, terminal_status = 'redacted', redacted_at = now()"
+    if deletion['definition'].count(old) != 1:
+        raise ValueError('unexpected original deletion function')
+    deletion['definition'] = deletion['definition'].replace(
+        old, "SET response = NULL, response_ciphertext = NULL, terminal_status = 'redacted', redacted_at = now()")
+    return result
+
 def schema_digest() -> str:
     return hashlib.sha256(SCHEMA.read_bytes()).hexdigest()
 

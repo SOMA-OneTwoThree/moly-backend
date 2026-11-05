@@ -23,6 +23,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.config import settings  # noqa: E402
+from app.services import message_content  # noqa: E402
 from app.models.idempotency_key import SHOP_PURCHASE_KEY_PREFIX  # noqa: E402
 from app.schemas.chat import PostMessageResponse  # noqa: E402
 from app.schemas.shop import PurchaseResponse  # noqa: E402
@@ -49,6 +50,29 @@ def is_compatible_response(payload: Any, *, key: str = "") -> bool:
     return True
 
 
+def classify_response_row(row) -> str:
+    """Never authorize deletion from an unavailable/decryption-failed v3 row."""
+    version = row["response_schema_version"]
+    if version in (1, 2) and type(version) is int:
+        if row["response_ciphertext"] is not None:
+            return "protected"
+        return "compatible" if is_compatible_response(row["response"], key=str(row["key"])) else "invalid"
+    if version != 3 or type(version) is not int:
+        return "protected"
+    try:
+        payload = message_content.read_response(user_id=row["user_id"], key=str(row["key"]),
+            request_hash=row["request_hash"], version=version, response=row["response"],
+            ciphertext=row["response_ciphertext"], redacted_at=row["redacted_at"],
+            terminal_status=row["terminal_status"])
+    except message_content.ContentCryptoError:
+        return "protected"
+    if payload is None:
+        return "tombstone"
+    # A stored encrypted response with a bad DTO remains a dedupe tombstone;
+    # deleting it could execute/charge an already committed request again.
+    return "compatible" if is_compatible_response(payload, key=str(row["key"])) else "protected"
+
+
 def _key_fingerprint(key: str) -> str:
     return hashlib.sha256(key.encode("utf-8")).hexdigest()[:12]
 
@@ -61,17 +85,28 @@ async def run(*, delete_invalid: bool) -> int:
         async with connection.transaction():
             total = 0
             invalid: list[tuple[str, str]] = []
+            protected = 0
+            tombstones = 0
             async for row in connection.cursor(
-                "SELECT user_id::text AS user_id, key, response FROM public.idempotency_keys"
+                "SELECT user_id::text AS user_id,key,response,response_schema_version,response_ciphertext,request_hash,"
+                "redacted_at,terminal_status FROM public.idempotency_keys"
             ):
                 total += 1
-                if not is_compatible_response(row["response"], key=str(row["key"])):
+                status = classify_response_row(row)
+                if status == "invalid":
                     invalid.append((str(row["user_id"]), str(row["key"])))
+                protected += status == "protected"
+                tombstones += status == "tombstone"
 
-            print(f"검사 {total}건: 호환 {total - len(invalid)}건, 비호환 {len(invalid)}건")
+            print(f"검사 {total}건: 호환 {total - len(invalid) - protected - tombstones}건, 비호환 {len(invalid)}건")
             for user_id, key in invalid:
                 print(f"  invalid user_id={user_id} key_sha256={_key_fingerprint(key)}")
 
+            if protected:
+                print(f"암호 응답 {protected}건은 검증 보류 상태라 삭제하지 않습니다.")
+                return len(invalid) + protected
+            if tombstones:
+                print(f"정상 정리된 암호 응답 {tombstones}건은 중복 차단 키로 보존합니다.")
             if not delete_invalid:
                 print("읽기 전용 검사 완료. 삭제하려면 --delete-invalid를 명시하세요.")
                 return len(invalid)

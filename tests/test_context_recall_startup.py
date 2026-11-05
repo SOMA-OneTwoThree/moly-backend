@@ -148,7 +148,8 @@ async def test_lifespan_cannot_start_flusher_or_yield_before_preparation_finishe
     local_factories, monkeypatch, cancel_startup,
 ):
     from app.main import create_app
-    from app.services import crisis_chat, training_catalog
+    from app.services import crisis_chat, training_catalog, chat_content_encryption
+    monkeypatch.setattr(chat_content_encryption, "prepare_runtime", AsyncMock())
     from app.services.banner_catalog import BannerCatalog
     from app.services.topic_catalog import TopicCatalog
 

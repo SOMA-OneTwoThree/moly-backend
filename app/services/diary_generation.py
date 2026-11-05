@@ -5,6 +5,8 @@
 """
 from __future__ import annotations
 
+from app.services import message_content
+
 import asyncio
 import difflib
 import logging
@@ -498,7 +500,9 @@ async def _generate_for_user(session, profile, target_date, cfg, *, policy):
     if await _diary_exists(session, profile.id, target_date):
         return {"created": False, "skipped": True, "reason": "already_exists"}
     await privacy.ensure_subject_active(session, profile.id)
-    messages = [SimpleNamespace(id=m.id, sender=m.sender, content=m.content)
+    messages = [SimpleNamespace(id=m.id, sender=m.sender, content=message_content.read_message_content(
+        user_id=profile.id, legacy_text=m.content, ciphertext=getattr(m, "content_ciphertext", None),
+        chars=getattr(m, "content_chars", None)))
                 for m in await _day_messages(session, profile.id, target_date)]
     user_chars = sum(len(m.content or "") for m in messages if m.sender == "user")
     gate_passed = bool(messages) and user_chars >= gate

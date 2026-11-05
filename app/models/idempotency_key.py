@@ -8,7 +8,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, ForeignKeyConstraint, String, text
+from sqlalchemy import BigInteger, DateTime, ForeignKeyConstraint, LargeBinary, String, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -41,6 +41,7 @@ class IdempotencyKey(Base):
     )
     # legacy snapshot은 TTL 동안만 유지한다. 정본은 reply_message_id + chat_response_references다.
     response: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    response_ciphertext: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     reply_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     terminal_status: Mapped[str] = mapped_column(
         String, nullable=False, server_default=text("'succeeded'")

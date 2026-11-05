@@ -314,7 +314,9 @@ class Runner:
         return True
 
     async def raw_message_proofs(self, uid: uuid.UUID, ids: list[int]) -> dict[int, tuple[str, str, str]]:
-        rows = await self.db.fetch("""SELECT id,sender,kind,md5(COALESCE(content,'')) AS content_hash
+        rows = await self.db.fetch("""SELECT id,sender,kind,
+          encode(sha256(convert_to(jsonb_build_array(content,encode(content_ciphertext,'hex'),content_chars)::text,
+            'UTF8')),'hex') AS content_hash
           FROM messages WHERE user_id=$1 AND id=ANY($2::bigint[]) ORDER BY id""", uid, ids)
         require({row["id"] for row in rows} == set(ids), "recovery_raw_messages_missing")
         return {row["id"]: (row["sender"], row["kind"], row["content_hash"]) for row in rows}
@@ -518,6 +520,9 @@ class Runner:
     async def send(self, uid: uuid.UUID, token: str, scenario: dict, step: dict) -> bool:
         headers = {"Authorization": f"Bearer {token}", "Idempotency-Key": f"guard-v2-{uuid.uuid4().hex}"}
         body = {"text": step["text"], "locale": scenario["language"]}
+        if step.get("greeting_id") is not None:
+            require(str(uuid.UUID(step["greeting_id"])) == step["greeting_id"], "greeting_identity_invalid")
+            body["greeting_id"] = step["greeting_id"]
         before = await self.snapshot(uid)
         checkpoint_before = 0
         if step.get("allow_recovery"):
@@ -581,7 +586,7 @@ class Runner:
         if scenario.get("require_recovery") or scenario.get("require_checkpoint"):
             self.raw_proofs.setdefault(uid, {}).update(await self.raw_message_proofs(uid, ids))
         after = await self.snapshot(uid)
-        require(after[0] == before[0] + 2, "turn_message_count_mismatch")
+        require(after[0] == before[0] + 2 + int(payload.get("greeting") is not None), "turn_message_count_mismatch")
         if step["kind"] != "normal":
             require(after[1] == before[1], "fixed_reply_charged")
         if step.get("replay"):

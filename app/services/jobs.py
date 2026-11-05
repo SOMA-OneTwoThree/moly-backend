@@ -525,7 +525,7 @@ WITH scrub_job_candidates AS (
   ORDER BY response_expires_at,user_id,key
   FOR UPDATE SKIP LOCKED LIMIT 500
 ), scrub_idempotency AS (
-  UPDATE idempotency_keys i SET response=NULL,redacted_at=now()
+  UPDATE idempotency_keys i SET response=NULL,response_ciphertext=NULL,redacted_at=now()
   FROM scrub_idempotency_candidates c
   WHERE i.user_id=c.user_id AND i.key=c.key
   RETURNING 1

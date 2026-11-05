@@ -14,12 +14,17 @@ from math import ceil, isfinite
 from typing import Any
 
 from pydantic import ValidationError
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text as sql_text, or_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core import errors
+from app.services.message_content import (
+    encode_message, read_message_content, encode_greeting, read_greeting_content,
+    encode_response, read_response,
+)
+from app.services.chat_content_encryption import parse_mode
 from app.core.advisory_lock import advisory_xact_lock
 from app.core.time_utils import activity_date_for, reward_date_for, safe_zone
 from app.models.chat_context import ChatContext
@@ -101,6 +106,26 @@ def validate_post_message_response(
         ) from exc
 
 
+def _message_text(message) -> str:
+    return read_message_content(user_id=getattr(message, "user_id", None),
+        ciphertext=getattr(message, "content_ciphertext", None),
+        legacy_text=message.content, chars=getattr(message, "content_chars", None))
+
+
+def _greeting_text(greeting) -> str:
+    return read_greeting_content(user_id=getattr(greeting, "user_id", None),
+        ciphertext=getattr(greeting, "content_ciphertext", None), legacy_text=greeting.content)
+
+
+def _replay_payload(row):
+    return read_response(user_id=getattr(row, "user_id", None), key=getattr(row, "key", None),
+        request_hash=getattr(row, "request_hash", None),
+        version=getattr(row, "response_schema_version", 1), response=row.response,
+        ciphertext=getattr(row, "response_ciphertext", None),
+        redacted_at=getattr(row, "redacted_at", None),
+        terminal_status=getattr(row, "terminal_status", "succeeded"))
+
+
 def _iso(dt: datetime | None) -> str | None:
     return dt.isoformat() if dt else None
 
@@ -118,7 +143,7 @@ async def get_state(session: AsyncSession, user_id: str) -> dict[str, Any]:
     # 기준도 달라서 앱 표시와 실제 결과가 어긋났다.
     user_chars = int(
         await session.scalar(
-            select(func.coalesce(func.sum(func.length(Message.content)), 0)).where(
+            select(func.coalesce(func.sum(func.coalesce(Message.content_chars, func.length(Message.content))), 0)).where(
                 Message.user_id == uid,
                 Message.activity_date == g.activity_date,
                 Message.kind == "normal",
@@ -146,7 +171,7 @@ def _msg_dto(m: Message, nickname: str | None) -> dict[str, Any]:
     return {
         "id": str(m.id),
         "sender": m.sender,
-        "content": naming.render(m.content, nickname),  # placeholder → 현재 이름
+        "content": naming.render(_message_text(m), nickname),  # placeholder → 현재 이름
         "created_at": _iso(m.created_at),
     }
 
@@ -257,7 +282,7 @@ def _keep_window(rows: list[Message]) -> list[Message]:
         if len(kept) >= settings.context_keep_messages or chars >= settings.context_keep_chars:
             break
         kept.append(m)
-        chars += len(m.content or "")
+        chars += len(_message_text(m))
     kept.reverse()
     while kept and kept[0].sender == "moly":  # 첫 메시지 user 보장(Anthropic)
         kept.pop(0)
@@ -284,7 +309,7 @@ def _bounded_tail(rows: list[Message]) -> list[Message]:
     kept: list[Message] = []
     chars = 0
     for message in reversed(rows):
-        size = len(message.content or "")
+        size = len(_message_text(message))
         if len(kept) >= settings.context_keep_messages or chars + size > settings.context_keep_chars:
             break
         kept.append(message)
@@ -366,7 +391,7 @@ async def _context(
         checkpoint_keep_from = None
         incomplete = False
         sources = [checkpoint.SourceMessage(
-            id=m.id, sender=m.sender, kind=m.kind, content=m.content or "",
+            id=m.id, sender=m.sender, kind=m.kind, content=_message_text(m),
             created_at=getattr(m, "created_at", None),
         ) for m in rows]
         retention_source_bytes = context_retention.source_tokens(sources)
@@ -407,7 +432,7 @@ async def _context(
             if checkpoint_through >= anchor:
                 rows = [m for m in rows if m.id > checkpoint_through]
                 new_anchor = checkpoint_through + 1
-        chars = sum(len(m.content or "") for m in rows) + extra_chars
+        chars = sum(len(_message_text(m)) for m in rows) + extra_chars
         over_msgs = len(rows) + extra_msgs >= settings.context_reset_messages
         over_chars = chars >= settings.context_reset_chars
         if rows and (over_msgs or over_chars):
@@ -433,14 +458,14 @@ async def _context(
                   or m.kind not in crisis_guard.SAFETY_KINDS]
     if retention_enabled and legacy_projection:
         projected = context_safety.compact_legacy_context([
-            context_safety.ContextEntry('assistant' if m.sender == 'moly' else 'user', m.content,
+            context_safety.ContextEntry('assistant' if m.sender == 'moly' else 'user', _message_text(m),
                 m.activity_date, getattr(m, 'created_at', None),
                 SourceRef.from_message(m, user_id=uid, generation=memory_generation))
             for m in projection], current_text=current_text, current_date=current_date, language=language)
         surviving = {entry.source_ref.message_id for entry in projected.entries}
         projection = [m for m in projection if m.id in surviving]
     convo = [
-        {"role": "assistant" if m.sender == "moly" else "user", "content": m.content}
+        {"role": "assistant" if m.sender == "moly" else "user", "content": _message_text(m)}
         for m in projection
     ]
     lead: list[Message] = []
@@ -452,7 +477,7 @@ async def _context(
         lead = []
         for m in reversed(projection):
             if m.sender != "moly":
-                convo, kept = [{"role": "user", "content": m.content}], [m]
+                convo, kept = [{"role": "user", "content": _message_text(m)}], [m]
                 break
     entries = [
         context_safety.ContextEntry(
@@ -971,10 +996,16 @@ def _ms(t0: float, t1: float) -> float:
 
 
 # --- 유저 단위 직렬화(토큰 한도 TOCTOU 방지) ---
-async def _lock_user(session: AsyncSession, uid: uuid.UUID) -> None:
+async def _lock_user(session: AsyncSession, uid: uuid.UUID, *, content_mode: bool = False):
     """트랜잭션 범위 advisory lock — 같은 유저의 동시 요청을 직렬화. 커밋/롤백 시 자동 해제.
     게이팅 전에 잠가야 동시요청이 같은 pre-burst tokens_used를 읽고 한도를 우회하는 걸 막는다.
     보상(economy·ads)과 **같은 직렬화 도메인**을 쓰도록 키 표현은 core.advisory_lock 단일 구현."""
+    if content_mode:
+        row = (await session.execute(sql_text(
+            "SELECT pg_advisory_xact_lock(hashtextextended(:u,0)),value "
+            "FROM app_config WHERE key='chat_content_encryption_state' FOR SHARE"
+        ), {"u": str(uid)})).first()
+        return parse_mode(row[1] if row is not None else None)
     await advisory_xact_lock(session, uid)
 
 
@@ -1095,7 +1126,7 @@ async def _enqueue_checkpoint(
             messages=[
                 # 저장 표면(placeholder) 그대로 — 요약에 실명이 들어가면 안 된다(§W11-4).
                 checkpoint.SourceMessage(
-                    id=m.id, sender=m.sender, kind=m.kind, content=m.content or "",
+                    id=m.id, sender=m.sender, kind=m.kind, content=_message_text(m),
                     created_at=getattr(m, "created_at", None),
                 )
                 for m in rows
@@ -1131,21 +1162,42 @@ async def _accumulate_tokens(
 
 
 # --- POST /chat/messages ---
+class _GuardHistory(list):
+    """Short current window plus the exact latest asked concern, in RAM only."""
+    def __init__(self, recent, recheck_evidence=()):
+        super().__init__(recent)
+        self.recheck_evidence = tuple(recheck_evidence)
+
+
 def _guard_source_proof(messages) -> tuple:
-    """Compare the exact short source window without persisting its contents."""
-    return tuple((m.message_id, m.role, m.kind, m.content) for m in messages)
+    def proof(rows):
+        return tuple((m.message_id, m.role, m.kind, m.content) for m in rows)
+    return (proof(messages), proof(getattr(messages, "recheck_evidence", ())))
 
 
 async def _guard_recent(session, uid, limit: int):
+    recent_ids = select(Message.id).where(Message.user_id == uid).order_by(Message.id.desc()).limit(limit)
+    last_ask = (select(Message.id).where(Message.user_id == uid,
+        Message.sender == "moly", Message.kind == "safety_check")
+        .order_by(Message.id.desc()).limit(1).scalar_subquery())
+    ask_user = (select(Message.id).where(Message.user_id == uid,
+        Message.sender == "user", Message.id < last_ask)
+        .order_by(Message.id.desc()).limit(1).scalar_subquery())
     rows = (await session.execute(
-        select(Message).where(Message.user_id == uid)
-        .order_by(Message.id.desc()).limit(limit)
-        .execution_options(populate_existing=True)
+        select(Message).where(Message.user_id == uid,
+            or_(Message.id.in_(recent_ids), Message.id == last_ask, Message.id == ask_user))
+        .order_by(Message.id.desc()).execution_options(populate_existing=True)
     )).scalars().all()
-    return [crisis_guard.GuardMessage(
+    ordered = [crisis_guard.GuardMessage(
         "assistant" if m.sender == "moly" else "user",
-        m.content or "", kind=m.kind, message_id=m.id,
+        _message_text(m), kind=m.kind, message_id=m.id,
     ) for m in reversed(rows)]
+    asked = next((i for i in range(len(ordered) - 1, -1, -1)
+                  if ordered[i].role == "assistant" and ordered[i].kind == "safety_check"), None)
+    pair = ()
+    if asked is not None and asked > 0 and ordered[asked - 1].role == "user":
+        pair = (ordered[asked - 1], ordered[asked])
+    return _GuardHistory(ordered[-limit:], pair)
 
 
 @dataclass
@@ -1307,12 +1359,12 @@ async def _publish_fixed_guard(
                 or (duplicate.response_expires_at is not None and duplicate.response_expires_at <= now)):
             raise errors.AppError("IDEMPOTENCY_REPLAY_UNAVAILABLE", 409,
                                   "이 요청의 재생 보존 기간이 끝났어요. 새 Idempotency-Key로 보내 주세요.")
-        payload = duplicate.response
+        payload = _replay_payload(duplicate)
         await chat_turns.release(session, user_id=uid, lease=lease)
         await session.commit()
         return validate_post_message_response(payload, user_id=user_id, idempotency_key=idempotency_key)
-    await chat_turns.verify_publish(session, user_id=uid, lease=lease,
-                                    memory_generation=memory_generation)
+    encryption_mode = await chat_turns.verify_publish(session, user_id=uid, lease=lease,
+                                    memory_generation=memory_generation, encryption_mode=True)
     fresh_recent = await _guard_recent(session, uid, history_limit)
     if _guard_source_proof(fresh_recent) != _guard_source_proof(recent):
         raise errors.AppError("CHAT_TURN_STALE", 409,
@@ -1325,11 +1377,11 @@ async def _publish_fixed_guard(
         )
     kind = crisis_guard.message_kind(decision.route)
     user_message = Message(
-        user_id=uid, sender="user", kind=kind, content=naming.to_placeholder(req.text, nick),
+        user_id=uid, sender="user", kind=kind, **encode_message(user_id=uid, text=naming.to_placeholder(req.text, nick), mode=encryption_mode),
         activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=1,
     )
     reply = Message(
-        user_id=uid, sender="moly", kind=kind, content=content,
+        user_id=uid, sender="moly", kind=kind, **encode_message(user_id=uid, text=content, mode=encryption_mode),
         input_tokens=0, output_tokens=0, cache_read_tokens=0, cache_write_tokens=0,
         billable_tokens=0, activity_date=ad, created_at=now,
         turn_seq=lease.turn_seq, turn_position=2,
@@ -1354,7 +1406,8 @@ async def _publish_fixed_guard(
     from datetime import timedelta
     session.add(IdempotencyKey(
         user_id=uid, key=idempotency_key, request_hash=request_digest,
-        response_schema_version=2, response=payload, reply_message_id=reply.id,
+        **encode_response(user_id=uid, key=idempotency_key, request_hash=request_digest,
+                          response=payload, mode=encryption_mode), reply_message_id=reply.id,
         terminal_status="succeeded", response_expires_at=now + timedelta(hours=24),
         dedupe_expires_at=now + timedelta(days=30),
     ))
@@ -1505,7 +1558,7 @@ async def _post_message_impl(
         # 비호환 행도 보존한 채 500 — 지우면 다음 재시도가 새 요청으로 실행되어
         # 메시지·토큰이 중복된다. 정리는 운영 스크립트(--delete-invalid)에서만.
         validated_cached = validate_post_message_response(
-            cached.response, user_id=user_id, idempotency_key=idempotency_key
+            _replay_payload(cached), user_id=user_id, idempotency_key=idempotency_key
         )
         # LLM을 안 태운 순수 replay라 나머지 구간 지표는 없음(집계 오염 방지 — replay=True로 분리).
         _emit_turn_metrics(
@@ -1605,6 +1658,7 @@ async def _post_message_impl(
         common_phase_ms = _ms(t0, time.monotonic())
         predecided = await crisis_chat.recorded_decision(
             req.text, decision_recent, config=guard_config,
+            recheck_evidence=getattr(decision_recent, "recheck_evidence", ()),
             deadline=absolute_deadline, ledger=ledger_ctx,
         )
         if predecided.route != "normal":
@@ -1961,7 +2015,7 @@ async def _post_message_impl(
             new_anchor = context_window.new_anchor
             lead = context_window.lead
             historical_lead = [
-                f"{_time_label(getattr(m, 'created_at', None), account_timezone)} {m.content}"
+                f"{_time_label(getattr(m, 'created_at', None), account_timezone)} {_message_text(m)}"
                 for m in lead
             ]
             if retention_enabled:
@@ -1977,7 +2031,7 @@ async def _post_message_impl(
                 gid = requested_gid
                 gr = await session.get(Greeting, gid)
                 if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
-                    greeting_content = gr.content  # placeholder 저장분
+                    greeting_content = _greeting_text(gr)  # placeholder 저장분
                     greeting_gid = gid
 
             # placeholder 저장분 → LLM 투입 전 현재 이름 렌더(히스토리에서도 최신 이름만 보임).
@@ -2282,8 +2336,8 @@ async def _post_message_impl(
     # ===== Phase 2: 확정(짧은 txn + 유저락 재획득) =====
     t_phase2_0 = time.monotonic()
     await _lock_user(session, uid)
-    await chat_turns.verify_publish(
-        session, user_id=uid, lease=lease, memory_generation=memory_generation,
+    encryption_mode = await chat_turns.verify_publish(
+        session, user_id=uid, lease=lease, memory_generation=memory_generation, encryption_mode=True,
     )
     await privacy.ensure_subject_active(session, uid)
     if pressure_resume is not None and pressure_resume.resumed:
@@ -2364,7 +2418,7 @@ async def _post_message_impl(
             )
         # rollback()은 identity map 객체를 expire한다(expire_on_commit=False와 무관) → 이후 dup.response
         # 접근이 async 암시적 재로드를 유발해 MissingGreenlet. 반드시 rollback 전에 값을 뽑는다.
-        dup_response = dup.response
+        dup_response = _replay_payload(dup)
         await chat_turns.release(session, user_id=uid, lease=lease)
         await session.commit()
         validated_dup = validate_post_message_response(
@@ -2414,7 +2468,8 @@ async def _post_message_impl(
     topic_greeting_message_id = None
     if topic_snapshot is not None and not crisis_now:
         topic_message = Message(
-            user_id=uid, sender="moly", kind="topic_opening", content=topic_snapshot.question,
+            user_id=uid, sender="moly", kind="topic_opening",
+            **encode_message(user_id=uid, text=topic_snapshot.question, mode=encryption_mode),
             activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=0,
         )
         session.add(topic_message)
@@ -2429,23 +2484,24 @@ async def _post_message_impl(
         gr = await session.get(Greeting, greeting_gid, populate_existing=True)
         if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
             gmsg = Message(
-                user_id=uid, sender="moly", kind="greeting", content=gr.content,
+                user_id=uid, sender="moly", kind="greeting",
+                **encode_message(user_id=uid, text=_greeting_text(gr), mode=encryption_mode),
                 activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=0,
             )
             session.add(gmsg)
             await session.flush()
             gr.committed_message_id = gmsg.id
-            # gr.content는 placeholder 저장분 → 클라 응답엔 현재 이름 렌더.
+            # _greeting_text(gr)는 placeholder 저장분 → 클라 응답엔 현재 이름 렌더.
             greeting_dto = {
                 "message_id": str(gmsg.id),
-                "content": naming.render(gr.content, nick),
+                "content": naming.render(_greeting_text(gr), nick),
                 "created_at": _iso(now),
             }
 
     # 유저 메시지 저장 — 유저가 자기 현재 이름을 말했으면 placeholder로(저장 표면 이름 0)
     umsg = Message(
         user_id=uid, sender="user", kind=message_kind,
-        content=naming.to_placeholder(req.text, nick),
+        **encode_message(user_id=uid, text=naming.to_placeholder(req.text, nick), mode=encryption_mode),
         activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=1,
     )
     session.add(umsg)
@@ -2481,7 +2537,7 @@ async def _post_message_impl(
     # 캐피 응답 저장(+ 캐시 텔레메트리·청구 스냅샷) — 턴 내 모든 호출의 합계를 남긴다.
     rmsg = Message(
         user_id=uid, sender="moly", kind=message_kind,
-        content=reply_stored,
+        **encode_message(user_id=uid, text=reply_stored, mode=encryption_mode),
         input_tokens=totals["input_tokens"], output_tokens=totals["output_tokens"],
         cache_read_tokens=totals["cache_read_tokens"],
         cache_write_tokens=totals["cache_write_tokens"],
@@ -2500,8 +2556,8 @@ async def _post_message_impl(
                      {"role": "assistant", "content": reply_stored}],
         )
         raw_bytes = (getattr(context_window, "retention_source_bytes", 0)
-                     + len((umsg.content or "").encode("utf-8"))
-                     + len((rmsg.content or "").encode("utf-8")) + 48)
+                     + len(_message_text(umsg).encode("utf-8"))
+                     + len(_message_text(rmsg).encode("utf-8")) + 48)
         prefetch_checkpoint = (raw_bytes >= checkpoint.RETENTION_SOFT_SOURCE_BYTES
             or not context_retention.fits_input_budget(
                 projected_system, projected_messages, tools=projected_tools,
@@ -2572,7 +2628,7 @@ async def _post_message_impl(
         # M1: 렌더값을 idempotency 응답에 저장 → 멱등 리플레이도 추가 render 없이 같은 값을 돌려준다.
         "reply": {
             "message_id": str(rmsg.id),
-            "content": naming.render(rmsg.content, nick),
+            "content": naming.render(reply_stored, nick),
             "created_at": _iso(now),
             "references": references,
         },
@@ -2593,8 +2649,8 @@ async def _post_message_impl(
             user_id=uid,
             key=idempotency_key,
             request_hash=request_digest,
-            response_schema_version=2,
-            response=response,
+            **encode_response(user_id=uid, key=idempotency_key, request_hash=request_digest,
+                              response=response, mode=encryption_mode),
             reply_message_id=rmsg.id,
             terminal_status="succeeded",
             response_expires_at=now + timedelta(hours=24),
@@ -2678,15 +2734,16 @@ async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dic
     ad = current_activity_date(profile.timezone)
     uid = _uid(user_id)
 
-    # 동시 진입(콜드스타트+푸시탭 등)이 각각 발급해 하루 2건이 되는 걸 막는다.
-    await _lock_user(session, uid)
+    # 동시 진입과 암호화 전환을 같은 기존 SQL 왕복에서 직렬화한다.
+    encryption_mode = await _lock_user(session, uid, content_mode=True)
 
     # 저녁 대화 푸시를 받은 뒤 처음 들어오면 푸시와 같은 말을 첫마디로 낸다. 아침에 이미 첫마디를
     # 냈거나 낮에 대화했어도 낸다 — 그래서 아래 두 확인보다 먼저 본다. 가입 직후 첫인사는 그대로 둔다.
     pushed = None if context == "onboarding" else await _evening_push_greeting(session, profile, uid, ad)
     if pushed is not None:
         stored = naming.to_placeholder(pushed, profile.nickname)
-        row = Greeting(user_id=uid, context="evening", content=stored, activity_date=ad)
+        row = Greeting(user_id=uid, context="evening",
+                       **encode_greeting(user_id=uid, text=stored, mode=encryption_mode), activity_date=ad)
         session.add(row)
         await session.commit()
         await session.refresh(row)
@@ -2720,7 +2777,8 @@ async def get_greeting(session: AsyncSession, user_id: str, context: str) -> dic
 
     # 저장은 placeholder(이름 표면 0), 클라 응답엔 현재 이름 렌더.
     stored = naming.to_placeholder(content, profile.nickname)
-    row = Greeting(user_id=uid, context=context, content=stored, activity_date=ad)
+    row = Greeting(user_id=uid, context=context,
+                   **encode_greeting(user_id=uid, text=stored, mode=encryption_mode), activity_date=ad)
     session.add(row)
     await session.commit()
     await session.refresh(row)

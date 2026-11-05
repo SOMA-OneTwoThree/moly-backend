@@ -6,6 +6,8 @@ source set can settle an incident. A larger numeric boundary is not evidence.
 
 from __future__ import annotations
 
+from app.services import message_content
+
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import hashlib
@@ -309,11 +311,11 @@ async def snapshot(session, *, now=None):
             complete = False
             continue
         source_rows = {
-            row["id"]: dict(row)
+            row["id"]: message_content.project_message(row, user_id=failed["user_id"])
             for row in (
                 await session.execute(
                     text(
-                        "SELECT id,user_id,sender,kind,content,created_at FROM messages WHERE user_id=:uid "
+                        "SELECT id,user_id,sender,kind,content,created_at,content_ciphertext,content_chars FROM messages WHERE user_id=:uid "
                         "AND id=ANY(CAST(:ids AS bigint[]))"
                     ),
                     {"uid": failed["user_id"], "ids": sorted(ids)},

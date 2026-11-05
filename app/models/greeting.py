@@ -7,7 +7,7 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import BigInteger, Date, DateTime, String, UniqueConstraint, text
+from sqlalchemy import BigInteger, Date, DateTime, LargeBinary, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,7 +23,8 @@ class Greeting(Base):
     )
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True)
     context: Mapped[str] = mapped_column(String)  # onboarding|home_enter|morning|evening|comeback
-    content: Mapped[str] = mapped_column(String)
+    content: Mapped[str | None] = mapped_column(String, nullable=True)
+    content_ciphertext: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     activity_date: Mapped[date] = mapped_column(Date)
     committed_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(

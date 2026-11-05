@@ -181,6 +181,26 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
         return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
     after = json.loads(contract.CONTRACT.read_bytes())
     restored_catalog = deepcopy(after["catalog"])
+    # New-content encryption is separately reviewed. Reverse its exact additive
+    # delta before applying the immutable main/subscription oracle below.
+    for key, kind in {
+        'public.messages.content_ciphertext': 'bytea',
+        'public.messages.content_chars': 'integer',
+        'public.greetings.content_ciphertext': 'bytea',
+        'public.idempotency_keys.response_ciphertext': 'bytea',
+    }.items():
+        assert restored_catalog['columns'].pop(key) == {**_COL, 'type': kind}
+    for key in ('public.messages.content', 'public.greetings.content'):
+        assert restored_catalog['columns'][key] == {
+            **_COL, 'type': 'text', 'collation': '"default"'}
+        restored_catalog['columns'][key]['not_null'] = True
+    encryption_checks = {'public.messages.messages_content_storage_ck': '284a0c2943acbd60b37085b10f33186d9d20574de0b8cb1543837089ccca667d', 'public.greetings.greetings_content_storage_ck': 'a8c91c473ac5d4d1e7b371d38cc0ee5d3f881df54fb16f7fcc477c1596da80df', 'public.idempotency_keys.idempotency_response_storage_ck': '3bc68e3ae92322e1177398b347f5953c61267976e35eb6d49301d8d07396fefc'}
+    for key, expected in encryption_checks.items():
+        assert digest(restored_catalog['constraints'].pop(key)) == expected
+    deletion = restored_catalog['functions']['public.begin_subject_deletion(uuid,uuid)']
+    paired = "SET response = NULL, response_ciphertext = NULL, terminal_status"
+    assert deletion['definition'].count(paired) == 1
+    deletion['definition'] = deletion['definition'].replace(paired, "SET response = NULL, terminal_status", 1)
     # Separately reviewed, nullable reader metadata; no existing catalog object changes.
     for key, kind in {
         'public.chat_contexts.retention_compat_json': 'jsonb',
@@ -212,6 +232,26 @@ def test_release_catalog_preserves_main_except_two_columns_and_source_hash():
 
     main_source = contract.SCHEMA.read_text()
     assert after["schema_sha256"] == hashlib.sha256(main_source.encode()).hexdigest()
+    encryption_marker = "\n-- New-content checks intentionally remain NOT VALID; old rows are not scanned.\n"
+    assert main_source.count(encryption_marker) == 1
+    main_source, checks_source = main_source.split(encryption_marker, 1)
+    assert hashlib.sha256(checks_source.encode()).hexdigest() == "9e12f89adf2d5c9647b7716ee9df9b72b2ae23ab377c05b2e3a1f120a7ac9d44"
+    for table in ('messages', 'greetings'):
+        start = main_source.index('CREATE TABLE public.' + table + ' (')
+        end = main_source.index('\n);', start)
+        block = main_source[start:end]
+        assert block.count('    content text,\n') == 1
+        assert block.count('    content_ciphertext bytea,\n') == 1
+        block = block.replace('    content text,\n', '    content text NOT NULL,\n', 1)
+        block = block.replace('    content_ciphertext bytea,\n', '', 1)
+        if table == 'messages':
+            assert block.count('    content_chars integer,\n') == 1
+            block = block.replace('    content_chars integer,\n', '', 1)
+        main_source = main_source[:start] + block + main_source[end:]
+    assert main_source.count('    response_ciphertext bytea,\n') == 1
+    main_source = main_source.replace('    response_ciphertext bytea,\n', '', 1)
+    assert main_source.count(paired) == 1
+    main_source = main_source.replace(paired, "SET response = NULL, terminal_status", 1)
     for added in ('    retention_compat_json jsonb,\n',
                   '    retention_compat_summary_invalidated_revision bigint,\n'):
         assert main_source.count(added) == 1

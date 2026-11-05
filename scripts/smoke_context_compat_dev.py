@@ -366,7 +366,10 @@ class CompatRunner(LegacyRunner):
         all_ids = []
         for index, (payload, headers, retries, latency) in enumerate(results):
             ids = [int(payload["user_message"]["message_id"]), int(payload["reply"]["message_id"])]
-            rows = await self.db.fetch("SELECT id,sender,kind,content FROM messages WHERE user_id=$1 AND id=ANY($2::bigint[])", uid, ids)
+            from app.services.message_content import project_message
+            rows = [project_message(row, user_id=uid) for row in await self.db.fetch(
+                "SELECT id,sender,kind,content,content_ciphertext,content_chars FROM messages "
+                "WHERE user_id=$1 AND id=ANY($2::bigint[])", uid, ids)]
             replay.require(len(rows) == 2 and all(r["kind"] == "normal" for r in rows)
                 and any(r["sender"] == "user" and r["content"] == values[index] for r in rows), "burst_source_mismatch")
             all_ids.extend(ids)

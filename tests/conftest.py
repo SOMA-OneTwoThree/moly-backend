@@ -34,6 +34,9 @@ def _unified_memory_defaults(monkeypatch, request):
         return chat_turns.Lease(token=uuid.uuid4(), turn_seq=1, base_context_revision=0)
 
     async def _nothing(*args, **kwargs):
+        if kwargs.get("encryption_mode"):
+            from app.services.chat_content_encryption import EncryptionMode
+            return EncryptionMode(False, 1, 1, (1,))
         return None
 
     async def _revision(*args, **kwargs):

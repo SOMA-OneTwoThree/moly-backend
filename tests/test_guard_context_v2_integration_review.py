@@ -488,7 +488,7 @@ def choice(name, value, values):
 @pytest.mark.parametrize("case", ["not_applicable", "self_thought", "meaning_unclear",
                                  "self_intent_plan", "self_preparation_action"])
 @pytest.mark.parametrize("intervention,answer", [
-    (None, None), ("safety", None), ("safety_check", "same_confirmed"),
+    (None, None), ("safety", "same_unresolved"), ("safety_check", "same_confirmed"),
     ("safety_check", "same_denied"), ("safety_check", "same_unresolved"),
     ("safety_check", "different_topic"),
 ])
@@ -499,14 +499,19 @@ def test_independent_route_table_oracle(case, intervention, answer):
     answers = ("same_confirmed", "same_denied", "same_unresolved", "different_topic")
     items = [choice("case", case, cases),
              {"type": "predicate", "name": "method_request", "probability": 0.1}]
-    if intervention == "safety_check":
+    if intervention is not None:
         items.append(choice("followup", answer, answers))
     if case in {"self_intent_plan", "self_preparation_action"}:
         expected = "safety"
-    elif case == "not_applicable" or intervention == "safety":
+    elif case == "not_applicable":
         expected = "normal"
-    elif intervention == "safety_check":
-        expected = "safety" if answer == "same_confirmed" else "normal"
+    elif intervention is not None:
+        if answer == "same_confirmed":
+            expected = "safety"
+        elif answer == "same_denied" or (answer == "same_unresolved" and intervention == "safety_check"):
+            expected = "normal"
+        else:
+            expected = "ask"
     else:
         expected = "ask"
     parsed = crisis_guard.parse_decision({"answers": items}, last_intervention=intervention)

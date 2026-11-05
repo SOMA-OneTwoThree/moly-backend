@@ -10,6 +10,8 @@ publish한다 — 매번 "이렇게 해줄까?"로 확인하면 페르소나의 
 """
 from __future__ import annotations
 
+from app.services import message_content
+
 import json
 import logging
 import hashlib
@@ -50,8 +52,8 @@ HIGH_IMPACT = frozenset({
 # 순간부터 새 발화는 영원히 안 읽혀서, 사용자가 "앞으로 반말로 해줘"라고 해도 계약이
 # 만들어지지 않았다(실측: 240건 중 #1~#207만 봄, 요청은 #244).
 _MESSAGES = text("""
-SELECT id, sender, content FROM (
-  SELECT id, sender, content FROM messages
+SELECT id, sender, content, content_ciphertext, content_chars FROM (
+  SELECT id, sender, content, content_ciphertext, content_chars FROM messages
   WHERE user_id = :user_id AND kind = 'normal' AND id > :after
   ORDER BY id DESC LIMIT :limit
 ) recent
@@ -59,7 +61,7 @@ ORDER BY id
 """)
 
 _LEGACY_SOURCE = text("""
-SELECT id,sender,content FROM messages
+SELECT id,sender,content,content_ciphertext,content_chars FROM messages
 WHERE user_id=:user_id AND kind='normal' AND id=ANY(CAST(:ids AS bigint[]))
 ORDER BY id
 """)
@@ -117,6 +119,12 @@ def _document(candidates) -> str:
     } for c in candidates], ensure_ascii=False, sort_keys=True)
 
 
+def _logical_source_rows(rows, user_id, width):
+    return [(*row[:2], message_content.read_message_content(user_id=user_id, legacy_text=row[2],
+        ciphertext=row[width] if len(row)>width else None,
+        chars=row[width+1] if len(row)>width+1 else None), *row[3:width]) for row in rows]
+
+
 async def handle_contract_compile(job: ClaimedJob) -> JobResult:
     if retention_release.binding() is not None and (job.payload or {}).get("retention_enabled") is not True:
         raise JobFatal("preparation_requires_retention_contract")
@@ -147,7 +155,8 @@ async def handle_contract_compile(job: ClaimedJob) -> JobResult:
     # 저장·조회 모두 콘텐츠 언어 버킷(ko·en·ja)으로 맞춘다. 예전에는 원본 태그를 그대로 써서
     # "ko-KR"과 "ko"가 서로 다른 계약으로 갈렸고, 관계 렌더(i18n.resolve 사용)와도 어긋났다.
     locale = i18n.resolve(profile[1] if profile else None)
-    msgs = [_Msg(r[0], r[1], r[2] or "") for r in rows]
+    rows = _logical_source_rows(rows, uid, 3)
+    msgs = [_Msg(r[0], r[1], r[2]) for r in rows]
     user_ids = {m.id for m in msgs if m.sender == "user"}
     manifest = _contract_source_manifest(msgs, locale=locale)
     if source_ids and ([m.id for m in msgs] != source_ids or payload.get("source_manifest") != manifest):
@@ -191,7 +200,8 @@ async def handle_contract_compile(job: ClaimedJob) -> JobResult:
                 return
             current = (await session.execute(_LEGACY_SOURCE,
                 {"user_id": uid, "ids": [m.id for m in msgs]})).all()
-            current_msgs = [_Msg(r[0], r[1], r[2] or "") for r in current]
+            current = _logical_source_rows(current, uid, 3)
+            current_msgs = [_Msg(r[0], r[1], r[2]) for r in current]
             if _contract_source_manifest(current_msgs, locale=locale) != manifest:
                 return
             from app.services import jobs
@@ -216,7 +226,8 @@ async def handle_contract_compile(job: ClaimedJob) -> JobResult:
             return
         current = (await session.execute(_LEGACY_SOURCE,
             {"user_id": uid, "ids": [m.id for m in msgs]})).all()
-        if _contract_source_manifest([_Msg(r[0], r[1], r[2] or "") for r in current], locale=locale) != manifest:
+        current = _logical_source_rows(current, uid, 3)
+        if _contract_source_manifest([_Msg(r[0], r[1], r[2]) for r in current], locale=locale) != manifest:
             return
         # 정본이 같으면 새 version을 만들지 않는다(6.3절).
         if await contract_repo.has_same_document(session, user_id=uid, document_hash=digest):
@@ -409,7 +420,7 @@ FROM chat_contexts WHERE user_id=:user_id
 """)
 _RETENTION_STATE_LOCK = text(str(_RETENTION_STATE) + " FOR UPDATE")
 _RETENTION_MESSAGES = text("""
-SELECT id,sender,content,activity_date FROM messages
+SELECT id,sender,content,activity_date,content_ciphertext,content_chars FROM messages
 WHERE user_id=:user_id AND kind='normal' AND id>:after AND id<=:through
 ORDER BY id LIMIT :limit
 """)
@@ -568,6 +579,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         rows = (await session.execute(_RETENTION_MESSAGES, {
             "user_id": uid, "after": cursor, "through": target, "limit": _MAX_SOURCE,
         })).all()
+        rows = _logical_source_rows(rows, uid, 4)
         profile = (await session.execute(_PROFILE, {"user_id": uid})).first()
         if profile is None:
             raise JobCancelled("user_deleted")
@@ -703,6 +715,7 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
         current = (await session.execute(_RETENTION_MESSAGES, {
             "user_id": uid, "after": cursor, "through": target, "limit": _MAX_SOURCE,
         })).all()
+        current = _logical_source_rows(current, uid, 4)
         if [tuple(row) for row in current] != [tuple(row) for row in rows]:
             await restart_current()
             return

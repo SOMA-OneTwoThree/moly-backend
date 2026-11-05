@@ -13,6 +13,8 @@ docs/ARCHITECTURE.md의 장기 기억과 사용자별 상태 절을 따른다.
 """
 from __future__ import annotations
 
+from app.services import message_content
+
 import logging
 import uuid
 
@@ -63,7 +65,7 @@ COLLECTION_VERSION = "v2"
 # 근거(evidence)는 `message_id`로 묶이므로(mem0_extractor의 `by_id` 대조) 범위를 넓혀도
 # 어느 발화가 근거인지는 그대로 정확하다.
 _SOURCE_MESSAGES = text("""
-SELECT id, sender, content
+SELECT id, sender, content, content_ciphertext, content_chars
 FROM messages
 WHERE user_id = :user_id AND kind = 'normal'
   AND turn_seq > :from_seq AND turn_seq <= :to_seq
@@ -322,7 +324,9 @@ async def handle_mem0_ingest(job: ClaimedJob) -> JobResult:
     # ⚠️ **살균본으로 만든다.** 모델이 보는 글과 근거를 대조하는 글이 같아야 한다 — 다르면
     # 전각 문자(`ＡＢＣ`·`ｱｲｳ`)나 괄호가 있는 발화에서 그 뒤 좌표가 통째로 어긋난다.
     messages = [
-        mem0_extractor.SourceMessage.sanitized(id=r[0], sender=r[1], content=r[2]) for r in rows
+        mem0_extractor.SourceMessage.sanitized(id=r[0], sender=r[1], content=message_content.read_message_content(user_id=uid,
+            legacy_text=r[2], ciphertext=r[3] if len(r)>3 else None,
+            chars=r[4] if len(r)>4 else None)) for r in rows
     ]
     nickname = profile[0] if profile else None
     language = profile[1] if profile else None

@@ -47,15 +47,18 @@ def test_corpus_has_strict_routes_replay_and_long_normal_worker_sources(language
     assert len(steps) == 12 and tuple(step['kind'] for step in steps) == smoke.KINDS
     assert all(0 < len(step['text']) <= 2000 and step['replay'] for step in steps)
     assert sum(len(step['text'].encode()) for step in steps if step['kind'] == 'normal') >= 4096
-    for index in (0, 5, 8):
+    for index in (0, 5, 9):
         assert len(steps[index]['text']) == 1850
         assert steps[index]['text'].count(smoke.WORDS[language][index]) == 1
         assert '001' in steps[index]['text'] and '002' in steps[index]['text']
-    # B's actual question at step 5 is no longer in last six raw messages
-    # before step 10; a distinct guide D at step 8 must not erase dedup B.
-    assert steps[4]['kind'] == 'safety_check' and steps[7]['kind'] == 'safety'
+    # Only an immediately preceding fixed question prevents another question.
+    assert steps[2]['kind'] == 'safety' and steps[3]['kind'] == 'safety_check'
+    assert steps[4]['kind'] == 'normal' and steps[5]['kind'] == 'normal'
+    assert steps[7]['kind'] == 'safety' and steps[8]['kind'] == 'safety_check'
     assert steps[9]['kind'] == 'normal' and steps[10]['kind'] == 'safety_check'
-    assert steps[2]['kind'] == steps[3]['kind'] == steps[11]['kind'] == 'safety'
+    assert steps[11]['kind'] == 'safety'
+    assert all(len(step['text']) < 1850 for index,step in enumerate(steps) if index not in (0,5,9))
+
 
 
 async def test_raw_immutable_proof_binds_all_three_storage_fields():

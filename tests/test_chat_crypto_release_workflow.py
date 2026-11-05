@@ -22,6 +22,11 @@ def runtime(environment,sha=SHA):
             'schema':'ok','self_test':'ok'}
 
 
+def report_metadata(environment,sha=SHA):
+    return {'daily_report':'ok','environment':environment,'version':sha,
+            'read_only':True,'slack_sent':False,'elapsed_ms':1}
+
+
 def setup_args(tmp_path,monkeypatch,environment='production'):
     monkeypatch.setenv('RUNNER_TEMP',str(tmp_path))
     return SimpleNamespace(environment=environment,sha=SHA,rescue_sha=w.RESCUE_SHA,infra_sha=INFRA,
@@ -61,7 +66,7 @@ class FakeCloud:
                    'source_infra_sha':c['infra_sha'],'composition_hash':'d'*64}
             if self.fail=='basis':
                 basis['crypto_overrides']=True
-            return {'proof':current,'basis':basis}
+            return {'proof':current,'basis':basis,'daily_report':report_metadata(c['environment'],c['sha'])}
         if action=='collect':
             worker=host==IDS[0]
             result={'api':current,'consumer':dict(current),'worker_proof':dict(current),
@@ -277,6 +282,7 @@ def test_remote_preflight_executes_fresh_check_and_proves_common_role_environmen
             assert kw['env']['DEPLOY_PREFLIGHT_ONLY']=='1'
             assert 'DEPLOY_CRYPTO_BOOTSTRAP' not in kw['env']
             target.write_text(json.dumps(runtime('production')))
+            (state/'daily-report-candidate.json').write_text(json.dumps(report_metadata('production')))
         elif argv[:2]==['docker','compose']:
             assert '--no-env-resolution' in argv
             assert kw['env']['IMAGE_TAG']==SHA
@@ -331,7 +337,8 @@ def test_remote_collect_requires_worker_profile_before_fresh_worker_check(tmp_pa
         elif argv[:2]==['docker','inspect']:
             output='true' if '{{.State.Running}}' in argv else expected
         elif argv[:2]==['docker','exec']:
-            output=json.dumps(current) if 'scripts/check_chat_content_crypto.py' in argv else ''
+            output=(json.dumps(current) if 'scripts/check_chat_content_crypto.py' in argv else
+                    json.dumps(report_metadata('production')) if 'scripts/check_daily_report.py' in argv else '')
         elif argv[:2]==['docker','compose']:
             if 'config' in argv:
                 output=json.dumps({'services':_profiled_services(argv,services)})

@@ -1937,13 +1937,22 @@ async def _post_message_impl(
             scope_end_pending = (
                 retention_enabled and contract_compiler.conversation_scope_end_candidate(req.text)
             )
+            correction_backlog = False
             if retention_enabled:
                 try:
                     correction_pending = await context_retention.pending_correction(
                         session, user_id=uid, generation=memory_generation, current_text=req.text,
                     )
-                except context_retention.RetentionError:
-                    raise errors.ai_unavailable() from None
+                except context_retention.RetentionError as exc:
+                    if str(exc) != "correction_processing_backlog":
+                        raise errors.ai_unavailable() from None
+                    # 처리 안 된 메시지가 많아 정정 여부를 다 확인하지 못했다. 503 대신 "정정이 있을 수
+                    # 있다"로 보고 이번 턴은 저장된 약속·사실·요약 없이 답한다. 정정이 확인된 것은
+                    # 아니므로 옛 요약 무효화 같은 영구 기록은 하지 않는다(아래 correction_backlog 확인).
+                    # 답변 뒤 약속 정리 작업을 다시 걸어 밀린 처리를 당긴다.
+                    correction_pending = True
+                    correction_backlog = True
+                    _log.warning("chat_correction_backlog subject=%s", _subject_hash(uid))
             # published 계약. 없으면 빈 문자열이라 프롬프트가 지금과 같다.
             # 계약 조회는 대화의 보조다. 여기서 예외가 새면 응답 전체가 실패하므로 마지막 방어선을
             # 하나 더 둔다 — 실제로 jsonb 파싱 실수 하나가 대화를 통째로 죽였다.
@@ -2682,7 +2691,7 @@ async def _post_message_impl(
     )
     session.add(umsg)
     await session.flush()
-    if retention_enabled and compat_baseline is not None and correction_pending:
+    if retention_enabled and compat_baseline is not None and correction_pending and not correction_backlog:
         await context_compat.invalidate_legacy_summary(session, compat_baseline,
             revision=lease.base_context_revision + 1)
     if message_kind not in {"safety", "safety_check"}:

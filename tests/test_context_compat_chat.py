@@ -196,3 +196,28 @@ async def test_initial_capture_inherits_old_visible_boundary_not_current_input(s
     first, actual = context.await_args_list
     assert 'current_text' not in first.kwargs and first.kwargs['retention_enabled'] is False
     assert actual.kwargs['legacy_source_after'] == 100
+
+
+async def test_correction_backlog_answers_conservatively_instead_of_503(setup, monkeypatch):
+    """처리 안 된 메시지가 많아 정정 확인을 못 해도 503이 아니라 보수적으로 답한다."""
+    await normal(monkeypatch)
+    chat.context_compat.load.return_value = baseline()
+    chat.context_compat.legacy_summary.return_value = 'SYNTHETIC_STALE_OLD_FACT'
+    chat.contract_repo.published_text.return_value = 'SYNTHETIC_EXISTING_REQUEST'
+    chat.context_retention.pending_correction.side_effect = chat.context_retention.RetentionError(
+        'correction_processing_backlog')
+    await chat.post_message(Session(), UID, request('오늘 이야기'), 'compat-backlog')
+    system, conversation = chat.llm.generate.await_args.args[:2]
+    wire = '\n'.join([*system, *(entry['content'] for entry in conversation)])
+    assert 'SYNTHETIC_STALE_OLD_FACT' not in wire and 'SYNTHETIC_EXISTING_REQUEST' not in wire
+    # 정정이 확인된 것은 아니므로 옛 요약을 영구히 무효화하지 않는다.
+    chat.context_compat.invalidate_legacy_summary.assert_not_awaited()
+
+
+async def test_other_correction_scan_errors_still_fail_closed(setup, monkeypatch):
+    await normal(monkeypatch)
+    chat.context_retention.pending_correction.side_effect = chat.context_retention.RetentionError(
+        'correction_source_order')
+    with pytest.raises(AppError) as error:
+        await chat.post_message(Session(), UID, request('오늘 이야기'), 'compat-scan-error')
+    assert error.value.code == 'AI_UNAVAILABLE'

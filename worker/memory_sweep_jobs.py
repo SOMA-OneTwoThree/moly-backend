@@ -223,6 +223,54 @@ ORDER BY (j.payload->>'mode'='publish_retention') DESC NULLS LAST,
 """)
 
 
+# 같은 계획(source_hash)의 마지막 종료 작업. 원본·다음 쪽·다시 만든 작업을 모두 본다.
+_RETENTION_PLAN_LATEST_TERMINAL = text("""
+SELECT j.state,j.id,j.finished_at,j.last_error_code,j.payload->>'redo_depth'
+FROM async_jobs j JOIN chat_contexts cc ON cc.user_id=j.user_id
+WHERE j.user_id=:user_id AND j.job_type='conversation_checkpoint'
+  AND cc.memory_generation=:generation
+  AND j.payload->'memory_generation'=to_jsonb(cc.memory_generation)
+  AND j.payload->>'summarizer_version'='conversation-checkpoint-summary-v5'
+  AND j.payload->>'source_hash'=:source_hash
+  AND COALESCE(j.payload->>'mode','normal') IN ('normal','publish_retention')
+  AND j.state IN ('succeeded','cancelled','dead')
+ORDER BY j.finished_at DESC,j.id DESC LIMIT 1
+""")
+
+# 같은 계획이 dead로 막혔을 때 다시 만드는 오류 코드. 형식 검사 실패(summary_invalid)는 모델
+# 표본마다 결과가 달라 다시 하면 풀릴 수 있다. 원문 범위가 같으면 다음 턴에도 같은 계획이 나와
+# dedup_key가 막혀 있으므로, 다시 만들지 않으면 그 사용자의 요약 게시가 영구히 멈춘다.
+_CHECKPOINT_REDO_CODES = frozenset({
+    "summary_invalid", "summary_llm_failed", "checkpoint_packing_attempts_exhausted",
+    "unexpected_error", "timeout", jobs.ERROR_LEASE_EXPIRED, jobs.ERROR_ATTEMPTS_EXHAUSTED,
+})
+
+
+async def _latest_plan_terminal(session, *, user_id, generation, plan):
+    return (await retention_release.execute(session, _RETENTION_PLAN_LATEST_TERMINAL, {
+        "user_id": user_id, "generation": generation, "source_hash": plan.source_hash,
+    })).first()
+
+
+async def _redo_dead_checkpoint(session, *, user_id, plan, row):
+    """같은 계획의 마지막 종료 작업(row)이 dead면 간격(30분부터 두 배, 최대 24시간)을 두고 새로 만든다.
+
+    dead 행을 되살리거나 payload를 복제하지 않는다. 지금의 계획으로 새 행을 만들고,
+    같은 dead마다 한 건만 생긴다(dedup_key `checkpoint-redo:{dead id}`).
+    """
+    if row is None:
+        return None
+    depth = jobs.dead_redo_depth(row, now=datetime.now(timezone.utc), repeat_codes=_CHECKPOINT_REDO_CODES)
+    if depth is None:
+        return None
+    made = await checkpoint_repo.enqueue_checkpoint(session, user_id=user_id, plan=plan,
+                                                    redo=(str(row[1]), depth))
+    if made is not None:
+        _log.info("checkpoint_redo_enqueued dead_job=%s error_code=%s redo_depth=%d",
+                  row[1], row[3], depth)
+    return made
+
+
 async def _resume_unpublished_success(session, *, user_id, generation, plan, previous):
     """실제 게시가 없는 동일 계획의 마지막 durable payload만 새 행으로 이어 간다."""
     row = (await retention_release.execute(session, _RETENTION_UNPUBLISHED_SUCCESS, {
@@ -453,20 +501,26 @@ async def _resume_retention_checkpoints_bound() -> RetentionResumeResult:
                 )
                 exhausted = False
                 if made is None:
-                    # Exhausted attempts are a durable stop, not a fresh retry
-                    # allowance every sweep. Preserve the target and old job;
-                    # only an explicit operator replay may restart that job.
+                    # Exhausted attempts are not a fresh retry allowance every sweep.
+                    # Preserve the target and old job. A dead plan is only re-created
+                    # as a new row after its widening interval (_redo_dead_checkpoint).
                     dead = (await retention_release.execute(session, _RETENTION_DEAD_PLAN, {
                         "user_id": user_id, "generation": int(generation),
                         "dedup_key": retention_release.dedup_key(plan.dedup_key(user_id)), "through_id": plan.through_message_id,
                         "previous_id": str(previous.id) if previous else "",
                         "pressure": pressure_target is not None,
                     })).first()
-                    if dead is not None:
-                        exhausted = True
-                    else:
+                    latest = await _latest_plan_terminal(session, user_id=user_id,
+                        generation=int(generation), plan=plan)
+                    if dead is None or (latest is not None and latest[0] != "dead"):
+                        # 원본 dead 뒤에 다시 만든 작업이 성공으로 끝났으면 그 상태에서 이어받는다.
                         made = await _resume_unpublished_success(session, user_id=user_id,
                             generation=int(generation), plan=plan, previous=previous)
+                    if made is None:
+                        # 원본이 dead이거나, 다음 쪽 작업이 dead라 이어받기가 막힌 경우.
+                        made = await _redo_dead_checkpoint(session, user_id=user_id,
+                                                           plan=plan, row=latest)
+                        exhausted = made is None and dead is not None
                 await session.commit()
                 enqueued += int(made is not None)
                 blocked += int(exhausted)

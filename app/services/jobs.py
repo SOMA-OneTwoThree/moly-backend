@@ -630,6 +630,10 @@ async def finalize_retryable(
     return state
 
 
+_DEFER_DEFAULT_MAX_S = 60.0
+_DEFER_MAX_S = {"checkpoint_source_processing_pending": 300.0}
+
+
 async def finalize_deferred(
     session: AsyncSession, job: ClaimedJob, *, reason: str, delay_s: float = 5.0,
 ) -> bool:
@@ -642,7 +646,10 @@ async def finalize_deferred(
     """
     if job.job_type != "conversation_checkpoint":
         raise ValueError("defer is only supported before checkpoint model execution")
-    available_at = datetime.now(timezone.utc) + timedelta(seconds=max(1.0, min(delay_s, 60.0)))
+    # 요약 게시의 선행 처리 대기만 5분까지 늘릴 수 있다(오래 막히면 확인 간격을 넓힌다).
+    # 그 밖의 대기(개인정보 잠금 경합 등)는 지금처럼 60초가 상한이다.
+    cap = _DEFER_MAX_S.get(reason, _DEFER_DEFAULT_MAX_S)
+    available_at = datetime.now(timezone.utc) + timedelta(seconds=max(1.0, min(delay_s, cap)))
     row = (await session.execute(_DEFER_SQL, {
         **_fence_params(job), "available_at": available_at, "reason": reason,
     })).first()
@@ -721,6 +728,47 @@ def next_retry_at(
     if retry_after_s is not None and retry_after_s > 0:
         at = max(at, now + timedelta(seconds=retry_after_s))
     return at
+
+
+# ─────────────────────────────────────────────────────────────
+# dead 재생성 간격 — 같은 범위가 다시 걸리지 않아 사용자 처리가 영구히 멈추는 작업(약속 정리·요약)을
+# 새 행으로 다시 만들 때의 공통 규칙. dead 행 자체는 되살리지 않는다(불변식 5).
+# ─────────────────────────────────────────────────────────────
+REDO_FIRST_DELAY = timedelta(minutes=30)
+REDO_MAX_DELAY = timedelta(hours=24)
+_REDO_DEPTH_UNKNOWN = 64  # 형식이 깨진 깊이는 원본으로 보지 않고 최대 간격을 쓴다.
+
+
+def redo_delay(depth: int) -> timedelta:
+    """재생성 깊이별 대기: 원본 dead 30분, 1회차 1시간, 2시간 … 최대 24시간."""
+    return min(REDO_MAX_DELAY, REDO_FIRST_DELAY * (2 ** min(max(depth, 0), 16)))
+
+
+def dead_redo_depth(row: Any, *, now: datetime, repeat_codes: frozenset[str],
+                    original_once_codes: frozenset[str] = frozenset()) -> int | None:
+    """마지막 종료 작업이 다시 만들 dead면 새 작업의 redo_depth, 아니면 None.
+
+    row = (state, id, finished_at, last_error_code, payload의 redo_depth 텍스트).
+    `repeat_codes`는 깊이마다 간격을 늘려 계속 다시 만들고, `original_once_codes`는 원본
+    작업(redo_depth 없음)일 때만 한 번 다시 만든다.
+    """
+    state, _, finished_at, code, raw_depth = row
+    if state != "dead" or finished_at is None:
+        return None
+    original = raw_depth is None
+    try:
+        depth = 0 if original else int(raw_depth)
+    except (TypeError, ValueError):
+        depth = _REDO_DEPTH_UNKNOWN
+    if depth < 0:
+        depth = _REDO_DEPTH_UNKNOWN
+    if code not in repeat_codes and not (original and code in original_once_codes):
+        return None
+    if finished_at.tzinfo is None:
+        finished_at = finished_at.replace(tzinfo=timezone.utc)
+    if now < finished_at + redo_delay(depth):
+        return None
+    return depth + 1
 
 
 # ─────────────────────────────────────────────────────────────

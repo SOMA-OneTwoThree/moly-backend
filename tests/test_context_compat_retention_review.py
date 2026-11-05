@@ -1,5 +1,6 @@
 """Independent suffix dependency/resume review; synthetic sessions only."""
 from dataclasses import replace
+from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 import uuid
@@ -50,7 +51,9 @@ async def test_contract_resume_keeps_original_binding_epoch_partial_and_budget(m
             return None
         async def execute(self, statement, params):
             if statement is context_retention._CONTRACT_LATEST_TERMINAL:
-                return Result(("dead" if change == "dead" else "succeeded",))
+                # 방금 dead가 된 원본: 다시 만들 간격(30분)이 아직 지나지 않았다.
+                return Result(("dead" if change == "dead" else "succeeded", uuid.UUID(int=706),
+                               datetime.now(timezone.utc), "contract_retention_evidence", None))
             if statement is context_retention._CONTRACT_BASE_JOB:
                 return Result((uuid.UUID(int=703),))
             assert "SELECT j.id,j.payload FROM async_jobs" in str(statement)

@@ -632,3 +632,23 @@ async def test_skip_flag_must_be_a_plain_boolean_on_a_fresh_payload(fallback_env
     _forbid_model(monkeypatch)
     with pytest.raises(JobFatal, match="invalid_contract_retention_payload"):
         await worker.handle_contract_compile(_skip_job(**payload))
+
+
+async def test_skip_job_still_applies_rule_based_scope_end_without_a_model(fallback_env, monkeypatch):
+    """상한 뒤 건너뛰기에서도 사용자가 직접 끝낸 대화 선호는 규칙으로 끝낸다(모델 없음)."""
+    state, session = fallback_env
+    original = worker._Msg(1, "user", _SHORT)
+    candidate = {"kind": "response_style", "action": "prefer", "condition": "always",
+                 "target_literal": "short replies", "source_message_id": 1,
+                 "scope": "conversation", "evidence_quote": "use short replies"}
+    kept, _ = worker.cc.parse(json.dumps([candidate]), user_message_ids={1}, source_messages=[original])
+    existing = worker.merge_retained_items([], kept, generation=0)
+    state["published"] = copy.deepcopy(existing)
+    state.update(body="그 말투 그만 써", cursor=1, message_id=2)
+    _forbid_model(monkeypatch)
+    result = await worker.handle_contract_compile(_skip_job(through_message_id=2))
+    assert result.result_code == "ok" and result.result_detail["skipped_after_redo_cap"] is True
+    await result.apply_domain(session)
+    assert state["cursor"] == 2 and state["calls"] == 0
+    active = [entry for entry in state["published"] if entry.get("status") == "active"]
+    assert not any(entry["item_key"] == existing[0]["item_key"] for entry in active)

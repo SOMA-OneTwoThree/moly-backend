@@ -747,9 +747,12 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             return values, None
 
         if no_model:
-            # 상한 뒤 마지막 작업: 문서는 그대로 두고 커서만 넘긴다. 규칙 기반 종료도 적용하지 않는다.
-            values, failure = ([], [], working, render_items(working)), None
-            document_kept = True
+            # 상한 뒤 마지막 작업: 모델 후보 없이 규칙 기반 종료(사용자가 직접 끝낸 대화 선호)만 적용한다.
+            # 모델은 부르지 않는다. 그것도 실패하면 문서는 그대로 두고 커서만 넘긴다.
+            values, failure = checked_merge([])
+            if failure is not None:
+                values, failure = ([], [], working, render_items(working)), None
+                document_kept = True
         else:
             values, failure = checked_merge(kept)
         if failure is not None:

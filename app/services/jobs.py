@@ -630,6 +630,10 @@ async def finalize_retryable(
     return state
 
 
+_DEFER_DEFAULT_MAX_S = 60.0
+_DEFER_MAX_S = {"checkpoint_source_processing_pending": 300.0}
+
+
 async def finalize_deferred(
     session: AsyncSession, job: ClaimedJob, *, reason: str, delay_s: float = 5.0,
 ) -> bool:
@@ -642,7 +646,10 @@ async def finalize_deferred(
     """
     if job.job_type != "conversation_checkpoint":
         raise ValueError("defer is only supported before checkpoint model execution")
-    available_at = datetime.now(timezone.utc) + timedelta(seconds=max(1.0, min(delay_s, 60.0)))
+    # 요약 게시의 선행 처리 대기만 5분까지 늘릴 수 있다(오래 막히면 확인 간격을 넓힌다).
+    # 그 밖의 대기(개인정보 잠금 경합 등)는 지금처럼 60초가 상한이다.
+    cap = _DEFER_MAX_S.get(reason, _DEFER_DEFAULT_MAX_S)
+    available_at = datetime.now(timezone.utc) + timedelta(seconds=max(1.0, min(delay_s, cap)))
     row = (await session.execute(_DEFER_SQL, {
         **_fence_params(job), "available_at": available_at, "reason": reason,
     })).first()

@@ -424,6 +424,20 @@ def _validate_completed(req, payload, sources, previous, language):
             "start_chunk": payload.get("completed_start_chunk", 0)} if _packing_version(payload) else {}))
 
 
+def publish_wait_delay_s(attempt: int) -> float:
+    """요약 게시가 사실·선호 처리 완료를 기다릴 때 다음 확인까지의 간격(초).
+
+    포기하지 않는다(대기는 실패 시도 횟수를 쓰지 않는다). 처음 120번은 5초(약 10분),
+    170번까지는 60초(약 50분), 그 뒤로는 5분마다 확인한다. 선행 작업이 끝나면 깨우기 신호가
+    먼저 당겨 주므로, 막힌 원인이 풀리면 늦어도 5분 안에 게시된다.
+    """
+    if attempt <= 120:
+        return 5.0
+    if attempt <= 170:
+        return 60.0
+    return 300.0
+
+
 class _PrivacyLockBusy(JobDeferred):
     """Roll finalize back: the same durable job survives a temporary barrier lock."""
 
@@ -511,7 +525,8 @@ async def _handle_retention_publish(job: ClaimedJob) -> JobResult:
                 generation=req.memory_generation, through_id=req.through_message_id)
             await session.commit()
             await _wake_ingest_dependency(req)
-            raise JobDeferred("checkpoint_source_processing_pending", delay_s=5)
+            raise JobDeferred("checkpoint_source_processing_pending",
+                              delay_s=publish_wait_delay_s(job.attempt))
         index = await checkpoint_repo.count(session, req.user_id, retention_enabled=True) + 1
 
     async def _apply(session):

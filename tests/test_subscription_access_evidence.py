@@ -424,3 +424,29 @@ def test_free_trial_grace_can_transition_to_a_new_verified_paid_transaction():
     assert active.store_trial_ends_at is None and active.expires_at == paid_end
     kinds = {p["transaction_id"]: p["billing_kind"] for p in proof["periods"]}
     assert kinds == {"store-trial": "trial", "new-paid": "paid"}
+
+
+def google_fixture(monthly=f"{MONTHLY}:becappy-pro-monthly", yearly=f"{YEARLY}:becappy-pro-yearly"):
+    snapshot, transactions, events = prepaid_fixture()
+    snapshot["store"] = "play_store"
+    transactions[0]["product_store_identifier"] = monthly
+    transactions[1]["product_store_identifier"] = yearly
+    return snapshot, transactions, events
+
+
+def test_google_base_plan_suffix_maps_like_the_webhook_plan_resolver():
+    sub = row(build_evidence(*google_fixture(), PRODUCTS, now=OBSERVED))
+    assert resolve_access(sub, OBSERVED).plan == "monthly"
+    assert resolve_access(sub, BOUNDARY).plan == "yearly"
+
+
+def test_google_unknown_base_plan_product_is_still_rejected():
+    with pytest.raises(EvidenceError, match="unmapped transaction product"):
+        build_evidence(*google_fixture(yearly="com.example.other:base"), PRODUCTS, now=OBSERVED)
+
+
+def test_app_store_product_with_suffix_is_not_normalized():
+    snapshot, transactions, events = prepaid_fixture()
+    transactions[1]["product_store_identifier"] = f"{YEARLY}:becappy-pro-yearly"
+    with pytest.raises(EvidenceError, match="unmapped transaction product"):
+        build_evidence(snapshot, transactions, events, PRODUCTS, now=OBSERVED)

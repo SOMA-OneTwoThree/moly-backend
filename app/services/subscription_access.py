@@ -144,6 +144,16 @@ def _positive(value: Any) -> bool:
         return False
 
 
+def _transaction_plan(product: Any, products: dict[str, str], store: str) -> str | None:
+    """Google Play는 '구독ID:basePlanId'로 보낸다. 웹훅 요금제 판정과 같게 ':' 앞으로 다시 찾는다."""
+    if not isinstance(product, str):
+        return None
+    plan = products.get(product)
+    if plan is None and store == "play_store" and ":" in product:
+        plan = products.get(product.split(":", 1)[0])
+    return plan
+
+
 def build_evidence(
     snapshot: dict, transactions: list[dict], events: list[dict], products: dict[str, str], *,
     now: datetime, previous: dict | None = None, ownership_since: datetime | None = None,
@@ -210,8 +220,7 @@ def build_evidence(
         tx_proofs = proofs.get(tx_id, [])
         previous_kinds = {p.get("billing_kind", p["kind"]) for p in history
                           if p["transaction_id"] == tx_id and p["rc_subscription_id"] == rc_id}
-        product = tx.get("product_store_identifier")
-        plan = products.get(product)
+        plan = _transaction_plan(tx.get("product_store_identifier"), products, store)
         if plan not in {"monthly", "yearly"}:
             raise EvidenceError("unmapped transaction product")
         start = instant(tx.get("purchased_at"))

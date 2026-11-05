@@ -338,12 +338,17 @@ async def _context(
     normal_generation_projection: bool = False,
     legacy_source_after: int = 0,
     legacy_projection: bool = False,
+    truncate_unread: bool = False,
 ) -> ContextWindow:
     """Build a bounded window without removing an uncheckpointed head at normal resets.
 
     ``checkpoint_keep_from`` requests asynchronous work; ``new_anchor`` alone may be
     committed. Published coverage or hard pressure permits anchor advancement.
     While a checkpoint is pending, stored message text stays append-only.
+
+    ``truncate_unread``(요약 게시를 기다릴 수 없을 때만): 읽기 상한을 넘으면
+    ``_HistoryReadPressure`` 대신 최신 메시지부터 상한 안까지만 남기고 ``incomplete``로
+    표시한다. 앵커는 게시된 요약 경계로만 정하고, 빠진 원문에 커버리지를 주지 않는다.
 
     ``lead`` = 대화 배열 맨 앞에서 밀려난 캐피 메시지(=커밋된 선발화).
     Anthropic이 messages[0]를 user로 강제해서 배열엔 못 넣지만, 버리면 캐피가 방금 건넨
@@ -369,6 +374,7 @@ async def _context(
                          checkpoint_through + 1 if checkpoint_through is not None else 0)
         descending = []
         before_id = None
+        unread_bytes = 0
         while True:
             query = select(Message).where(Message.user_id == uid, Message.id >= raw_anchor)
             if before_id is not None:
@@ -379,22 +385,38 @@ async def _context(
             if before_id is not None and any(m.id >= before_id for m in page):
                 raise errors.ai_unavailable()
             descending.extend(page)
-            if context_retention.source_tokens(descending) > context_retention.FOREGROUND_INPUT_LIMIT:
-                # Do not discard the unread source or send a truncated prompt.
-                # The request owner reserves committed-history recovery instead.
-                raise _HistoryReadPressure()
+            read_bytes = context_retention.source_tokens(descending)
+            if read_bytes > context_retention.FOREGROUND_INPUT_LIMIT:
+                if not truncate_unread:
+                    # Normally the request owner reserves committed-history recovery
+                    # and waits for the summary instead of sending a shortened prompt.
+                    raise _HistoryReadPressure()
+                # 요약 대기 실패 뒤에만: 최신 메시지부터 상한 안까지 남긴다. 오래된 원문은
+                # 저장된 그대로 두고 이번 요청에서만 읽지 않는다.
+                kept, kept_bytes = [], 0
+                for message in descending:
+                    size = context_retention.source_tokens([message])
+                    if kept_bytes + size > context_retention.FOREGROUND_INPUT_LIMIT:
+                        break
+                    kept.append(message)
+                    kept_bytes += size
+                descending = kept
+                unread_bytes = read_bytes
+                break
             before_id = min(m.id for m in page)
             if len(page) < 120:
                 break
         rows = list(reversed(descending))
+        # 게시된 요약 경계로만 정한다. 줄인 기록은 앵커를 옮기지 않는다.
         new_anchor = checkpoint_through + 1 if checkpoint_through is not None and checkpoint_through >= anchor else None
         checkpoint_keep_from = None
-        incomplete = False
+        incomplete = unread_bytes > 0
         sources = [checkpoint.SourceMessage(
             id=m.id, sender=m.sender, kind=m.kind, content=_message_text(m),
             created_at=getattr(m, "created_at", None),
         ) for m in rows]
-        retention_source_bytes = context_retention.source_tokens(sources)
+        # 줄인 경우 남긴 크기를 전체 크기처럼 보이지 않게, 실제로 읽은 크기(상한 초과)를 쓴다.
+        retention_source_bytes = max(context_retention.source_tokens(sources), unread_bytes)
         if checkpoint.should_checkpoint(sources, retention_enabled=True):
             tail = checkpoint.keep_tail(sources, retention_enabled=True)
             if tail:
@@ -1206,6 +1228,68 @@ class _ContextPressureReady(Exception):
     """Goal committed, original lease retained; only normal preparation may restart."""
 
 
+class _ContextPressureFallback(Exception):
+    """요약 예약은 커밋, 처리 권한(lease)은 유지. 줄인 최근 기록으로 한 번만 다시 준비한다.
+
+    요약 게시를 기다릴 수 없거나 기다려도 오지 않을 때 503 대신 쓴다. 이유 코드만 담는다.
+    """
+
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
+
+
+# 대기 실패 뒤 입력을 다시 준비하는 시간(DB 조회·기억 대조 등). 대기 마감에서 미리 뺀다.
+_PRESSURE_REPREPARE_S = 1.5
+# 같은 사용자의 요약 게시 대기가 이만큼 넘게 밀려 있으면 기다리지 않고 바로 줄인 기록으로 답한다.
+_PUBLISH_WAIT_STALLED_S = 60.0
+# 줄인 기록에 남길 여유. 도구 호출 뒤 입력이 커져도 상한 초과(이 경우는 503 유지)에 잘 닿지 않게 한다.
+_FALLBACK_OUTPUT_RESERVE = 8_192
+
+
+def _subject_hash(uid) -> str:
+    return hashlib.sha256(str(uid).encode()).hexdigest()
+
+
+def _publish_wait_stalled(reserved) -> bool:
+    """예약 응답의 대기 중 요약 작업 생성 시각으로 판단한다(추가 조회 없음)."""
+    since = getattr(reserved, "waiting_since", None)
+    if not isinstance(since, datetime):
+        return False
+    if since.tzinfo is None:
+        since = since.replace(tzinfo=timezone.utc)
+    return (datetime.now(timezone.utc) - since).total_seconds() > _PUBLISH_WAIT_STALLED_S
+
+
+def _trim_oldest_history(convo: list, fits) -> list | None:
+    """요약 대기 실패 뒤에만 쓴다. 저장된 원문(``source_ref`` 있음)을 오래된 것부터 뺀다.
+
+    system·휘발·요약·기억·확인된 사실 블록과 현재 입력은 ``source_ref``가 없어 그대로 남는다.
+    뺀 뒤 맨 앞에 남는 캐피 답변도 함께 뺀다. 원문을 다 빼도 안 맞으면 ``None``.
+    빼는 개수가 늘수록 입력은 줄기만 하므로, 맞는 최소 개수를 이분 탐색으로 찾는다.
+    """
+    sourced = [i for i, entry in enumerate(convo) if getattr(entry, "source_ref", None) is not None]
+
+    def candidate(count: int) -> list:
+        removed = set(sourced[:count])
+        for index in sourced[count:]:
+            if convo[index]["role"] != "assistant":
+                break
+            removed.add(index)
+        return [entry for i, entry in enumerate(convo) if i not in removed]
+
+    if not fits(candidate(len(sourced))):
+        return None
+    low, high = 0, len(sourced)
+    while low < high:
+        middle = (low + high) // 2
+        if fits(candidate(middle)):
+            high = middle
+        else:
+            low = middle + 1
+    return candidate(low)
+
+
 _PRESSURE_CONFIG_KEYS = tuple(dict.fromkeys([
     *limits.CONFIG_KEYS, *agent_config.AGENT_CONFIG_KEYS, *crisis_chat.CONFIG_KEYS,
     "context_retention_v2_enabled", checkpoint.TEMPORAL_CONFIG_KEY,
@@ -1244,7 +1328,8 @@ async def _validate_pressure_resume(session, uid, state):
 
 
 async def _wait_for_context_progress(session, uid, state) -> bool:
-    cutoff = state.deadline - state.model_reserve
+    # 대기가 끝난 뒤(성공이든 실패든) 입력을 다시 준비할 시간을 남기고 멈춘다.
+    cutoff = state.deadline - state.model_reserve - _PRESSURE_REPREPARE_S
     while time.monotonic() < cutoff:
         session.expunge_all()
         try:
@@ -1266,7 +1351,7 @@ async def _wait_for_context_progress(session, uid, state) -> bool:
 
 async def _pause_for_history_pressure(
     session, *, uid, lease, memory_generation, reserve, recent, history_limit, owner,
-    resume: _PressureResume | None = None,
+    resume: _PressureResume | None = None, fallback: bool = False,
 ) -> None:
     """The two pressure boundaries share one fenced commit/lease owner.
 
@@ -1274,6 +1359,10 @@ async def _pause_for_history_pressure(
     the last committed complete reply, not a partially read page/current input.
     If immutable required input alone is too large, reserve=False avoids work
     that cannot make that request fit.
+
+    ``fallback=True``이면 기다릴 수 없는 경우에도 처리 권한을 놓지 않는다. 요약 예약만
+    커밋하고 ``_ContextPressureFallback``으로 줄인 최근 기록 준비를 요청한다. 같은 사용자의
+    게시 대기가 이미 오래 밀려 있으면 기다리지 않고 바로 그렇게 한다.
     """
     if reserve:
         # Start the one absolute timer before any reservation/commit can block.
@@ -1295,7 +1384,8 @@ async def _pause_for_history_pressure(
         reserved = await checkpoint_repo.request_pressure(
             session, user_id=uid, generation=memory_generation,
         )
-        if (resume is not None and not resume.resumed and owner is not None
+        stalled = fallback and _publish_wait_stalled(reserved)
+        if (not stalled and resume is not None and not resume.resumed and owner is not None
                 and owner.get("pressure_timeout") is not None
                 and type(reserved.through_message_id) is int and reserved.through_message_id > 0
                 and reserved.status in {"queued", "pending", "covered"}
@@ -1309,6 +1399,16 @@ async def _pause_for_history_pressure(
             resume.required_through = reserved.through_message_id
             await session.commit()
             raise _ContextPressureReady()
+        if fallback:
+            # 기다릴 수 없다: 요약 예약만 커밋하고 lease는 그대로 둔다(게시되면 다음 턴부터 정상).
+            if resume is not None:
+                barrier = await privacy.load_barrier(session, uid)
+                if barrier != resume.barrier:
+                    raise errors.AppError("CHAT_TURN_STALE", 409, "대화 근거가 바뀌었어요. 새 요청으로 다시 시도해 주세요.")
+                if resume.recent_proof is None:
+                    resume.recent_proof = _guard_source_proof(await _guard_recent(session, uid, history_limit))
+            await session.commit()
+            raise _ContextPressureFallback("stalled_publish" if stalled else "not_waitable")
     await chat_turns.release(session, user_id=uid, lease=lease)
     await session.commit()
     if owner is not None:
@@ -1672,7 +1772,12 @@ async def _post_message_impl(
     compat_identity_captured = False
     compat_identity = None
     legacy_summary_text = ""
-    for context_attempt in range(2):
+    # 요약 게시를 기다릴 수 없으면 줄인 최근 기록으로 한 번 다시 준비한다(503 대신).
+    # 위기 판정이 기술적으로 실패한 요청은 정상 경로가 확인되지 않았으므로 지금처럼 503이다.
+    pressure_fallback_allowed = predecided is None or predecided.status == "ok"
+    history_fallback = False
+    # 시도: 처음 준비 → (요약 게시 후 재준비) → 줄인 기록 준비. 줄인 기록 준비는 한 번뿐이다.
+    for context_attempt in range(3):
         try:
             if retention_enabled:
                 from app.services import retention_release
@@ -1977,13 +2082,16 @@ async def _post_message_impl(
                     legacy_projection=compat_baseline is not None,
                     normal_generation_projection=(guard_config.enabled and predecided is not None
                                                   and predecided.status == "ok" and predecided.route == "normal"),
+                    truncate_unread=history_fallback,
                 )
             except _HistoryReadPressure:
                 await _pause_for_history_pressure(
                     session, uid=uid, lease=lease, memory_generation=memory_generation,
-                    reserve=recoverable_history(), recent=decision_recent if predecided is not None else None,
+                    reserve=not history_fallback and recoverable_history(),
+                    recent=decision_recent if predecided is not None else None,
                     history_limit=guard_config.history_messages, owner=_owner,
                     **({"resume": pressure_resume} if pressure_resume is not None else {}),
+                    fallback=pressure_fallback_allowed and not history_fallback,
                 )
             if correction_pending:
                 checkpoint_summary = ""
@@ -2106,7 +2214,7 @@ async def _post_message_impl(
                     volatile.append("[Current verified facts]\n" + naming.render(required_facts, nick))
                 if relationship_v2:
                     volatile.append(naming.render(relationship_v2, nick))
-            if context_window.incomplete:
+            if context_window.incomplete or history_fallback:
                 volatile.append(
                     "[Context availability] Earlier conversation may be missing. Do not infer that "
                     "something never happened or was never shared. Do not invent missing details. "
@@ -2173,31 +2281,82 @@ async def _post_message_impl(
                         alternative_system, alternative_messages, tools=alternative_tools,
                         input_limit=context_retention.FOREGROUND_INPUT_LIMIT,
                     )
+                    trimmed_history = None
+                    if not fallback_fits and history_fallback:
+                        def fits_with(items, output_reserve):
+                            trim_system, trim_messages, trim_tools = budget_inputs(system, items)
+                            return context_retention.fits_input_budget(
+                                trim_system, trim_messages, tools=trim_tools,
+                                input_limit=context_retention.FOREGROUND_INPUT_LIMIT,
+                                **({"output_reserve": output_reserve} if output_reserve is not None else {}),
+                            )
+                        # 요약이 덮은 원문을 먼저 뺀 목록(fallback)에서 오래된 원문부터 뺀다.
+                        # 여유를 남기고 맞추는 것을 먼저 시도한다. 원문을 다 빼도 여유가 안 나오면
+                        # 일반 상한으로 맞춘다(이 경우 도구 호출 뒤 초과는 드물게 503).
+                        for trim_reserve in (_FALLBACK_OUTPUT_RESERVE, None):
+                            trimmed_history = _trim_oldest_history(
+                                fallback, lambda items, r=trim_reserve: fits_with(items, r))
+                            if trimmed_history is not None:
+                                _log.info(
+                                    "chat_history_fallback_trimmed subject=%s dropped=%d kept=%d headroom=%s",
+                                    _subject_hash(uid), len(convo) - len(trimmed_history),
+                                    sum(getattr(e, "source_ref", None) is not None for e in trimmed_history),
+                                    trim_reserve is not None,
+                                )
+                                break
                     if fallback_fits:
                         convo = fallback
+                    elif trimmed_history is not None:
+                        convo = trimmed_history
                     else:
+                        # 줄인 기록으로도 안 맞으면 예약을 반복하지 않고 503(fallback=False).
                         await _pause_for_history_pressure(
                             session, uid=uid, lease=lease, memory_generation=memory_generation,
-                            reserve=recoverable_history(), recent=decision_recent if predecided is not None else None,
+                            reserve=not history_fallback and recoverable_history(),
+                            recent=decision_recent if predecided is not None else None,
                             history_limit=guard_config.history_messages, owner=_owner,
                             **({"resume": pressure_resume} if pressure_resume is not None else {}),
+                            fallback=pressure_fallback_allowed and not history_fallback,
                         )
-        except _ContextPressureReady:
-            if context_attempt or pressure_resume is None:
+        except (_ContextPressureReady, _ContextPressureFallback) as pause:
+            reason = getattr(pause, "reason", "not_waitable")
+            if (isinstance(pause, _ContextPressureReady) and not context_attempt
+                    and pressure_resume is not None and not history_fallback):
+                session.expunge_all()
+                if await _wait_for_context_progress(session, uid, pressure_resume):
+                    session.expunge_all()
+                    g = await _validate_pressure_resume(session, uid, pressure_resume)
+                    ctx = await session.get(ChatContext, uid, populate_existing=True)
+                    # Rebind the persistent profile/context, never the original lease or dates.
+                    anchor = ctx.anchor_message_id if ctx is not None else 0
+                    last_turn_at = getattr(ctx, "last_active_at", None)
+                    pressure_resume.resumed = True
+                    absolute_deadline = pressure_resume.deadline
+                    continue
+                reason = "wait_failed"
+            # 요약을 기다리지 못했다. 줄인 최근 기록 준비는 한 번뿐이고, 위기 판정 실패는 503 유지.
+            if history_fallback or not pressure_fallback_allowed:
                 raise errors.ai_unavailable()
-            session.expunge_all()
-            if not await _wait_for_context_progress(session, uid, pressure_resume):
-                raise errors.ai_unavailable()
-            session.expunge_all()
-            g = await _validate_pressure_resume(session, uid, pressure_resume)
-            ctx = await session.get(ChatContext, uid, populate_existing=True)
-            # Rebind the persistent profile/context, never the original lease or dates.
-            anchor = ctx.anchor_message_id if ctx is not None else 0
-            last_turn_at = getattr(ctx, "last_active_at", None)
-            pressure_resume.resumed = True
-            absolute_deadline = pressure_resume.deadline
+            if pressure_resume is not None:
+                # 대기 성공 때와 같은 확인(계정·lease·세대·설정·직전 원문·날짜)을 거쳐 이어받는다.
+                session.expunge_all()
+                g = await _validate_pressure_resume(session, uid, pressure_resume)
+                ctx = await session.get(ChatContext, uid, populate_existing=True)
+                anchor = ctx.anchor_message_id if ctx is not None else 0
+                last_turn_at = getattr(ctx, "last_active_at", None)
+                pressure_resume.resumed = True
+                absolute_deadline = pressure_resume.deadline
+            else:
+                await _lock_user(session, uid)
+                await privacy.ensure_subject_active(session, uid)
+                await chat_turns.verify_publish(session, user_id=uid, lease=lease,
+                                               memory_generation=memory_generation)
+            history_fallback = True
+            _log.info("chat_history_fallback subject=%s reason=%s", _subject_hash(uid), reason)
             continue
         break
+    else:  # 준비를 끝내지 못한 채 시도가 끝나는 경우는 없어야 한다. 있으면 저장 없이 503.
+        raise errors.ai_unavailable()
     try:
         if (pressure_resume is not None and pressure_resume.resumed
                 and absolute_deadline-time.monotonic() < max(agent_cfg.final_reserve_s, agent_runtime.FALLBACK_MIN_S)):
@@ -2536,7 +2695,10 @@ async def _post_message_impl(
         raw_bytes = (getattr(context_window, "retention_source_bytes", 0)
                      + len(_message_text(umsg).encode("utf-8"))
                      + len(_message_text(rmsg).encode("utf-8")) + 48)
-        prefetch_checkpoint = (raw_bytes >= checkpoint.RETENTION_SOFT_SOURCE_BYTES
+        # 줄인 기록으로 답한 턴은 줄인 크기로 판단하지 않고 이 턴까지 요약을 예약한다.
+        # (read_coverage는 이 요청 안에서 원문 제외에만 쓰고 저장하지 않는다.)
+        prefetch_checkpoint = (history_fallback
+            or raw_bytes >= checkpoint.RETENTION_SOFT_SOURCE_BYTES
             or not context_retention.fits_input_budget(
                 projected_system, projected_messages, tools=projected_tools,
                 input_limit=context_retention.FOREGROUND_INPUT_LIMIT))

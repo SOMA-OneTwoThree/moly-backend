@@ -268,3 +268,31 @@ async def test_durable_cap_sql_is_same_job_lease_generation_and_privacy_fenced(m
     assert json.loads(params["payload"])==after and json.loads(params["before"])==current.payload
     assert params["payload_hash"]==hashlib.sha256(params["payload"].encode()).hexdigest()
     assert captured[-1]=="commit"
+
+
+def _valid_and_unproven_candidates():
+    valid = {"kind": "response_style", "action": "prefer", "condition": "always",
+             "target_literal": "short replies", "source_message_id": 1,
+             "scope": "conversation", "evidence_quote": "use short replies"}
+    unproven = {**valid, "target_literal": "long replies", "evidence_quote": "never said in the source"}
+    return llm.LLMResult(json.dumps([valid, unproven]), 5, 3, finish_reason="stop")
+
+
+async def test_unproven_item_retries_while_attempts_remain(fallback_env, monkeypatch):
+    state, _ = fallback_env
+    state["body"] = "This conversation, use short replies."
+    monkeypatch.setattr(llm, "generate", AsyncMock(return_value=_valid_and_unproven_candidates()))
+    with pytest.raises(JobRetry, match="contract_retention_evidence"):
+        await worker.handle_contract_compile(retention_job(attempt=2, max_attempts=3))
+    assert state["cursor"] == 0 and not state["published"]
+
+
+async def test_last_attempt_keeps_only_proven_items_and_advances_instead_of_dying(fallback_env, monkeypatch):
+    state, session = fallback_env
+    state["body"] = "This conversation, use short replies."
+    monkeypatch.setattr(llm, "generate", AsyncMock(return_value=_valid_and_unproven_candidates()))
+    result = await worker.handle_contract_compile(retention_job(attempt=3, max_attempts=3))
+    await result.apply_domain(session)
+    assert state["cursor"] == 1
+    literals = json.dumps(state["published"], ensure_ascii=False)
+    assert "short replies" in literals and "long replies" not in literals

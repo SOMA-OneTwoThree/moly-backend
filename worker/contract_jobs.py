@@ -651,7 +651,13 @@ async def _handle_retention_compile(job: ClaimedJob) -> JobResult:
             except cc.CompilerRejection as exc:
                 raise JobRetry("contract_retention_schema") from exc
             if dropped:
-                raise JobRetry("contract_retention_evidence")
+                if job.max_attempts - job.attempt > 0:
+                    raise JobRetry("contract_retention_evidence")
+                # 마지막 시도: 검증된 항목만 쓰고 커서를 넘긴다. 여기서 dead가 되면 같은 범위의
+                # 새 작업이 생기지 않아 이 사용자의 약속 정리와 요약 게시가 계속 멈춘다.
+                # 버린 항목은 저장하지 않으므로 검증 안 된 약속이 들어가지는 않는다.
+                _log.warning("계약 근거 불일치 %d건 폐기 후 진행 — job=%s attempt=%s",
+                             len(dropped), job.id, job.attempt)
     if not output_fallback:
         ordinary = [candidate for candidate in kept if candidate.operation == "end" or candidate.directive.kind not in HIGH_IMPACT]
         drafts = [candidate for candidate in kept if candidate.operation != "end" and candidate.directive.kind in HIGH_IMPACT]

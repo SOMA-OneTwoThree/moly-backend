@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core import errors
+from app.core.content_crypto import ContentCryptoError
 from app.services.message_content import (
     encode_message, read_message_content, encode_greeting, read_greeting_content,
     encode_response, read_response,
@@ -51,6 +52,7 @@ from app.services import (
     gating,
     limits,
     greetings,
+    greeting_context,
     i18n,
     llm,
     naming,
@@ -1179,6 +1181,26 @@ async def _guard_recent(session, uid, limit: int):
     ) for m in reversed(rows)]
 
 
+async def _read_opening(session, uid, greeting_id, nick, *, fresh=False):
+    row = await session.get(Greeting, greeting_id, **({"populate_existing": True} if fresh else {}))
+    if row is None or row.user_id != uid or row.committed_message_id is not None:
+        return None, row
+    snapshot = greeting_context.capture(
+        row, user_id=uid, decoded_text=naming.render(_greeting_text(row), nick),
+    )
+    return snapshot, row
+
+
+async def _revalidate_opening(session, uid, opening, nick):
+    if opening is None:
+        return None
+    fresh, row = await _read_opening(session, uid, opening.greeting_id, nick, fresh=True)
+    if fresh is None or fresh.fingerprint != opening.fingerprint:
+        raise errors.AppError("CHAT_TURN_STALE", 409,
+                              "답변 근거가 바뀌었어요. 같은 요청을 다시 보내 주세요.")
+    return row
+
+
 @dataclass
 class _PressureResume:
     lease: Any
@@ -1197,6 +1219,8 @@ class _PressureResume:
     history_limit: int
     request_hash: str
     request_identity: Any
+    opening_snapshot: Any = None
+    opening_nickname: str | None = None
     baseline_through: int = 0
     required_through: int = 0
     resumed: bool = False
@@ -1224,6 +1248,8 @@ async def _validate_pressure_resume(session, uid, state):
     await privacy.ensure_subject_active(session, uid)
     await chat_turns.verify_publish(session, user_id=uid, lease=state.lease,
                                    memory_generation=state.generation)
+    await _revalidate_opening(session, uid, getattr(state, "opening_snapshot", None),
+                              getattr(state, "opening_nickname", None))
     barrier = await privacy.load_barrier(session, uid)
     raw = await config_store.get_config_values(session, list(state.config_keys))
     recent = await _guard_recent(session, uid, state.history_limit)
@@ -1319,7 +1345,7 @@ async def _pause_for_history_pressure(
 async def _publish_fixed_guard(
     session, *, uid, user_id, req, idempotency_key, request_digest, lease,
     memory_generation, decision, recent, history_limit, language, nick,
-    ad, now, tokens_used_pre, limit, t0, phase1_ms,
+    ad, now, tokens_used_pre, limit, t0, phase1_ms, opening_snapshot=None,
 ) -> PostMessageResponse:
     """Fixed replies have no dependency on normal memory/summary/tool state.
 
@@ -1344,6 +1370,7 @@ async def _publish_fixed_guard(
         return validate_post_message_response(payload, user_id=user_id, idempotency_key=idempotency_key)
     encryption_mode = await chat_turns.verify_publish(session, user_id=uid, lease=lease,
                                     memory_generation=memory_generation, encryption_mode=True)
+    await _revalidate_opening(session, uid, opening_snapshot, nick)
     fresh_recent = await _guard_recent(session, uid, history_limit)
     if _guard_source_proof(fresh_recent) != _guard_source_proof(recent):
         raise errors.AppError("CHAT_TURN_STALE", 409,
@@ -1595,6 +1622,24 @@ async def _post_message_impl(
     if not isinstance(limit, int):  # fail-closed(위 게이트와 동일 근거)
         limit = settings.daily_token_limit_free
 
+    # Resolve only the opening this request actually references. Keep this frozen
+    # across classification, normal preparation and final publication. Invalid
+    # references retain the existing fixed-safety early return behavior.
+    requested_gid = None
+    opening_snapshot = None
+    opening_error = None
+    if getattr(req, "greeting_id", None):
+        try:
+            requested_gid = uuid.UUID(req.greeting_id)
+        except ValueError:
+            opening_error = errors.validation("잘못된 greeting_id예요.")
+        if requested_gid is not None:
+            try:
+                opening_snapshot, _ = await _read_opening(session, uid, requested_gid, nick)
+            except ContentCryptoError as exc:
+                opening_error = exc
+    greeting_gid = opening_snapshot.greeting_id if opening_snapshot is not None else None
+
     # 현재 위기·연속 distress가 있으면 운세 참조는 DB 조회 전부터 완전히 무시한다. 안전 응답이
     # 오늘 운세의 표현에 끌리거나 stale 참조 오류로 막혀서는 안 된다.
     crisis_now = (not guard_config.enabled
@@ -1636,7 +1681,9 @@ async def _post_message_impl(
         await session.commit()  # Common lease/proof only; release all DB locks.
         common_phase_ms = _ms(t0, time.monotonic())
         predecided = await crisis_chat.recorded_decision(
-            req.text, decision_recent, config=guard_config,
+            req.text, greeting_context.guard_history(
+                decision_recent, opening_snapshot, user_id=uid, history_limit=guard_config.history_messages,
+            ), config=guard_config,
             deadline=absolute_deadline, ledger=ledger_ctx,
         )
         if predecided.route != "normal":
@@ -1645,12 +1692,14 @@ async def _post_message_impl(
                 request_digest=request_digest, lease=lease, memory_generation=memory_generation,
                 decision=predecided, recent=decision_recent, history_limit=guard_config.history_messages,
                 language=language, nick=nick, ad=ad, now=now, tokens_used_pre=tokens_used_pre,
-                limit=limit, t0=t0, phase1_ms=common_phase_ms,
+                limit=limit, t0=t0, phase1_ms=common_phase_ms, opening_snapshot=opening_snapshot,
             )
         # A depleted normal quota cannot suppress a zero-charge fixed check or
         # guide. Disabled requests retain the existing early daily-limit gate.
         if remaining <= 0:
             raise errors.daily_limit_reached()
+    if opening_error is not None:
+        raise opening_error
     pressure_resume = None
     if can_handoff and (predecided is None or (predecided.status == "ok" and predecided.route == "normal")):
         pressure_resume = _PressureResume(
@@ -1662,6 +1711,7 @@ async def _post_message_impl(
             config_hash=_pressure_config_hash(raw_cfg), barrier=pressure_barrier,
             recent_proof=_guard_source_proof(decision_recent) if predecided is not None else None,
             history_limit=guard_config.history_messages, request_hash=request_digest,
+            opening_snapshot=opening_snapshot, opening_nickname=nick,
             request_identity=lambda: chat_turns.request_hash(
                 text_value=req.text, greeting_id=getattr(req, "greeting_id", None),
                 diary_references=references_enabled,
@@ -1822,16 +1872,6 @@ async def _post_message_impl(
                 relationship_v2 = await relationship_projector.prompt_text(
                     session, uid, language=language
                 )
-            # greeting_id 형식 검증은 **회상을 띄우기 전에** 끝낸다. 태스크를 만든 뒤에 raise하면
-            # 그 태스크가 고아가 되어, 응답은 실패했는데 임베딩 호출과 DB 세션은 그대로 돈다
-            # (클라이언트가 잘못된 값을 반복해 보내면 그만큼 낭비된다).
-            requested_gid: uuid.UUID | None = None
-            if getattr(req, "greeting_id", None):
-                try:
-                    requested_gid = uuid.UUID(req.greeting_id)
-                except ValueError as e:
-                    raise errors.validation("잘못된 greeting_id예요.") from e
-
             # 회상을 **지금 띄워** Phase 1의 남은 DB 작업과 겹쳐 돌린다.
             #
             # 회상 자체는 임베딩+벡터검색으로 약 490ms 걸린다(dev 실측). 커밋 뒤에 직렬로 부르면
@@ -1951,12 +1991,17 @@ async def _post_message_impl(
                         essential_blocks.append(naming.render(contract_text, nick))
                     if required_facts:
                         essential_blocks.append("[Current verified facts]\n" + naming.render(required_facts, nick))
+                    if opening_snapshot is not None:
+                        essential_blocks.append(greeting_context.reference_note(language))
                     essential_convo = [
                         {"role": "system", "content": "\n\n".join(essential_blocks)},
                         {"role": "user", "content": naming.render(
                             f"{_time_label(now, account_timezone)}\n{req.text}", nick,
                         )},
                     ]
+                    essential_convo = greeting_context.attach(
+                        essential_convo, opening_snapshot, user_id=uid,
+                    )
                     essential_system, essential_convo, essential_tools = budget_inputs(
                         essential_system, essential_convo,
                     )
@@ -2001,16 +2046,6 @@ async def _post_message_impl(
                 convo = [HistoryEntry("system", _HISTORICAL_LEAD_HEADER[i18n.resolve(language)] + text,
                             source_ref=SourceRef.from_message(m, user_id=uid, generation=memory_generation))
                          for m, text in zip(lead, historical_lead, strict=True)] + convo
-
-            # 현재 턴 선발화(있으면) — 이번 턴 system[먼저 건넨 말]에 넣으려 읽기만. insert는 phase 2.
-            greeting_content: str | None = None
-            greeting_gid: uuid.UUID | None = None
-            if requested_gid is not None:
-                gid = requested_gid
-                gr = await session.get(Greeting, gid)
-                if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
-                    greeting_content = _greeting_text(gr)  # placeholder 저장분
-                    greeting_gid = gid
 
             # placeholder 저장분 → LLM 투입 전 현재 이름 렌더(히스토리에서도 최신 이름만 보임).
             # 현재 턴(raw)엔 placeholder가 없어 render는 무영향.
@@ -2062,7 +2097,7 @@ async def _post_message_impl(
 
             def system_with_history(earlier_lead):
                 return _build_system(
-                    language, nick, [greeting_content] if greeting_content else [],
+                    language, nick,
                     # The pipeline mode, not an empty recall result, selects this path.
                     contract_text="" if retention_enabled else contract_text,
                     relationship_v2="" if retention_enabled else relationship_v2,
@@ -2147,11 +2182,14 @@ async def _post_message_impl(
                 )
             if fortune_snapshot is not None:
                 volatile.append(fortune_snapshot.block)
+            if opening_snapshot is not None:
+                volatile.append(greeting_context.reference_note(language))
             if volatile:
                 convo.insert(
                     max(0, len(convo) - 1),
                     {"role": "system", "content": "\n\n".join(volatile)},
                 )
+            convo = greeting_context.attach(convo, opening_snapshot, user_id=uid)
             if focus_block:
                 system = [*system, focus_block]
 
@@ -2459,11 +2497,12 @@ async def _post_message_impl(
         # populate_existing=True — phase-1에서 로드한 gr가 identity map + expire_on_commit=False로
         # 남아 있어, 강제 재조회 없으면 phase-1의 stale(committed_message_id=None) 상태를 본다.
         # 동일 greeting_id 동시요청이 각각 인사를 이중 커밋하는 걸 막으려면 락 하에서 fresh read 필요.
-        gr = await session.get(Greeting, greeting_gid, populate_existing=True)
-        if gr is not None and gr.user_id == uid and gr.committed_message_id is None:
+        gr = await _revalidate_opening(session, uid, opening_snapshot, nick)
+        if gr is not None:
+            stored_greeting = _greeting_text(gr)
             gmsg = Message(
                 user_id=uid, sender="moly", kind="greeting",
-                **encode_message(user_id=uid, text=_greeting_text(gr), mode=encryption_mode),
+                **encode_message(user_id=uid, text=stored_greeting, mode=encryption_mode),
                 activity_date=ad, created_at=now, turn_seq=lease.turn_seq, turn_position=0,
             )
             session.add(gmsg)
@@ -2472,7 +2511,7 @@ async def _post_message_impl(
             # _greeting_text(gr)는 placeholder 저장분 → 클라 응답엔 현재 이름 렌더.
             greeting_dto = {
                 "message_id": str(gmsg.id),
-                "content": naming.render(_greeting_text(gr), nick),
+                "content": naming.render(stored_greeting, nick),
                 "created_at": _iso(now),
             }
 

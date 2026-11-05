@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import inspect as _inspect
 import json
 import os
 from pathlib import Path
@@ -11,7 +12,7 @@ import time
 
 ACCOUNT = '676972757138'
 REGION = 'ap-northeast-2'
-RESCUE_SHA = 'adc94a495d9c5bebe5d4fbe281fa81825c85beba'
+RESCUE_SHA = '9fa54dd9690148bf829301db71a6cd02f93b7deb'
 SQL_SHA = 'b6b80ea155570de38c9ef4645ec3fc3874e17e67d0cc23604b90eb87112c1f8b'
 TARGETS = {
     'production': ('main', 'moly-github-actions-role', 'moly-backend', 'qkgjlgzsharnilxnkytd', 2),
@@ -24,13 +25,53 @@ SAFE_REMOTE_REASONS = frozenset({'command_failed','private_proof_invalid','host_
     'infra_origin','infra_commit','role_environment_mismatch','role_environment_override','worker_command',
     'consumer_command','consumer_population','runtime_stopped','runtime_image','runtime_proof_changed',
     'health_failed','database_health_failed','worker_timer_failed','worker_launch_image','worker_proof_changed',
-    'old_worker_running','unknown_action'})
+    'old_worker_running','unknown_action','daily_report_failed','daily_report_invalid'})
 SAFE_REMOTE_STAGES = frozenset({'host','infra','deploy','proof','role_equivalence','runtime','schema',
                                'daily_report','health','worker','activate'})
 
 
+REPORT_PHASES = frozenset({'runtime','engine','rc_snapshot','daily_message','metric','validation','deadline','cleanup'})
+REPORT_METRICS = frozenset({'signups','activity','subscriptions','diaries','cost','worker_state','queue_state','subscription_comparison','none'})
+REPORT_EXCEPTIONS = frozenset({'TimeoutError','ValueError','RuntimeError','ConnectionError','OSError','DBAPIError',
+    'ProgrammingError','OperationalError','InterfaceError','InternalError','IntegrityError','DataError',
+    'InvalidRequestError','ArgumentError','QueryCanceledError','LockNotAvailableError','UndefinedTableError',
+    'UndefinedColumnError','InsufficientPrivilegeError','CannotConnectNowError','ConnectionDoesNotExistError',
+    'TooManyConnectionsError','OtherError'})
+
+
+def safe_report_metadata(value, environment, version):
+    base={'daily_report','environment','version','read_only','slack_sent','elapsed_ms'}
+    if (not isinstance(value,dict) or value.get('environment')!=environment or value.get('version')!=version
+            or value.get('read_only') is not True or value.get('slack_sent') is not False
+            or type(value.get('elapsed_ms')) is not int or not 0<=value['elapsed_ms']<=120000):
+        raise ValueError('daily_report_invalid')
+    if value.get('daily_report')=='ok' and set(value)==base:
+        return {key:value[key] for key in base}
+    if (value.get('daily_report')!='failed'
+            or set(value)!=base|{'error','diagnostic_format','failures','diagnostics_truncated'}
+            or not isinstance(value['error'],str) or value['error'] not in REPORT_EXCEPTIONS
+            or value['diagnostic_format']!='daily-report-diagnostics-v1'
+            or type(value['diagnostics_truncated']) is not bool
+            or not isinstance(value['failures'],list) or not 1<=len(value['failures'])<=16):
+        raise ValueError('daily_report_invalid')
+    for row in value['failures']:
+        if (not isinstance(row,dict) or set(row)!={'phase','metric','exception','sqlstate','elapsed_ms','attempt','retry'}
+                or any(not isinstance(row[k],str) for k in ('phase','metric','exception','sqlstate'))
+                or row['phase'] not in REPORT_PHASES or row['metric'] not in REPORT_METRICS
+                or row['exception'] not in REPORT_EXCEPTIONS
+                or not (row['sqlstate'] in {'none','other'} or re.fullmatch(r'[0-9A-Z]{5}',row['sqlstate']))
+                or type(row['elapsed_ms']) is not int or not 0<=row['elapsed_ms']<=120000
+                or type(row['attempt']) is not int or not 1<=row['attempt']<=2 or type(row['retry']) is not bool):
+            raise ValueError('daily_report_invalid')
+    return {**{key:value[key] for key in base},'error':value['error'],
+            'diagnostic_format':'daily-report-diagnostics-v1','failures':[dict(row) for row in value['failures']],
+            'diagnostics_truncated':value['diagnostics_truncated']}
+
+
 class Blocked(Exception):
-    pass
+    def __init__(self, reason, *, diagnostics=None):
+        super().__init__(reason)
+        self.diagnostics=diagnostics
 
 
 class InvocationPending(Blocked):
@@ -65,14 +106,42 @@ def proof(value, environment, sha):
 
 # Fixed host program. Only validated hex/instance/environment metadata enters it.
 REMOTE = r'''
-import json,os,subprocess,sys,urllib.request
+import json,os,subprocess,sys,urllib.request,time,re
+REPORT_VALIDATOR_LITERAL
 from pathlib import Path
 c=CONFIGURATION
 stage='host'
 root=Path('/root/moly-infra')
 state=root/'.deploy-state'
+class ReportFailure(ValueError):
+    def __init__(self, metadata):
+        super().__init__('daily_report_failed')
+        self.metadata=metadata
+def synthetic_report(error,started):
+    elapsed=min(120000,max(0,int((time.monotonic()-started)*1000)))
+    return {'daily_report':'failed','environment':c['environment'],'version':c['sha'],
+        'read_only':True,'slack_sent':False,'elapsed_ms':elapsed,'error':error,
+        'diagnostic_format':'daily-report-diagnostics-v1','diagnostics_truncated':False,
+        'failures':[{'phase':'deadline' if error=='TimeoutError' else 'daily_message','metric':'none',
+            'exception':error,'sqlstate':'none','elapsed_ms':elapsed,'attempt':1,'retry':False}]}
 def call(argv, *, env=None, data=None, check=True, timeout=60):
-    result=subprocess.run(argv,input=data,capture_output=True,text=True,env=env,timeout=timeout)
+    report='scripts/check_daily_report.py' in argv
+    started=time.monotonic()
+    try:
+        result=subprocess.run(argv,input=data,capture_output=True,text=True,env=env,timeout=timeout)
+    except subprocess.TimeoutExpired:
+        if report: raise ReportFailure(synthetic_report('TimeoutError',started)) from None
+        raise ValueError('command_failed') from None
+    if report:
+        try:
+            raw=result.stdout
+            if not isinstance(raw,str) or len(raw)>65536: raise ValueError()
+            metadata=safe_report_metadata(json.loads(raw),c['environment'],c['sha'])
+        except (ValueError,TypeError,KeyError):
+            raise ReportFailure(synthetic_report('OtherError',started)) from None
+        if result.returncode or metadata['daily_report']!='ok':
+            if metadata['daily_report']=='ok': metadata=synthetic_report('OtherError',started)
+            raise ReportFailure(metadata)
     if check and result.returncode: raise ValueError('command_failed')
     return result.stdout.strip()
 def read(name):
@@ -109,11 +178,21 @@ try:
         target=state/name
         if target.is_symlink(): raise ValueError('private_proof_invalid')
         target.unlink(missing_ok=True)
+        if action=='preflight':
+            report_path=state/'daily-report-candidate.json'
+            if report_path.is_symlink(): raise ValueError('private_proof_invalid')
+            report_path.unlink(missing_ok=True)
         stage='deploy'
         call(['bash','deploy.sh',c['tag']],env=env,timeout=1200)
         stage='proof'
         value=read(name)
         if action=='preflight':
+            stage='daily_report'
+            try:
+                report=safe_report_metadata(read('daily-report-candidate.json'),c['environment'],c['sha'])
+            except (ValueError,TypeError,KeyError,OSError):
+                raise ValueError('daily_report_invalid') from None
+            if report['daily_report']!='ok': raise ReportFailure(report)
             saved=state/('chat-content-preflight-'+c['sha']+'.json')
             if saved.is_symlink(): raise ValueError('private_proof_invalid')
             saved.write_text(json.dumps(value,sort_keys=True));saved.chmod(0o600)
@@ -135,7 +214,7 @@ try:
             basis={'kind':'immutable-image-common-environment-v1','image':expected,'roles':['api','consumer','worker'],
                    'environment_file':'backend.env','crypto_overrides':False,'source_infra_sha':c['infra_sha'],
                    'composition_hash':hashlib.sha256(json.dumps(compose,sort_keys=True).encode()).hexdigest()}
-            value={'proof':value,'basis':basis}
+            value={'proof':value,'basis':basis,'daily_report':report}
         print(json.dumps(value,sort_keys=True))
     elif action=='collect':
         stage='runtime'
@@ -188,11 +267,29 @@ try:
         print(call(argv,data=json.dumps(c['receipt']),timeout=20))
     else: raise ValueError('unknown_action')
 except BaseException as error:
-    reason=error.args[0] if isinstance(error,ValueError) and error.args else None
+    metadata=getattr(error,'metadata',None)
+    if metadata is None and c['action']=='preflight' and stage=='deploy':
+        try:
+            candidate=safe_report_metadata(read('daily-report-candidate.json'),c['environment'],c['sha'])
+            if candidate['daily_report']=='failed': metadata=candidate
+        except BaseException:
+            pass
+    if metadata is not None:
+        stage='daily_report'
+        reason='daily_report_failed'
+    else:
+        reason=error.args[0] if isinstance(error,ValueError) and error.args else None
     if type(reason) is not str or reason not in SAFE_REASONS_LITERAL: reason='command_failed'
-    print(json.dumps({'status':'blocked','reason':reason,'action':c['action'],'stage':stage}))
+    result={'status':'blocked','reason':reason,'action':c['action'],'stage':stage}
+    if metadata is not None: result['daily_report']=metadata
+    print(json.dumps(result))
     raise SystemExit(1) from None
 '''.replace('SAFE_REASONS_LITERAL',repr(sorted(SAFE_REMOTE_REASONS)))
+# Reuse only a stdlib parser in the remote host program; never import the app on GHA.
+REMOTE=REMOTE.replace('REPORT_VALIDATOR_LITERAL',
+    'REPORT_PHASES='+repr(REPORT_PHASES)+'\nREPORT_METRICS='+repr(REPORT_METRICS)
+    +'\nREPORT_EXCEPTIONS='+repr(REPORT_EXCEPTIONS)+'\n'+_inspect.getsource(safe_report_metadata))
+
 
 
 class Cloud:
@@ -266,10 +363,22 @@ class Cloud:
                 raw=result.get('StandardOutputContent','')
                 try:
                     value=json.loads(raw) if isinstance(raw,str) and len(raw)<=65536 else None
-                    if (isinstance(value,dict) and set(value)=={'status','reason','action','stage'}
+                    if (isinstance(value,dict) and set(value) in ({'status','reason','action','stage'},{'status','reason','action','stage','daily_report'})
                             and value['status']=='blocked' and value['reason'] in SAFE_REMOTE_REASONS
                             and value['stage'] in SAFE_REMOTE_STAGES and value['action']==configuration['action']):
-                        raise Blocked('remote_'+value['action']+'_'+value['stage']+'_'+value['reason'])
+                        diagnostics=None
+                        if 'daily_report' in value:
+                            if value['reason']!='daily_report_failed' or value['stage']!='daily_report':
+                                raise ValueError('daily_report_invalid')
+                            metadata=safe_report_metadata(value['daily_report'],configuration['environment'],configuration['sha'])
+                            if metadata['daily_report']!='failed':
+                                raise ValueError('daily_report_invalid')
+                            diagnostics={'daily_report':metadata,'operation':{'instance_id':identity,
+                                'command_id':command_id,'release_id':configuration['release_id'],
+                                'action':configuration['action'],
+                                'phase':'prepare' if configuration['action'] in {'bootstrap','expand','preflight'} else 'finalize',
+                                'stage':value['stage']}}
+                        raise Blocked('remote_'+value['action']+'_'+value['stage']+'_'+value['reason'],diagnostics=diagnostics)
                 except (ValueError,TypeError):
                     pass
                 raise Blocked('remote_step_failed')
@@ -328,8 +437,10 @@ def bootstrap(value, identity):
 
 def preflight(value,identity,sha):
     expected_image=f"{ACCOUNT}.dkr.ecr.{REGION}.amazonaws.com/{identity['image']}:" + ('dev-' if identity['environment']=='development' else '') + sha
-    if not isinstance(value,dict) or set(value)!={'proof','basis'}:
+    if not isinstance(value,dict) or set(value)!={'proof','basis','daily_report'}:
         raise Blocked('role_equivalence_required')
+    if safe_report_metadata(value['daily_report'],identity['environment'],sha)['daily_report']!='ok':
+        raise Blocked('candidate_daily_report_failed')
     basis=value['basis']
     if (not isinstance(basis,dict) or set(basis)!={'kind','image','roles','environment_file','crypto_overrides','source_infra_sha','composition_hash'}
             or basis['kind']!='immutable-image-common-environment-v1' or basis['image']!=expected_image
@@ -388,7 +499,7 @@ def finalize(args,cloud,identity):
     public_identity={'environment':identity['environment'],'project_ref':identity['project_ref'],
                      'release_sha':identity['sha'],'release_id':identity['release_id']}
     passed={**public_identity,'origin':'trusted-deploy-workflow','status':'passed'}
-    rescue={item['instance_id']:preflight({'proof':item['proof'],'basis':item['basis']},identity,identity['rescue_sha'])['proof']
+    rescue={item['instance_id']:preflight({'proof':item['proof'],'basis':item['basis'],'daily_report':item['daily_report']},identity,identity['rescue_sha'])['proof']
             for item in prepared['rescue']}
     if set(rescue)!=set(identity['instance_ids']) or len(prepared['rescue'])!=len(rescue):
         raise Blocked('exact_rescue_fleet_required')
@@ -429,7 +540,10 @@ def main(argv=None):
         reason=error.args[0] if isinstance(error,Blocked) and error.args else None
         if type(reason) is not str or not re.fullmatch(r'[a-z][a-z0-9_]{0,127}',reason):
             reason='chat_crypto_release_failed'
-        print(json.dumps({'status':'blocked','reason':reason}))
+        output={'status':'blocked','reason':reason}
+        if isinstance(error,Blocked) and error.diagnostics is not None:
+            output['diagnostics']=error.diagnostics
+        print(json.dumps(output))
         return 1
 
 

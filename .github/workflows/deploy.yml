@@ -52,8 +52,8 @@ env:
   DEPLOY_TAG: ${{ inputs.image_tag || github.sha }}
   VERIFY_DAILY_REPORT: ${{ inputs.image_tag == '' && 'true' || 'false' }}
   VERIFY_MORNING_PUSH: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.verify_morning_push)) && 'true' || 'false' }}
-  CRYPTO_INFRA_SHA: e2b982da5eab32ae97fee067d901ee2783458a83
-  CRYPTO_RESCUE_SHA: adc94a495d9c5bebe5d4fbe281fa81825c85beba
+  CRYPTO_INFRA_SHA: c235bc460ef56434a9fb8a51604f5146d54f635e
+  CRYPTO_RESCUE_SHA: 9fa54dd9690148bf829301db71a6cd02f93b7deb
   CRYPTO_RELEASE: ${{ inputs.image_tag == '' && 'true' || 'false' }}
   DEPLOY_EVENT: ${{ github.event_name }}
   PREVIOUS_SHA: ${{ github.event.before }}

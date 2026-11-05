@@ -113,3 +113,45 @@ async def test_enqueue_checkpoint_redo_builds_a_fresh_row_keyed_by_the_dead_job(
                                   "redo_of": str(dead), "redo_depth": 2}
     assert await repo.enqueue_checkpoint(SimpleNamespace(), user_id=uuid.uuid4(), plan=plan)
     assert made[1]["dedup_key"].startswith("user:") and "redo_of" not in made[1]["payload"]
+
+
+# ── 요약 처리기가 남길 수 있는 dead 코드는 모두 "다시 만듦" 또는 "이유 있는 제외" 중 하나다 ──
+
+def _handler_codes():
+    """worker/checkpoint_jobs.py가 JobRetry·JobFatal로 남길 수 있는 오류 코드 전부(원문에서 읽는다)."""
+    import inspect
+    import re
+    source = inspect.getsource(worker)
+    calls = re.findall(r"\bJob(?:Retry|Fatal)\(", source)
+    literal = re.findall(r'\bJob(?:Retry|Fatal)\(\s*"([a-z0-9_]+)"', source)
+    # 코드가 문자열 그대로가 아닌 호출이 생기면 이 목록이 빠짐없다는 보장이 깨진다.
+    assert len(calls) == len(literal), "JobRetry/JobFatal must use a literal error code"
+    return set(literal)
+
+
+# 소비자(worker/consumer.py)와 회수 작업(app/services/jobs.py)이 dead에 남기는 코드.
+_CONSUMER_DEAD_CODES = {"unexpected_error", "timeout", jobs.ERROR_LEASE_EXPIRED,
+                        jobs.ERROR_ATTEMPTS_EXHAUSTED, "unknown_job_type"}
+
+
+def test_every_checkpoint_dead_code_is_recreated_or_deliberately_excluded():
+    from worker import memory_sweep_jobs as sweep
+    redo, excluded = sweep._CHECKPOINT_REDO_CODES, sweep._CHECKPOINT_NO_REDO_CODES
+    codes = _handler_codes() | _CONSUMER_DEAD_CODES
+    assert {"summary_name_leak", "summary_length", "summary_packing_length_snapshot",
+            "summary_invalid", "summary_llm_failed"} <= codes
+    assert not redo & set(excluded), "a code cannot be both re-created and excluded"
+    missing = codes - redo - set(excluded)
+    assert not missing, f"decide re-create or exclude (with a reason) for: {sorted(missing)}"
+    assert all(isinstance(reason, str) and reason.strip() for reason in excluded.values())
+    # 목록에만 있고 실제로는 나오지 않는 코드가 쌓이지 않게 한다.
+    assert not (redo | set(excluded)) - codes
+
+
+def test_fatal_payload_errors_stay_excluded():
+    from worker import memory_sweep_jobs as sweep
+    for code in ("invalid_payload", "unsupported_payload_schema", "invalid_baseline_binding",
+                 "checkpoint_packing_version", "checkpoint_packing_cap", "checkpoint_packing_attempts",
+                 "checkpoint_packing_control_invalid", "checkpoint_packing_mode", "checkpoint_packing_state",
+                 "checkpoint_completed_proof_invalid"):
+        assert code in sweep._CHECKPOINT_NO_REDO_CODES and code not in sweep._CHECKPOINT_REDO_CODES

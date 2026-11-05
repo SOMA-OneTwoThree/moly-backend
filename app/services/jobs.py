@@ -736,23 +736,45 @@ def next_retry_at(
 # ─────────────────────────────────────────────────────────────
 REDO_FIRST_DELAY = timedelta(minutes=30)
 REDO_MAX_DELAY = timedelta(hours=24)
-_REDO_DEPTH_UNKNOWN = 64  # 형식이 깨진 깊이는 원본으로 보지 않고 최대 간격을 쓴다.
+# 한 범위(원본에서 이어진 작업 전체)를 다시 만드는 최대 횟수. 간격은 30분·1시간·2시간·4시간이다.
+# 한 번에 3회 시도하므로 같은 범위의 모델 호출은 원본 3회 + 다시 만든 작업 4×3회로 끝난다.
+# 상한이 없으면 같은 입력에서 늘 실패하는 경우 유료 모델 호출이 끝없이 반복된다.
+REDO_MAX_DEPTH = 4
+_REDO_DEPTH_UNKNOWN = 64  # 형식이 깨진 깊이는 원본으로 보지 않고 상한에 닿은 것으로 본다.
 
 
 def redo_delay(depth: int) -> timedelta:
-    """재생성 깊이별 대기: 원본 dead 30분, 1회차 1시간, 2시간 … 최대 24시간."""
+    """재생성 깊이별 대기: 원본 dead 30분, 1회차 1시간, 2시간, 3회차 4시간(상한 4회).
+
+    `REDO_MAX_DELAY`(24시간)는 깊이 상한을 바꿀 때를 위한 안전 한도다.
+    """
     return min(REDO_MAX_DELAY, REDO_FIRST_DELAY * (2 ** min(max(depth, 0), 16)))
 
 
-def dead_redo_depth(row: Any, *, now: datetime, repeat_codes: frozenset[str],
-                    original_once_codes: frozenset[str] = frozenset()) -> int | None:
-    """마지막 종료 작업이 다시 만들 dead면 새 작업의 redo_depth, 아니면 None.
+@dataclass(frozen=True, slots=True)
+class DeadRedo:
+    """dead 작업 뒤에 무엇을 만들지.
 
-    row = (state, id, finished_at, last_error_code, payload의 redo_depth 텍스트).
-    `repeat_codes`는 깊이마다 간격을 늘려 계속 다시 만들고, `original_once_codes`는 원본
-    작업(redo_depth 없음)일 때만 한 번 다시 만든다.
+    `depth`는 새 작업의 redo_depth(죽은 작업의 깊이 + 1)다. `exhausted`가 참이면 상한에
+    닿았다는 뜻이다. 이때 모델을 부르는 작업은 더 만들지 않는다. 호출자가 멈추거나, 모델
+    없이 진행만 하는 마지막 작업 한 건을 만든다.
     """
-    state, _, finished_at, code, raw_depth = row
+
+    depth: int
+    exhausted: bool = False
+
+
+def dead_redo(row: Any, *, now: datetime, repeat_codes: frozenset[str],
+              original_once_codes: frozenset[str] = frozenset()) -> DeadRedo | None:
+    """마지막 종료 작업(row)이 dead일 때 다시 만들 작업, 아니면 None.
+
+    row = (state, id, finished_at, last_error_code, payload의 redo_depth 텍스트, ...).
+    `repeat_codes`는 깊이마다 간격을 늘려 `REDO_MAX_DEPTH`번까지 다시 만든다.
+    `original_once_codes`는 원본 작업(redo_depth 없음)일 때만 한 번 다시 만든다.
+    상한에 닿은 dead는 간격을 기다리지 않고 바로 `exhausted`로 돌려준다(모델 호출이 없으므로).
+    목록에 없는 코드(결정적 실패 등)는 None이다.
+    """
+    state, finished_at, code, raw_depth = row[0], row[2], row[3], row[4]
     if state != "dead" or finished_at is None:
         return None
     original = raw_depth is None
@@ -762,13 +784,19 @@ def dead_redo_depth(row: Any, *, now: datetime, repeat_codes: frozenset[str],
         depth = _REDO_DEPTH_UNKNOWN
     if depth < 0:
         depth = _REDO_DEPTH_UNKNOWN
-    if code not in repeat_codes and not (original and code in original_once_codes):
+    if code in repeat_codes:
+        limit = REDO_MAX_DEPTH
+    elif code in original_once_codes:
+        limit = 1
+    else:
         return None
+    if depth >= limit:
+        return DeadRedo(depth + 1, exhausted=True)
     if finished_at.tzinfo is None:
         finished_at = finished_at.replace(tzinfo=timezone.utc)
     if now < finished_at + redo_delay(depth):
         return None
-    return depth + 1
+    return DeadRedo(depth + 1)
 
 
 # ─────────────────────────────────────────────────────────────

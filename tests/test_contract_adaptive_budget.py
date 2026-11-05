@@ -488,3 +488,147 @@ async def test_restart_current_carries_cursor_and_redo_marker(fallback_env):
     payload = state["queued"][-1]["payload"]
     assert payload == {"retention_enabled": True, "memory_generation": 0, "through_message_id": 1,
                        "after_message_id": 0, "privacy_epoch": 0, **_REDO}
+
+
+def _locked_state(session, monkeypatch, row):
+    """처리기 앞부분은 원래 상태를, 확정(apply)의 잠금 조회만 `row`를 보게 한다."""
+    original = session.execute
+
+    async def execute(statement, params):
+        if statement is worker._RETENTION_STATE_LOCK:
+            return SimpleNamespace(first=lambda: row)
+        return await original(statement, params)
+    monkeypatch.setattr(session, "execute", execute)
+
+
+async def test_restart_current_uses_zero_cursor_when_the_contract_generation_differs(fallback_env, monkeypatch):
+    # 선호 세대가 다르면 처리기는 커서를 0으로 본다. 다시 거는 작업의 after_message_id·키도 같아야
+    # 대기 쪽이 이 작업을 현재 커서의 작업으로 찾는다(예전에는 옛 세대의 커서 5를 그대로 썼다).
+    state, session = fallback_env
+    current = retention_job()
+    result = await worker.handle_contract_compile(current)
+    _locked_state(session, monkeypatch, (0, 1, 5))
+    await result.apply_domain(session)
+    queued = state["queued"][-1]
+    assert queued["payload"]["after_message_id"] == 0
+    assert queued["dedup_key"] == f"contract-retention:{current.user_id}:0:0:1:after:{current.id}"
+    assert state["cursor"] == 0 and not state["published"]
+
+
+async def test_restart_current_raises_the_cursor_to_the_compat_baseline(fallback_env, monkeypatch):
+    from tests.test_context_compat_retention_review import baseline
+    state, session = fallback_env
+    value = baseline()  # source_after=100, legacy_contract_after=80
+    monkeypatch.setattr(worker.context_compat, "load", AsyncMock(return_value=value))
+    state.update(body="synthetic message without a directive", message_id=103)
+    current = retention_job()
+    current = replace(current, payload={**current.payload, "through_message_id": 105,
+                                        "baseline_binding": value.payload()})
+    result = await worker.handle_contract_compile(current)
+    # 다른 작업이 옛 커서를 50까지 옮겼어도 실제 커서는 기준선 경계(100)다.
+    _locked_state(session, monkeypatch, (0, 0, 50))
+    await result.apply_domain(session)
+    queued = state["queued"][-1]
+    assert queued["payload"]["after_message_id"] == 100
+    assert queued["payload"]["baseline_binding"] == value.payload()
+    assert queued["dedup_key"] == f"contract-retention:{current.user_id}:0:100:105:after:{current.id}"
+
+
+# ── 다시 만들기 상한 뒤 모델 없이 커서만 넘기는 마지막 작업 ─────────────────
+
+_SKIP = {"redo_of": "00000000-0000-0000-0000-0000000003e8", "redo_depth": 5, "no_model": True}
+
+
+def _forbid_model(monkeypatch):
+    def forbidden(*args, **kwargs):
+        pytest.fail("the capped skip job must not call, batch for or parse a model")
+    monkeypatch.setattr(llm, "generate", forbidden)
+    monkeypatch.setattr(worker, "contract_batch", forbidden)
+    monkeypatch.setattr(worker.cc, "parse", forbidden)
+
+
+def _skip_job(**payload):
+    current = retention_job()
+    return replace(current, payload={**current.payload, "after_message_id": 0, **_SKIP, **payload})
+
+
+async def test_skip_job_keeps_the_document_and_advances_the_cursor_without_a_model(fallback_env, monkeypatch, caplog):
+    state, session = fallback_env
+    original = worker._Msg(1, "user", _SHORT)
+    candidate = {"kind": "response_style", "action": "prefer", "condition": "always",
+                 "target_literal": "short replies", "source_message_id": 1,
+                 "scope": "conversation", "evidence_quote": "use short replies"}
+    kept, _ = worker.cc.parse(json.dumps([candidate]), user_message_ids={1}, source_messages=[original])
+    existing = worker.merge_retained_items([], kept, generation=0)
+    state["published"] = copy.deepcopy(existing)
+    state.update(body="Please use long replies from now on.", cursor=1, message_id=2)
+    _forbid_model(monkeypatch)
+    with caplog.at_level("WARNING", logger="moly-worker"):
+        result = await worker.handle_contract_compile(_skip_job(through_message_id=2))
+    assert result.result_code == "ok"
+    assert result.result_detail["skipped_after_redo_cap"] is True
+    assert result.result_detail["kept"] == 0 and result.result_detail["through"] == 2
+    await result.apply_domain(session)
+    assert state["cursor"] == 2 and state["published"] == existing
+    assert state["calls"] == 0 and not state["queued"]
+    logged = "\n".join(record.getMessage() for record in caplog.records)
+    assert "contract_redo_cap_skip" in logged and "long replies" not in logged
+
+
+async def test_skip_job_follow_up_stays_without_a_model(fallback_env, monkeypatch):
+    state, session = fallback_env
+    state["body"] = _SHORT
+    monkeypatch.setattr(worker, "_MAX_SOURCE", 1)
+    _forbid_model(monkeypatch)
+    current = _skip_job(through_message_id=5)
+    result = await worker.handle_contract_compile(current)
+    await result.apply_domain(session)
+    queued = state["queued"][-1]
+    assert state["cursor"] == 1
+    assert queued["payload"]["no_model"] is True and queued["payload"]["after_message_id"] == 1
+    assert queued["dedup_key"] == (f"contract-retention:{current.user_id}:0:1:5"
+                                   f":redo:{_SKIP['redo_of']}:skip")
+
+
+async def test_skip_job_restart_carries_the_flag(fallback_env, monkeypatch):
+    state, session = fallback_env
+    _forbid_model(monkeypatch)
+    result = await worker.handle_contract_compile(_skip_job())
+    state["body"] += " synthetic source change"
+    await result.apply_domain(session)
+    assert state["queued"][-1]["payload"] == {"retention_enabled": True, "memory_generation": 0,
+        "through_message_id": 1, "after_message_id": 0, "privacy_epoch": 0, **_SKIP}
+    assert state["cursor"] == 0
+
+
+@pytest.mark.parametrize("change,error", [
+    ({"privacy_epoch": 9}, "contract_privacy_epoch_changed"),
+    ({"memory_generation": 1}, "stale_contract_generation"),
+    ({"baseline_binding": {"synthetic": True}}, "contract_compat_baseline_changed"),
+])
+async def test_skip_job_keeps_privacy_generation_and_baseline_fences(fallback_env, monkeypatch, change, error):
+    state, _ = fallback_env
+    _forbid_model(monkeypatch)
+    with pytest.raises(JobCancelled, match=error):
+        await worker.handle_contract_compile(_skip_job(**change))
+    assert state["cursor"] == 0 and not state["queued"]
+
+
+async def test_skip_job_apply_is_fenced_by_the_privacy_epoch(fallback_env, monkeypatch):
+    state, session = fallback_env
+    _forbid_model(monkeypatch)
+    result = await worker.handle_contract_compile(_skip_job())
+    state["privacy_epoch"] = 1  # 확정 직전에 삭제 요청 등으로 epoch가 바뀌었다
+    await result.apply_domain(session)
+    assert state["cursor"] == 0 and not state["queued"] and not state["docs"]
+
+
+@pytest.mark.parametrize("payload", [
+    {"no_model": "yes"},
+    {"adaptive_output_fallback": True, "adaptive_output_attempts_remaining": 2},
+    {"partial_message_id": 1, "partial_offset": 10},
+])
+async def test_skip_flag_must_be_a_plain_boolean_on_a_fresh_payload(fallback_env, monkeypatch, payload):
+    _forbid_model(monkeypatch)
+    with pytest.raises(JobFatal, match="invalid_contract_retention_payload"):
+        await worker.handle_contract_compile(_skip_job(**payload))

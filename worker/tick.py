@@ -1,4 +1,4 @@
-"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성(못 만든 일기는 05:00·05:15에 이어 만들기)
+"""배치 틱 — 15분 크론이 호출(멱등, SOMA-348). 로컬 04:00 일기 생성(못 만든 일기는 현지 5시 네 틱에 이어 만들기)
 / 09:00 루틴·10:00 일기·20:00 저녁 푸시 + RC 웹훅 inbox 드레인과 지속 상태 기반 운영 알림."""
 from __future__ import annotations
 
@@ -33,10 +33,11 @@ _RC_DEP_RESERVED = _RC_INBOX_BATCH // 4  # dependency 예약 슬롯(=50) — 신
 
 _log = logging.getLogger("moly-worker")
 DIARY_HOUR = 4  # 로컬 04:00 일기 생성
-# 04시에 못 만든 일기(소프트 데드라인·타임아웃·실패·워커 중단)는 05시 앞 두 틱(05:00·05:15)에서 이어 만든다.
-# 대상 날짜(어제)·클레임·이미 있는 일기 확인은 04시와 같다. 일기만 이어 만들고 푸시 등 다른 작업은 없다.
+# 04시에 못 만든 일기(소프트 데드라인·타임아웃·실패·워커 중단)는 현지 5시 네 틱(05:00·05:15·05:30·05:45)에서
+# 이어 만든다. 05:15에 큰 :45 묶음이 먼저 돌아 시간을 다 써 넘겨진 시간대도 뒤 틱이 받는다. 05:45는 그 시각의
+# 마지막 틱이라 먼저 처리되는 묶음에 들어간다. 대상 날짜(어제)·클레임·이미 있는 일기 확인은 04시와 같다.
+# 일기만 이어 만들고 푸시 등 다른 작업은 없다.
 DIARY_CATCHUP_HOUR = DIARY_HOUR + 1
-DIARY_CATCHUP_MINUTE_END = 30
 # 그 시각의 마지막 틱(현지 :45)에 걸린 시간대 묶음에 더 주는 시간(초). 기본 660+60 = 시작부터 720초.
 _LAST_TICK_EXTRA_S = 60.0
 ROUTINE_MORNING_HOUR = notify.ROUTINE_MORNING_HOUR  # 09:00 루틴 아침 푸시
@@ -69,8 +70,8 @@ _TZ_KO = {
 
 
 def _is_diary_catchup(local: datetime) -> bool:
-    """현지 05:00·05:15 틱인지 — 04시에 못 만든 어제 일기를 이어 만드는 시각."""
-    return local.hour == DIARY_CATCHUP_HOUR and local.minute < DIARY_CATCHUP_MINUTE_END
+    """현지 5시 틱인지(05:00·05:15·05:30·05:45) — 04시에 못 만든 어제 일기를 이어 만드는 시각."""
+    return local.hour == DIARY_CATCHUP_HOUR
 
 
 def _zone_line(tz: str, now: datetime) -> str:
@@ -158,6 +159,7 @@ async def _process_user(
         "diaries": 0, "diary_llm": 0, "diary_preset": 0, "diary_none": 0, "diary_failed": 0,
         "diary_skipped": 0, "memory_ok": 0, "memory_failed": 0, "morning": 0, "evening": 0,
         "routine_morning": 0, "routine_check_failed": 0, "diary_attempted": 0, "active_tz": None,
+        "diary_catchup_existing": 0,
         **{k: 0 for k in notify.PUSH_STAT_KEYS},  # 발송 결과 분류(notify._account_push가 채움)
     }
     async with get_sessionmaker()() as session:
@@ -174,15 +176,17 @@ async def _process_user(
         catchup = _is_diary_catchup(local)
         try:
             if hour == DIARY_HOUR or catchup:
-                out["diary_attempted"] = 1
-                out["active_tz"] = p.timezone
                 # 05시도 활동일 경계(04:00) 뒤라 04시와 같은 "어제"가 나온다.
                 target = activity_date_for(now, p.timezone) - timedelta(days=1)
                 # 이어 만들기 대상은 대부분 04시에 이미 끝난 사용자다. 클레임 행을 쓰기 전에 읽기만으로
                 # 거른다(일기 또는 미발행·원고 확정 결과가 있으면 끝). 아래 클레임·생성 함수의 재확인은 그대로.
+                # 이 사용자는 일기 시도·스킵·처리 시간대로 세지 않는다(5시 네 틱마다 대부분이 여기로 오므로
+                # 세면 관측 수치가 부풀려진다). 따로 diary_catchup_existing으로만 센다.
                 if catchup and await diary_generation._diary_exists(session, pid, target):
-                    out["diary_skipped"] = 1
+                    out["diary_catchup_existing"] = 1
                     return out
+                out["diary_attempted"] = 1
+                out["active_tz"] = p.timezone
                 if diary_policy is None:
                     raise RuntimeError("diary policy unavailable; generation stopped")
                 # 워커 틱 중첩(15분 케이던스·재시도) 시 같은 (유저,날짜) 일기를 두 프로세스가 동시에
@@ -247,6 +251,9 @@ async def _process_user(
             await session.rollback()
             if hour == DIARY_HOUR or catchup:
                 out["diary_failed"] = 1
+                # 사전 확인에서 실패해도 시도로 센다(실패 ≤ 시도).
+                out["diary_attempted"] = 1
+                out["active_tz"] = p.timezone
     return out
 
 
@@ -343,7 +350,7 @@ async def _drain_rc_inbox(now: datetime) -> dict:
 
 async def _relevant_timezones(now: datetime, unresolvable: set[str] | None = None) -> set[str]:
     """이 틱에서 일기/루틴 아침/아침 일기/저녁 시각(로컬 04·09·10·20시)과 일기 이어 만들기
-    시각(로컬 05:00·05:15)에 걸리는 timezone 문자열 집합(#16+#24).
+    시각(로컬 5시 전체)에 걸리는 timezone 문자열 집합(#16+#24).
 
     판정은 전부 파이썬(ZoneInfo)이다 — SQL `AT TIME ZONE`은 금지: 이상 tz 문자열 1행이
     쿼리 전체를 에러로 죽여 **그날 일기·푸시가 전멸**한다. 여기서는 해석 실패 tz를 경고만
@@ -418,6 +425,8 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         # 발송 결과 분류(수락·무효 토큰·정리·페이로드·설정·일시) — 같은 이유로 여기 있어야 한다.
         **{k: 0 for k in notify.PUSH_STAT_KEYS},
         "diary_attempted": 0,  # DIARY_HOUR에 진입한 유저 수(생성·스킵·실패 합산)
+        # 5시 이어 만들기에서 이미 어제 일기가 있어 바로 넘긴 유저 수. 시도·스킵·처리 시간대에는 넣지 않는다.
+        "diary_catchup_existing": 0,
         "timed_out": 0,        # 유저별 타임아웃으로 스킵된 수(관측)
         "deadline_skipped": 0,  # 소프트 데드라인 뒤 건너뛴 유저 수(다음 틱 인계)
         "users": 0,
@@ -456,6 +465,7 @@ async def run_tick(now: datetime | None = None) -> dict[str, int]:
         # 남은 유저는 같은 시각의 다음 틱이, 04시 일기는 05시 이어 만들기가 받는다.
         # 시간대를 두 묶음으로 나눠 차례로 처리한다(상한은 둘 다 틱 시작부터 잰다).
         #  1) 그 시각의 마지막 틱(현지 :45)인 시간대 — 같은 시각에 이어받을 틱이 없어 먼저, soft+60초(720초)까지.
+        #     현지 05:45(이어 만들기의 마지막 틱)인 시간대도 여기 들어간다.
         #     예전처럼 상한을 아예 없애면 안 된다: 04:15 KST에 다윈(04:45) 하나 때문에 같은 틱의 서울·도쿄
         #     전체가 무제한으로 돌다 14분에 하드킬됐다. 서울·도쿄가 직접 :45일 때는 이 묶음이 가장 크다.
         #  2) 나머지 — 종전대로 soft(660초)까지.

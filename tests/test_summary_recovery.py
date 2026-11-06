@@ -519,3 +519,87 @@ async def test_stats_additional_exclusion_keeps_other_queues_and_oldest_age(monk
     assert set(session.execute.await_args_list[1].args[1]["summary_resolved"]) == {
         uuid.UUID(value) for value in ids
     }
+
+
+def retention_fixture():
+    """v5: 초안 작업이 dead → 같은 계획을 다시 만든 작업이 게시."""
+    owner = uuid.uuid4()
+    source_hash = "c" * 64
+
+    def payload(ids, *, mode=None, digest=source_hash, epoch=0):
+        return {
+            "schema_version": checkpoint.SCHEMA_VERSION,
+            "summarizer_version": checkpoint.RETENTION_SUMMARIZER_VERSION,
+            "source_message_ids": ids,
+            "source_hash": digest,
+            "through_message_id": max(ids),
+            "memory_generation": 0,
+            "privacy_epoch": epoch,
+            "reason": "input_pressure",
+            **({"mode": mode} if mode else {}),
+        }
+
+    failed = {
+        "id": uuid.uuid4(), "user_id": owner, "queue": "content",
+        "job_type": "conversation_checkpoint", "state": "dead", "attempt": 3, "max_attempts": 3,
+        "last_error_code": "summary_invalid", "payload": payload([1, 2, 3, 4]),
+        "payload_redacted_at": None, "finished_at": NOW - timedelta(minutes=20),
+    }
+    succeeded = {
+        "id": uuid.uuid4(), "user_id": owner, "job_type": "conversation_checkpoint",
+        "state": "succeeded", "payload": {**payload([1, 2, 3, 4], mode="publish_retention"),
+                                          "redo_of": str(failed["id"]), "redo_depth": 1},
+        "payload_redacted_at": None,
+    }
+    for job in (failed, succeeded):
+        job["payload_hash"] = recovery._wire_hash(job["payload"])
+    publication = {
+        "id": uuid.uuid4(), "user_id": owner, "memory_generation": 0, "preparation_id": None,
+        "publish_state": "published", "summary": "Synthetic complete summary.", "created_at": NOW,
+        "source_hash": source_hash, "version": checkpoint.RETENTION_SUMMARIZER_VERSION,
+        "through_message_id": 4,
+    }
+    return failed, succeeded, publication, payload
+
+
+def test_retention_v5_republished_same_plan_establishes_recovery():
+    f, s, c, _ = retention_fixture()
+    assert verified(f, s, c, {})
+
+
+@pytest.mark.parametrize("fault", [
+    "different_plan", "published_other_hash", "narrower_range", "other_epoch", "redacted_failure",
+    "payload_hash", "unpublished", "old_publication", "other_generation", "legacy_publication",
+    "preparation", "different_owner",
+])
+def test_retention_v5_no_false_recovery(fault):
+    f, s, c, payload = retention_fixture()
+    if fault == "different_plan":
+        s["payload"] = {**payload([1, 2, 3, 4], mode="publish_retention", digest="d" * 64)}
+    elif fault == "published_other_hash":
+        c["source_hash"] = "e" * 64
+    elif fault == "narrower_range":
+        s["payload"] = payload([2, 3, 4], mode="publish_retention")
+        c["through_message_id"] = 4
+    elif fault == "other_epoch":
+        s["payload"] = payload([1, 2, 3, 4], mode="publish_retention", epoch=1)
+    elif fault == "redacted_failure":
+        f["payload_redacted_at"] = NOW
+    elif fault == "payload_hash":
+        f["payload_hash"] = "0" * 64
+    elif fault == "unpublished":
+        c["publish_state"] = "pending"
+    elif fault == "old_publication":
+        c["created_at"] = f["finished_at"] - timedelta(seconds=1)
+    elif fault == "other_generation":
+        c["memory_generation"] = 1
+    elif fault == "legacy_publication":
+        c["version"] = checkpoint.SUMMARIZER_VERSION
+    elif fault == "preparation":
+        c["preparation_id"] = uuid.uuid4()
+    elif fault == "different_owner":
+        s["user_id"] = uuid.uuid4()
+    for job in (f, s):
+        if fault != "payload_hash" or job is s:
+            job["payload_hash"] = job["payload_hash"] if fault == "payload_hash" else recovery._wire_hash(job["payload"])
+    assert not verified(f, s, c, {})

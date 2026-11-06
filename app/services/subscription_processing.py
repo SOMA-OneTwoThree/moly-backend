@@ -83,12 +83,13 @@ def new_state(event: dict) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────
-# 결제 직후 받은 현재 소유자 결제 — 과거 결제 재생성 금지 가드의 예외(docs/SUBSCRIPTIONS.md 76행 취지 유지).
+# 결제 직후 받은 현재 소유자 결제 — 과거 결제 재생성 금지 가드의 예외(docs/SUBSCRIPTIONS.md 구독 처리 문단의 취지 유지).
 # A 묶음의 첫 구매가 결제 직후 이 사용자 이름으로 왔다 · B 이번 결제도 결제 직후 받은 현재 기간 거래다 ·
 # C 그 사이 이전(TRANSFER) 흔적·다른 사용자 충돌이 없다. 셋 다 만족할 때만 처리 시각으로 적힌
 # 소유 시작 때문에 막지 않는다. 익명 alias만으로는 판단하지 않는다.
 # ─────────────────────────────────────────────────────────────
 _LIVE_WINDOW_S = 3600.0
+_CLOCK_SKEW_S = 60.0      # 시계 오차 여유. 구매 시각보다 이 정도 이른 생성·수신 시각은 허용한다.
 _ORIGIN_LIMIT = 200       # 같은 원거래의 첫 구매 기록 상한. 넘으면 전부 확인 못 했으니 막는다.
 _CHAIN_ID_LIMIT = 2000    # 같은 원거래 inbox 거래 ID 상한. 넘으면 막는다.
 
@@ -101,8 +102,8 @@ def _live_delivery(payload: dict, received_at) -> bool:
         return False
     if received_at.tzinfo is None:
         received_at = received_at.replace(tzinfo=timezone.utc)
-    return (0 <= (created - purchased).total_seconds() <= _LIVE_WINDOW_S
-            and 0 <= (received_at - purchased).total_seconds() <= _LIVE_WINDOW_S)
+    return (-_CLOCK_SKEW_S <= (created - purchased).total_seconds() <= _LIVE_WINDOW_S
+            and -_CLOCK_SKEW_S <= (received_at - purchased).total_seconds() <= _LIVE_WINDOW_S)
 
 
 async def _chain_origin_rows(session, event: dict) -> list:
@@ -137,17 +138,14 @@ async def _transfer_involving(session, owner: str, since) -> bool:
 
     시각 조건을 조회에 넣어 개수 상한 때문에 관련 기록이 빠지지 않게 한다. 시각을 모르면 막는다.
     """
-    from sqlalchemy import BigInteger, cast
     if since is None:
         return True
     floor = since - timedelta(days=1)
-    created_ms = cast(RevenuecatEvent.payload["event_timestamp_ms"].astext, BigInteger)
     hit = (await session.execute(select(RevenuecatEvent.event_id).where(
         RevenuecatEvent.payload["type"].astext == "TRANSFER",
         or_(RevenuecatEvent.payload["transferred_to"].contains([owner]),
             RevenuecatEvent.payload["transferred_from"].contains([owner])),
-        or_(RevenuecatEvent.received_at.is_(None), RevenuecatEvent.received_at >= floor,
-            created_ms >= int(floor.timestamp() * 1000)),
+        or_(RevenuecatEvent.received_at.is_(None), RevenuecatEvent.received_at >= floor),
     ).limit(1))).scalar_one_or_none()
     return hit is not None
 
@@ -175,6 +173,9 @@ async def _live_owner_purchase(session, event: dict, received_at, sub, target) -
 
     owner = str(sub.user_id)
     snapshot = target.snapshot
+    # 기존 구독 행의 주인이 지금 사용자와 다르면(같은 처리에서 행을 옮긴 경우 포함) 막는다.
+    if target.before is not None and str(target.before.get("user_id")) != owner:
+        return False
     tx, original = event.get("transaction_id"), event.get("original_transaction_id")
     if (event.get("type") not in {"INITIAL_PURCHASE", "RENEWAL"}
             or event.get("is_family_share") is not False
@@ -595,17 +596,17 @@ async def _finance(session, event: dict, state: dict, pay: Payment | None, sub, 
         and event.get("transaction_id") == first["id"]
         and target.snapshot.get("original_customer_id") == str(sub.user_id)
     )
-    # 결제 직후 받은 현재 소유자 결제는 처리 시각으로 적힌 소유 시작 때문에 막지 않는다(처음 처리·재처리 모두).
-    live_owner = pay is None and await _live_owner_purchase(session, event, received_at, sub, target)
-    unknown_new_owner = (target.before is None and not live_owner
-                         and target.snapshot.get("original_customer_id") != str(sub.user_id))
-    predates_ownership = not live_owner and sub.ownership_changed_at and (
+    unknown_new_owner = target.before is None and target.snapshot.get("original_customer_id") != str(sub.user_id)
+    predates_ownership = sub.ownership_changed_at and (
         start is None or stamp is None or start < sub.ownership_changed_at or stamp < sub.ownership_changed_at)
     if pay is None and uid != sub.user_id:
         state["payment_record"] = state["bonus"] = "skipped"
         state["reason"] = "past owner purchase: financial ownership preserved"
         return
-    if pay is None and (unknown_new_owner or (predates_ownership and not original_first_purchase)):
+    # 결제 직후 받은 현재 소유자 결제는 처리 시각으로 적힌 소유 시작 때문에 막지 않는다(처음 처리·재처리 모두).
+    # 가드가 막을 때만 판정해 일반 결제 처리에 조회를 더하지 않는다.
+    if (pay is None and (unknown_new_owner or (predates_ownership and not original_first_purchase))
+            and not await _live_owner_purchase(session, event, received_at, sub, target)):
         state["payment_record"] = state["bonus"] = "manual"
         state["reason"] = "historical payer ownership unverified: do not reconstruct money"
         return

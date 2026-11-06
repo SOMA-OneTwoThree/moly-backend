@@ -607,9 +607,10 @@ def _live_env(monkeypatch, uid, *, origins=None, transfer=False, conflict=False)
     return create, grant, pay
 
 
-@pytest.mark.parametrize("before", [None, {"id": "row-made-by-first-attempt"}])
-async def test_live_owner_resubscribe_records_payment_and_first_hay_on_first_and_retry(monkeypatch, before):
+@pytest.mark.parametrize("retry", [False, True])
+async def test_live_owner_resubscribe_records_payment_and_first_hay_on_first_and_retry(monkeypatch, retry):
     uid = uuid.uuid4()
+    before = {"id": "row-made-by-first-attempt", "user_id": str(uid)} if retry else None
     purchase, sub, prepared, received = _live_case(uid, before=before)
     create, grant, pay = _live_env(monkeypatch, uid)
     state = processing.new_state(purchase)
@@ -651,6 +652,30 @@ async def test_self_origin_still_blocked_by_other_user_origin_or_overflow(monkey
     await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
     create.assert_not_awaited()
     grant.assert_not_awaited()
+
+
+async def test_existing_row_owned_by_someone_else_blocks(monkeypatch):
+    uid = uuid.uuid4()
+    purchase, sub, prepared, received = _live_case(uid, before={"id": "moved-row", "user_id": str(uuid.uuid4())})
+    create, grant, _ = _live_env(monkeypatch, uid)
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
+    create.assert_not_awaited()
+    grant.assert_not_awaited()
+
+
+async def test_live_rule_is_not_evaluated_when_the_guard_would_not_block(monkeypatch):
+    uid = uuid.uuid4()
+    purchase, sub, prepared, received = _live_case(uid, before={"id": "row", "user_id": str(uid)})
+    sub.ownership_changed_at = None
+    prepared.targets[0].snapshot["original_customer_id"] = str(uid)
+    create, _, _ = _live_env(monkeypatch, uid)
+    live = AsyncMock(return_value=False)
+    monkeypatch.setattr(processing, "_live_owner_purchase", live)
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
+    create.assert_awaited_once()
+    live.assert_not_awaited()
 
 
 async def test_chain_id_overflow_blocks(monkeypatch):
@@ -717,7 +742,8 @@ async def test_live_owner_rule_blocks_every_unproven_case(monkeypatch, case):
 
 
 @pytest.mark.parametrize("created_s,received_s,ok", [
-    (0, 0, True), (3600, 3600, True), (3601, 10, False), (10, 3601, False), (-1, 10, False), (10, -1, False),
+    (0, 0, True), (3600, 3600, True), (-60, -60, True), (3601, 10, False), (10, 3601, False),
+    (-61, 10, False), (10, -61, False),
 ])
 def test_live_delivery_window(created_s, received_s, ok):
     payload = {"purchased_at_ms": _ms(LIVE_PAID), "event_timestamp_ms": _ms(LIVE_PAID) + created_s * 1000}
@@ -745,7 +771,7 @@ async def test_transfer_check_reads_every_status_and_filters_time_in_the_query()
     compiled = session.statements[0].compile(dialect=postgresql.dialect())
     sql, values = str(compiled), set(map(str, compiled.params.values()))
     assert {"TRANSFER", "transferred_to", "transferred_from"} <= values and sql.count("@>") == 2
-    assert "received_at >=" in sql and "BIGINT" in sql  # 시각 조건이 조회 안에 있다(개수 상한 전에 거름)
+    assert "received_at >=" in sql  # 시각 조건이 조회 안에 있다(개수 상한 전에 거름)
     assert "status" not in sql  # 대기·실패 TRANSFER도 거부 근거
     assert await processing._transfer_involving(_Capture(scalar=None), owner, LIVE_TRIAL) is False
     assert await processing._transfer_involving(_Capture(scalar=None), owner, None) is True  # 시각 모르면 막음

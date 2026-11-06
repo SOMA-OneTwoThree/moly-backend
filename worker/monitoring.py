@@ -279,11 +279,28 @@ async def _emit(now: datetime, counts: dict) -> None:
             "daily_status", True, now.astimezone(_KST).date().isoformat(),
             "", severity="status", daily=True,
         ), now, render=lambda: _daily_message(now, rc, counts))
+    # 알림이 없는 정리 작업이라 맨 뒤에 둔다. 앞의 관측·일일 보고의 시간 예산을 쓰지 않는다.
+    await _contract_observation(now)
 
 
 def failure_tier(count: int) -> int:
     """tick당 영향 건수를 보수적인 구간으로 묶어 count 흔들림의 알림 폭주를 막는다."""
     return 3 if count >= 20 else 2 if count >= 5 else 1
+
+
+async def _contract_observation(now: datetime) -> None:
+    """범위가 닫힌 약속 정리 dead에 표시를 남긴다. 알림은 없고, 실패해도 다음 관측을 막지 않는다."""
+    from app.services import contract_recovery
+    try:
+        async with asyncio.timeout(3):
+            async with get_sessionmaker()() as session:
+                await session.execute(text("SET LOCAL statement_timeout='2500ms'"))
+                marked = await contract_recovery.mark_closed(session)
+                await session.commit()
+        if marked:
+            _log.info("contract_dead_range_closed count=%d", marked)
+    except Exception as exc:
+        _log.warning("contract_recovery_observation_unavailable error_type=%s", type(exc).__name__)
 
 
 async def _summary_observation(now: datetime) -> None:

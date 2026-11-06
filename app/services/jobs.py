@@ -976,6 +976,9 @@ async def notify_dead(job: ClaimedJob, *, error_code: str) -> None:
 # 출발해 `replay_of`를 따라 올라가며 그 위 조상을 전부 풀린 것으로 본다.
 #
 # 되살린 것도 죽었고 그 뒤가 없으면 그대로 센다 — 그게 진짜 안 풀린 죽음이다.
+#
+# 약속 정리 dead 중 범위가 이미 닫힌 것(`contract_recovery.RANGE_CLOSED` 표시)도 뺀다.
+# 표시는 모니터가 사용자의 약속 정리 진행 위치로 확인한 뒤에만 남긴다.
 _STATS_SQL = text("""
 WITH RECURSIVE resolved(id) AS (
   SELECT replay_of FROM async_jobs WHERE state='succeeded' AND replay_of IS NOT NULL
@@ -989,6 +992,8 @@ SELECT queue, state, count(*) AS n,
 FROM async_jobs j
 WHERE state IN ('ready','running','dead')
   AND NOT (state = 'dead' AND j.id IN (SELECT id FROM resolved))
+  AND NOT (state = 'dead' AND j.queue = 'memory' AND j.job_type = 'contract_compile'
+           AND j.result_code IS NOT DISTINCT FROM 'contract_range_closed')
 GROUP BY queue, state
 """)
 

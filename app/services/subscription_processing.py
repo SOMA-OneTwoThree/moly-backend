@@ -82,6 +82,22 @@ def new_state(event: dict) -> dict:
             "access_state": "pending", "tries": {}}
 
 
+_RC_ANONYMOUS_PREFIX = "$RCAnonymousID:"
+
+
+def _anonymous_alias_of_owner(event: dict, original_customer_id, owner_id: str) -> bool:
+    """첫 구매자가 지금 고객의 로그인 전 익명 ID인가. RevenueCat이 둘을 같은 고객(aliases)으로 묶었을 때만 참."""
+    aliases = event.get("aliases")
+    return (
+        isinstance(original_customer_id, str)
+        and original_customer_id.startswith(_RC_ANONYMOUS_PREFIX)
+        and isinstance(aliases, list)
+        and original_customer_id in aliases
+        and owner_id in aliases
+        and event.get("app_user_id") == owner_id
+    )
+
+
 def financial_action(event: dict) -> str | None:
     if event.get("type") == "REFUND_REVERSED":
         return "reverse"
@@ -459,8 +475,14 @@ async def _finance(session, event: dict, state: dict, pay: Payment | None, sub, 
         and event.get("transaction_id") == first["id"]
         and target.snapshot.get("original_customer_id") == str(sub.user_id)
     )
-    unknown_new_owner = target.before is None and target.snapshot.get("original_customer_id") != str(sub.user_id)
-    predates_ownership = sub.ownership_changed_at and (
+    # 새로 만든 구독 행의 소유 시작은 처리 시각이라 결제 시각보다 늦다. 첫 구매자가 로그인 전 익명 ID이고
+    # RevenueCat이 그 ID를 지금 고객과 같은 고객으로 묶어 둔 경우(이벤트 aliases에 둘 다 있음)만 본인 결제로 본다.
+    # 다른 실제 계정 ID는 인정하지 않는다(구독 이전 때 예전 주인의 결제를 다시 만들지 않는다).
+    own_anonymous_original = target.before is None and _anonymous_alias_of_owner(
+        event, target.snapshot.get("original_customer_id"), str(sub.user_id))
+    unknown_new_owner = (target.before is None and not own_anonymous_original
+                         and target.snapshot.get("original_customer_id") != str(sub.user_id))
+    predates_ownership = not own_anonymous_original and sub.ownership_changed_at and (
         start is None or stamp is None or start < sub.ownership_changed_at or stamp < sub.ownership_changed_at)
     if pay is None and uid != sub.user_id:
         state["payment_record"] = state["bonus"] = "skipped"

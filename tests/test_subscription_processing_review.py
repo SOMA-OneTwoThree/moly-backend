@@ -550,3 +550,79 @@ async def test_review_refund_records_money_but_does_not_touch_unrelated_bonus(mo
     assert state["finance_done"] is False
     assert grant.revoked_at is None
     ledger.assert_not_awaited()
+
+
+ANON = "$RCAnonymousID:0123456789abcdef"
+
+
+def _resubscribe_case(uid, *, original=ANON, aliases=None, before=None):
+    """체험 만료 뒤 다시 결제: 새 RC 구독 묶음이라 로컬 행을 새로 만들고, 소유 시작은 처리 시각(결제보다 늦음)."""
+    sid = uuid.uuid4()
+    paid_at = datetime(2026, 11, 6, 0, 48, 50, tzinfo=timezone.utc)
+    purchase = {"id": "resubscribe-renewal", "type": "RENEWAL", "app_user_id": str(uid),
+                "transaction_id": "resubscribe-tx", "period_type": "NORMAL",
+                "price_in_purchased_currency": 980, "environment": "PRODUCTION", "store": "APP_STORE",
+                "purchased_at_ms": int(paid_at.timestamp() * 1000),
+                "event_timestamp_ms": int(paid_at.timestamp() * 1000) + 8000,
+                "aliases": aliases if aliases is not None else [ANON, str(uid)]}
+    sub = SimpleNamespace(id=sid, user_id=uid, rc_subscription_id="resubscribe-object",
+                          ownership_changed_at=paid_at + timedelta(minutes=17))
+    prepared = processing.Prepared([], None, datetime.now(timezone.utc), targets=[processing.Target(
+        before, {"id": "resubscribe-object", "customer_id": str(uid), "original_customer_id": original},
+        [{"id": "resubscribe-tx", "purchased_at": purchase["purchased_at_ms"]}], {})],
+        bonus_review="eligible")
+    return purchase, sub, prepared
+
+
+async def test_own_anonymous_original_purchaser_is_recorded_after_resubscribe(monkeypatch):
+    uid = uuid.uuid4()
+    purchase, sub, prepared = _resubscribe_case(uid)
+    pay = SimpleNamespace(id=uuid.uuid4(), user_id=uid, subscription_id=sub.id, status="paid",
+                          store_transaction_id="resubscribe-tx", store="app_store",
+                          subscription_plan="monthly", subscription_bonus_review=None)
+    create = AsyncMock(return_value=pay)
+    monkeypatch.setattr(subscription, "_record_subscription_payment", create)
+    monkeypatch.setattr(subscription, "_validate_subscription_payment", Mock())
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared)
+    create.assert_awaited_once()
+    assert state.get("reason") != "historical payer ownership unverified: do not reconstruct money"
+
+
+@pytest.mark.parametrize("case", ["other_real_account", "anonymous_not_aliased", "owner_not_aliased",
+                                  "no_aliases", "different_app_user"])
+async def test_unproven_original_purchaser_still_blocks_money(monkeypatch, case):
+    uid = uuid.uuid4()
+    kwargs = {}
+    if case == "other_real_account":
+        kwargs = {"original": str(uuid.uuid4()), "aliases": [str(uuid.uuid4()), str(uid)]}
+    elif case == "anonymous_not_aliased":
+        kwargs = {"aliases": [str(uid)]}
+    elif case == "owner_not_aliased":
+        kwargs = {"aliases": [ANON]}
+    elif case == "no_aliases":
+        kwargs = {"aliases": []}
+    purchase, sub, prepared = _resubscribe_case(uid, **kwargs)
+    if case == "different_app_user":
+        purchase["app_user_id"] = str(uuid.uuid4())
+    create = AsyncMock()
+    grant = AsyncMock()
+    monkeypatch.setattr(subscription, "_record_subscription_payment", create)
+    monkeypatch.setattr(subscription, "_grant_if_first", grant)
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared)
+    create.assert_not_awaited()
+    grant.assert_not_awaited()
+    assert state["payment_record"] in {"manual", "skipped"}
+
+
+async def test_existing_local_subscription_keeps_the_ownership_time_rule(monkeypatch):
+    """기존 행(before 있음)은 이번 수정 대상이 아니다. 소유 변경 전 결제는 지금처럼 막는다."""
+    uid = uuid.uuid4()
+    purchase, sub, prepared = _resubscribe_case(uid, before={"id": "existing"})
+    create = AsyncMock()
+    monkeypatch.setattr(subscription, "_record_subscription_payment", create)
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared)
+    create.assert_not_awaited()
+    assert state["reason"] == "historical payer ownership unverified: do not reconstruct money"

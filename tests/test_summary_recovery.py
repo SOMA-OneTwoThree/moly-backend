@@ -557,7 +557,7 @@ def retention_fixture():
         "id": uuid.uuid4(), "user_id": owner, "memory_generation": 0, "preparation_id": None,
         "publish_state": "published", "summary": "Synthetic complete summary.", "created_at": NOW,
         "source_hash": source_hash, "version": checkpoint.RETENTION_SUMMARIZER_VERSION,
-        "through_message_id": 4,
+        "through_message_id": 4, "validation_json": {"privacy_epoch": 0, "processing_complete": True},
     }
     return failed, succeeded, publication, payload
 
@@ -570,7 +570,7 @@ def test_retention_v5_republished_same_plan_establishes_recovery():
 @pytest.mark.parametrize("fault", [
     "different_plan", "published_other_hash", "narrower_range", "other_epoch", "redacted_failure",
     "payload_hash", "unpublished", "old_publication", "other_generation", "legacy_publication",
-    "preparation", "different_owner",
+    "preparation", "different_owner", "missing_epoch", "text_epoch", "schema", "published_epoch",
 ])
 def test_retention_v5_no_false_recovery(fault):
     f, s, c, payload = retention_fixture()
@@ -599,7 +599,47 @@ def test_retention_v5_no_false_recovery(fault):
         c["preparation_id"] = uuid.uuid4()
     elif fault == "different_owner":
         s["user_id"] = uuid.uuid4()
+    elif fault == "missing_epoch":
+        for job in (f, s):
+            job["payload"] = {k: v for k, v in job["payload"].items() if k != "privacy_epoch"}
+        c["validation_json"] = {}
+    elif fault == "text_epoch":
+        for job in (f, s):
+            job["payload"] = {**job["payload"], "privacy_epoch": "0"}
+    elif fault == "schema":
+        for job in (f, s):
+            job["payload"] = {**job["payload"], "schema_version": "other"}
+    elif fault == "published_epoch":
+        c["validation_json"] = {"privacy_epoch": 1}
     for job in (f, s):
         if fault != "payload_hash" or job is s:
             job["payload_hash"] = job["payload_hash"] if fault == "payload_hash" else recovery._wire_hash(job["payload"])
     assert not verified(f, s, c, {})
+
+
+async def test_retention_v5_snapshot_narrows_to_the_plan_and_reads_no_message_bodies(monkeypatch):
+    from app.services import privacy
+
+    f, s, c, _ = retention_fixture()
+    monkeypatch.setattr(privacy, "load_barrier", AsyncMock(return_value=privacy.BarrierState("active", 0, None)))
+    failed = {**f, "current_generation": 0}
+    successful = {**s, "checkpoint_id": c["id"]}
+    execute = AsyncMock(side_effect=[Rows([failed]), Rows([successful]), Rows([c])])
+    session = SimpleNamespace(execute=execute, scalar=AsyncMock(return_value={}))
+    observed = await recovery.snapshot(session, now=NOW)
+    assert observed.recovered == frozenset({str(f["id"])}) and not observed.pending
+    assert execute.await_count == 3  # 실패 목록 · 같은 계획 후보 · 게시 요약. 대화 원문 조회 없음.
+    assert all("FROM messages" not in str(call.args[0]) for call in execute.call_args_list)
+    candidate_params = execute.call_args_list[1].args[1]
+    assert candidate_params["plan_hash"] == f["payload"]["source_hash"]
+
+
+async def test_legacy_snapshot_does_not_narrow_by_plan(monkeypatch):
+    from app.services import privacy
+
+    f, s, c, messages = proof_fixture()
+    monkeypatch.setattr(privacy, "load_barrier", AsyncMock(return_value=privacy.BarrierState("active", 0, None)))
+    session = snapshot_session(f, s, c, messages)
+    observed = await recovery.snapshot(session, now=NOW)
+    assert observed.recovered == frozenset({str(f["id"])})
+    assert session.execute.call_args_list[1].args[1]["plan_hash"] is None

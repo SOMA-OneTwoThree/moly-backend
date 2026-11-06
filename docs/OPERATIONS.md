@@ -268,6 +268,12 @@ journalctl -u moly-worker.service --since '1 day ago' | grep -E '\[(payload_erro
 
 - actionable 큐의 원본은 [jobs.py의 `_STATS_SQL`](../app/services/jobs.py)이다. 성공 replay의 **모든 조상**을 제외한다. raw dead 수를 미처리 장애 수로 보고하지 않는다.
 - 복구는 원본 이력을 남기고 `replay_of`로 새 작업을 연결한다. 이미 성공 replay된 과거 dead를 재실행/삭제하지 않는다.
+- 약속 정리(`contract_compile`) dead는 그 범위가 이미 닫혔는지를 따로 판정한다([contract_recovery.py](../app/services/contract_recovery.py)).
+  - 닫힌 것으로 보는 경우: 같은 세대에서 사용자의 약속 정리 진행 위치(`chat_contexts.contract_processed_through_message_id`)가 그 작업의 범위 끝(`through_message_id`, 0보다 큼)에 닿았을 때
+  - "닫힘"의 범위: 정상 처리뿐 아니라 정책상 종결도 포함한다(재실행 상한 뒤 모델 없는 마지막 작업, 마지막 시도의 후보 폐기). 그런 종결은 해당 작업의 로그와 `result_detail`에 남는다.
+  - 판정과 표시: 모니터가 15분마다(일일 보고 뒤에) 한 번에 최대 200건씩 판정해 dead 행의 `result_code`에 `contract_range_closed`를 적는다. 실패 상태·오류 코드·시도 수는 그대로 둔다. 집계는 이 표시가 있는 dead를 뺀다.
+  - 배포 직후: 표시는 다음 모니터 실행 뒤에 생긴다(200건이 넘으면 여러 번에 걸쳐). 그 전까지 `/health/queues`에는 기존 dead가 그대로 보인다.
+  - 계속 세는 경우: dead payload는 7일 뒤 지워지므로 그 안에 범위가 닫히지 않은 dead는 판정할 수 없다. `result_code`가 이미 있는 dead(즉시 종료된 결정적 실패)와 배포 준비용 작업(`retention_preparation_id`)도 판정하지 않는다.
 - RC inbox의 pending/failed는 환경·나이·오류 유형·결제 권한과 함께 본다. `held:related_store_subscription_history` 같은 소유권 모호성을 sandbox라는 이유만으로 종결하지 않는다. [구독 계약](SUBSCRIPTIONS.md)에 따라 근거를 확인한다.
 
 ## 데이터 수명 주기

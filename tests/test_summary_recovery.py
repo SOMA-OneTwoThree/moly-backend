@@ -519,3 +519,127 @@ async def test_stats_additional_exclusion_keeps_other_queues_and_oldest_age(monk
     assert set(session.execute.await_args_list[1].args[1]["summary_resolved"]) == {
         uuid.UUID(value) for value in ids
     }
+
+
+def retention_fixture():
+    """v5: 초안 작업이 dead → 같은 계획을 다시 만든 작업이 게시."""
+    owner = uuid.uuid4()
+    source_hash = "c" * 64
+
+    def payload(ids, *, mode=None, digest=source_hash, epoch=0):
+        return {
+            "schema_version": checkpoint.SCHEMA_VERSION,
+            "summarizer_version": checkpoint.RETENTION_SUMMARIZER_VERSION,
+            "source_message_ids": ids,
+            "source_hash": digest,
+            "through_message_id": max(ids),
+            "memory_generation": 0,
+            "privacy_epoch": epoch,
+            "reason": "input_pressure",
+            **({"mode": mode} if mode else {}),
+        }
+
+    failed = {
+        "id": uuid.uuid4(), "user_id": owner, "queue": "content",
+        "job_type": "conversation_checkpoint", "state": "dead", "attempt": 3, "max_attempts": 3,
+        "last_error_code": "summary_invalid", "payload": payload([1, 2, 3, 4]),
+        "payload_redacted_at": None, "finished_at": NOW - timedelta(minutes=20),
+    }
+    succeeded = {
+        "id": uuid.uuid4(), "user_id": owner, "job_type": "conversation_checkpoint",
+        "state": "succeeded", "payload": {**payload([1, 2, 3, 4], mode="publish_retention"),
+                                          "redo_of": str(failed["id"]), "redo_depth": 1},
+        "payload_redacted_at": None,
+    }
+    for job in (failed, succeeded):
+        job["payload_hash"] = recovery._wire_hash(job["payload"])
+    publication = {
+        "id": uuid.uuid4(), "user_id": owner, "memory_generation": 0, "preparation_id": None,
+        "publish_state": "published", "summary": "Synthetic complete summary.", "created_at": NOW,
+        "source_hash": source_hash, "version": checkpoint.RETENTION_SUMMARIZER_VERSION,
+        "through_message_id": 4, "validation_json": {"privacy_epoch": 0, "processing_complete": True},
+    }
+    return failed, succeeded, publication, payload
+
+
+def test_retention_v5_republished_same_plan_establishes_recovery():
+    f, s, c, _ = retention_fixture()
+    assert verified(f, s, c, {})
+
+
+@pytest.mark.parametrize("fault", [
+    "different_plan", "published_other_hash", "narrower_range", "other_epoch", "redacted_failure",
+    "payload_hash", "unpublished", "old_publication", "other_generation", "legacy_publication",
+    "preparation", "different_owner", "missing_epoch", "text_epoch", "schema", "published_epoch",
+])
+def test_retention_v5_no_false_recovery(fault):
+    f, s, c, payload = retention_fixture()
+    if fault == "different_plan":
+        s["payload"] = {**payload([1, 2, 3, 4], mode="publish_retention", digest="d" * 64)}
+    elif fault == "published_other_hash":
+        c["source_hash"] = "e" * 64
+    elif fault == "narrower_range":
+        s["payload"] = payload([2, 3, 4], mode="publish_retention")
+        c["through_message_id"] = 4
+    elif fault == "other_epoch":
+        s["payload"] = payload([1, 2, 3, 4], mode="publish_retention", epoch=1)
+    elif fault == "redacted_failure":
+        f["payload_redacted_at"] = NOW
+    elif fault == "payload_hash":
+        f["payload_hash"] = "0" * 64
+    elif fault == "unpublished":
+        c["publish_state"] = "pending"
+    elif fault == "old_publication":
+        c["created_at"] = f["finished_at"] - timedelta(seconds=1)
+    elif fault == "other_generation":
+        c["memory_generation"] = 1
+    elif fault == "legacy_publication":
+        c["version"] = checkpoint.SUMMARIZER_VERSION
+    elif fault == "preparation":
+        c["preparation_id"] = uuid.uuid4()
+    elif fault == "different_owner":
+        s["user_id"] = uuid.uuid4()
+    elif fault == "missing_epoch":
+        for job in (f, s):
+            job["payload"] = {k: v for k, v in job["payload"].items() if k != "privacy_epoch"}
+        c["validation_json"] = {}
+    elif fault == "text_epoch":
+        for job in (f, s):
+            job["payload"] = {**job["payload"], "privacy_epoch": "0"}
+    elif fault == "schema":
+        for job in (f, s):
+            job["payload"] = {**job["payload"], "schema_version": "other"}
+    elif fault == "published_epoch":
+        c["validation_json"] = {"privacy_epoch": 1}
+    for job in (f, s):
+        if fault != "payload_hash" or job is s:
+            job["payload_hash"] = job["payload_hash"] if fault == "payload_hash" else recovery._wire_hash(job["payload"])
+    assert not verified(f, s, c, {})
+
+
+async def test_retention_v5_snapshot_narrows_to_the_plan_and_reads_no_message_bodies(monkeypatch):
+    from app.services import privacy
+
+    f, s, c, _ = retention_fixture()
+    monkeypatch.setattr(privacy, "load_barrier", AsyncMock(return_value=privacy.BarrierState("active", 0, None)))
+    failed = {**f, "current_generation": 0}
+    successful = {**s, "checkpoint_id": c["id"]}
+    execute = AsyncMock(side_effect=[Rows([failed]), Rows([successful]), Rows([c])])
+    session = SimpleNamespace(execute=execute, scalar=AsyncMock(return_value={}))
+    observed = await recovery.snapshot(session, now=NOW)
+    assert observed.recovered == frozenset({str(f["id"])}) and not observed.pending
+    assert execute.await_count == 3  # 실패 목록 · 같은 계획 후보 · 게시 요약. 대화 원문 조회 없음.
+    assert all("FROM messages" not in str(call.args[0]) for call in execute.call_args_list)
+    candidate_params = execute.call_args_list[1].args[1]
+    assert candidate_params["plan_hash"] == f["payload"]["source_hash"]
+
+
+async def test_legacy_snapshot_does_not_narrow_by_plan(monkeypatch):
+    from app.services import privacy
+
+    f, s, c, messages = proof_fixture()
+    monkeypatch.setattr(privacy, "load_barrier", AsyncMock(return_value=privacy.BarrierState("active", 0, None)))
+    session = snapshot_session(f, s, c, messages)
+    observed = await recovery.snapshot(session, now=NOW)
+    assert observed.recovered == frozenset({str(f["id"])})
+    assert session.execute.call_args_list[1].args[1]["plan_hash"] is None

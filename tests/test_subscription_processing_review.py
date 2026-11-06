@@ -594,6 +594,8 @@ def _live_env(monkeypatch, uid, *, origins=None, transfer=False, conflict=False)
                         AsyncMock(return_value=[_origin_row(uid)] if origins is None else origins))
     monkeypatch.setattr(processing, "_transfer_involving", AsyncMock(return_value=transfer))
     monkeypatch.setattr(processing, "_chain_conflict", AsyncMock(return_value=conflict))
+    monkeypatch.setattr(processing, "_chain_transaction_ids",
+                        AsyncMock(return_value=["chain-otx", "middle-renewal-tx", "renew-tx"]))
     pay = SimpleNamespace(id=uuid.uuid4(), user_id=uid, status="paid", store_transaction_id="renew-tx",
                           store="app_store", subscription_plan="monthly",
                           subscription_bonus_review="held:review_pending", subscription_hay_grant_id=None)
@@ -616,6 +618,17 @@ async def test_live_owner_resubscribe_records_payment_and_first_hay_on_first_and
     assert grant.await_args.args[1:] == (uid, "monthly")
     assert state["payment_record"] == "done" and state["bonus"] == "done"
     assert pay.subscription_bonus_review == "granted"
+    # 충돌 확인은 묶음의 중간 갱신 거래까지 포함한 전체 거래 ID로 한다.
+    assert processing._chain_conflict.await_args.args[2] == ["chain-otx", "middle-renewal-tx", "renew-tx"]
+
+
+async def test_duplicate_origin_rows_of_the_same_owner_still_qualify(monkeypatch):
+    uid = uuid.uuid4()
+    purchase, sub, prepared, received = _live_case(uid)
+    create, _, _ = _live_env(monkeypatch, uid, origins=[_origin_row(uid, status="pending"), _origin_row(uid)])
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
+    create.assert_awaited_once()
 
 
 async def test_chain_first_purchase_is_its_own_origin_proof(monkeypatch):
@@ -630,7 +643,8 @@ async def test_chain_first_purchase_is_its_own_origin_proof(monkeypatch):
 
 
 @pytest.mark.parametrize("case", [
-    "no_origin", "origin_other_user", "origin_late", "origin_family", "origin_not_processed", "two_origins",
+    "no_origin", "origin_other_user", "origin_late", "origin_family", "origin_not_processed",
+    "origin_other_user_alongside", "origin_env_mismatch", "origin_store_mismatch",
     "late_event", "late_receipt", "no_receipt", "other_app_user", "snapshot_other_customer",
     "historical_transaction", "family_share", "transfer", "conflict", "free", "product_change",
 ])
@@ -649,8 +663,12 @@ async def test_live_owner_rule_blocks_every_unproven_case(monkeypatch, case):
         origins = [_origin_row(uid, payload={"is_family_share": True})]
     elif case == "origin_not_processed":
         origins = [_origin_row(uid, status="pending")]
-    elif case == "two_origins":
-        origins = [_origin_row(uid), _origin_row(uid)]
+    elif case == "origin_other_user_alongside":
+        origins = [_origin_row(uid), _origin_row(uid, payload={"app_user_id": str(uuid.uuid4())})]
+    elif case == "origin_env_mismatch":
+        origins = [_origin_row(uid, payload={"environment": "SANDBOX"})]
+    elif case == "origin_store_mismatch":
+        origins = [_origin_row(uid, payload={"store": "PLAY_STORE"})]
     elif case == "late_event":
         purchase["event_timestamp_ms"] = purchase["purchased_at_ms"] + 2 * 3600 * 1000
     elif case == "late_receipt":
@@ -699,15 +717,32 @@ def _sql(statement):
     return str(statement.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}))
 
 
-async def test_transfer_check_reads_every_status_and_both_directions():
+async def test_transfer_check_reads_every_status_and_filters_time_in_the_query():
     owner = str(uuid.uuid4())
-    session = _Capture(rows=[({"event_timestamp_ms": _ms(LIVE_PAID)}, LIVE_PAID)])
+    session = _Capture(scalar="transfer-event")
     assert await processing._transfer_involving(session, owner, LIVE_TRIAL) is True
     compiled = session.statements[0].compile(dialect=postgresql.dialect())
     sql, values = str(compiled), set(map(str, compiled.params.values()))
     assert {"TRANSFER", "transferred_to", "transferred_from"} <= values and sql.count("@>") == 2
-    assert "status" not in sql  # 대기·실패 TRANSFER도 거부 근거가 된다
-    assert await processing._transfer_involving(_Capture(rows=[]), owner, LIVE_TRIAL) is False
+    assert "received_at >=" in sql and "BIGINT" in sql  # 시각 조건이 조회 안에 있다(개수 상한 전에 거름)
+    assert "status" not in sql  # 대기·실패 TRANSFER도 거부 근거
+    assert await processing._transfer_involving(_Capture(scalar=None), owner, LIVE_TRIAL) is False
+    assert await processing._transfer_involving(_Capture(scalar=None), owner, None) is True  # 시각 모르면 막음
+
+
+async def test_chain_transaction_ids_include_snapshot_and_inbox_transactions():
+    session = _Capture(rows=["inbox-renewal-tx", "chain-otx"])
+    target = processing.Target(None, {}, [{"id": "snapshot-tx"}, {"id": "renew-tx"}], {})
+    ids = await processing._chain_transaction_ids(session, {"transaction_id": "renew-tx",
+                                                            "original_transaction_id": "chain-otx"}, target)
+    assert ids == ["chain-otx", "inbox-renewal-tx", "renew-tx", "snapshot-tx"]
+
+
+def test_apply_passes_the_inbox_receipt_time_to_finance():
+    import inspect
+    source = inspect.getsource(processing.apply)
+    assert 'received_at=getattr(row, "received_at", None)' in source
+    assert source.index("_ownership_lock") < source.index("await _finance(")
 
 
 async def test_chain_conflict_checks_other_users_subscriptions_and_payments():

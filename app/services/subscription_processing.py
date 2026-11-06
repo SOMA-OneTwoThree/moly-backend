@@ -104,27 +104,44 @@ def _live_delivery(payload: dict, received_at) -> bool:
 
 
 async def _chain_origin_rows(session, event: dict) -> list:
-    """같은 원거래의 첫 구매(INITIAL_PURCHASE, transaction_id == original_transaction_id) 이벤트 행."""
+    """같은 원거래의 첫 구매(INITIAL_PURCHASE, transaction_id == original_transaction_id) 이벤트 행 전부(상태 무관)."""
     original = event.get("original_transaction_id")
     return list((await session.execute(select(RevenuecatEvent).where(
         RevenuecatEvent.payload["original_transaction_id"].astext == original,
         RevenuecatEvent.payload["transaction_id"].astext == original,
         RevenuecatEvent.payload["type"].astext == "INITIAL_PURCHASE",
-    ).limit(5))).scalars())
+    ).order_by(RevenuecatEvent.received_at).limit(200))).scalars())
+
+
+async def _chain_transaction_ids(session, event: dict, target) -> list[str]:
+    """이 묶음에 속한 거래 ID 전부: 현재·원거래, RC 스냅샷 거래 목록, inbox의 같은 원거래 이벤트 거래."""
+    original = event.get("original_transaction_id")
+    ids = {event.get("transaction_id"), original}
+    ids.update(tx.get("id") for tx in target.transactions)
+    ids.update((await session.execute(select(RevenuecatEvent.payload["transaction_id"].astext).where(
+        RevenuecatEvent.payload["original_transaction_id"].astext == original,
+    ).limit(2000))).scalars())
+    return sorted(value for value in ids if isinstance(value, str) and value)
 
 
 async def _transfer_involving(session, owner: str, since) -> bool:
-    """처리 상태와 무관하게(대기·실패 포함) 이 사용자가 오간 TRANSFER가 since 이후에 있는가."""
-    rows = (await session.execute(select(RevenuecatEvent.payload, RevenuecatEvent.received_at).where(
+    """처리 상태와 무관하게(대기·실패 포함) 이 사용자가 오간 TRANSFER가 since(1일 여유) 이후에 있는가.
+
+    시각 조건을 조회에 넣어 개수 상한 때문에 관련 기록이 빠지지 않게 한다. 시각을 모르면 막는다.
+    """
+    from sqlalchemy import BigInteger, cast
+    if since is None:
+        return True
+    floor = since - timedelta(days=1)
+    created_ms = cast(RevenuecatEvent.payload["event_timestamp_ms"].astext, BigInteger)
+    hit = (await session.execute(select(RevenuecatEvent.event_id).where(
         RevenuecatEvent.payload["type"].astext == "TRANSFER",
         or_(RevenuecatEvent.payload["transferred_to"].contains([owner]),
             RevenuecatEvent.payload["transferred_from"].contains([owner])),
-    ).limit(50))).all()
-    for payload, received in rows:
-        moment = access.instant(payload.get("event_timestamp_ms")) or received
-        if moment is None or since is None or moment >= since - timedelta(days=1):
-            return True
-    return False
+        or_(RevenuecatEvent.received_at.is_(None), RevenuecatEvent.received_at >= floor,
+            created_ms >= int(floor.timestamp() * 1000)),
+    ).limit(1))).scalar_one_or_none()
+    return hit is not None
 
 
 async def _chain_conflict(session, owner_id, chain_ids: list[str]) -> bool:
@@ -165,21 +182,25 @@ async def _live_owner_purchase(session, event: dict, received_at, sub, target) -
     if event.get("type") == "INITIAL_PURCHASE" and tx == original:
         origin_payload, origin_received = event, received_at
     else:
-        origins = [row for row in await _chain_origin_rows(session, event)
-                   if row.status == "processed"
-                   and row.payload.get("app_user_id") == owner
-                   and row.payload.get("is_family_share") is False
-                   and str(row.payload.get("environment", "")).upper() == str(event.get("environment", "")).upper()
-                   and row.payload.get("store") == event.get("store")]
-        if len(origins) != 1:
+        rows = await _chain_origin_rows(session, event)
+        # 다른 사용자 이름의 첫 구매 기록이 하나라도 있으면 막는다(구매 복원·이전 의심).
+        if not rows or any(row.payload.get("app_user_id") != owner for row in rows):
             return False
-        origin_payload, origin_received = origins[0].payload, origins[0].received_at
+        qualifying = [row for row in rows
+                      if row.status == "processed"
+                      and row.payload.get("is_family_share") is False
+                      and str(row.payload.get("environment", "")).upper() == str(event.get("environment", "")).upper()
+                      and row.payload.get("store") == event.get("store")
+                      and _live_delivery(row.payload, row.received_at)]
+        if not qualifying:
+            return False
+        origin_payload, origin_received = qualifying[0].payload, qualifying[0].received_at
     if not _live_delivery(origin_payload, origin_received):
         return False
     # C: 첫 구매 이후 이전 흔적·다른 사용자 충돌 없음(apply의 _ownership_lock 아래에서 호출된다).
     if await _transfer_involving(session, owner, access.instant(origin_payload.get("purchased_at_ms"))):
         return False
-    return not await _chain_conflict(session, sub.user_id, sorted({tx, original}))
+    return not await _chain_conflict(session, sub.user_id, await _chain_transaction_ids(session, event, target))
 
 
 

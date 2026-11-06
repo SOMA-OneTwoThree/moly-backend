@@ -635,11 +635,32 @@ async def test_chain_first_purchase_is_its_own_origin_proof(monkeypatch):
     uid = uuid.uuid4()
     purchase, sub, prepared, received = _live_case(uid, kind="INITIAL_PURCHASE")
     create, _, _ = _live_env(monkeypatch, uid, origins=[])
-    origin_query = processing._chain_origin_rows
     state = processing.new_state(purchase)
     await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
     create.assert_awaited_once()
-    origin_query.assert_not_awaited()
+
+
+@pytest.mark.parametrize("origins", ["other_user_origin", "overflow"])
+async def test_self_origin_still_blocked_by_other_user_origin_or_overflow(monkeypatch, origins):
+    uid = uuid.uuid4()
+    purchase, sub, prepared, received = _live_case(uid, kind="INITIAL_PURCHASE")
+    rows = ([_origin_row(uid, payload={"app_user_id": str(uuid.uuid4())})] if origins == "other_user_origin"
+            else [_origin_row(uid)] * (processing._ORIGIN_LIMIT + 1))
+    create, grant, _ = _live_env(monkeypatch, uid, origins=rows)
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
+    create.assert_not_awaited()
+    grant.assert_not_awaited()
+
+
+async def test_chain_id_overflow_blocks(monkeypatch):
+    uid = uuid.uuid4()
+    purchase, sub, prepared, received = _live_case(uid)
+    create, _, _ = _live_env(monkeypatch, uid)
+    monkeypatch.setattr(processing, "_chain_transaction_ids", AsyncMock(return_value=None))
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
+    create.assert_not_awaited()
 
 
 @pytest.mark.parametrize("case", [
@@ -728,6 +749,13 @@ async def test_transfer_check_reads_every_status_and_filters_time_in_the_query()
     assert "status" not in sql  # 대기·실패 TRANSFER도 거부 근거
     assert await processing._transfer_involving(_Capture(scalar=None), owner, LIVE_TRIAL) is False
     assert await processing._transfer_involving(_Capture(scalar=None), owner, None) is True  # 시각 모르면 막음
+
+
+async def test_chain_transaction_ids_overflow_returns_none():
+    rows = [f"tx-{i}" for i in range(processing._CHAIN_ID_LIMIT + 1)]
+    target = processing.Target(None, {}, [], {})
+    assert await processing._chain_transaction_ids(
+        _Capture(rows=rows), {"transaction_id": "a", "original_transaction_id": "b"}, target) is None
 
 
 async def test_chain_transaction_ids_include_snapshot_and_inbox_transactions():

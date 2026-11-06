@@ -89,6 +89,8 @@ def new_state(event: dict) -> dict:
 # 소유 시작 때문에 막지 않는다. 익명 alias만으로는 판단하지 않는다.
 # ─────────────────────────────────────────────────────────────
 _LIVE_WINDOW_S = 3600.0
+_ORIGIN_LIMIT = 200       # 같은 원거래의 첫 구매 기록 상한. 넘으면 전부 확인 못 했으니 막는다.
+_CHAIN_ID_LIMIT = 2000    # 같은 원거래 inbox 거래 ID 상한. 넘으면 막는다.
 
 
 def _live_delivery(payload: dict, received_at) -> bool:
@@ -110,17 +112,23 @@ async def _chain_origin_rows(session, event: dict) -> list:
         RevenuecatEvent.payload["original_transaction_id"].astext == original,
         RevenuecatEvent.payload["transaction_id"].astext == original,
         RevenuecatEvent.payload["type"].astext == "INITIAL_PURCHASE",
-    ).order_by(RevenuecatEvent.received_at).limit(200))).scalars())
+    ).order_by(RevenuecatEvent.received_at).limit(_ORIGIN_LIMIT + 1))).scalars())
 
 
-async def _chain_transaction_ids(session, event: dict, target) -> list[str]:
-    """이 묶음에 속한 거래 ID 전부: 현재·원거래, RC 스냅샷 거래 목록, inbox의 같은 원거래 이벤트 거래."""
+async def _chain_transaction_ids(session, event: dict, target) -> list[str] | None:
+    """이 묶음에 속한 거래 ID 전부: 현재·원거래, RC 스냅샷 거래 목록, inbox의 같은 원거래 이벤트 거래.
+
+    상한을 넘으면 None(전부 확인하지 못했으니 막는다).
+    """
     original = event.get("original_transaction_id")
     ids = {event.get("transaction_id"), original}
     ids.update(tx.get("id") for tx in target.transactions)
-    ids.update((await session.execute(select(RevenuecatEvent.payload["transaction_id"].astext).where(
+    inbox = list((await session.execute(select(RevenuecatEvent.payload["transaction_id"].astext).where(
         RevenuecatEvent.payload["original_transaction_id"].astext == original,
-    ).limit(2000))).scalars())
+    ).limit(_CHAIN_ID_LIMIT + 1))).scalars())
+    if len(inbox) > _CHAIN_ID_LIMIT:
+        return None
+    ids.update(inbox)
     return sorted(value for value in ids if isinstance(value, str) and value)
 
 
@@ -178,13 +186,15 @@ async def _live_owner_purchase(session, event: dict, received_at, sub, target) -
     amount, _ = old._event_money(event)
     if amount is None or amount <= 0:
         return False
-    # A: 묶음의 첫 구매. 지금 처리 중인 이벤트가 그 첫 구매면 그 자체가 증거다.
+    # A: 묶음의 첫 구매. 다른 사용자 이름의 첫 구매 기록이 하나라도 있거나 상한을 넘으면 막는다
+    # (구매 복원·이전 의심). 지금 처리 중인 이벤트가 그 첫 구매면 그 자체가 증거다.
+    rows = await _chain_origin_rows(session, event)
+    if len(rows) > _ORIGIN_LIMIT or any(row.payload.get("app_user_id") != owner for row in rows):
+        return False
     if event.get("type") == "INITIAL_PURCHASE" and tx == original:
         origin_payload, origin_received = event, received_at
     else:
-        rows = await _chain_origin_rows(session, event)
-        # 다른 사용자 이름의 첫 구매 기록이 하나라도 있으면 막는다(구매 복원·이전 의심).
-        if not rows or any(row.payload.get("app_user_id") != owner for row in rows):
+        if not rows:
             return False
         qualifying = [row for row in rows
                       if row.status == "processed"
@@ -200,7 +210,10 @@ async def _live_owner_purchase(session, event: dict, received_at, sub, target) -
     # C: 첫 구매 이후 이전 흔적·다른 사용자 충돌 없음(apply의 _ownership_lock 아래에서 호출된다).
     if await _transfer_involving(session, owner, access.instant(origin_payload.get("purchased_at_ms"))):
         return False
-    return not await _chain_conflict(session, sub.user_id, await _chain_transaction_ids(session, event, target))
+    chain_ids = await _chain_transaction_ids(session, event, target)
+    if chain_ids is None:
+        return False
+    return not await _chain_conflict(session, sub.user_id, chain_ids)
 
 
 

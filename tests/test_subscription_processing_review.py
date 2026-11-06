@@ -550,3 +550,180 @@ async def test_review_refund_records_money_but_does_not_touch_unrelated_bonus(mo
     assert state["finance_done"] is False
     assert grant.revoked_at is None
     ledger.assert_not_awaited()
+
+
+# ── 결제 직후 받은 현재 소유자 결제(체험 만료 뒤 재구독 등) ─────────────────────────
+LIVE_ANON = "$RCAnonymousID:0123456789abcdef"
+LIVE_PAID = datetime(2026, 11, 6, 0, 48, 50, tzinfo=timezone.utc)
+LIVE_TRIAL = datetime(2026, 11, 2, 23, 3, 41, tzinfo=timezone.utc)
+
+
+def _ms(moment):
+    return int(moment.timestamp() * 1000)
+
+
+def _live_case(uid, *, before=None, kind="RENEWAL"):
+    tx = "chain-otx" if kind == "INITIAL_PURCHASE" else "renew-tx"
+    paid = LIVE_TRIAL if kind == "INITIAL_PURCHASE" else LIVE_PAID
+    purchase = {"id": "live-purchase", "type": kind, "app_user_id": str(uid), "original_app_user_id": LIVE_ANON,
+                "transaction_id": tx, "original_transaction_id": "chain-otx", "period_type": "NORMAL",
+                "is_family_share": False, "price_in_purchased_currency": 980, "currency": "JPY",
+                "environment": "PRODUCTION", "store": "APP_STORE",
+                "purchased_at_ms": _ms(paid), "event_timestamp_ms": _ms(paid) + 8000}
+    sub = SimpleNamespace(id=uuid.uuid4(), user_id=uid, rc_subscription_id="live-object",
+                          ownership_changed_at=paid + timedelta(minutes=17))
+    target = processing.Target(before, {"id": "live-object", "customer_id": str(uid),
+                                        "original_customer_id": LIVE_ANON, "store_subscription_identifier": tx},
+                               [{"id": tx, "purchased_at": _ms(paid)}], {})
+    prepared = processing.Prepared([], None, datetime.now(timezone.utc), targets=[target], bonus_review="eligible")
+    return purchase, sub, prepared, paid + timedelta(seconds=8)
+
+
+def _origin_row(uid, **changes):
+    payload = {"type": "INITIAL_PURCHASE", "app_user_id": str(uid), "transaction_id": "chain-otx",
+               "original_transaction_id": "chain-otx", "is_family_share": False, "period_type": "TRIAL",
+               "environment": "PRODUCTION", "store": "APP_STORE",
+               "purchased_at_ms": _ms(LIVE_TRIAL), "event_timestamp_ms": _ms(LIVE_TRIAL) + 6000}
+    payload.update(changes.pop("payload", {}))
+    return SimpleNamespace(payload=payload, status=changes.get("status", "processed"),
+                           received_at=changes.get("received_at", LIVE_TRIAL + timedelta(seconds=6)))
+
+
+def _live_env(monkeypatch, uid, *, origins=None, transfer=False, conflict=False):
+    monkeypatch.setattr(processing, "_chain_origin_rows",
+                        AsyncMock(return_value=[_origin_row(uid)] if origins is None else origins))
+    monkeypatch.setattr(processing, "_transfer_involving", AsyncMock(return_value=transfer))
+    monkeypatch.setattr(processing, "_chain_conflict", AsyncMock(return_value=conflict))
+    pay = SimpleNamespace(id=uuid.uuid4(), user_id=uid, status="paid", store_transaction_id="renew-tx",
+                          store="app_store", subscription_plan="monthly",
+                          subscription_bonus_review="held:review_pending", subscription_hay_grant_id=None)
+    create = AsyncMock(return_value=pay)
+    grant = AsyncMock(return_value=SimpleNamespace(id=uuid.uuid4()))
+    monkeypatch.setattr(subscription, "_record_subscription_payment", create)
+    monkeypatch.setattr(subscription, "_validate_subscription_payment", Mock())
+    monkeypatch.setattr(subscription, "_grant_if_first", grant)
+    return create, grant, pay
+
+
+@pytest.mark.parametrize("before", [None, {"id": "row-made-by-first-attempt"}])
+async def test_live_owner_resubscribe_records_payment_and_first_hay_on_first_and_retry(monkeypatch, before):
+    uid = uuid.uuid4()
+    purchase, sub, prepared, received = _live_case(uid, before=before)
+    create, grant, pay = _live_env(monkeypatch, uid)
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
+    create.assert_awaited_once()
+    assert grant.await_args.args[1:] == (uid, "monthly")
+    assert state["payment_record"] == "done" and state["bonus"] == "done"
+    assert pay.subscription_bonus_review == "granted"
+
+
+async def test_chain_first_purchase_is_its_own_origin_proof(monkeypatch):
+    uid = uuid.uuid4()
+    purchase, sub, prepared, received = _live_case(uid, kind="INITIAL_PURCHASE")
+    create, _, _ = _live_env(monkeypatch, uid, origins=[])
+    origin_query = processing._chain_origin_rows
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
+    create.assert_awaited_once()
+    origin_query.assert_not_awaited()
+
+
+@pytest.mark.parametrize("case", [
+    "no_origin", "origin_other_user", "origin_late", "origin_family", "origin_not_processed", "two_origins",
+    "late_event", "late_receipt", "no_receipt", "other_app_user", "snapshot_other_customer",
+    "historical_transaction", "family_share", "transfer", "conflict", "free", "product_change",
+])
+async def test_live_owner_rule_blocks_every_unproven_case(monkeypatch, case):
+    uid = uuid.uuid4()
+    purchase, sub, prepared, received = _live_case(uid)
+    snapshot = prepared.targets[0].snapshot
+    origins = None
+    if case == "no_origin":
+        origins = []
+    elif case == "origin_other_user":
+        origins = [_origin_row(uid, payload={"app_user_id": str(uuid.uuid4())})]
+    elif case == "origin_late":
+        origins = [_origin_row(uid, received_at=LIVE_TRIAL + timedelta(hours=2))]
+    elif case == "origin_family":
+        origins = [_origin_row(uid, payload={"is_family_share": True})]
+    elif case == "origin_not_processed":
+        origins = [_origin_row(uid, status="pending")]
+    elif case == "two_origins":
+        origins = [_origin_row(uid), _origin_row(uid)]
+    elif case == "late_event":
+        purchase["event_timestamp_ms"] = purchase["purchased_at_ms"] + 2 * 3600 * 1000
+    elif case == "late_receipt":
+        received = LIVE_PAID + timedelta(hours=2)
+    elif case == "no_receipt":
+        received = None
+    elif case == "other_app_user":
+        purchase["app_user_id"] = str(uuid.uuid4())
+    elif case == "snapshot_other_customer":
+        snapshot["customer_id"] = str(uuid.uuid4())
+    elif case == "historical_transaction":
+        snapshot["store_subscription_identifier"] = "newer-tx"
+    elif case == "family_share":
+        purchase["is_family_share"] = True
+    elif case == "free":
+        purchase["price_in_purchased_currency"] = 0
+    elif case == "product_change":
+        purchase["type"] = "PRODUCT_CHANGE"
+    create, grant, _ = _live_env(monkeypatch, uid, origins=origins,
+                                 transfer=case == "transfer", conflict=case == "conflict")
+    state = processing.new_state(purchase)
+    await processing._finance(HistorySession([]), purchase, state, None, sub, prepared, received_at=received)
+    create.assert_not_awaited()
+    grant.assert_not_awaited()
+
+
+@pytest.mark.parametrize("created_s,received_s,ok", [
+    (0, 0, True), (3600, 3600, True), (3601, 10, False), (10, 3601, False), (-1, 10, False), (10, -1, False),
+])
+def test_live_delivery_window(created_s, received_s, ok):
+    payload = {"purchased_at_ms": _ms(LIVE_PAID), "event_timestamp_ms": _ms(LIVE_PAID) + created_s * 1000}
+    assert processing._live_delivery(payload, LIVE_PAID + timedelta(seconds=received_s)) is ok
+
+
+class _Capture:
+    def __init__(self, rows=None, scalar=None):
+        self.statements, self.rows, self.scalar = [], rows or [], scalar
+
+    async def execute(self, statement):
+        self.statements.append(statement)
+        rows, scalar = self.rows, self.scalar
+        return SimpleNamespace(all=lambda: rows, scalars=lambda: iter(rows), scalar_one_or_none=lambda: scalar)
+
+
+def _sql(statement):
+    return str(statement.compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}))
+
+
+async def test_transfer_check_reads_every_status_and_both_directions():
+    owner = str(uuid.uuid4())
+    session = _Capture(rows=[({"event_timestamp_ms": _ms(LIVE_PAID)}, LIVE_PAID)])
+    assert await processing._transfer_involving(session, owner, LIVE_TRIAL) is True
+    compiled = session.statements[0].compile(dialect=postgresql.dialect())
+    sql, values = str(compiled), set(map(str, compiled.params.values()))
+    assert {"TRANSFER", "transferred_to", "transferred_from"} <= values and sql.count("@>") == 2
+    assert "status" not in sql  # 대기·실패 TRANSFER도 거부 근거가 된다
+    assert await processing._transfer_involving(_Capture(rows=[]), owner, LIVE_TRIAL) is False
+
+
+async def test_chain_conflict_checks_other_users_subscriptions_and_payments():
+    owner = uuid.uuid4()
+    session = _Capture(scalar=None)
+    assert await processing._chain_conflict(session, owner, ["chain-otx", "renew-tx"]) is False
+    subs_sql, pay_sql = (_sql(s) for s in session.statements)
+    for fragment in ("subscriptions.user_id !=", "original_transaction_id IN", "latest_transaction_id IN",
+                     "access_evidence"):
+        assert fragment in subs_sql
+    assert "payments.user_id !=" in pay_sql and "store_transaction_id IN" in pay_sql
+    assert await processing._chain_conflict(_Capture(scalar=uuid.uuid4()), owner, ["chain-otx"]) is True
+
+
+async def test_chain_origin_query_requires_first_transaction_of_the_chain():
+    session = _Capture(rows=[])
+    await processing._chain_origin_rows(session, {"original_transaction_id": "chain-otx"})
+    sql = _sql(session.statements[0])
+    assert "INITIAL_PURCHASE" in sql and sql.count("'chain-otx'") == 2

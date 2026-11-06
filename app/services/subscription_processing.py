@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 from copy import deepcopy
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import InvalidOperation
 from types import SimpleNamespace
 import uuid
@@ -80,6 +80,107 @@ def new_state(event: dict) -> dict:
             "bonus": "pending" if purchase else "not_applicable",
             "refund_or_reversal": "pending" if refund else "not_applicable",
             "access_state": "pending", "tries": {}}
+
+
+# ─────────────────────────────────────────────────────────────
+# 결제 직후 받은 현재 소유자 결제 — 과거 결제 재생성 금지 가드의 예외(docs/SUBSCRIPTIONS.md 76행 취지 유지).
+# A 묶음의 첫 구매가 결제 직후 이 사용자 이름으로 왔다 · B 이번 결제도 결제 직후 받은 현재 기간 거래다 ·
+# C 그 사이 이전(TRANSFER) 흔적·다른 사용자 충돌이 없다. 셋 다 만족할 때만 처리 시각으로 적힌
+# 소유 시작 때문에 막지 않는다. 익명 alias만으로는 판단하지 않는다.
+# ─────────────────────────────────────────────────────────────
+_LIVE_WINDOW_S = 3600.0
+
+
+def _live_delivery(payload: dict, received_at) -> bool:
+    """RC 이벤트 생성 시각(event_timestamp_ms)과 서버 수신 시각(received_at) 모두 구매 후 1시간 안."""
+    purchased = access.instant(payload.get("purchased_at_ms"))
+    created = access.instant(payload.get("event_timestamp_ms"))
+    if purchased is None or created is None or received_at is None:
+        return False
+    if received_at.tzinfo is None:
+        received_at = received_at.replace(tzinfo=timezone.utc)
+    return (0 <= (created - purchased).total_seconds() <= _LIVE_WINDOW_S
+            and 0 <= (received_at - purchased).total_seconds() <= _LIVE_WINDOW_S)
+
+
+async def _chain_origin_rows(session, event: dict) -> list:
+    """같은 원거래의 첫 구매(INITIAL_PURCHASE, transaction_id == original_transaction_id) 이벤트 행."""
+    original = event.get("original_transaction_id")
+    return list((await session.execute(select(RevenuecatEvent).where(
+        RevenuecatEvent.payload["original_transaction_id"].astext == original,
+        RevenuecatEvent.payload["transaction_id"].astext == original,
+        RevenuecatEvent.payload["type"].astext == "INITIAL_PURCHASE",
+    ).limit(5))).scalars())
+
+
+async def _transfer_involving(session, owner: str, since) -> bool:
+    """처리 상태와 무관하게(대기·실패 포함) 이 사용자가 오간 TRANSFER가 since 이후에 있는가."""
+    rows = (await session.execute(select(RevenuecatEvent.payload, RevenuecatEvent.received_at).where(
+        RevenuecatEvent.payload["type"].astext == "TRANSFER",
+        or_(RevenuecatEvent.payload["transferred_to"].contains([owner]),
+            RevenuecatEvent.payload["transferred_from"].contains([owner])),
+    ).limit(50))).all()
+    for payload, received in rows:
+        moment = access.instant(payload.get("event_timestamp_ms")) or received
+        if moment is None or since is None or moment >= since - timedelta(days=1):
+            return True
+    return False
+
+
+async def _chain_conflict(session, owner_id, chain_ids: list[str]) -> bool:
+    """다른 사용자의 구독 행·결제 행이 이 묶음의 거래 ID를 갖고 있는가."""
+    from sqlalchemy import String, cast
+    evidence_text = cast(Subscription.access_evidence, String)
+    sub_hit = (await session.execute(select(Subscription.id).where(
+        Subscription.user_id != owner_id,
+        or_(Subscription.original_transaction_id.in_(chain_ids),
+            Subscription.latest_transaction_id.in_(chain_ids),
+            *[evidence_text.contains(value) for value in chain_ids]),
+    ).limit(1))).scalar_one_or_none()
+    if sub_hit is not None:
+        return True
+    pay_hit = (await session.execute(select(Payment.id).where(
+        Payment.user_id != owner_id, Payment.store_transaction_id.in_(chain_ids),
+    ).limit(1))).scalar_one_or_none()
+    return pay_hit is not None
+
+
+async def _live_owner_purchase(session, event: dict, received_at, sub, target) -> bool:
+    from app.services import subscription as old
+
+    owner = str(sub.user_id)
+    snapshot = target.snapshot
+    tx, original = event.get("transaction_id"), event.get("original_transaction_id")
+    if (event.get("type") not in {"INITIAL_PURCHASE", "RENEWAL"}
+            or event.get("is_family_share") is not False
+            or not isinstance(tx, str) or not tx or not isinstance(original, str) or not original
+            or event.get("app_user_id") != owner or snapshot.get("customer_id") != owner
+            or snapshot.get("store_subscription_identifier") != tx
+            or not _live_delivery(event, received_at)):
+        return False
+    amount, _ = old._event_money(event)
+    if amount is None or amount <= 0:
+        return False
+    # A: 묶음의 첫 구매. 지금 처리 중인 이벤트가 그 첫 구매면 그 자체가 증거다.
+    if event.get("type") == "INITIAL_PURCHASE" and tx == original:
+        origin_payload, origin_received = event, received_at
+    else:
+        origins = [row for row in await _chain_origin_rows(session, event)
+                   if row.status == "processed"
+                   and row.payload.get("app_user_id") == owner
+                   and row.payload.get("is_family_share") is False
+                   and str(row.payload.get("environment", "")).upper() == str(event.get("environment", "")).upper()
+                   and row.payload.get("store") == event.get("store")]
+        if len(origins) != 1:
+            return False
+        origin_payload, origin_received = origins[0].payload, origins[0].received_at
+    if not _live_delivery(origin_payload, origin_received):
+        return False
+    # C: 첫 구매 이후 이전 흔적·다른 사용자 충돌 없음(apply의 _ownership_lock 아래에서 호출된다).
+    if await _transfer_involving(session, owner, access.instant(origin_payload.get("purchased_at_ms"))):
+        return False
+    return not await _chain_conflict(session, sub.user_id, sorted({tx, original}))
+
 
 
 def financial_action(event: dict) -> str | None:
@@ -358,7 +459,8 @@ async def _grant_proof(session, pay, grant) -> str | None:
     return None
 
 
-async def _finance(session, event: dict, state: dict, pay: Payment | None, sub, prepared: Prepared):
+async def _finance(session, event: dict, state: dict, pay: Payment | None, sub, prepared: Prepared,
+                   received_at=None):
     from app.services import subscription as old
 
     action = financial_action(event)
@@ -459,8 +561,11 @@ async def _finance(session, event: dict, state: dict, pay: Payment | None, sub, 
         and event.get("transaction_id") == first["id"]
         and target.snapshot.get("original_customer_id") == str(sub.user_id)
     )
-    unknown_new_owner = target.before is None and target.snapshot.get("original_customer_id") != str(sub.user_id)
-    predates_ownership = sub.ownership_changed_at and (
+    # 결제 직후 받은 현재 소유자 결제는 처리 시각으로 적힌 소유 시작 때문에 막지 않는다(처음 처리·재처리 모두).
+    live_owner = pay is None and await _live_owner_purchase(session, event, received_at, sub, target)
+    unknown_new_owner = (target.before is None and not live_owner
+                         and target.snapshot.get("original_customer_id") != str(sub.user_id))
+    predates_ownership = not live_owner and sub.ownership_changed_at and (
         start is None or stamp is None or start < sub.ownership_changed_at or stamp < sub.ownership_changed_at)
     if pay is None and uid != sub.user_id:
         state["payment_record"] = state["bonus"] = "skipped"
@@ -590,7 +695,8 @@ async def apply(session, row: RevenuecatEvent, prepared: Prepared):
             state["reason"] = "payment store or environment mismatch"
             row.processing_state = state
             return old.HandlerResult(old.HANDLED_PENDING, state["reason"])
-    await _finance(session, event, state, pay, event_sub, prepared)
+    await _finance(session, event, state, pay, event_sub, prepared,
+                   received_at=getattr(row, "received_at", None))
     state["verified_revision"] = {str(t.before["id"]): t.evidence["revision"]
                                   for t in prepared.targets if t.before}
     row.processing_state = deepcopy(state)

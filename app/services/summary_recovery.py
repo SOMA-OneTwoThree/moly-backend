@@ -121,6 +121,61 @@ def _manifest(job, *, current_generation, parents, source_rows):
     return payload, frozenset(ids)
 
 
+def _retention_manifest(job, *, current_generation):
+    """v5(초안 → 게시 두 단계) 요약의 계획 확인. 원문을 다시 해시하지 않는다.
+
+    v5 게시 단계는 원문으로 source_hash를 다시 계산해 맞을 때만 게시한다. 그래서 여기서는
+    실패한 계획과 같은 source_hash가 게시됐는지, 실패 범위를 모두 덮는지만 본다(숫자 경계만으로 판단하지 않음).
+    """
+    payload = _dict(job.get("payload"))
+    generation = payload.get("memory_generation")
+    ids = payload.get("source_message_ids")
+    epoch = payload.get("privacy_epoch")
+    if (
+        payload.get("schema_version") != checkpoint.SCHEMA_VERSION
+        or payload.get("summarizer_version") != checkpoint.RETENTION_SUMMARIZER_VERSION
+        or type(epoch) is not int
+        or epoch < 0
+        or type(generation) is not int
+        or generation < 0
+        or generation != current_generation
+        or payload.get("retention_preparation_id") is not None
+        or payload.get("mode") not in (None, "publish_retention")
+        or not isinstance(ids, list)
+        or not ids
+        or len(ids) > MAX_SOURCE_ROWS
+        or any(type(mid) is not int or mid <= 0 for mid in ids)
+        or len(set(ids)) != len(ids)
+        or ids != sorted(ids)
+        or type(payload.get("through_message_id")) is not int
+        or payload["through_message_id"] != ids[-1]
+        or not isinstance(payload.get("source_hash"), str)
+        or re.fullmatch(r"[0-9a-f]{64}", payload["source_hash"]) is None
+        or job.get("payload_redacted_at") is not None
+        or _wire_hash(payload) != job.get("payload_hash")
+    ):
+        return None
+    return payload, frozenset(ids)
+
+
+def _retention_replacement(failed, successful, publication, *, generation):
+    old = _retention_manifest(failed, current_generation=generation)
+    new = _retention_manifest(successful, current_generation=generation)
+    if old is None or new is None:
+        return False
+    (old_payload, wanted), (new_payload, covered) = old, new
+    # 게시된 요약의 검증 기록에 남은 epoch까지 같아야 한다(같은 개인정보 상태에서 게시된 것만 인정).
+    published_epoch = _dict(publication.get("validation_json")).get("privacy_epoch")
+    return (
+        publication["version"] == checkpoint.RETENTION_SUMMARIZER_VERSION
+        and old_payload["source_hash"] == new_payload["source_hash"] == publication["source_hash"]
+        and publication["through_message_id"] == new_payload["through_message_id"]
+        and type(published_epoch) is int
+        and old_payload["privacy_epoch"] == new_payload["privacy_epoch"] == published_epoch
+        and wanted <= covered
+    )
+
+
 def verified_replacement(failed, successful, publication, *, generation, parents, source_rows):
     """No I/O and no model: same owner/generation/version, exact hashes, superset."""
     try:
@@ -142,6 +197,8 @@ def verified_replacement(failed, successful, publication, *, generation, parents
             or publication["created_at"] < failed["finished_at"]
         ):
             return False
+        if _dict(failed.get("payload")).get("summarizer_version") == checkpoint.RETENTION_SUMMARIZER_VERSION:
+            return _retention_replacement(failed, successful, publication, generation=generation)
         failed_manifest = _manifest(
             failed, current_generation=generation, parents=parents, source_rows=source_rows
         )
@@ -274,6 +331,13 @@ async def snapshot(session, *, now=None):
             mode=settings.privacy_barrier_mode,
         ).allowed:
             continue
+        failed_payload = _dict(failed["payload"])
+        retention = failed_payload.get("summarizer_version") == checkpoint.RETENTION_SUMMARIZER_VERSION
+        # v5는 같은 계획(source_hash)만 증거가 된다. 초안·게시 작업이 같은 해시로 여러 행 나오므로
+        # 그 해시로 바로 좁혀, 다른 최근 요약 때문에 개수 상한에서 빠지지 않게 한다.
+        plan_hash = failed_payload.get("source_hash") if retention else None
+        if retention and not isinstance(plan_hash, str):
+            continue
         candidates = (
             (
                 await session.execute(
@@ -284,12 +348,14 @@ async def snapshot(session, *, now=None):
             AND c.memory_generation=:generation AND c.preparation_id IS NULL
           WHERE j.user_id=:uid AND j.queue='content' AND j.job_type='conversation_checkpoint' AND j.state='succeeded'
             AND j.payload_redacted_at IS NULL AND c.created_at>=:finished
+            AND (CAST(:plan_hash AS text) IS NULL OR j.payload->>'source_hash'=CAST(:plan_hash AS text))
           ORDER BY c.created_at DESC,c.id LIMIT :limit"""),
                     {
                         "uid": failed["user_id"],
                         "generation": failed["current_generation"],
                         "finished": failed["finished_at"],
                         "limit": MAX_CANDIDATES,
+                        "plan_hash": plan_hash,
                     },
                 )
             )
@@ -310,7 +376,8 @@ async def snapshot(session, *, now=None):
         if len(ids) > MAX_SOURCE_ROWS:
             complete = False
             continue
-        source_rows = {
+        # v5는 원문을 다시 해시하지 않으므로(게시 단계가 이미 확인) 대화 원문을 읽지 않는다.
+        source_rows = {} if retention else {
             row["id"]: message_content.project_message(row, user_id=failed["user_id"])
             for row in (
                 await session.execute(

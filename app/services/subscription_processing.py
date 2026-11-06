@@ -98,6 +98,23 @@ def _anonymous_alias_of_owner(event: dict, original_customer_id, owner_id: str) 
     )
 
 
+async def _owned_same_chain_before(session, sub, event: dict, paid_at) -> bool:
+    """결제 전부터 이 사용자가 같은 스토어 원거래의 구독을 갖고 있었다는 서버 기록이 있는가."""
+    original = event.get("original_transaction_id")
+    if not isinstance(original, str) or not original or paid_at is None:
+        return False
+    found = (await session.execute(
+        select(Subscription.id).where(
+            Subscription.user_id == sub.user_id,
+            Subscription.id != sub.id,
+            Subscription.original_transaction_id == original,
+            Subscription.created_at <= paid_at,
+            or_(Subscription.ownership_changed_at.is_(None), Subscription.ownership_changed_at <= paid_at),
+        ).limit(1)
+    )).scalar_one_or_none()
+    return found is not None
+
+
 def financial_action(event: dict) -> str | None:
     if event.get("type") == "REFUND_REVERSED":
         return "reverse"
@@ -475,11 +492,16 @@ async def _finance(session, event: dict, state: dict, pay: Payment | None, sub, 
         and event.get("transaction_id") == first["id"]
         and target.snapshot.get("original_customer_id") == str(sub.user_id)
     )
-    # 새로 만든 구독 행의 소유 시작은 처리 시각이라 결제 시각보다 늦다. 첫 구매자가 로그인 전 익명 ID이고
-    # RevenueCat이 그 ID를 지금 고객과 같은 고객으로 묶어 둔 경우(이벤트 aliases에 둘 다 있음)만 본인 결제로 본다.
-    # 다른 실제 계정 ID는 인정하지 않는다(구독 이전 때 예전 주인의 결제를 다시 만들지 않는다).
-    own_anonymous_original = target.before is None and _anonymous_alias_of_owner(
-        event, target.snapshot.get("original_customer_id"), str(sub.user_id))
+    # 새로 만든 구독 행의 소유 시작은 처리 시각이라 결제 시각보다 늦다(예: 체험 만료 뒤 다시 결제).
+    # 아래를 모두 만족할 때만 본인 결제로 본다. aliases만으로는 판단하지 않는다(기기 공유·구매 복원).
+    #  1) 가족 공유 결제가 아니다  2) 첫 구매자가 로그인 전 익명 ID이고 RevenueCat이 지금 고객과 같은
+    #  고객으로 묶었다  3) 결제 전부터 이 사용자가 같은 원거래의 구독을 갖고 있었다는 서버 기록이 있다.
+    own_anonymous_original = (
+        target.before is None
+        and event.get("is_family_share") is False
+        and _anonymous_alias_of_owner(event, target.snapshot.get("original_customer_id"), str(sub.user_id))
+        and await _owned_same_chain_before(session, sub, event, start)
+    )
     unknown_new_owner = (target.before is None and not own_anonymous_original
                          and target.snapshot.get("original_customer_id") != str(sub.user_id))
     predates_ownership = not own_anonymous_original and sub.ownership_changed_at and (

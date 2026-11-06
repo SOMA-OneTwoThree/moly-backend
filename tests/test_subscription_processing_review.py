@@ -552,15 +552,17 @@ async def test_review_refund_records_money_but_does_not_touch_unrelated_bonus(mo
     ledger.assert_not_awaited()
 
 
+
 ANON = "$RCAnonymousID:0123456789abcdef"
 
 
-def _resubscribe_case(uid, *, original=ANON, aliases=None, before=None):
+def _resubscribe_case(uid, *, original=ANON, aliases=None, before=None, family=False):
     """체험 만료 뒤 다시 결제: 새 RC 구독 묶음이라 로컬 행을 새로 만들고, 소유 시작은 처리 시각(결제보다 늦음)."""
     sid = uuid.uuid4()
     paid_at = datetime(2026, 11, 6, 0, 48, 50, tzinfo=timezone.utc)
     purchase = {"id": "resubscribe-renewal", "type": "RENEWAL", "app_user_id": str(uid),
-                "transaction_id": "resubscribe-tx", "period_type": "NORMAL",
+                "transaction_id": "resubscribe-tx", "original_transaction_id": "chain-otx",
+                "period_type": "NORMAL", "is_family_share": family,
                 "price_in_purchased_currency": 980, "environment": "PRODUCTION", "store": "APP_STORE",
                 "purchased_at_ms": int(paid_at.timestamp() * 1000),
                 "event_timestamp_ms": int(paid_at.timestamp() * 1000) + 8000,
@@ -574,24 +576,39 @@ def _resubscribe_case(uid, *, original=ANON, aliases=None, before=None):
     return purchase, sub, prepared
 
 
-async def test_own_anonymous_original_purchaser_is_recorded_after_resubscribe(monkeypatch):
+def _prior_chain(monkeypatch, owned: bool):
+    check = AsyncMock(return_value=owned)
+    monkeypatch.setattr(processing, "_owned_same_chain_before", check)
+    return check
+
+
+async def test_own_resubscribe_records_payment_and_first_hay_once(monkeypatch):
     uid = uuid.uuid4()
     purchase, sub, prepared = _resubscribe_case(uid)
+    check = _prior_chain(monkeypatch, True)
     pay = SimpleNamespace(id=uuid.uuid4(), user_id=uid, subscription_id=sub.id, status="paid",
                           store_transaction_id="resubscribe-tx", store="app_store",
-                          subscription_plan="monthly", subscription_bonus_review=None)
+                          subscription_plan="monthly", subscription_bonus_review="held:review_pending",
+                          subscription_hay_grant_id=None)
     create = AsyncMock(return_value=pay)
+    grant = AsyncMock(return_value=SimpleNamespace(id=uuid.uuid4()))
     monkeypatch.setattr(subscription, "_record_subscription_payment", create)
     monkeypatch.setattr(subscription, "_validate_subscription_payment", Mock())
+    monkeypatch.setattr(subscription, "_grant_if_first", grant)
     state = processing.new_state(purchase)
     await processing._finance(HistorySession([]), purchase, state, None, sub, prepared)
     create.assert_awaited_once()
-    assert state.get("reason") != "historical payer ownership unverified: do not reconstruct money"
+    assert grant.await_args.args[1:] == (uid, "monthly")
+    assert state["payment_record"] == "done" and state["bonus"] == "done"
+    assert pay.subscription_bonus_review == "granted"
+    check.assert_awaited_once()
 
 
 @pytest.mark.parametrize("case", ["other_real_account", "anonymous_not_aliased", "owner_not_aliased",
-                                  "no_aliases", "different_app_user"])
+                                  "no_aliases", "different_app_user", "family_shared",
+                                  "no_prior_same_chain"])
 async def test_unproven_original_purchaser_still_blocks_money(monkeypatch, case):
+    """aliases만으로는 인정하지 않는다: 기기 공유·구매 복원·가족 공유·결제 전 기록 없음은 계속 막는다."""
     uid = uuid.uuid4()
     kwargs = {}
     if case == "other_real_account":
@@ -602,9 +619,12 @@ async def test_unproven_original_purchaser_still_blocks_money(monkeypatch, case)
         kwargs = {"aliases": [ANON]}
     elif case == "no_aliases":
         kwargs = {"aliases": []}
+    elif case == "family_shared":
+        kwargs = {"family": True}
     purchase, sub, prepared = _resubscribe_case(uid, **kwargs)
     if case == "different_app_user":
         purchase["app_user_id"] = str(uuid.uuid4())
+    _prior_chain(monkeypatch, case != "no_prior_same_chain")
     create = AsyncMock()
     grant = AsyncMock()
     monkeypatch.setattr(subscription, "_record_subscription_payment", create)
@@ -620,9 +640,32 @@ async def test_existing_local_subscription_keeps_the_ownership_time_rule(monkeyp
     """기존 행(before 있음)은 이번 수정 대상이 아니다. 소유 변경 전 결제는 지금처럼 막는다."""
     uid = uuid.uuid4()
     purchase, sub, prepared = _resubscribe_case(uid, before={"id": "existing"})
+    check = _prior_chain(monkeypatch, True)
     create = AsyncMock()
     monkeypatch.setattr(subscription, "_record_subscription_payment", create)
     state = processing.new_state(purchase)
     await processing._finance(HistorySession([]), purchase, state, None, sub, prepared)
     create.assert_not_awaited()
+    check.assert_not_awaited()
     assert state["reason"] == "historical payer ownership unverified: do not reconstruct money"
+
+
+async def test_prior_chain_query_requires_same_user_same_original_and_ownership_before_payment():
+    captured = []
+
+    class Capture:
+        async def execute(self, statement):
+            captured.append(statement)
+            return SimpleNamespace(scalar_one_or_none=lambda: None)
+
+    uid, sid = uuid.uuid4(), uuid.uuid4()
+    paid_at = datetime(2026, 11, 6, tzinfo=timezone.utc)
+    sub = SimpleNamespace(id=sid, user_id=uid)
+    assert not await processing._owned_same_chain_before(Capture(), sub, {"original_transaction_id": "chain"}, paid_at)
+    sql = str(captured[0].compile(dialect=postgresql.dialect(), compile_kwargs={"literal_binds": True}))
+    for fragment in ("subscriptions.user_id =", "subscriptions.id !=", "subscriptions.original_transaction_id = 'chain'",
+                     "subscriptions.created_at <=", "subscriptions.ownership_changed_at IS NULL",
+                     "subscriptions.ownership_changed_at <="):
+        assert fragment in sql
+    assert not await processing._owned_same_chain_before(Capture(), sub, {}, paid_at)
+    assert len(captured) == 1  # 원거래 ID가 없으면 조회하지 않고 거부

@@ -332,11 +332,13 @@ async def process_event(session: AsyncSession, event_id: str) -> str:
                 return "skipped"
             result = await subscription_processing.apply(session, row, prepared)
             state = dict(row.processing_state)
+            # 탈퇴 진행 중 대기는 횟수에 넣지 않는다. 쌓이면 예외 한 번에 바로 failed가 된다(_record_retry).
+            held = state.get(subscription_processing.HOLD_KEY) is True
             status, pending = subscription_processing.finish_attempt(state)
             row.processing_state = state
             row.status = status
             row.last_error = state.get("reason") if status != "processed" else None
-            if status != "processed":
+            if status != "processed" and not held:
                 row.attempts += 1
             if pending:
                 row.next_attempt_at = datetime.now(timezone.utc) + _RETRY_BACKOFF

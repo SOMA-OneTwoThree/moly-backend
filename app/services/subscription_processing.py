@@ -23,7 +23,7 @@ from app.models.profile import Profile
 from app.models.revenuecat_event import RevenuecatEvent
 from app.models.subscription import Subscription
 from app.models.subscription_hay_grant import SubscriptionHayGrant
-from app.services import revenuecat, subscription_access as access
+from app.services import privacy, revenuecat, subscription_access as access
 from app.services.config_store import get_config_values
 
 ENABLED = "subscription_access_evidence_enabled"
@@ -217,6 +217,74 @@ async def _live_owner_purchase(session, event: dict, received_at, sub, target) -
     return not await _chain_conflict(session, sub.user_id, chain_ids)
 
 
+# ─────────────────────────────────────────────────────────────
+# 탈퇴가 끝난 계정의 스토어 결제 — 기록할 앱 계정이 없다(구독 행은 정리 트리거, 결제 행은 CASCADE로 사라진다).
+# 재시도해도 결과가 같으므로 결제 기록·첫 구독 건초를 "건너뜀"으로 끝낸다. 이 계정 하나만 관련됐다는
+# 증거가 모두 있을 때만 그렇게 하고, 하나라도 모자라면 기존 재시도·수동 확인을 따른다.
+# 탈퇴가 진행 중(deleting)이면 되돌려질 수 있으므로 판정하지 않고, 하루 안에서는 재시도 횟수를 쓰지 않는다.
+# ─────────────────────────────────────────────────────────────
+_DELETED = privacy.STATUS_DELETED
+_DELETING = privacy.STATUS_DELETING
+_DELETING_HOLD = timedelta(hours=24)
+HOLD_KEY = "hold_attempt"  # 이번 시도를 횟수에서 빼라는 표시. finish_attempt가 읽고 지운다.
+_EPOCH = datetime(2000, 1, 1, tzinfo=timezone.utc)
+
+
+def _other_account_named(payload_names, owner: uuid.UUID) -> bool:
+    """이벤트 하나의 app_user_id가 이 계정이 아니거나, 별칭·최초 사용자에 다른 UUID가 있는가."""
+    app_user, original_user, aliases = payload_names
+    if _uuid(app_user) != owner:
+        return True  # 익명 ID·다른 계정·이름 없는 이벤트. 일부러 막는다(잘못 건너뛰는 것보다 수동 확인이 낫다).
+    aliases = [] if aliases is None else aliases
+    if (not isinstance(original_user, (str, type(None))) or not isinstance(aliases, list)
+            or not all(isinstance(name, str) for name in aliases)):
+        return True  # 형식을 모르면 확인하지 못한 것으로 본다.
+    return any(_uuid(name) not in {None, owner} for name in [original_user, *aliases])
+
+
+async def _other_user_in_chain(session, original: str, owner: uuid.UUID) -> bool:
+    """같은 원거래 inbox 이벤트(상태 무관) 중 다른 계정 흔적이 하나라도 있는가. 상한을 넘으면 있다고 본다."""
+    payload = RevenuecatEvent.payload
+    rows = list((await session.execute(select(
+        # 이름 칸은 JSON 원형으로 읽는다. 문자로 바꿔 읽으면 객체·숫자가 형식 검사를 빠져나간다.
+        payload["app_user_id"].astext, payload["original_app_user_id"], payload["aliases"],
+    ).where(payload["original_transaction_id"].astext == original).limit(_CHAIN_ID_LIMIT + 1))).all())
+    return len(rows) > _CHAIN_ID_LIMIT or any(_other_account_named(row, owner) for row in rows)
+
+
+async def _deleted_owner_purchase(session, event: dict, prepared: Prepared) -> str | None:
+    """`deleted`=건너뛰어도 됨, `deleting`=탈퇴 진행 중, None=판정 불가(기존 처리)."""
+    tx, original = event.get("transaction_id"), event.get("original_transaction_id")
+    if (event.get("type") not in {"INITIAL_PURCHASE", "RENEWAL"}
+            or event.get("is_family_share") is not False
+            or not isinstance(tx, str) or not tx or not isinstance(original, str) or not original
+            or prepared.before):
+        return None
+    matches = [t for t in prepared.targets if tx in {item.get("id") for item in t.transactions}]
+    if len(matches) != 1 or matches[0].before is not None:
+        return None
+    target = matches[0]
+    owner = _uuid(target.snapshot.get("customer_id"))
+    if owner is None or _other_account_named(
+            (event.get("app_user_id"), event.get("original_app_user_id"), event.get("aliases")), owner):
+        return None  # 이벤트 사용자가 다르거나 다른 앱 계정이 별칭으로 붙어 있다.
+    if await session.get(Profile, owner) is not None:
+        return None
+    status = (await privacy.load_barrier(session, owner)).status
+    if status == _DELETING:
+        return _DELETING
+    if status != _DELETED:
+        return None
+    if await _other_user_in_chain(session, original, owner):
+        return None
+    if await _transfer_involving(session, str(owner), _EPOCH):
+        return None
+    chain_ids = await _chain_transaction_ids(session, event, target)
+    if chain_ids is None or await _chain_conflict(session, owner, chain_ids):
+        return None
+    return _DELETED
+
+
 
 def financial_action(event: dict) -> str | None:
     if event.get("type") == "REFUND_REVERSED":
@@ -245,8 +313,11 @@ def validate_state(state: dict) -> dict:
 def finish_attempt(state: dict) -> tuple[str, bool]:
     """Bound each incomplete stage, preserving already verified/done stages."""
     validate_state(state)
+    hold = state.pop(HOLD_KEY, False) is True
     tries = dict(state["tries"])
     for key in (*_FINANCE, "access_state"):
+        if hold and key in ("payment_record", "bonus"):
+            continue  # 탈퇴 진행 중: 결과가 정해지기 전이라 횟수를 쓰지 않는다.
         if state[key] == "pending":
             tries[key] = int(tries.get(key, 0)) + 1
             if tries[key] >= 5:
@@ -580,7 +651,18 @@ async def _finance(session, event: dict, state: dict, pay: Payment | None, sub, 
         state["payment_record"] = state["bonus"] = "not_applicable"
         return
     if sub is None or not prepared.targets:
-        return  # New payment/bonus needs provider ownership and transaction proof.
+        # New payment/bonus needs provider ownership and transaction proof.
+        if sub is None and pay is None and prepared.targets:
+            verdict = await _deleted_owner_purchase(session, event, prepared)
+            if verdict == _DELETED:
+                state["payment_record"] = state["bonus"] = "skipped"
+                state["reason"] = "deleted account purchase: no payment record or bonus"
+            elif verdict == _DELETING:
+                state["reason"] = "account deletion in progress"
+                if received_at is not None:  # 수신 시각을 모르면 기다릴 기한도 모르니 횟수를 쓴다.
+                    seen = received_at if received_at.tzinfo else received_at.replace(tzinfo=timezone.utc)
+                    state[HOLD_KEY] = datetime.now(timezone.utc) - seen < _DELETING_HOLD
+        return
     target = next((t for t in prepared.targets if t.snapshot["id"] == sub.rc_subscription_id), None)
     if target is None:
         return
